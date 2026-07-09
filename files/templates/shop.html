@@ -1,8 +1,5 @@
 {% extends "default.html" %}
-{%- set SHOP_FLAVOR = {
-		'rDrama': 'Stir drama.',
-		'WPD': 'Watch people die.',
-	}[SITE_NAME]
+{%- set SHOP_FLAVOR = {'Obsession': 'Celebrate the community.'}.get(SITE_NAME, 'Celebrate the community.')
 -%}
 {% block pagetitle %}Shop{% endblock %}
 {% block pagetype %}message{% endblock %}
@@ -26,11 +23,11 @@
 
 	<header class="container pb-1 text-center">
 		<img loading="lazy" id="shop-banner" alt="shop banner" src="/i/shop.webp">
-		<h5 class="mt-4">{{SHOP_FLAVOR}} Earn coins.</h5>
-		<h5 class="mt-4">Total sales: {{"{:,}".format(sales)}} coins</h5>
-		<h5 class="mt-4">Coins spent by you: {{"{:,}".format(v.coins_spent)}} coins</h5>
+		<h5 class="mt-4">{{SHOP_FLAVOR}} Earn Wishcoins.</h5>
+		<h5 class="mt-4">Total sales: {{"{:,}".format(sales)}} Wishcoins</h5>
+		<h5 class="mt-4">Wishcoins spent by you: {{"{:,}".format(v.coins_spent)}} Wishcoins</h5>
 		<h5 class="mt-4">Lootboxes bought by you: {{v.lootboxes_bought}} lootbox{{'es' if v.lootboxes_bought != 1}}</h5>
-		<h5 class="mt-4">Your current coins: {{"{:,}".format(v.coins)}}</h5>
+		<h5 class="mt-4">Your current Wishcoins: {{"{:,}".format(v.coins)}}</h5>
 		{% if FEATURES['MARSEYBUX'] %}
 			<h5 class="mt-4">Your current marseybux: {{"{:,}".format(v.marseybux)}}</h5>
 		{% endif %}

@@ -10,16 +10,16 @@
 {% endmacro %}
 
 {% if p.award_count("wholesome", v) %}
-	{% set wholesome = '/e/marseywholesome.webp' %}
-	{{ stackable_award('wholesome', wholesome, ':#marseywholesome:') }}
+	{% set wholesome = '/i/Obsession/icon.webp' %}
+	{{ stackable_award('wholesome', wholesome, 'Obsession award') }}
 {% endif %}
 
 {% if p.award_count("train", v) %}
-	{{ stackable_award('train', '/e/marseytrain.webp', ':#marseytrain:') }}
+	{{ stackable_award('train', '/i/Obsession/icon.webp', 'Obsession award') }}
 {% endif %}
 
 {% if p.award_count("scooter", v) %}
-	{{ stackable_award('scooter', '/e/marseyscooter.webp', ':#marseyscooter:') }}
+	{{ stackable_award('scooter', '/i/Obsession/icon.webp', 'Obsession award') }}
 {% endif %}
 
 {% if p.award_count("firework", v) %}

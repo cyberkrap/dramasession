@@ -1,5 +1,5 @@
 {% extends "default.html" %}
-{% block pagetitle %}Marseys{% endblock %}
+{% block pagetitle %}Obsession Emotes{% endblock %}
 {% block pagetype %}marseys{% endblock %}
 {% block content %}
 <div class="overflow-x-auto mt-3"><table class="table table-striped mb-5">
@@ -7,7 +7,7 @@
 	<tr>
 		<th>#</th>
 		<th>Name</th>
-		<th>Marsey</th>
+		<th>Emote</th>
 		<th>Usage</th>
 		{% if FEATURES['ASSET_SUBMISSIONS'] %}
 			<th>Author</th>
@@ -23,7 +23,7 @@
 <tr>
 	<td>{{loop.index}}</td>
 	<td>{{marsey.name}}</td>
-	<td><img class="marsey" loading="lazy" data-bs-toggle="tooltip" alt=":#{{marsey.name}}:" title=":{{marsey.name}}:" src="/e/{{marsey.name}}.webp"></td>
+	<td><img class="marsey" loading="lazy" data-bs-toggle="tooltip" alt=":#{{marsey.name}}:" title=":{{marsey.name}}:" src="/i/Obsession/icon.webp"></td>
 	<td>{{marsey.count}}</td>
 	{% if FEATURES['ASSET_SUBMISSIONS'] %}
 	{% set user = marsey.user %}

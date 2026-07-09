@@ -215,7 +215,7 @@ emojiRequest.onload = async (e) => {
 		emojiDOM.hidden = true;
 
 		const emojiIMGDOM = emojiDOM.children[0];
-		emojiIMGDOM.src = "/e/" + emoji.name + ".webp";
+		emojiIMGDOM.src = "/i/Obsession/icon.webp";
 		emojiIMGDOM.alt = emoji.name;
 		/** Disableing lazy loading seems to reduce cpu usage somehow (?)
 			* idk it is difficult to benchmark */

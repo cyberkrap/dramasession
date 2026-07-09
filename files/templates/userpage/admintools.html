@@ -103,9 +103,9 @@
 				{% endif %}
 
 				{% if v.admin_level >= PERMS['USER_BLACKLIST'] %}
-					<button type="button" id="unblacklist-{{deviceType}}" class="mt-1 {% if not u.blacklisted_by %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unblacklist/{{u.id}}','blacklist-{{deviceType}}','unblacklist-{{deviceType}}','d-none')">Unblacklist From Restricted Holes</button>
+					<button type="button" id="unblacklist-{{deviceType}}" class="mt-1 {% if not u.blacklisted_by %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unblacklist/{{u.id}}','blacklist-{{deviceType}}','unblacklist-{{deviceType}}','d-none')">Unblacklist From Restricted Boards</button>
 
-					<button type="button" id="blacklist-{{deviceType}}" class="mt-1 {% if u.blacklisted_by %}d-none{% endif %} btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/blacklist/{{u.id}}','blacklist-{{deviceType}}','unblacklist-{{deviceType}}','d-none')">Blacklist From Restricted Holes</button>
+					<button type="button" id="blacklist-{{deviceType}}" class="mt-1 {% if u.blacklisted_by %}d-none{% endif %} btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/blacklist/{{u.id}}','blacklist-{{deviceType}}','unblacklist-{{deviceType}}','d-none')">Blacklist From Restricted Boards</button>
 				{% endif %}
 
 			</div>

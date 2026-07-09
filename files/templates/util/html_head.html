@@ -40,7 +40,7 @@
 			u.username ~ "'s profile" %}
 
 		{% set description %}
-			{{u.coins}} coins - Joined {{u.created_date}} -
+			{{u.coins}} Wishcoins - Joined {{u.created_date}} -
 			{%- if u.stored_subscriber_count >=1 and not u.is_private -%}
 				{{u.stored_subscriber_count}} Followers -
 			{%- endif -%}

@@ -34,11 +34,11 @@
 						<div class="dropdown dropdown-actions">
 
 							<button type="button" class="btn btn-secondary dropdown-toggle" id="dropdownMenuButton" data-bs-toggle="dropdown">
-								{% if admin %}<img loading="lazy" src="/@{{admin}}/pic" alt="avatar" class="profile-pic-20 mr-2">{{admin}}{% else %}<img loading="lazy" src="/e/marseyjanny.webp" alt="avatar" class="profile-pic-20 mr-2">All{% endif %}
+								{% if admin %}<img loading="lazy" src="/@{{admin}}/pic" alt="avatar" class="profile-pic-20 mr-2">{{admin}}{% else %}<img loading="lazy" src="/i/default-profile-pic.webp" alt="avatar" class="profile-pic-20 mr-2">All{% endif %}
 							</button>
 							<div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 31px, 0px); max-height: 50vh;
 							overflow: auto;">
-								<a class="dropdown-item" href="/log{% if type %}?kind={{type}}{% endif %}"><img loading="lazy" src="/e/marseyjanny.webp" alt="avatar" class="profile-pic-20 mr-2">All</a>
+								<a class="dropdown-item" href="/log{% if type %}?kind={{type}}{% endif %}"><img loading="lazy" src="/i/default-profile-pic.webp" alt="avatar" class="profile-pic-20 mr-2">All</a>
 								{% for a in admins %}
 									<a class="dropdown-item" href="?{{single_user_url}}={{a}}{% if type %}&kind={{type}}{% endif %}"><img loading="lazy" src="/@{{a}}/pic" alt="avatar" class="profile-pic-20 mr-2">{{a}}</a>
 								{% endfor %}

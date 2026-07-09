@@ -1,11 +1,11 @@
 {% extends "default.html" %}
-{% block pagetitle %}Submit Marseys{% endblock %}
+{% block pagetitle %}Submit Emotes{% endblock %}
 {% block pagetype %}message{% endblock %}
 {% block content %}
 	{% if error %}{{macros.alert(error, true)}}{% endif %}
 	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
 	<div class="mx-4">
-		<h2 class="mt-5">Submit Marsey</h2>
+		<h2 class="mt-5">Submit an Emote</h2>
 			<div class="settings-section rounded">
 				<div class="d-lg-flex">
 					<div class="body w-lg-100">
@@ -33,7 +33,7 @@
 
 							<div class="footer mt-5">
 								<div class="d-flex">
-									<input id="submit-marsey" disabled type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary ml-auto" value="Submit Marsey">
+									<input id="submit-marsey" disabled type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary ml-auto" value="Submit Emote">
 								</div>
 							</div>
 						</form>

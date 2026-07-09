@@ -1,6 +1,6 @@
 export FLASK_APP="/rDrama/files/cli:app"
 export SITE="localhost"
-export SITE_NAME="rDrama"
+export SITE_NAME="Obsession"
 export SECRET_KEY="blahblahblah"
 export DATABASE_URL="postgresql://postgres@postgres:5432"
 export REDIS_URL="redis://redis:6379"

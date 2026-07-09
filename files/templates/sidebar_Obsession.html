@@ -1,0 +1,43 @@
+<div class="col sidebar text-left {% if '/sidebar' not in request.path %}d-none d-lg-block{% endif %} pt-3" {% if request.path != '/sidebar' %}id="sidebar-content"{% endif %}>
+	{% if sub %}
+		{% set image = sub.sidebar_url %}
+	{% else %}
+		{% set image = '/i/' ~ SITE_NAME ~ '/sidebar2.webp?v=1' %}
+	{% endif %}
+
+	{% if request.path != '/sidebar' %}
+		<a href="{{image}}">
+			<img class="mb-4" alt="Obsession community artwork" data-nonce="{{g.nonce}}" data-onclick="expandImage()" loading="lazy" src="{{image}}" width=100%>
+		</a>
+	{% endif %}
+
+	<p class="text-center text-md mb-4">
+		<a class="sidebar-link d-md-none" href="/random_user" data-bs-toggle="tooltip" data-bs-placement="top" title="Random User"><i class="fas fa-music"></i></a>
+		<a class="sidebar-link" href="/marseys" data-bs-toggle="tooltip" data-bs-placement="top" title="Obsession Emotes"><i class="fas fa-face-smile"></i></a>
+		<a class="sidebar-link" href="/badges" data-bs-toggle="tooltip" data-bs-placement="top" title="Badges"><i class="fas fa-hexagon"></i></a>
+		<a class="sidebar-link" href="/admins" data-bs-toggle="tooltip" data-bs-placement="top" title="Admins"><i class="fas fa-crown"></i></a>
+		<a class="sidebar-link" href="/log" data-bs-toggle="tooltip" data-bs-placement="top" title="Moderation Log"><i class="fas fa-scroll-old"></i></a>
+		<a class="sidebar-link" href="/transfers" data-bs-toggle="tooltip" data-bs-placement="top" title="Transfers"><i class="fas fa-arrow-right-arrow-left"></i></a>
+		<a class="sidebar-link" href="/random_post" data-bs-toggle="tooltip" data-bs-placement="top" title="Random Post"><i class="fas fa-random"></i></a>
+	</p>
+
+	{% if sub %}
+		{% if sub.sidebar_html %}<div class="mb-4">{{sub.sidebar_html|safe}}</div>{% endif %}
+		{% if v %}
+			<a class="btn btn-primary btn-block mb-3" href="/holes">BROWSE {{HOLE_NAME|upper}}S</a>
+			{% if v.can_create_hole %}<a class="btn btn-primary btn-block mb-3" href="/create_hole">CREATE {{HOLE_NAME|upper}}</a>{% endif %}
+			<a class="btn btn-primary btn-block mb-3" href="/h/{{sub}}/log">{{HOLE_NAME|upper}} LOG</a>
+			{% if v.mods(sub.name) %}<a class="btn btn-primary btn-block mb-3" href="/h/{{sub}}/settings">{{HOLE_NAME|upper}} SETTINGS</a>{% endif %}
+		{% endif %}
+		<a class="btn btn-primary btn-block mb-3" href="/h/{{sub}}/mods">{{HOLE_NAME|upper}} MODS</a>
+		<a class="btn btn-primary btn-block mb-3" href="/h/{{sub}}/exilees">{{HOLE_NAME|upper}} EXILEES</a>
+	{% else %}
+		<a id="sidebar--directory--btn" class="btn btn-primary btn-block mb-3" href="/directory">
+			<span id="sidebar--directory--head">DIRECTORY</span>
+			<span id="sidebar--directory--subhead">Submit Emotes & Art | Community Info</span>
+		</a>
+		<a class="btn btn-primary btn-block mb-3" href="/holes">BROWSE BOARDS</a>
+		{% if v and v.can_create_hole %}<a class="btn btn-primary btn-block mb-3" href="/create_hole">CREATE BOARD</a>{% endif %}
+		<div class="sidebar--rules pt-2">{% include "rules_Obsession.html" %}</div>
+	{% endif %}
+</div>

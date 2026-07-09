@@ -1,0 +1,19 @@
+{% extends "default.html" %}
+{% block pagetitle %}Support Obsession{% endblock %}
+{% block content %}
+	<h1 class="py-3">Support Obsession Forum</h1>
+	<div class="overflow-x-auto">
+		<table class="table table-striped mb-5">
+			<tbody>
+				{% if v and v.truescore >= TRUESCORE_DONATE_MINIMUM and DONATE_LINK != DEFAULT_CONFIG_VALUE %}
+				<tr>
+					<td>{{DONATE_SERVICE}}</td>
+					<td><a rel="nofollow noopener" href="{{DONATE_LINK}}">{{DONATE_LINK}}</a></td>
+				</tr>
+				{% else %}
+				<tr><td>Support options will be available soon.</td></tr>
+				{% endif %}
+			</tbody>
+		</table>
+	</div>
+{% endblock %}

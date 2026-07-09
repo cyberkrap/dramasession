@@ -69,11 +69,11 @@
 
 				<div class="font-weight-bolder">
 					<span id="profile-coins-amount">{{u.coins}}</span>
-					<img loading="lazy" alt="coins" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Coins" height="20" src="{{'coins.webp' | asset_siteimg}}">
+					<img loading="lazy" alt="Wishcoins" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Wishcoins" height="20" src="{{'coins.webp' | asset_siteimg}}">
 
 					{% if FEATURES['MARSEYBUX'] %}
 						<span id="profile-bux-amount">{{u.marseybux}}</span>
-						<img loading="lazy" alt="marseybux" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Marseybux" height="20" width="46" src="/i/marseybux.webp?v=2000">
+						<img loading="lazy" alt="marseybux" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Wishbux" height="20" width="46" src="/i/marseybux.webp?v=2000">
 					{% endif %}
 
 					{% if PERMS['USER_FOLLOWS_VISIBLE'] == 0 or (v and v.admin_level >= PERMS['USER_FOLLOWS_VISIBLE']) -%}
@@ -143,9 +143,9 @@
 								{% if FEATURES['USERS_SUICIDE'] -%}
 									<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/suicide')">Get Them Help</button>
 								{%- endif %}
-								<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('coin-transfer', 'coin-transfer-amount')">Gift Coins</button>
+								<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('coin-transfer', 'coin-transfer-amount')">Gift Wishcoins</button>
 								{% if FEATURES['MARSEYBUX'] -%}
-									<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('bux-transfer', 'bux-transfer-amount')">Gift Marseybux</button>
+									<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('bux-transfer', 'bux-transfer-amount')">Gift Wishbux</button>
 								{%- endif %}
 
 								<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/block?username={{u.username}}')">Block</button>
@@ -173,7 +173,7 @@
 						<div class="d-none mt-3 toggleable" id="coin-transfer">
 							<input autocomplete="off" id="coin-transfer-amount" class="form-control" name="amount" type="number" data-nonce="{{g.nonce}}" data-oninput="updateTax()">
 							<input autocomplete="off" id="coin-transfer-reason" maxlength=200 type="text" class="form-control" name="reason" placeholder="Gift message! (optional)">
-							<div>{{u.username}} will receive <span id="coins-transfer-taxed">0</span> coins</div>
+							<div>{{u.username}} will receive <span id="coins-transfer-taxed">0</span> Wishcoins</div>
 							<button type="button" class="btn btn-primary mt-2 mb-3" data-nonce="{{g.nonce}}" data-onclick="transferCoins(this)">Gift</button>
 						</div>
 
@@ -223,7 +223,7 @@
 
 					<div class="mt-4" id="profile--info">
 						<p id="profile--info--id">User ID: {{u.id}}</p>
-						<p id="profile--info--spent">Coins spent: {{u.coins_spent}}</p>
+						<p id="profile--info--spent">Wishcoins spent: {{u.coins_spent}}</p>
 						<p id="profile--info--truescore">True score: {{u.truescore}}</p>
 						<p id="profile--info--winnings">Winnings: {{u.winnings}}</p>
 						<p id="profile--info--hats-owned" {% if u.num_of_owned_hats >= hats_total %}class="profile-owned-all-hats"{% endif %}>{{u.num_of_owned_hats}} / {{hats_total}} hats owned ({{hats_owned_percent}})</p>
@@ -334,11 +334,11 @@
 
 				<div class="font-weight-normal">
 					<span id="profile-coins-amount-mobile" class="font-weight-bold">{{u.coins}}</span>
-					<img loading="lazy" alt="coins" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Coins" height="15" src="{{'coins.webp' | asset_siteimg}}">
+					<img loading="lazy" alt="Wishcoins" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Wishcoins" height="15" src="{{'coins.webp' | asset_siteimg}}">
 
 					{% if FEATURES['MARSEYBUX'] %}
 						<span id="profile-bux-amount-mobile" class="font-weight-bold">{{u.marseybux}}</span>
-						<img loading="lazy" alt="marseybux" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Marseybux" height="15" width="35" src="/i/marseybux.webp?v=2000">
+						<img loading="lazy" alt="marseybux" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Wishbux" height="15" width="35" src="/i/marseybux.webp?v=2000">
 					{% endif %}
 
 					{% if PERMS['USER_FOLLOWS_VISIBLE'] == 0 or (v and v.admin_level >= PERMS['USER_FOLLOWS_VISIBLE']) -%}
@@ -451,9 +451,9 @@
 						{% if FEATURES['USERS_SUICIDE'] -%}
 							<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/suicide')">Get Them Help</button>
 						{%- endif %}
-						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('coin-transfer-mobile', 'coin-transfer-amount-mobile')">Gift Coins</button>
+						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('coin-transfer-mobile', 'coin-transfer-amount-mobile')">Gift Wishcoins</button>
 						{% if FEATURES['MARSEYBUX'] -%}
-							<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('bux-transfer-mobile', 'bux-transfer-amount-mobile')">Gift Marseybux</button>
+							<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('bux-transfer-mobile', 'bux-transfer-amount-mobile')">Gift Wishbux</button>
 						{%- endif %}
 
 						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/block?username={{u.username}}')">Block</button>
@@ -480,7 +480,7 @@
 					<div class="d-none mt-3 toggleable" id="coin-transfer-mobile">
 						<input autocomplete="off" id="coin-transfer-amount-mobile" class="form-control" name="amount" type="number" data-nonce="{{g.nonce}}" data-oninput="updateTax(true)">
 						<input autocomplete="off" id="coin-transfer-reason-mobile" maxlength=200 type="text" class="form-control" name="reason" placeholder="Gift message! (optional)">
-						<div>{{u.username}} will receive <span id="coins-transfer-taxed-mobile">0</span> coins</div>
+						<div>{{u.username}} will receive <span id="coins-transfer-taxed-mobile">0</span> Wishcoins</div>
 						<button type="button" class="btn btn-primary mt-2 mb-3" data-nonce="{{g.nonce}}" data-onclick="transferCoins(this, true)">Gift</button>
 					</div>
 
@@ -495,7 +495,7 @@
 
 				<div id="profile-mobile--info">
 					<p id="profile-mobile--info--id">User ID: {{u.id}}</p>
-					<p id="profile-mobile--info--spent">Coins spent: {{u.coins_spent}}</p>
+					<p id="profile-mobile--info--spent">Wishcoins spent: {{u.coins_spent}}</p>
 					<p id="profile-mobile--info--truescore">True score: {{u.truescore}}</p>
 					<p id="profile-mobile--info--winnings">Winnings: {{u.winnings}}</p>
 					<p id="profile-mobile--info--hats-owned" {% if u.num_of_owned_hats >= hats_total %}class="profile-owned-all-hats"{% endif %}>{{u.num_of_owned_hats}} / {{hats_total}} hats owned ({{hats_owned_percent}})</p>

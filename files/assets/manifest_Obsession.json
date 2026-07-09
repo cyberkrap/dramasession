@@ -1,0 +1,13 @@
+{
+  "name": "Obsession Forum",
+  "short_name": "Obsession",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#101113",
+  "theme_color": "#991b1b",
+  "description": "A dark, community-focused forum.",
+  "icons": [
+    {"src": "/i/Obsession/192.png?v=1", "sizes": "192x192", "type": "image/png"},
+    {"src": "/i/Obsession/512.png?v=1", "sizes": "512x512", "type": "image/png"}
+  ]
+}

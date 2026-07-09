@@ -17,16 +17,17 @@ def IS_HOMOWEEN():
 	return homoween_begin < datetime.datetime.now() < homoween_end
 
 DEFAULT_TIME_FILTER = "all"
+TAGLINES = ("A dark community forum",)
 DEFAULT_THEME = "midnight"
-DEFAULT_COLOR = "805ad5"
+DEFAULT_COLOR = "991b1b"
 SPAM_SIMILARITY_THRESHOLD = 0.5
 SPAM_URL_SIMILARITY_THRESHOLD = 0.1
 SPAM_SIMILAR_COUNT_THRESHOLD = 10
 COMMENT_SPAM_SIMILAR_THRESHOLD = 0.5
 COMMENT_SPAM_COUNT_THRESHOLD = 10
 DISABLE_DOWNVOTES = False
-DESCRIPTION = "rdrama.net caters to drama in all forms such as: Real life, videos, photos, gossip, rumors, news sites, Reddit, and Beyond™. There isn't drama we won't touch, and we want it all!"
-EMAIL = f"rdrama@rdrama.net"
+DESCRIPTION = "A dark, community-focused forum for conversations, shared interests, and community life."
+EMAIL = "contact@obsession.local"
 TELEGRAM_ID = ""
 
 DEFAULT_CONFIG_VALUE = "blahblahblah"
@@ -603,13 +604,13 @@ TRUESCORE_CLUB_MINIMUM = 1000
 TRUESCORE_MASTERBAITERS_MINIMUM = 100
 
 LOGGEDIN_ACTIVE_TIME = 15 * 60
-PFP_DEFAULT_MARSEY = True
+PFP_DEFAULT_MARSEY = False
 NEW_USER_HAT_AGE = 0 # seconds of age to show new-user forced hat
 NOTIFICATION_SPAM_AGE_THRESHOLD = 0.5 * 86400
 COMMENT_SPAM_LENGTH_THRESHOLD = 50
 UNDER_SIEGE_AGE_THRESHOLD = 10 * 60
 
-HOLE_NAME = 'hole'
+HOLE_NAME = 'board'
 HOLE_STYLE_FLAIR = False
 HOLE_REQUIRED = False
 HOLE_COST = 0

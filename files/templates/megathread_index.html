@@ -1,83 +1,20 @@
 {% extends "default.html" %}
-{% block pagetitle %}Directory{% endblock %}
+{% block pagetitle %}Community Directory{% endblock %}
 {% block pagetype %}directory{% endblock %}
-{# Title (~25char max), Description (~80char max),
-	Icon (fa-foo-bar), Color (#ff0000), URL (/post/12345/) #}
-{%- set MEGATHREAD_INDEX = [] -%}
-
-{%- if SITE_NAME == 'rDrama' -%}
-{%- do MEGATHREAD_INDEX.extend([
-	(
-		'Bugs / Suggestions',
-		'Something broken? Improvements?',
-		'fa-bug', '#6b8e23',
-		'/post/18459',
-	),
-	(
-		'Submit Marseys',
-		'For original Marseys.',
-		'fa-cat', '#ffa500',
-		'/submit/marseys',
-	),
-	(
-		'Update Marseys',
-		'Ask for a marsey to be updated with a better version.',
-		'fa-cat', '#ffa500',
-		'/post/103085',
-	),
-	(
-		'Submit Other Emojis',
-		'For non-Marsey Emojis.',
-		'fa-smile-beam', '#ffa500',
-		'/post/16583',
-	),
-	(
-		'Submit Sidebar Art',
-		'Original rDrama-themed works.',
-		'fa-sidebar', '#f5fffa',
-		'/post/75878',
-	),
-	(
-		'Submit Banner Art',
-		'Original chud-repellant works.',
-		'fa-panorama', '#87cefa',
-		'/post/35835',
-	),
-	(
-		'Submit Snappy Quotes',
-		'Sentient.',
-		'fa-robot', '#adff2f',
-		'/post/33652',
-	),
-	(
-		'Marsey Commissions',
-		'Request a Marsey to be made.',
-		'fa-coins', '#ffd700',
-		'/post/37677',
-	),
-	(
-		'Submit Hats',
-		'Submit a Hat to be added.',
-		'fa-hat-cowboy', '#7c603e',
-		'/submit/hats',
-	),
-	(
-		'Submit Redbubble Designs',
-		'Submit a design to be added to our redbubble shop.',
-		'fa-shirt', '#777777',
-		'/post/110669',
-	)
-])-%}
-{%- endif -%}
-
+{% set MEGATHREAD_INDEX = [
+	('Community Feedback', 'Share ideas and improvements for Obsession Forum.', 'fa-message', '#ef4444', '/contact'),
+	('Submit Emotes', 'Share original emotes for the community.', 'fa-face-smile', '#f59e0b', '/submit/marseys'),
+	('Browse Boards', 'Find conversations and community spaces.', 'fa-table-columns', '#dc2626', '/holes'),
+	('Submit Hats', 'Share a cosmetic profile item.', 'fa-hat-cowboy', '#b45309', '/submit/hats')
+] %}
 {% block content %}
 <div id="directory--wrapper">
 {% for thread in MEGATHREAD_INDEX %}
 <a class="directory--link" href="{{thread[4]}}">
 	<div class="directory--link-content">
 		<i class="directory--link--icon fas {{thread[2]}}" style="color:{{thread[3]}}"></i>
-		<div class="directory--link--title">{{thread[0]|safe}}</div>
-		<div class="directory--link--description">{{thread[1]|safe}}</div>
+		<div class="directory--link--title">{{thread[0]}}</div>
+		<div class="directory--link--description">{{thread[1]}}</div>
 	</div>
 </a>
 {% endfor %}

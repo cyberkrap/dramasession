@@ -7,27 +7,14 @@
 		{% if IS_FISTMAS() and not sub %}
 			{% include 'fistmas/banner.html' %}
 		{% else %}
-			{% if err and SITE_NAME == 'rDrama' %}
-				{% set src = "banner_error.webp" | asset_siteimg %}
+			{% if err %}
+				{% set src = 'banner_error.webp' | asset_siteimg %}
 			{% elif sub and sub.has_banners %}
 				{% set src = sub.random_banner() %}
 				{% set alt = ['/h/', sub, 'banner']|join %}
 				{% set class = 'site-banner-hole' %}
-			{% elif SITE_NAME == "rDrama" %}
-				{% set href = "https://secure.transequality.org/site/Donation2?df_id=1480" %}
-				{% set expand = false %}
 			{% endif %}
-
-			{% if SITE_NAME == "WPD" %}
-				{% if sub %}
-					{% set href = "/h/" ~ sub %}
-					{% set expand = false %}
-				{% else %}
-					{% set href = "/" %}
-					{% set expand = false %}
-				{% endif %}
-			{% endif %}
-			{{macros.banner(src, href, alt, expand, class)}}
+			{{macros.banner(src, href|default('/'), alt, expand, class)}}
 		{% endif %}
 	{% endif %}
 {% endblock %}
