@@ -1,0 +1,26 @@
+:root {
+    --primary: #cc4145;
+	--secondary: #101819;
+	--dark: #101819;
+	--muted: #e6faff;
+	--gray: #101819;
+	--white: #e6faff;
+	--black: #e6faff;
+	--background: 16, 24, 25;
+	--gray-100: #e6faff;
+	--gray-200: #e6faff;
+	--gray-400: #101819;
+	--gray-500: #101819;
+	--gray-600: #101819;
+	--gray-700: #101819;
+	--gray-800: #101819;
+	--gray-900: #101819;
+}
+
+/*#banner-skybox {
+	fill: url(#skybox-gradient-night);
+}*/
+
+.comment-text, .post-body {
+	--primary: #15de59;
+}

@@ -1,0 +1,76 @@
+<div class="col sidebar text-left {% if '/sidebar' not in request.path %}d-none d-lg-block{% endif %} pt-3" {% if request.path != '/sidebar' %}id="sidebar-content"{% endif %}>
+
+	{% if sub %}
+		{% set image=sub.sidebar_url %}
+	{% elif IS_FISTMAS() %}
+		{% set image = macros.random_image("assets/fistmas/images/sidebar") %}
+	{% else %}
+		{% set image = macros.random_image("assets/images/" ~ SITE_NAME ~ "/sidebar") %}
+	{% endif %}
+
+	{% if request.path != '/sidebar' %}
+		{% if v and (v.is_banned or v.agendaposter) %}
+			<a href="/i/{{SITE_NAME}}/sidebar2.webp">
+				<img class="mb-4" alt="sidebar image" data-nonce="{{g.nonce}}" data-onclick="expandImage()" loading="lazy" src="/i/{{SITE_NAME}}/sidebar2.webp" width=100%>
+			</a>
+		{% elif not (sub and sub.name == 'chudrama' and v and not v.can_see_chudrama) %}
+			<a href="{{image}}">
+				<img class="mb-4" alt="sidebar image" data-nonce="{{g.nonce}}" data-onclick="expandImage()" loading="lazy" src="{{image}}" width=100%>
+			</a>
+		{% endif %}
+	{% endif %}
+
+	<p class="text-center text-md mb-4">
+		<a class="sidebar-link d-md-none" href="/random_user" data-bs-toggle="tooltip" data-bs-placement="top" title="Random User"><i class="fas fa-music"></i></a>
+		<a class="sidebar-link" href="/marseys" data-bs-toggle="tooltip" data-bs-placement="top" title="Marseys"><i class="fas fa-cat"></i></a>
+		<a class="sidebar-link" href="/badges" data-bs-toggle="tooltip" data-bs-placement="top" title="Badges"><i class="fas fa-hexagon"></i></a>
+		<a class="sidebar-link" href="/admins" data-bs-toggle="tooltip" data-bs-placement="top" title="Admins"><i class="fas fa-crown"></i></a>
+		<a class="sidebar-link" href="/log" data-bs-toggle="tooltip" data-bs-placement="top" title="Moderation Log"><i class="fas fa-scroll-old"></i></a>
+		<a class="sidebar-link" href="/transfers" data-bs-toggle="tooltip" data-bs-placement="top" title="Transfers"><i class="fas fa-arrow-right-arrow-left"></i></a>
+		<a class="sidebar-link" href="/random_post" data-bs-toggle="tooltip" data-bs-placement="top" title="Random Post"><i class="fas fa-random"></i></a>
+		{% if IS_FISTMAS() %}
+			<span class="sidebar-link" data-nonce="{{g.nonce}}" data-onclick="postToastRoastEventDarkmode(this, '/events/fistmas2022/darkmode')" style="display:inline" data-bs-toggle="tooltip" data-bs-placement="top" title="Toggle Dark Mode"><i class="fas fa-moon-over-sun"></i></span>
+		{% endif %}
+	</p>
+
+	{% if sub %}
+		{% if sub.sidebar_html %}
+			<div class="mb-4">{{sub.sidebar_html|safe}}</div>
+		{% endif %}
+		{% if v %}
+			<a class="btn btn-primary btn-block mb-3" href="/holes">BROWSE {{HOLE_NAME|upper}}S</a>
+			{% if v.can_create_hole -%}
+				<a class="btn btn-primary btn-block mb-3" href="/create_hole">CREATE {{HOLE_NAME|upper}}</a>
+			{%- endif %}
+			<a class="btn btn-primary btn-block mb-3" href="/h/{{sub}}/log">{{HOLE_NAME|upper}} LOG</a>
+			{% if v.mods(sub.name) %}
+				<a class="btn btn-primary btn-block mb-3" href="/h/{{sub}}/settings">{{HOLE_NAME|upper}} SETTINGS</a>
+			{% endif %}
+		{% endif %}
+		<a class="btn btn-primary btn-block mb-3" href="/h/{{sub}}/mods">{{HOLE_NAME|upper}} MODS</a>
+		<a class="btn btn-primary btn-block mb-3" href="/h/{{sub}}/exilees">{{HOLE_NAME|upper}} EXILEES</a>
+	{% else %}
+		<a id="sidebar--directory--btn" class="btn btn-primary btn-block mb-3" href="/directory">
+			<span id="sidebar--directory--head">DIRECTORY</span>
+			<span id="sidebar--directory--subhead">Submit Marseys & Art | Info Megathreads</span>
+		</a>
+		<a class="btn btn-primary btn-block mb-3" href="/holes">BROWSE {{HOLE_NAME|upper}}S</a>
+		{% if v and v.can_create_hole -%}
+			<a class="btn btn-primary btn-block mb-3" href="/create_hole">CREATE {{HOLE_NAME|upper}}</a>
+		{%- endif %}
+
+		<div class="sidebar--rules sidebar--rules--rdrama pt-2">
+			{% set rules = "rules_" ~ SITE_NAME ~ ".html" %}
+			{% include rules %}
+		</div>
+		
+		<hr>
+		<div class="mt-3">
+			Live commit: <a href="https://fsdfsd.net/rDrama/rDrama/commit/{{gitref[0]}}">{{gitref[0]}}</a>
+		</div>
+	{% endif %}
+</div>
+
+{% if IS_FISTMAS() %}
+	<script defer src="{{'fistmas/js/darkmode.js' | asset}}"></script>
+{% endif %}

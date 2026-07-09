@@ -1,0 +1,21 @@
+{% extends "default.html" %}
+{% block pagetitle %}Lottery Participants{% endblock %}
+{% block content %}
+<h5 class="my-1">Admin — Lottery Info</h5>
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>Name</th>
+		<th>Tickets Held</th>
+	</tr>
+</thead>
+{% for user in participants %}
+	<tr>
+		<td>{{loop.index}}</td>
+		<td>{% include "user_in_table.html" %}</td>
+		<td>{{user.currently_held_lottery_tickets}}</td>
+	</tr>
+{% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,629 @@
+{% extends "default.html" %}
+{% block pagetitle %}Formatting{% endblock %}
+{% block content %}
+<h3 class="ml-2 mt-4">Markdown Formatting</h3>
+
+<div class="ml-2">You can use Markdown formatting:</div>
+
+<div class="overflow-x-auto mt-3"><table class="table table-striped mb-5">
+	<thead class="bg-primary text-white">
+		<tr>
+			<th>Name</th>
+			<th class="disable-sort-click">What you type</th>
+			<th class="disable-sort-click">What gets displayed</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Italics</td>
+			<td>*text*</td>
+			<td><i>text</i></td>
+		</tr>
+		<tr>
+			<td>Bold</td>
+			<td>**text**</td>
+			<td><b>text</b></td>
+		</tr>
+		<tr>
+			<td>Code</td>
+			<td>`text`</td>
+			<td><code>text</code></td>
+		</tr>
+		<tr>
+			<td>Strikethrough</td>
+			<td>~~text~~</td>
+			<td><del>text</del></td>
+		</tr>
+		<tr>
+			<td>Horizontal Rule</td>
+			<td>
+				<pre>
+Text 1
+---
+Text 2
+				</pre>
+			</td>
+			<td>
+				Text 1
+				<hr>
+				Text 2
+			</td>
+		</tr>
+		<tr>
+			<td>Links</td>
+			<td>[{{SITE_NAME}}]({{SITE_FULL}}/)</td>
+			<td><a href="/">{{SITE_NAME}}</a></td>
+		</tr>
+		<tr>
+			<td>Images (will embed automatically if from <a href="#approved">approved hosts</a>)</td>
+			<td>https://i.imgur.com/SwVuagI_d.webp</td>
+			<td><img loading="lazy" alt="example image" src="https://i.imgur.com/SwVuagI_d.webp"></td>
+		</tr>
+		<tr>
+			<td>Youtube Videos</td>
+			<td>https://youtube.com/watch?v=3Hecr51ByE4</td>
+			<td><lite-youtube videoid="3Hecr51ByE4" params="autoplay=1&modestbranding=1"></lite-youtube></td>
+		</tr>
+		<tr>
+			<td>Video Files</td>
+			<td>https://files.catbox.moe/v4om92.mp4</td>
+			<td>
+				<p class="resizable">
+					<video controls preload="none" src="https://files.catbox.moe/v4om92.mp4"></video>
+				</p>
+			</td>
+		</tr>
+		<tr>
+			<td>Emojis</td>
+			<td>:marseylove:</td>
+			<td><img loading="lazy" data-bs-toggle="tooltip" class="emoji" alt=":marseylove:" title=":marseylove:" height="30" src="/e/marseylove.webp"></td>
+		</tr>
+		<tr>
+			<td>Mirrored Emojis</td>
+			<td>:!marseylove:</td>
+			<td><img loading="lazy" data-bs-toggle="tooltip" class="emoji mirrored" alt=":!marseylove:" title=":!marseylove:" height="30" src="/e/marseylove.webp"></td>
+		</tr>
+		<tr>
+			<td>Large Emojis</td>
+			<td>:#marseylove:</td>
+			<td><img loading="lazy" data-bs-toggle="tooltip" b alt=":marseylove:" title=":marseylove:" src="/e/marseylove.webp"></td>
+		</tr>
+		<tr>
+			<td>Large Mirrored Emojis</td>
+			<td>:#!marseylove:</td>
+			<td><img loading="lazy" data-bs-toggle="tooltip" b alt=":!marseylove:" title=":!marseylove:" src="/e/marseylove.webp"></td>
+		</tr>
+		<tr>
+			<td>Pat Emojis</td>
+			<td>:marseylovepat:</td>
+			<td><span alt=":marseylovepat:" data-bs-toggle="tooltip" title=":marseylovepat:"><img loading="lazy" src="/i/hand.webp"><img alt=":marseylovepat:" b loading="lazy" pat src="/e/marseylove.webp"></span></td>
+		</tr>
+		<tr>
+			<td>Pat User</td>
+			<td>:@snappypat:</td>
+			<td><span alt=":@snappypat:" data-bs-toggle="tooltip" title=":@snappypat:"><img loading="lazy" src="/i/hand.webp"><img alt=":@snappypat:" b loading="lazy" pat src="/pp/3"></span></td>
+		</tr>
+		<tr>
+			<td>Random Marsey</td>
+			<td>:marseyrandom:</td>
+			<td>???</td>
+		</tr>
+		{% if FEATURES['MARKUP_COMMANDS'] -%}
+		<tr>
+			<td>Play slots using coins - minimum 100 coins</td>
+			<td>!slots 100</td>
+			<td>??? coins</td>
+		</tr>
+		<tr>
+			<td>Play slots using marseybux - minimum 100 marseybux</td>
+			<td>!slotsmb 100</td>
+			<td>??? marseybux</td>
+		</tr>
+		<tr>
+			<td>Random Fortune</td>
+			<td>#fortune</td>
+			<td>???</td>
+		</tr>
+		<tr>
+			<td>Random 8-Ball Answer</td>
+			<td>#8ball</td>
+			<td>??? (but less fun than #fortune)</td>
+		</tr>
+		<tr>
+			<td>Random Factcheck</td>
+			<td>#factcheck</td>
+			<td>???</td>
+		</tr>
+		<tr>
+			<td>Roll</td>
+			<td>#roll</td>
+			<td>A number 1&ndash;9999.</td>
+		</tr>
+		{%- endif %}
+		<tr>
+			<td>
+				Poll — Pick Multiple<br>
+				<span style="font-style: italic; font-weight: normal;">
+					* Polls always appear at end of post.
+				</span>
+			</td>
+			<td>$$bussy$$<br>$$gussy$$</td>
+			<td>
+				<div class="custom-control">
+					<input autocomplete="off" type="checkbox" class="custom-control-input" id="422741">
+					<label class="custom-control-label" for="422741">bussy - <a href="/votes/t3_422741"><span id="option-422741">0</span> votes</a></label>
+				</div>
+				<div class="custom-control">
+					<input autocomplete="off" type="checkbox" class="custom-control-input" id="422742">
+					<label class="custom-control-label" for="422742">gussy - <a href="/votes/t3_422742"><span id="option-422742">0</span> votes</a></label>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				Poll — Pick One<br>
+				<span style="font-style: italic; font-weight: normal;">
+					* Polls always appear at end of post.
+				</span>
+			</td>
+			<td>&&bussy&&<br>&&gussy&&</td>
+			<td>
+				<div class="custom-control">
+					<input name="choice" autocomplete="off" type="radio" class="custom-control-input" id="1338113">
+					<label class="custom-control-label" for="1338113">bussy - <a href="/votes/t3_1338113"><span id="option-1338113">0</span> votes</a></label>
+				</div>
+				<div class="custom-control">
+					<input name="choice" autocomplete="off" type="radio" class="custom-control-input" id="1338114">
+					<label class="custom-control-label" for="1338114">gussy - <a href="/votes/t3_1338114"><span id="option-1338114">0</span> votes</a></label>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td>Greentext</td>
+			<td>&gt;text</td>
+			<td><g>text</g></td>
+		</tr>
+		<tr>
+			<td>Headers 1-6</td>
+			<td># Header 1<br>## Header 2<br>### Header 3<br>#### Header 4<br>##### Header 5<br>###### Header 6</td>
+			<td><h1>Header 1</h1><h2>Header 2</h2><h3>Header 3</h3><h4>Header 4</h4><h5>Header 5</h5><h6>Header 6</h6></td>
+		</tr>
+		<tr>
+			<td>Ordered list</td>
+			<td>1. First thing<br>2. Second thing</td>
+			<td><ol><li>First thing</li><li>Second thing</li></ol></td>
+		</tr>
+		<tr>
+			<td>Unordered list</td>
+			<td>* First thing<br>* Second thing</td>
+			<td><ul><li>First thing</li><li>Second thing</li></ul></td>
+		</tr>
+		<tr>
+			<td>Code Block</td>
+			<td>```<br>Use three backticks above and below.<br>Or, indent the lines with four spaces.<br>```</td>
+			<td>
+				<pre>
+				Use three backticks above and below.
+				Or, indent the lines with four spaces.
+				</pre>
+			</td>
+		</tr>
+		<tr>
+			<td>Spoilers</td>
+			<td>||bussy > gussy||</td>
+			<td><p><spoiler>bussy &gt; gussy</spoiler></p></td>
+		</tr>
+		<tr>
+			<td>Username Mention</td>
+			<td>@QuadNarca</td>
+			<td><a class="d-inline-block" href="/@QuadNarca"><img alt="@QuadNarca profile picture" loading="lazy" src="/pp/29">@QuadNarca</a></td>
+		</tr>
+		<tr>
+			<td>Subreddit Mention</td>
+			<td>r/drama</td>
+			<td><a class="d-inline-block" rel="nofollow noopener" href="https://www.reddit.com/r/drama">r/drama</a></td>
+		</tr>
+		<tr>
+			<td>Redditor Mention</td>
+			<td>u/Bardfinn</td>
+			<td><a class="d-inline-block" rel="nofollow noopener" href="https://www.reddit.com/u/Bardfinn">u/Bardfinn</a></td>
+		</tr>
+	</tbody>
+</table></div>
+
+<h1>HTML Formatting</h1>
+
+And we allow custom HTML in most places:
+
+<h4 class="mt-2">Allowed Tags</h4>
+
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+	<thead class="bg-primary text-white">
+		<tr>
+			<th>Name</th>
+			<th class="disable-sort-click">What you type</th>
+			<th class="disable-sort-click">What gets displayed</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Span</td>
+			<td>
+				My mother has &lt;span style="color:blue"&gt;blue&lt;/span&gt; eyes.
+			</td>
+			<td>
+				My mother has <span style="color:blue">blue</span> eyes.
+			</td>
+		</tr>
+		<tr>
+			<td>Bold</td>
+			<td>This will be &lt;b&gt;bold&lt;/b&gt;</td>
+			<td>
+				This will be <b>bold</b>
+			</td>
+		</tr>
+		<tr>
+			<td>Blockquote</td>
+			<td>
+				&lt;blockquote&gt;This is a blockquote&lt;/blockquote&gt;
+			</td>
+			<td>
+				<blockquote>
+					This is a blockquote
+				</blockquote>
+			</td>
+		</tr>
+		<tr>
+			<td>Line Break</td>
+			<td>
+				<pre>
+Line 1
+&lt;br&gt;
+Line 2
+				</pre>
+			</td>
+			<td>
+				Line 1
+				<br>
+				Line 2
+			</td>
+		</tr>
+		<tr>
+			<td>Code</td>
+			<td>
+				&lt;code&gt;This is code&lt;/code&gt;
+			</td>
+			<td>
+				<code>This is code</code>
+			</td>
+		</tr>
+		<tr>
+			<td>Strikethrough</td>
+			<td>
+				The last word will have a &lt;del&gt;strikethrough&lt;/del&gt;
+			</td>
+			<td>
+				The last word will have a <del>strikethrough</del>
+			</td>
+		</tr>
+		<tr>
+			<td>Emphasis</td>
+			<td>
+				We &lt;em&gt;cannot&lt;/em&gt; live like this.
+			</td>
+			<td>
+				We <em>cannot</em> live like this.
+			</td>
+		</tr>
+		<tr>
+			<td>Headings</td>
+			<td>
+				<pre>
+&lt;h1&gt;This is heading 1&lt;/h1&gt;
+&lt;h2&gt;This is heading 2&lt;/h2&gt;
+&lt;h3&gt;This is heading 3&lt;/h3&gt;
+&lt;h4&gt;This is heading 4&lt;/h4&gt;
+&lt;h5&gt;This is heading 5&lt;/h5&gt;
+&lt;h6&gt;This is heading 6&lt;/h6&gt;
+				</pre>
+			</td>
+			<td>
+				<h1>This is heading 1</h1>
+				<h2>This is heading 2</h2>
+				<h3>This is heading 3</h3>
+				<h4>This is heading 4</h4>
+				<h5>This is heading 5</h5>
+				<h6>This is heading 6</h6>
+			</td>
+		</tr>
+		<tr>
+			<td>Horizontal Rule</td>
+			<td>
+				<pre>
+Text 1
+&lt;hr&gt;
+Text 2
+				</pre>
+			</td>
+			<td>
+				Text 1
+				<hr>
+				Text 2
+			</td>
+		</tr>
+		<tr>
+			<td>Italics</td>
+			<td>
+				&lt;i&gt;This&lt;/i&gt; is how you get italics.
+			</td>
+			<td>
+				<i>This</i> is how you get italics.
+			</td>
+		</tr>
+		<tr>
+			<td>Lists</td>
+			<td>
+				<pre>
+&lt;ul&gt;
+	&lt;li&gt;Bullet 1&lt;/li&gt;
+	&lt;li&gt;Bullet 2&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ol&gt;
+	&lt;li&gt;Number 1&lt;/li&gt;
+	&lt;li&gt;Number 2&lt;/li&gt;
+&lt;/ol&gt;
+				</pre>
+			</td>
+			<td>
+				<ul>
+					<li>Bullet 1</li>
+					<li>Bullet 2</li>
+				</ul>
+				<ol>
+					<li>Number 1</li>
+					<li>Number 2</li>
+				</ol>
+			</td>
+		</tr>
+		<tr>
+			<td>Paragraphs</td>
+			<td>
+				<pre>
+&lt;p&gt;Paragraph 1&lt;/p&gt;
+&lt;p&gt;Paragraph 2&lt;/p&gt;
+				</pre>
+			</td>
+			<td>
+				<p>Paragraph 1</p>
+				<p>Paragraph 2</p>
+			</td>
+		</tr>
+		<tr>
+			<td>Preformatted Text</td>
+			<td><pre>
+&lt;pre&gt;
+	Text in a pre element
+	is displayed in a fixed-width
+	font, and it preserves
+	both spaces and
+	line breaks
+&lt;/pre&gt;
+			</pre></td>
+			<td>
+				<pre>
+Text in a pre element
+is displayed in a fixed-width
+font, and it preserves
+both spaces and
+line breaks
+				</pre>
+			</td>
+		</tr>
+		<tr>
+			<td>Strong</td>
+			<td>
+				&lt;strong&gt;This text is important!&lt;/strong&gt;
+			</td>
+			<td>
+				<strong>This text is important!</strong>
+			</td>
+		</tr>
+		<tr>
+			<td>Subscript</td>
+			<td>
+				This text contains &lt;sub&gt;subscript&lt;/sub&gt; text.
+			</td>
+			<td>
+				This text contains <sub>subscript</sub> text.
+			</td>
+		</tr>
+		<tr>
+			<td>Superscript</td>
+			<td>
+				E = mc&lt;sup&gt;2&lt;/sup&gt;
+			</td>
+			<td>
+				E = mc<sup>2</sup>
+			</td>
+		</tr>
+		<tr>
+			<td>Tables</td>
+			<td><pre>
+&lt;table&gt;
+	&lt;thead&gt;
+		&lt;tr&gt;
+			&lt;td&gt;Col 1&lt;/td&gt;
+			&lt;td&gt;Col 2&lt;/td&gt;
+			&lt;td&gt;Col 3&lt;/td&gt;
+		&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+		&lt;tr&gt;
+			&lt;td&gt;1&lt;/td&gt;
+			&lt;td&gt;2&lt;/td&gt;
+			&lt;td&gt;3&lt;/td&gt;
+		&lt;/tr&gt;
+		&lt;tr&gt;
+			&lt;td&gt;4&lt;/td&gt;
+			&lt;td&gt;5&lt;/td&gt;
+			&lt;td&gt;6&lt;/td&gt;
+		&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;</pre>
+			</td>
+			<td>
+				<table>
+					<thead>
+						<tr>
+							<td>Col 1</td>
+							<td>Col 2</td>
+							<td>Col 3</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td>2</td>
+							<td>3</td>
+						</tr>
+						<tr>
+							<td>4</td>
+							<td>5</td>
+							<td>6</td>
+						</tr>
+					</tbody>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td>Marquee</td>
+			<td>
+				&lt;marquee direction="up" behavior="scroll" scrollamount="10" height="250"&gt;
+					This is a sample scrolling text that has scrolls in the upper direction.
+				&lt;/marquee&gt;
+			</td>
+			<td>
+				<marquee direction="up" behavior="scroll" scrollamount="10" height="250">
+					This is a sample scrolling text that has scrolls in the upper direction.
+				</marquee>
+			</td>
+		</tr>
+		<tr>
+			<td>Links</td>
+			<td>
+				This is a &lt;a href='https://www.w3schools.com/tags/tag_a.asp'&gt;link&lt;/a&gt;
+			</td>
+			<td>
+				This is a <a rel="nofollow noopener" href='https://www.w3schools.com/tags/tag_a.asp'>link</a>
+			</td>
+		</tr>
+		<tr>
+			<td>Images</td>
+			<td>
+				&lt;img src="https://i.imgur.com/SwVuagI_d.webp" width="200"&gt;
+			</td>
+			<td>
+				<img loading="lazy" alt="example image" src="https://i.imgur.com/SwVuagI_d.webp" width="200">
+			</td>
+		</tr>
+	</tbody>
+</table></div>
+
+<h4>Allowed Attributes</h4>
+
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+	<thead class="bg-primary text-white">
+		<tr>
+			<th>Name</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>href</td>
+		</tr>
+		<tr>
+			<td>style</td>
+		</tr>
+		<tr>
+			<td>src</td>
+		</tr>
+		<tr>
+			<td>class</td>
+		</tr>
+		<tr>
+			<td>title</td>
+		</tr>
+		<tr>
+			<td>direction</td>
+		</tr>
+		<tr>
+			<td>behavior</td>
+		</tr>
+		<tr>
+			<td>scrollamount</td>
+		</tr>
+	</tbody>
+</table></div>
+
+<h5>Allowed Styles</h5>
+
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+	<thead class="bg-primary text-white">
+		<tr>
+			<th>Name</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>color</td>
+		</tr>
+		<tr>
+			<td>background-color</td>
+		</tr>
+		<tr>
+			<td>font-weight</td>
+		</tr>
+		<tr>
+			<td>text-align</td>
+		</tr>
+	</tbody>
+</table></div>
+
+<h5>Comment Commands</h5>
+
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+	<thead class="bg-primary text-white">
+		<tr>
+			<th>Comment Command</th>
+			<th>Description</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% if FEATURES['WORDLE'] %}
+			<tr>
+				<td>!wordle</td>
+				<td>Play wordle</td>
+			</tr>
+		{% endif %}
+	</tbody>
+</table></div>
+
+
+<h5 id="approved">Approved Image Hosts</h5>
+
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+	<thead class="bg-primary text-white">
+		<tr>
+			<th>Host</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for host in approved_embed_hosts %}
+			<tr>
+				<td>{{host}}</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table></div>
+
+{% endblock %}

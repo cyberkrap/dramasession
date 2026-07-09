@@ -1,0 +1,41 @@
+{% extends "settings2.html" %}
+{% block pagetitle %}Banned Users{% endblock %}
+{% block content %}
+
+<h5 class="font-weight-bolder text-center pt-2 pb-3"><span>Banned Users</span></h5>
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>Name</th>
+		{% if v and v.admin_level >= PERMS['VIEW_LAST_ACTIVE'] -%}
+			<th>Last Active</th>
+		{%- endif %}
+		<th>Truescore</th>
+		<th>Ban reason</th>
+		<th>Banned by</th>
+		<th>Unban in</th>
+	</tr>
+</thead>
+{% for user in users %}
+	<tr>
+		<td>{{loop.index}}</td>
+		<td>{% include "user_in_table.html" %}</td>
+		{% if v and v.admin_level >= PERMS['VIEW_LAST_ACTIVE'] -%}
+			<td {% if user.last_active %}data-time="{{user.last_active}}"{% endif %}></td>
+		{%- endif %}
+		<td>{{user.truescore}}</td>
+		<td>{% if user.ban_reason %}{{user.ban_reason | safe}}{% else %}<span class="text-muted" style="font-style:italic;">No reason</span>{% endif %}</td>
+		{% with user=user.banned_by %}
+		<td data-sort-key="{{user.username.lower() if user else ''}}">
+			{% include "user_in_table.html" %}
+		</td>
+		{% endwith %}
+		<td {% if user.unban_utc %}data-time="{{user.unban_utc}}"{% endif %}></td>
+	</tr>
+{% endfor %}
+</table>
+
+
+
+{% endblock %}

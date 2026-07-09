@@ -1,0 +1,26 @@
+{% extends "settings2.html" %}
+{% block pagetitle %}Patrons{% endblock %}
+{% block content %}
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>Name</th>
+		<th>Tier</th>
+	</tr>
+</thead>
+{% for user in users %}
+	<tr>
+		<td>{{loop.index}}</td>
+		<td>{% include "user_in_table.html" %}</td>
+		<td>
+			<img class="contain" alt="2{{user.patron}}" loading="lazy" width=29.33 height=32 src="/i/{{SITE_NAME}}/badges/2{{user.patron}}.webp?v=1">
+			{% if user.patron_utc %}
+				<i class="{{benefactor_def['icon']}} {{benefactor_def['color']}} px-1"></i>
+			{% endif %}
+		</td>
+	</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

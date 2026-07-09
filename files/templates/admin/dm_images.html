@@ -1,0 +1,48 @@
+{% extends "default.html" %}
+{% block pagetitle %}DM Imagtes{% endblock %}
+{% block content %}
+<h2>DM Images</h2>
+<div class="overflow-x-auto">
+	<table class="table table-striped mb-5">
+		<thead class="bg-primary text-white">
+			<tr>
+				<th>#</th>
+				<th>Image</th>
+				<th>Sender</th>
+				<th>Sent To</th>
+			</tr>
+		</thead>
+
+		{% for item in items %}
+			<tr>
+				<td>{{loop.index}}</td>
+				<td>
+					<a href="{{item[0]}}" target="_blank">
+						<img alt="![]({{item[0]}})" src="{{item[0]}}" loading="lazy" class="dm_img">
+					</a>
+				</td>
+				<td>
+					{% if item[1] != "Unknown" %}
+						<a href="/id/{{item[2]}}">
+							<img loading="lazy" src="/pp/{{item[2]}}">
+							@{{item[1]}}
+						</a>
+					{% endif %}
+				</td>
+				<td>
+					{% if item[1] != "Unknown" %}
+						{% if item[3] == "Modmail" %}
+							Modmail
+						{% else %}
+							<a href="/id/{{item[4]}}">
+								<img loading="lazy" src="/pp/{{item[4]}}">
+								@{{item[3]}}
+							</a>
+						{% endif %}
+					{% endif %}
+				</td>
+			</tr>
+		{% endfor %}
+	</table>
+</div>
+{% endblock %}

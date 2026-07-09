@@ -1,0 +1,56 @@
+.blackjack-cardset {
+	position: relative;
+	display: flex;
+	align-items: center;
+	margin-bottom: 1rem;
+	max-width: 470px;
+	overflow: auto;
+	box-shadow: 1px 1px 5px 1px rgba(60, 60, 60, 0.81) inset;
+	-webkit-box-shadow: 1px 1px 5px 1px rgba(60, 60, 60, 0.81) inset;
+	-moz-box-shadow: 1px 1px 5px 1px rgba(60, 60, 60, 0.81) inset;
+}
+
+.blackjack-cardset__PLAYING {
+	background-image: radial-gradient(circle farthest-corner at 10% 20%, rgba(14, 174, 87, 1) 0%, rgba(12, 116, 117, 1) 90%);
+}
+
+.blackjack-cardset__LOST {
+	background-image: linear-gradient(109.6deg, rgba(14, 11, 56, 1) 11.2%, rgba(239, 37, 37, 1) 91.1%);
+}
+
+.blackjack-cardset__PUSHED {
+	background-image: linear-gradient(110.3deg, rgba(73, 93, 109, 1) 4.3%, rgba(49, 55, 82, 1) 96.7%);
+}
+
+.blackjack-cardset__WON {
+	background-image: radial-gradient( circle farthest-corner at -0.6% 44.4%,  rgba(142,252,152,1) 0%, rgba(107,214,250,1) 90% );
+}
+
+.blackjack-cardset__BLACKJACK {
+	background-image: linear-gradient(64.3deg, rgba(254, 122, 152, 0.81) 17.7%, rgba(255, 206, 134, 1) 64.7%, rgba(172, 253, 163, 0.64) 112.1%);
+}
+
+.blackjack-cardset .playing-card {
+	margin-right: -3rem;
+	min-width: 100px;
+}
+
+.blackjack-cardset-value {
+	z-index: 3;
+	top: 0;
+	right: 0;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	text-align: right;
+	position: absolute;
+	background-color: rgba(70, 70, 70, 0.6);
+	padding: 0.5rem;
+	color: #DDD;
+}
+
+.twentyone-btn {
+	margin-right: 1rem;
+	margin-bottom: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+}

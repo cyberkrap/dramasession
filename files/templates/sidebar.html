@@ -1,0 +1,12 @@
+{% extends "default.html" %}
+{% block pagetitle %}{{SITE_NAME}} Sidebar{% endblock %}
+{% block content %}
+<div class="mx-4 mt-4 mb-6">
+	<h1 class="text-muted text-uppercase">Sidebar</h5>
+	<div id="sidebar" class="my-3">
+		{% if has_sidebar %}
+			{% include "sidebar_" ~ SITE_NAME ~ ".html" %}
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

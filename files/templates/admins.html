@@ -1,0 +1,32 @@
+{% extends "settings2.html" %}
+
+{% block pagetitle %}Admins{% endblock %}
+
+{% block content %}
+
+<h5 class="font-weight-bolder text-center pt-2 pb-3"><span>Admins</span></h5>
+<div class="overflow-x-auto mt-1">
+	<table class="table table-striped mb-5">
+		<thead class="bg-primary text-white">
+			<tr>
+				<th>#</th>
+				<th>Name</th>
+				<th style="text-align:right;">Truescore</th>
+				<th style="text-align:right;">Mod actions</th>
+			</tr>
+		</thead>
+
+		{% for user in admins %}
+			<tr>
+				<td>{{loop.index}}</td>
+				<td>{% include "user_in_table.html" %}</td>
+				<td style="text-align:right;">{{"{:,}".format(user.truescore)}}</td>
+				<td style="text-align:right;"><a href="/log?admin={{user.username}}">{{"{:,}".format(user.modaction_num)}}</a></td>
+			</tr>
+		{% endfor %}
+	</table>
+</div>
+
+
+
+{% endblock %}

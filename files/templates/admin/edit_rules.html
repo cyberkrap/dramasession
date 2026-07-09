@@ -1,0 +1,29 @@
+{% extends "default.html" %}
+
+{% block pagetitle %}Edit {{SITE_NAME}}'s rules{% endblock %}
+
+{% block content %}
+{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+<div class="row my-5">
+	<div class="col">
+		<div class="settings mx-3">
+			<div id="description">
+				<h2>Edit the Rules</h2>
+				<br>
+			</div>
+			<div class="body d-lg-flex">
+				<div class="w-lg-100">
+					<form id="edit_rules" action="/admin/edit_rules" method="post">
+						<input hidden name="formkey" value="{{v|formkey}}">
+						<textarea autocomplete="off" maxlength="10000" class="form-control rounded" placeholder="Enter rules here..." rows="50" name="rules" form="edit_rules">{% if rules %}{{rules}}{% endif %}</textarea>
+
+						<div class="d-flex mt-2">
+							<input autocomplete="off" class="btn btn-primary ml-auto" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Save">
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

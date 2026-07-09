@@ -1,0 +1,32 @@
+{% extends "settings2.html" %}
+{% block pagetitle %}Shadowbanned Users{% endblock %}
+{% block content %}
+
+<h5 class="my-4">Shadowbanned Users</h5>
+<div class="overflow-x-auto">
+<table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>Name</th>
+		<th>Last Active</th>
+		<th>Truescore</th>
+		<th>Shadowbanned by</th>
+		<th>Shadowban reason</th>
+	</tr>
+</thead>
+{% for user in users %}
+	<tr>
+		<td>{{loop.index}}</td>
+		<td data-sort-key="{{user.username.lower() if user else ''}}">{%- include 'user_in_table.html' -%}</td>
+		<td {% if user.last_active %}data-time="{{user.last_active}}"{% endif %}></td>
+		<td>{{user.truescore}}</td>
+		<td><a href="/@{{user.shadowbanner}}">{{user.shadowbanner}}</a></td>
+		<td>{% if user.ban_reason %}{{user.ban_reason | safe}}{% else %}<span class="text-muted" style="font-style:italic;">No reason</span>{% endif %}</td>
+	</tr>
+{% endfor %}
+</table>
+
+
+
+{% endblock %}

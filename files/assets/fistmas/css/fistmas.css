@@ -1,0 +1,484 @@
+@charset "UTF-8";
+
+/* Fonts */
+@font-face {
+	font-family: "Burbank Small Medium";
+	src: url("/assets/fistmas/fonts/Burbank-Small-Medium.woff2") format("woff2"),
+	     url("/assets/fistmas/fonts/Burbank-Small-Medium.woff")  format("woff"),
+	     url("/assets/fistmas/fonts/Burbank-Small-Medium.ttf")   format("truetype");
+}
+
+:root {
+	--primary: #cc4145;
+	--secondary: #c7c7c7;
+	--dark: #c7c7c7;
+	--muted: #131512;
+	--gray: #c7c7c7;
+	--white: #131512;
+	--black: #131512;
+	--background: 193, 243, 255;
+	--gray-100: #131512;
+	--gray-200: #131512;
+	--gray-400: #e6faff;
+	--gray-500: #e6faff;
+	--gray-600: #e6faff;
+	--gray-700: #e6faff;
+	--gray-800: #e6faff;
+	--gray-900: #e6faff;
+}
+
+#frontpage .posts .card, #userpage .posts .card, #search .posts .card {
+	border-color: #a7e5fb;
+}
+
+body {
+	font-family: 'Burbank Small Medium', sans-serif;
+	background-color: rgb(var(--background)) !important;
+	background-image: url('/assets/fistmas/images/pattern.webp') !important;
+	overflow-x: hidden;
+}
+
+* {
+	border-color: var(--primary);
+}
+
+.border {
+	border-color: var(--primary) !important;
+}
+
+.form-control {
+	background: transparent;
+	border-color: var(--primary) !important;
+}
+
+.btn {
+	background: var(--primary) !important;
+	border-color: var(--primary) !important;
+	border-width: 2px;
+	color: #fff !important;
+}
+
+.btn .fas {
+	color: #fff !important;
+}
+
+.form-control:disabled, .form-control[readonly] {
+	background: transparent;
+	border-color: var(--primary) !important;
+}
+
+.btn-success {
+	border-color: #38A169 !important;
+}
+
+.btn-danger {
+	border-color: #E53E3E !important;
+}
+
+#frontpage .pseudo-submit-form.card .card-body .form-control {
+border-color: transparent !important;
+}
+
+.btn-lg {
+	border-color: transparent !important;
+}
+
+pre {
+	color: #CFCFCF;
+}
+
+.transparent {
+	background: None !important;
+}
+
+#frontpage .post-title a:visited {
+color: #7a7a7a !important;
+}
+
+.post-title a, h1.post-title {
+	font-family: 'Burbank Small Medium', cursive;
+	font-size: 1.25rem;
+}
+
+.arrow-up::before, .arrow-down::before {
+	content: '\f7dc';
+	width: 20px;
+}
+
+.arrow-down::before {
+	display: inline-block;
+	transform: rotate(180deg);
+}
+
+.arrow-up.active::before, .arrow-down.active::before {
+	content: '\f7db';
+}
+
+.comment {
+	background-color: var(--gray-600);
+}
+
+.comment-actions .btn {
+	background-color: transparent !important;
+	color: var(--gray-200) !important;
+}
+
+.comment-actions .fas {
+	color: var(--gray-200) !important;
+}
+
+.comment-actions .btn::after{
+	background: none !important;
+}
+
+#thread .card {
+	padding: 0.5rem;
+}
+
+body {
+    cursor: url(/assets/fistmas/images/cursor.webp?v=1), auto !important;
+}
+
+textarea, input[type=textbox], input[type=search] {
+    cursor: url(/assets/fistmas/images/text.webp?v=1) 9 14, auto !important;
+}
+
+.btn, input[type=button], button, a {
+    cursor: url(/assets/fistmas/images/pointer.webp?v=1), auto !important;
+}
+
+.fa-moon-over-sun:before{content:"\f74a"}
+
+.award-name {
+	color: var(--gray-200)
+}
+
+.sidebar {
+	background-color: var(--gray-600);
+}
+
+.form-control {
+	background: var(--gray-600);
+}
+
+/* lights */
+
+.navbar::after, .lights::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 57px;
+	width: 100%;
+	background: url('/assets/fistmas/images/lights.webp?v=1');
+	animation: lights 1s infinite steps(2);
+	pointer-events: none;
+  }
+
+  @keyframes lights {
+	0% {
+	  /*Two zeros, not one !!*/
+	  /*[0] is equivalent to [0 50%] and will create a different animation */
+	  background-position: 0 0;
+	}
+	100% {
+	  background-position: 0 -138px;
+	}
+  }
+
+/* snowcaps */
+
+.btn, .snow-cap {
+	position: relative;
+}
+
+.btn::after, .snow-cap::after {
+	content: '';
+	pointer-events: none;
+	background: url("/assets/fistmas/images/snowcap.webp?v=1") repeat-x;
+	background-size: contain;
+	position: absolute;
+	bottom: -18px;
+	left: 0;
+	right: 0;
+	height: 23px;
+	border: none;
+	border-radius: 9999px;
+  }
+
+/* snow effect */
+
+body {
+	background-color: #1f1f1f;
+	background-blend-mode: soft-light;
+}
+
+  .color {
+   width: 20%;
+   height: 100%;
+   float: left
+  }
+
+  .color p {
+	position: relative;
+	z-index: 1231231;
+	text-align: center;
+	line-height: 90vh;
+  }
+
+  .color:nth-child(1){
+	background-color: #F5624D;
+  }
+
+  .color:nth-child(2){
+	background-color: #CC231E;
+  }
+
+  .color:nth-child(3){
+	background-color: #34A65F;
+  }
+
+  .color:nth-child(4){
+	background-color: #0F8A5F;
+  }
+
+  .color:nth-child(5){
+	background-color: #235E6F;
+  }
+
+  #snow:not([data-nonce]) {
+	height: 100%;
+	color: #FFF;
+	display: block;
+  }
+
+/* awards */
+
+/* gingerbread */
+.fall-snowflake {
+	color: #fff;
+	font-size: 1em;
+	font-family: Serif;
+	text-shadow: 0 0 1px #000;
+  pointer-events: none;
+}
+
+@-webkit-keyframes fall-snowflakes-fall {
+	0% {
+		top: -20%
+	}
+	100% {
+		top: 100%
+	}
+}
+
+@-webkit-keyframes fall-snowflakes-shake {
+	0% {
+		-webkit-transform: translateX(0px);
+		transform: translateX(0px)
+	}
+	50% {
+		-webkit-transform: translateX(80px);
+		transform: translateX(80px)
+	}
+	100% {
+		-webkit-transform: translateX(0px) rotate(360deg);
+		transform: translateX(0px) rotate(360deg);
+	}
+}
+
+@keyframes fall-snowflakes-fall {
+	0% {
+		top: -20%
+	}
+	100% {
+		top: 100%
+	}
+}
+
+@keyframes fall-snowflakes-shake {
+	0% {
+		transform: translateX(0px)
+	}
+	50% {
+		transform: translateX(80px)
+	}
+	100% {
+		transform: translateX(0px) rotate(360deg);
+	}
+}
+
+.fall-snowflake {
+	position: fixed;
+	top: -20%;
+	z-index: 9999;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	cursor: default;
+	-webkit-animation-name: fall-snowflakes-fall, fall-snowflakes-shake;
+	-webkit-animation-duration: 10s, 4s;
+	-webkit-animation-timing-function: linear, ease-in-out;
+	-webkit-animation-iteration-count: infinite, infinite;
+	-webkit-animation-play-state: running, running;
+	animation-name: fall-snowflakes-fall, fall-snowflakes-shake;
+	animation-duration: 10s, 4s;
+	animation-timing-function: linear, ease-in-out;
+	animation-iteration-count: infinite, infinite;
+	animation-play-state: running, running
+}
+
+.fall-snowflake:nth-of-type(0) {
+	left: 1%;
+	-webkit-animation-delay: 0s, 0s;
+	animation-delay: 0s, 0s
+}
+.fall-snowflake:nth-of-type(1) {
+	left: 10%;
+	-webkit-animation-delay: 1s, 1s;
+	animation-delay: 1s, 1s
+}
+.fall-snowflake:nth-of-type(2) {
+	left: 20%;
+	-webkit-animation-delay: 6s, .5s;
+	animation-delay: 6s, .5s
+}
+.fall-snowflake:nth-of-type(3) {
+	left: 30%;
+	-webkit-animation-delay: 4s, 2s;
+	animation-delay: 4s, 2s
+}
+.fall-snowflake:nth-of-type(4) {
+	left: 40%;
+	-webkit-animation-delay: 2s, 2s;
+	animation-delay: 2s, 2s
+}
+.fall-snowflake:nth-of-type(5) {
+	left: 50%;
+	-webkit-animation-delay: 8s, 3s;
+	animation-delay: 8s, 3s
+}
+.fall-snowflake:nth-of-type(6) {
+	left: 60%;
+	-webkit-animation-delay: 6s, 2s;
+	animation-delay: 6s, 2s
+}
+.fall-snowflake:nth-of-type(7) {
+	left: 70%;
+	-webkit-animation-delay: 2.5s, 1s;
+	animation-delay: 2.5s, 1s
+}
+.fall-snowflake:nth-of-type(8) {
+	left: 80%;
+	-webkit-animation-delay: 1s, 0s;
+	animation-delay: 1s, 0s
+}
+.fall-snowflake:nth-of-type(9) {
+	left: 90%;
+	-webkit-animation-delay: 3s, 1.5s;
+	animation delay: 3s, 1.5s
+}
+.fall-snowflake:nth-of-type(10) {
+	left: 100%;
+	-webkit-animation-delay: 3s, 2s;
+	animation-delay: 3s, 2s
+}
+.fall-snowflake:nth-of-type(11) {
+	left: 5%;
+	-webkit-animation-delay: 1s, 4s;
+	animation-delay: 1s, 4s
+}
+.fall-snowflake:nth-of-type(12) {
+	left: 15%;
+	-webkit-animation-delay: 1s, 1.5s;
+	animation-delay: 1s, 1.5s
+}
+.fall-snowflake:nth-of-type(13) {
+	left: 25%;
+	-webkit-animation-delay: 6s, 2.5s;
+	animation-delay: 6s, 2.5s
+}
+.fall-snowflake:nth-of-type(14) {
+	left: 35%;
+	-webkit-animation-delay: 4s, 1s;
+	animation-delay: 4s, 1s
+}
+.fall-snowflake:nth-of-type(15) {
+	left: 45%;
+	-webkit-animation-delay: 2s, 4s;
+	animation-delay: 2s, 4s
+}
+.fall-snowflake:nth-of-type(16) {
+	left: 55%;
+	-webkit-animation-delay: 8s, 3s;
+	animation-delay: 8s, 3s
+}
+.fall-snowflake:nth-of-type(17) {
+	left: 65%;
+	-webkit-animation-delay: 6s, 3s;
+	animation-delay: 6s, 3s
+}
+.fall-snowflake:nth-of-type(18) {
+	left: 75%;
+	-webkit-animation-delay: 2.5s, 4s;
+	animation-delay: 2.5s, 4s
+}
+.fall-snowflake:nth-of-type(19) {
+	left: 85%;
+	-webkit-animation-delay: 2s, 0s;
+	animation-delay: 2s, 0s
+}
+.fall-snowflake:nth-of-type(20) {
+	left: 95%;
+	-webkit-animation-delay: 3s, 1.5s;
+	animation delay: 3s, 1.5s
+}
+
+.animate-spin {
+  animation: spin 5600ms linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* vvv kill yourself vscodelet  vvv */
+/* */
+
+/* Change mobile navbar icon colors to basketball */
+#mobile-bottom-navigation-bar i {
+    color: var(--gray-200)!important;
+}
+
+#mobile-bottom-navigation-bar {
+    box-shadow: 0px 2px 5px #000000cc;
+    /* wtf??? */
+    z-index:999 !important;
+}
+
+/* Revert the snowcaps on it, is bad */
+#mobile-bottom-navigation-bar button:after {
+    background: unset;
+    /* Real work, lol */
+    display: none;
+}
+
+
+/* asdf */
+blockquote {
+	background-color: var(--gray-300);
+}
+
+#profilestuff {
+	color: white;
+}
+
+#profile--bio {
+	color: white !important;
+}

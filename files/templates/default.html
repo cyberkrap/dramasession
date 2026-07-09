@@ -1,0 +1,86 @@
+{%- extends 'root.html' -%}
+{% block body_attributes %}id="{% if request.path != '/comments' %}{% block pagetype %}frontpage{% endblock %}{% endif %}"{% endblock %}
+{% block body %}
+{% block banner %}
+	{% include "modals/expanded_image.html" %}
+	{% if err or '@' not in request.path %}
+		{% if IS_FISTMAS() and not sub %}
+			{% include 'fistmas/banner.html' %}
+		{% else %}
+			{% if err and SITE_NAME == 'rDrama' %}
+				{% set src = "banner_error.webp" | asset_siteimg %}
+			{% elif sub and sub.has_banners %}
+				{% set src = sub.random_banner() %}
+				{% set alt = ['/h/', sub, 'banner']|join %}
+				{% set class = 'site-banner-hole' %}
+			{% elif SITE_NAME == "rDrama" %}
+				{% set href = "https://secure.transequality.org/site/Donation2?df_id=1480" %}
+				{% set expand = false %}
+			{% endif %}
+
+			{% if SITE_NAME == "WPD" %}
+				{% if sub %}
+					{% set href = "/h/" ~ sub %}
+					{% set expand = false %}
+				{% else %}
+					{% set href = "/" %}
+					{% set expand = false %}
+				{% endif %}
+			{% endif %}
+			{{macros.banner(src, href, alt, expand, class)}}
+		{% endif %}
+	{% endif %}
+{% endblock %}
+
+{% include "header.html" %}
+{% block mobileUserBanner %}{% endblock %}
+<div class="container">
+	<div class="row justify-content-around" id="main-content-row">
+		<div class="col h-100 {% block customPadding %}{% if request.path.startswith('/@') %}user-gutters{% else %}custom-gutters{% endif %}{% endblock %}" id="main-content-col">
+			{% block desktopUserBanner %}{% endblock %}
+			{% block desktopBanner %}{% endblock %}
+			{% block PseudoSubmitForm %}{% endblock %}
+			{% block searchText %}{% endblock %}
+			{% block content %}{% endblock %}
+			{% block pagenav %}{% endblock %}
+		</div>
+		{% block sidebar %}
+			{% if has_sidebar and (home or p) %}
+				{% set sidebar = "sidebar_" ~ SITE_NAME ~ ".html" %}
+				{% include sidebar %}
+			{% endif %}
+		{% endblock %}
+	</div>
+</div>
+{% block mobilenavbar %}{% include "mobile_navigation_bar.html" %}{% endblock %}
+{% block actionsModal %}{% endblock %}
+{% block reportCommentModal %}{% endblock %}
+{% block GIFtoast %}{% endblock %}
+{% block GIFpicker %}{% endblock %}
+<div class="toast clipboard" id="toast-success" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
+	<div class="toast-body text-center">
+		<i class="fas fa-check-circle text-success mr-2"></i>Link copied to clipboard
+	</div>
+</div>
+<div class="toast" id="toast-post-success" style="position: fixed; bottom: 1.5rem; margin: 0 auto; left: 0; right: 0; width: 275px; z-index: 100000" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
+	<div class="toast-body bg-success text-center text-white">
+		<i class="fas fa-comment-alt-smile mr-2"></i><span id="toast-post-success-text">Action successful!</span>
+	</div>
+</div>
+<div class="toast" id="toast-post-error" style="position: fixed; bottom: 1.5rem; margin: 0 auto; left: 0; right: 0; width: 275px; z-index: 100000" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
+	<div class="toast-body bg-danger text-center text-white">
+		<i class="fas fa-exclamation-circle mr-2"></i><span id="toast-post-error-text">Error, please try again later.</span>
+	</div>
+</div>
+<script defer src="{{'js/vendor/lozad.js' | asset}}"></script>
+<script defer src="{{'js/vendor/lite-youtube.js' | asset}}"></script>
+{% if not err and v and v.spider %}
+	<script defer src="{{'js/vendor/critters.js' | asset}}"></script>
+	<script defer src="{{'js/spider.js' | asset}}"></script>
+{% endif %}
+
+{% if IS_FISTMAS() %}
+	{% include "fistmas/music.html" %}
+{% endif %}
+
+{% endblock %}

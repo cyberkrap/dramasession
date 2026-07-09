@@ -1,0 +1,47 @@
+{%-
+set JOURNOID_BANNERS = [
+	(
+		"Official site of /r/SubredditDrama 🍿",
+		"https://reddit.com/r/subredditdrama",
+		""
+	),
+	(
+		"As seen on The Independent 📰✨💞",
+		"https://www.independent.co.uk/news/world/americas/us-politics/reddit-conservatives-post-trans-child-fake-b2060803.html",
+		"https://rdrama.net//post/61530"
+	),
+	(
+		"As fact-checked by Reuters 📰✨💞",
+		"https://www.reuters.com/article/factcheck-socialmedia-gender/fact-check-post-about-parent-forcefully-medicating-transgender-child-is-fabricated-idUSL2N2WC1OK",
+		"https://rdrama.net//post/60443"
+	),
+	(
+		"As analyzed by Mashable 📰✨💞",
+		"https://mashable.com/article/libs-of-tiktok-furries-school-troll-fake",
+		"https://rdrama.net//post/63155"
+	),
+	(
+		"As seen on Business Insider's retraction 📰✨💞",
+		"https://businessinsider.com/reddit-shuts-down-forum-for-texas-abortion-bounty-hunters-2021-9",
+		"https://rdrama.net//post/19236"
+	),
+	(
+		"As discussed on The Glenn Beck Program 📻✨💞",
+		"https://www.audacy.com/podcasts/the-glenn-beck-program-45436/elon-musk-vs-the-world-guests-rob-collins-riaz-patel-42722-1386209895",
+		"https://rdrama.net//post/64305"
+	),
+	(
+		"As placed on the record of State v. Darrell Brooks 👩‍⚖️️",
+		"https://wcca.wicourts.gov/caseDetail.html?caseNo=2021CF001848&countyNo=67&index=0&mode=details#records",
+		"https://rdrama.net//post/116580"
+	),
+]
+-%}
+{% set journoid = JOURNOID_BANNERS|random %}
+
+<a rel="nofollow noopener" id="srd-link" href="{{journoid[1]}}">{{journoid[0]}}</a>
+
+{% if journoid[2] %}
+	<span id="srd-separator">&mdash;</span>
+	<a id="srd-discuss" href="{{journoid[2]}}">(discuss)</a>
+{% endif %}

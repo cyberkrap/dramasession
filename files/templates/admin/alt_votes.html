@@ -1,0 +1,63 @@
+{% extends "default.html" %}
+{% block pagetitle %}Alt Vote Analysis{% endblock %}
+{% block content %}
+<h5 class="mt-3">Vote Info</h5>
+
+<form method="get" class="mb-6">
+	<label for="link-input">Usernames</label>
+	<input autocomplete="off" id="link-input" type="text" class="form-control mb-2" name="u1" value="{{u1.username if u1 else ''}}" placeholder="User 1">
+	<input autocomplete="off" id="link-input" type="text" class="form-control mb-2" name="u2" value="{{u2.username if u2 else ''}}" placeholder="User 2">
+	<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Submit" class="btn btn-primary">
+</form>
+
+{% if u1 and u2 %}
+<h2>Analysis</h2>
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+	<thead class="bg-primary text-white">
+		<tr>
+			<th></th>
+			<th class="disable-sort-click">@{{u1.username}} only (% unique)</th>
+			<th class="disable-sort-click">Both</th>
+			<th class="disable-sort-click">@{{u2.username}} only (% unique)</th>
+		</tr>
+	</thead>
+	<tr>
+		<td><b>Post Upvotes</b></td>
+		<td>{{data['u1_only_post_ups']}} ({{data['u1_post_ups_unique']}}%)</td>
+		<td>{{data['both_post_ups']}}</td>
+		<td>{{data['u2_only_post_ups']}} ({{data['u2_post_ups_unique']}}%)</td>
+	</tr>
+	<tr>
+		<td><b>Post Downvotes</b></td>
+		<td>{{data['u1_only_post_downs']}} ({{data['u1_post_downs_unique']}}%)</td>
+		<td>{{data['both_post_downs']}}</td>
+		<td>{{data['u2_only_post_downs']}} ({{data['u2_post_downs_unique']}}%)</td>
+	</tr>
+	<tr>
+		<td><b>Comment Upvotes</b></td>
+		<td>{{data['u1_only_comment_ups']}} ({{data['u1_comment_ups_unique']}}%)</td>
+		<td>{{data['both_comment_ups']}}</td>
+		<td>{{data['u2_only_comment_ups']}} ({{data['u2_comment_ups_unique']}}%)</td>
+	</tr>
+	<tr>
+		<td><b>Comment Downvotes</b></td>
+		<td>{{data['u1_only_comment_downs']}} ({{data['u1_comment_downs_unique']}}%)</td>
+		<td>{{data['both_comment_downs']}}</td>
+		<td>{{data['u2_only_comment_downs']}} ({{data['u2_comment_downs_unique']}}%)</td>
+	</tr>
+</table>
+{% if v.admin_level >= PERMS['USER_LINK'] %}
+	<h2>Link Accounts</h2>
+
+	{% if u2 in get_alt_graph(u1.id) %}
+		<p>Accounts are <a href="/@{{u1.username}}/alts">known alts</a> of each other.</p>
+	{% else %}
+
+	<p>Two accounts controlled by different people should have most uniqueness percentages at or above 70-80%</p>
+	<p>A sockpuppet account will have its uniqueness percentages significantly lower.</p>
+
+	<button class="btn btn-danger" data-areyousure="postToastReload(this,'/@{{u1.username}}/alts/?other_username={{u2.username}}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">Link {{u1.username}} and {{u2.username}}</button>
+	{% endif %}
+{% endif %}
+{% endif %}
+{% endblock %}

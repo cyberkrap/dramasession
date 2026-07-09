@@ -1,0 +1,59 @@
+{% extends "default.html" %}
+{% block pagetitle %}{{"Badge Grant" if grant else "Badge Remove"}}{% endblock %}
+{% block pagetype %}message{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{{('css/admin/badges.css') | asset}}">
+
+{% if error %}{{macros.alert(error, true)}}{% endif %}
+{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+
+<h5 class="mt-2">{{title}}</h5>
+{% set form_action = "/admin/badge_grant" if grant else "/admin/badge_remove" %}
+
+<form action="{{form_action}}" method="post">
+<input hidden name="formkey" value="{{v|formkey}}">
+
+<label for="input-username">Username</label>
+<input autocomplete="off" id="input-username" class="form-control" type="text" name="username" required>
+
+<div class="overflow-x-auto"><table class="table table-striped">
+<thead class="bg-primary text-white">
+		<tr>
+			<th>Select</th>
+			<th>Image</th>
+			<th>Name</th>
+			<th>Default Description</th>
+		</tr>
+	</thead>
+	<tbody>
+{% for badge in badge_types %}
+<tr>
+	<td>
+		<div class="custom-control">
+			<input autocomplete="off" class="custom-control-input" type="radio" id="{{badge.id}}" name="badge_id" value="{{badge.id}}" required>
+			<label class="custom-control-label" for="{{badge.id}}"></label>
+		</div>
+	</td>
+	<td>
+		<label for="badge-{{badge.id}}">
+			<img class="contain" alt="{{badge.name}}" loading="lazy" src="{{badge.path}}?b=6" width=64.16 height=70>
+		</label>
+	</td>
+	<td>{{badge.name}}</td>
+	<td>{{badge.description}}</td>
+</tr>
+{% endfor %}
+</table>
+{% if grant %}
+<label class="mb-0 pb-0" for="input-url">URL</label>
+<input autocomplete="off" id="input-url" class="form-control" type="text" name="url" type="url" placeholder="Optional">
+
+<label class="mt-2 mb-0 pb-0" for="input-description">Custom description</label>
+<input autocomplete="off" id="input-description" class="form-control" type="text" name="description" placeholder="Leave blank for badge default">
+{% endif %}
+<input autocomplete="off" class="btn btn-primary mt-3" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)">
+
+</form>
+
+{% endblock %}

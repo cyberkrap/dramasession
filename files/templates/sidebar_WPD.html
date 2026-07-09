@@ -1,0 +1,90 @@
+<div class="col sidebar text-left {% if '/sidebar' not in request.path %}d-none d-lg-block{% endif %} pt-3" {% if request.path != '/sidebar' %}id="sidebar-content"{% endif %}>
+
+	<a href="/users">
+		<h5 class="text-center mb-4">
+			Current registered users: {{current_registered_users()}}
+		</h5>
+	</a>
+
+	{%- if v -%}
+		{%- set art_image = macros.random_image("assets/images/" ~ SITE_NAME ~ "/sidebar") -%}
+	{%- else -%}
+		{%- set art_image = '/i/' ~ SITE_NAME ~ '/sidebar.webp?v=3000' -%}
+	{%- endif -%}
+
+	{% if request.path != '/sidebar' %}
+		<a href="{{art_image}}">
+			<img class="mb-4" alt="sidebar image" data-nonce="{{g.nonce}}" data-onclick="expandImage()" loading="lazy" src="{{art_image}}" width=100%>
+		</a>
+	{% endif %}
+
+	<p class="text-center text-md mb-4">
+		<a class="sidebar-link d-md-none" href="/random_user" data-bs-toggle="tooltip" data-bs-placement="top" title="Random User"><i class="fas fa-music"></i></a>
+		<a class="sidebar-link" href="/badges" data-bs-toggle="tooltip" data-bs-placement="top" title="Badges"><i class="fas fa-hexagon"></i></a>
+		<a class="sidebar-link" href="/admins" data-bs-toggle="tooltip" data-bs-placement="top" title="Admins"><i class="fas fa-crown"></i></a>
+		<a class="sidebar-link" href="/log" data-bs-toggle="tooltip" data-bs-placement="top" title="Moderation Log"><i class="fas fa-scroll-old"></i></a>
+		<a class="sidebar-link" href="/transfers" data-bs-toggle="tooltip" data-bs-placement="top" title="Transfers"><i class="fas fa-arrow-right-arrow-left"></i></a>
+		<a class="sidebar-link" href="/random_post" data-bs-toggle="tooltip" data-bs-placement="top" title="Random Post"><i class="fas fa-random"></i></a>
+		{% if IS_FISTMAS() %}
+			<span class="sidebar-link" data-nonce="{{g.nonce}}" data-onclick="postToastRoastEventDarkmode(this, '/events/fistmas2022/darkmode')" style="display:inline" data-bs-toggle="tooltip" data-bs-placement="top" title="Toggle Dark Mode"><i class="fas fa-moon-over-sun"></i></span>
+		{% endif %}
+	</p>
+
+	{% if sub and sub.sidebar_html %}
+		<div class="mb-4">{{sub.sidebar_html|safe}}</div>
+	{% endif %}
+
+	<div class="sidebar-wpd--flairs sidebar-wpd--flairs--3">
+		<a href="/h/accident">Accident</a>
+		<a href="/h/suicide">Suicide</a>
+		<a href="/h/animal">Animal</a>
+		<a href="/h/beating">Beating</a>
+		<a href="/h/bladed">Bladed</a>
+		<a href="/h/beheading">Beheading</a>
+		<a href="/h/vehicle">Vehicle</a>
+		<a href="/h/medical">Medical</a>
+		<a href="/h/shooting">Shooting</a>
+		<a href="/h/falling">Falling</a>
+		<a href="/h/explosions">Explosions</a>
+		<a href="/h/industrial">Industrial</a>
+		<a href="/h/electricity">Electricity</a>
+		<a href="/h/burning">Burning</a>
+		<a href="/h/drowning">Drowning</a>
+		<a href="/h/cartel">Cartel</a>
+		<a href="/h/isis">ISIS</a>
+		<a href="/h/execution">Execution</a>
+		<a href="/h/maiming">Maiming</a>
+		<a href="/h/police">Police</a>
+		<a href="/h/combat">Combat</a>
+		<a href="/h/other">Other</a>
+		<a href="/h/compilation">Compilation</a>
+		<a href="/h/request" class="font-italic">Request</a>
+	</div>
+	<hr>
+	<div class="sidebar-wpd--flairs sidebar-wpd--flairs--3">
+		<a href="/h/gore">Gore</a>
+		<a href="/h/aftermath">Aftermath</a>
+		<a href="/h/selfharm">Self-Harm</a>
+	</div>
+	<hr>
+	<div class="sidebar-wpd--flairs sidebar-wpd--flairs--2 mb-4">
+		<a href="/h/meta" class="font-weight-bold">Meta</a>
+		<a href="/h/discussion">Discussion</a>
+		<a href="/h/social">Social</a>
+		<a href="/h/music">Music</a>
+	</div>
+
+	<div class="sidebar--rules sidebar--rules--wpd pt-2">
+		{% set rules = "rules_" ~ SITE_NAME ~ ".html" %}
+		{% include rules %}
+	</div>
+
+	<hr>
+	<div class="mt-3">
+		Live commit: <a href="https://fsdfsd.net/rDrama/rDrama/commit/{{gitref[0]}}">{{gitref[0]}}</a>
+	</div>	
+</div>
+
+{% if IS_FISTMAS() %}
+	<script defer src="{{'fistmas/js/darkmode.js' | asset}}"></script>
+{% endif %}

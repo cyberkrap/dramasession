@@ -1,0 +1,21 @@
+{% extends "settings2.html" %}
+{% block pagetitle %}Logged In Users{% endblock %}
+{% block content %}
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>Name</th>
+		<th>Truescore</th>
+	</tr>
+</thead>
+{% for user in users %}
+	<tr>
+		<td>{{loop.index}}</td>
+		<td>{% include "user_in_table.html" %}</td>
+		<td>{{"{:,}".format(user.truescore)}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

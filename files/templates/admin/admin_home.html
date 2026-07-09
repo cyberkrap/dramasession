@@ -1,0 +1,130 @@
+{% extends "default.html" %}
+{% block pagetitle %}Admin Home{% endblock %}
+{% block customPadding %}px-3{% endblock %}
+{% block content %}
+<h3 class="py-2">Admin Tools</h3>
+
+{% if (v.admin_level >= PERMS['SITE_SETTINGS_SIDEBARS_BANNERS_BADGES'] or v.admin_level >= PERMS['SITE_SETTINGS_SNAPPY_QUOTES']) and (SITE_NAME == 'rDrama' or SIDEBAR_THREAD or BANNER_THREAD or BADGE_THREAD or SNAPPY_THREAD) %}
+	<h4>Add Stuff</h4>
+	<ul>
+		{% if v.admin_level >= PERMS['SITE_SETTINGS_SIDEBARS_BANNERS_BADGES'] %}
+			{% if SIDEBAR_THREAD %}
+				<li><a href="/post/{{SIDEBAR_THREAD}}">Add Sidebar Images</a></li>
+			{% endif %}
+			{% if BANNER_THREAD %}
+				<li><a href="/post/{{BANNER_THREAD}}">Add Banners</a></li>
+			{% endif %}
+			{% if BADGE_THREAD %}
+				<li><a href="/post/{{BADGE_THREAD}}">Add Badges</a></li>
+			{% endif %}
+		{% endif %}
+		{% if SNAPPY_THREAD and v.admin_level >= PERMS['SITE_SETTINGS_SNAPPY_QUOTES'] %}
+			<li><a href="/post/{{SNAPPY_THREAD}}">Add Snappy Quotes</a></li>
+		{% endif %}
+		{% if SITE_NAME == 'rDrama' %}
+			<li><a href="/admin/update/marseys">Update Marseys</a></li>
+			<li><a href="/admin/update/hats">Update Hats</a></li>
+		{% endif %}
+	</ul>
+{% endif %}
+
+<h4>Content</h4>
+<ul>
+	{% if v.admin_level >= PERMS['VIEW_DM_IMAGES'] %}
+		<li><a href="/admin/dm_images">DM Images</a></li>
+	{% endif %}
+	<li><a href="/log">Moderation Log</a></li>
+	{% if v.admin_level >= PERMS['POST_COMMENT_MODERATION'] %}
+		<li><a href="/admin/image_posts">Image Posts</a></li>
+		<li><a href="/admin/reported/posts">Reported Posts/Comments</a></li>
+		<li><a href="/admin/removed/posts">Removed Posts/Comments</a></li>
+	{% endif %}
+</ul>
+
+<h4>Users</h4>
+<ul>
+	{% if v.admin_level >= PERMS['USER_SHADOWBAN'] %}
+		<li><a href="/admin/shadowbanned">Shadowbanned Users</a></li>
+	{% endif %}
+		<li><a href="/banned">Banned Users</a></li>
+	{% if FEATURES['AWARDS'] -%}
+		<li><a href="/chuds">Chudded Users</a></li>
+		<li><a href="/grassed">Currently Grassed Users</a></li>
+	{%- endif %}
+	{% if FEATURES['MARSEYBUX'] and v.admin_level >= PERMS['VIEW_PATRONS'] -%}
+		<li><a href="/patrons">Patrons</a></li>
+	{%- endif %}
+	{% if v.admin_level >= PERMS['VIEW_ACTIVE_USERS'] %}
+		<li><a href="/admin/loggedin">Currently Logged-in Users</a></li>
+		<li><a href="/admin/loggedout">Currently Logged-out Users</a></li>
+	{% endif %}
+</ul>
+
+<h4>Safety</h4>
+<ul>
+	<li><a href="/admin/banned_domains">Banned Domains</a></li>
+	{% if v.admin_level >= PERMS['USER_LINK'] %}
+		<li><a href="/admin/alts/">View and Link Alts</a></li>
+	{% endif %}
+	{% if v.admin_level >= PERMS['VIEW_ALT_VOTES'] %}
+		<li><a href="/admin/alt_votes">Multi Vote Analysis</a></li>
+	{% endif %}
+</ul>
+
+{% if FEATURES['BADGES'] -%}
+<h4>Grant</h4>
+<ul>
+	{% if FEATURES['BADGES'] and v.admin_level >= PERMS['USER_BADGES'] -%}
+		<li><a href="/admin/badge_grant">Grant Badges</a></li>
+		<li><a href="/admin/badge_remove">Remove Badges</a></li>
+	{%- endif %}
+</ul>
+{%- endif %}
+
+{% if FEATURES['GAMBLING'] -%}
+<h4>Casino</h4>
+<ul>
+	<li><a href="/admin/lottery/participants">Participants</a></li>
+</ul>
+{%- endif %}
+
+<h4>Statistics</h4>
+<ul>
+	<li><a href="/stats">Content Stats</a></li>
+	<li><a href="/weekly_chart">Weekly Stat Chart</a></li>
+	<li><a href="/daily_chart">Daily Stat Chart</a></li>
+</ul>
+
+<h4>Configuration</h4>
+<ul class="pb-3">
+	{% if v.admin_level >= PERMS['EDIT_RULES'] %}
+		<li><a href="/admin/edit_rules">Edit the Rules</a></li>
+	{%- endif %}
+	{% if v.admin_level >= PERMS['HOLE_CREATE'] %}
+		<li><a href="/create_hole">Create {{HOLE_NAME | capitalize}}</a></li>
+	{% endif %}
+	{% if v.admin_level >= PERMS['APPS_MODERATION'] %}
+		<li><a href="/admin/apps">Apps</a></li>
+	{% endif %}
+</ul>
+
+{% if v.admin_level >= PERMS['SITE_SETTINGS'] %}
+	{% for setting in site_settings.keys() %}
+	<div class="custom-control custom-switch{% if loop.index > 1 %} mt-1{% endif %}" id="settings-{{setting}}-container">
+		<input autocomplete="off" type="checkbox" class="custom-control-input" id="settings-{{setting}}-checkbox" {% if site_settings[setting] %}checked{% endif %} data-nonce="{{g.nonce}}" data-onchange="postToastSwitch(this, '/admin/site_settings/{{setting}}');">
+		<label class="custom-control-label" for="settings-{{setting}}-checkbox">{{setting.replace('_', ' ').title()}}</label>
+	</div>
+	{% endfor %}
+	{% if v.admin_level >= PERMS['SITE_SETTINGS_UNDER_ATTACK'] %}
+		<div class="custom-control custom-switch" id="settings-under_attack-container">
+			<input autocomplete="off" type="checkbox" class="custom-control-input" id="under_attack" name="under_attack" {% if under_attack%}checked{% endif %} data-nonce="{{g.nonce}}" data-onchange="postToastSwitch(this,'/admin/under_attack');">
+			<label class="custom-control-label" for="under_attack">Under Attack Mode</label>
+		</div>
+	{% endif %}
+{% endif %}
+
+{% if v.admin_level >= PERMS['SITE_CACHE_PURGE_CDN'] %}
+	<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/admin/clear_cloudflare_cache');" style="margin-bottom: 2em;">CLEAR CLOUDFLARE CACHE</button>
+{% endif %}
+
+{% endblock %}

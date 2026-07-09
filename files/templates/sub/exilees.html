@@ -1,0 +1,37 @@
+{% extends "default.html" %}
+{% block pagetitle %}/h/{{sub}} Exiles{% endblock %}
+{% block content %}
+<h5 class="my-4 ml-2">Users exiled from /h/{{sub}}</h5>
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>Name</th>
+		<th>Exiled by</th>
+		<th>Exiled since</th>
+		<th></th>
+	</tr>
+</thead>
+{% for user, exile in users %}
+	<tr>
+		<td>{{loop.index}}</td>
+		<td>{% include "user_in_table.html" %}</td>
+		<td>
+			{% with user=exile.exiler %}
+				{% include "user_in_table.html" %}
+			{% endwith %}
+		</td>
+		<td {% if exile.created_utc %}data-time="{{exile.created_utc}}"{% endif %}></td>
+		<td>
+			{% if v.mods(sub.name) %}
+				<form action="/h/{{sub}}/unexile/{{user.id}}" method="post">
+					<input hidden name="formkey" value="{{v|formkey}}">
+					<input autocomplete="off" class="btn btn-primary ml-auto" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Unexile">
+				</form>
+			{% endif %}
+		</td>
+	</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

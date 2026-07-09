@@ -1,0 +1,142 @@
+{% extends "default.html" %}
+{% block pagetitle %}/h/{{sub}} Settings{% endblock %}
+
+{% block content %}
+{% if error %}{{macros.alert(error, true)}}{% endif %}
+{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+
+<div class="title w-lg-25 mt-5">
+	<label class="text-lg" for="stealth">Stealth Mode</label>
+</div>
+<div class="body w-lg-100">
+	<div class="custom-control custom-switch">
+		<input autocomplete="off" type="checkbox" class="custom-control-input" id="stealth" name="stealth" {% if sub.stealth %}checked{% endif %} data-nonce="{{g.nonce}}" data-onchange="postToastSwitch(this,'/h/{{sub}}/stealth');">
+		<label class="custom-control-label" for="stealth"></label>
+	</div>
+	<span class="text-small text-muted">Make this hole blocked by default (users can visit it to unblock it).</span>
+</div>
+
+<h5 class="mt-5">Marsey</h5>
+<div class="settings-section rounded">
+	<div class="d-flex">
+		<div class="title w-lg-25 text-md-center">
+			<img loading="lazy" alt="sub marsey picture" src="{{sub.marsey_url}}" class="profile-pic-75">
+		</div>
+		<div class="body w-lg-100 my-auto">
+			<div class="d-flex">
+				<div>
+					<form action="/h/{{sub}}/marsey_image" method="post" enctype="multipart/form-data">
+						<input hidden name="formkey" value="{{v|formkey}}">
+						<label class="btn btn-secondary text-capitalize mr-2 mb-0">
+							Update<input autocomplete="off" type="file" accept="image/*" {% if g.is_tor %}disabled{% endif %} hidden name="marsey" data-nonce="{{g.nonce}}" onchange_submit>
+						</label>
+					</form>
+				</div>
+			</div>
+			<div class="text-small text-muted mt-3">All image files are supported. Max file size is {% if v and v.patron %}16{% else %}8{% endif %} MB.</div>
+		</div>
+	</div>
+</div>
+
+<h5 class=" mt-5">Sidebar Picture</h5>
+<div class="settings-section rounded">
+	<div class="d-flex">
+		<div class="title w-lg-25 text-md-center">
+			<img loading="lazy" alt="sub sidebar picture" src="{{sub.sidebar_url}}" class="profile-pic-75">
+		</div>
+		<div class="body w-lg-100 my-auto">
+			<div class="d-flex">
+				<div>
+					<form action="/h/{{sub}}/sidebar_image" method="post" enctype="multipart/form-data">
+						<input hidden name="formkey" value="{{v|formkey}}">
+						<label class="btn btn-secondary text-capitalize mr-2 mb-0">
+							Update<input autocomplete="off" type="file" accept="image/*" {% if g.is_tor %}disabled{% endif %} hidden name="sidebar" data-nonce="{{g.nonce}}" onchange_submit>
+						</label>
+					</form>
+				</div>
+			</div>
+			<div class="text-small text-muted mt-3">All image files are supported. Max file size is {% if v and v.patron %}16{% else %}8{% endif %} MB.</div>
+		</div>
+	</div>
+</div>
+
+<h5 class="mt-5">Banners</h5>
+<div class="settings-section rounded sub-banner-update-section">
+	{% for banner in sub.banner_urls %}
+	<section id="sub-banner-update-{{loop.index - 1}}" class="d-flex sub-settings-subsection">
+		<div class="title w-lg-75 text-md-center">
+			<img loading="lazy" alt="/h/{{sub.name}} banner" src="{{banner}}" class="banner-pic-135 sub-banner-preview sub-banner-{{sub.name}}">
+		</div>
+		<div class="body w-lg-100 my-auto">
+			<div class="d-flex">
+				<button class="btn btn-danger sub-banner-delete-button" id="sub-banner-delete-{{loop.index}}" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)" data-areyousure="postToastReload(this, '/h/{{sub.name}}/settings/banners/{{loop.index - 1}}', 'DELETE');">Delete</button>
+			</div>
+		</div>
+	</section>
+	{% else %}
+		<section id="sub-banner-no-banners" class="d-flex sub-settings-subsection">
+			{{macros.ghost_box("No banners uploaded", "", 2, "flex:1;")}}
+		</section>
+	{% endfor %}
+	{% if not g.is_tor %}
+	<section id="sub-banner-upload-new" class="d-flex sub-settings-subsection">
+		<div class="body w-lg-100 my-auto">
+			<div class="d-flex">
+				<div>
+					<form action="/h/{{sub.name}}/settings/banners/" method="post" enctype="multipart/form-data">
+						<input hidden name="formkey" value="{{v|formkey}}">
+						<label class="btn btn-secondary text-capitalize mr-2 mb-0">
+							Upload New Banner<input autocomplete="off" type="file" accept="image/*" hidden name="banner" data-nonce="{{g.nonce}}" onchange_submit>
+						</label>
+						<button type="button" class="btn btn-danger sub-banner-delete-button" id="sub-banner-delete-all" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)" data-areyousure="postToastReload(this, '/h/{{sub.name}}/settings/banners/', 'DELETE');">Delete All Banners</button>
+					</form>
+				</div>
+			</div>
+			<div class="text-small text-muted mt-3">All image files are supported. Max file size is {% if v and v.patron %}16{% else %}8{% endif %} MB.</div>
+		</div>
+	</section>
+	{% endif %}
+</div>
+
+<div class="row my-5 pt-5">
+	<div class="col col-md-8">
+		<div class="settings">
+			<div id="description">
+				<h2>Edit Sidebar</h2><br>
+			</div>
+			<div class="body d-lg-flex">
+				<div class="w-lg-100">
+					<form id="sidebar" action="/h/{{sub}}/sidebar" method="post">
+						<input hidden name="formkey" value="{{v|formkey}}">
+						<textarea autocomplete="off" maxlength="10000" class="form-control rounded" id="bio-text" placeholder="Enter sidebar here..." rows="10" name="sidebar" form="sidebar">{% if sub.sidebar %}{{sub.sidebar}}{% endif %}</textarea>
+						<div class="d-flex mt-2">
+							<input autocomplete="off" class="btn btn-primary ml-auto" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Save">
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col col-md-8">
+		<div class="settings">
+			<div id="description">
+				<h2>Edit CSS</h2><br>
+			</div>
+			<div class="body d-lg-flex">
+				<div class="w-lg-100">
+					<form id="css" action="/h/{{sub}}/css" method="post">
+						<input hidden name="formkey" value="{{v|formkey}}">
+						<textarea autocomplete="off" maxlength="6000" class="form-control rounded" id="bio-text" placeholder="Enter css here..." rows="10" name="css" form="css">{% if css %}{{css}}{% endif %}</textarea>
+						<div class="d-flex mt-2">
+							<input autocomplete="off" class="btn btn-primary ml-auto" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Save">
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

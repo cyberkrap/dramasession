@@ -1,0 +1,141 @@
+.game_screen-title {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-transform: uppercase;
+	opacity: 0.6;
+}
+
+.game_screen-title hr {
+	flex: 1;
+	margin-left: 0.5rem;
+}
+
+#casinoGameResult {
+	visibility: hidden;
+	margin-top: 1rem;
+}
+
+#casinoGameFeedList {
+	max-height: 110px;
+	overflow: auto;
+	list-style-type: none;
+}
+
+@keyframes drawing {
+	from {
+		left: 0;
+		opacity: 1;
+	}
+
+	to {
+		left: 100px;
+		opacity: 0;
+	}
+}
+
+.drawing-a-card {
+	animation: drawing 1s ease-in-out;
+}
+
+.playing-card-deck {
+	position: relative;
+	z-index: 3;
+	box-shadow: -5px 5px 5px 0px rgba(60, 60, 60, 0.56);
+	-webkit-box-shadow: -5px 5px 5px 0px rgba(60, 60, 60, 0.56);
+	-moz-box-shadow: -5px 5px 5px 0px rgba(60, 60, 60, 0.56);
+}
+
+.flipped-playing-card {
+	position: absolute;
+	width: 100px;
+	height: 150px;
+	border-radius: 4px;
+	border: 1px solid #21262C;
+	background-color: #FF66AC;
+	transform: scale(0.7);
+}
+
+.playing-card {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100px;
+	height: 150px;
+	border-radius: 4px;
+	border: 1px solid #21262C;
+	background-color: #FFF;
+	box-shadow: -5px 5px 5px 0px rgba(60, 60, 60, 0.56);
+	-webkit-box-shadow: -5px 5px 5px 0px rgba(60, 60, 60, 0.56);
+	-moz-box-shadow: -5px 5px 5px 0px rgba(60, 60, 60, 0.56);
+}
+
+.playing-card_red {
+	color: #ff0000;
+}
+
+.playing-card_black {
+	color: #333;
+}
+
+.playing-card_small {
+	font-size: 18px;
+	position: absolute;
+}
+
+.playing-card_large {
+	font-size: 48px;
+	text-align: center;
+}
+
+.playing-card_topright {
+	top: 6px;
+	right: 6px;
+}
+
+.playing-card_bottomleft {
+	bottom: 6px;
+	left: 6px;
+	transform: scaleX(-1) scaleY(-1);
+}
+
+#casinoGameResult, #casinoGameStats {
+	text-transform: uppercase;
+	text-align: center;
+	letter-spacing: 3px;
+	font-weight: 700;
+}
+
+.casino-game-leaderboard {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1rem;
+}
+
+.casino-game-leaderboard-info {
+	text-align: right;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+}
+
+.leaderboard-marsey-trophy {
+	position: relative;
+	width: 100px;
+	height: 100px;
+}
+
+.leaderboard-marsey-trophy__marsey {
+	position: relative;
+	z-index: 1;
+	height: 100px;
+}
+
+.leaderboard-marsey-trophy__trophy {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	z-index: 2;
+	font-size: 48px;
+}

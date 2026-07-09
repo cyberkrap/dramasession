@@ -1,0 +1,25 @@
+{%- extends 'login/authforms.html' -%}
+{% block pagetitle %}Sign Up: Error{% endblock %}
+{% block pagetype %}login{% endblock %}
+{% block template_config %}
+	{% set root_scope.js = true %}
+	{% set root_scope.include_user_css = false %}
+	{% set root_scope.include_seo = true %}
+	{% set root_scope.include_cf_2fa_verify = false %}
+{% endblock %}
+{% block authtitle %}Whoops! You can't refer yourself!{% endblock %}
+{% block authtext %}Send this link to a friend instead :){% endblock %}
+{% block content %}
+<label>Referral code</label>
+{% set link = SITE_FULL ~ "/signup?ref=" ~ request.values.get('ref') %}
+<input autocomplete="off" type="text" class="form-control copy-link" readonly value="{{link}}" data-clipboard-text="{{link}}">
+<div class="text-center text-muted text-small mt-5 mb-3">
+	Already have an account? <a href="/login{{'?redirect='+redirect if redirect else ''}}" class="font-weight-bold toggle-login">Log in</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<div class="toast clipboard" id="toast-success" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
+<div class="toast-body text-center">
+	<i class="fas fa-check-circle text-success mr-2"></i>Link copied to clipboard
+</div>
+{% endblock %}

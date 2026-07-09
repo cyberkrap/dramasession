@@ -1,0 +1,93 @@
+{% extends "default.html" %}
+{% block pagetitle %}Hats{% endblock %}
+{% block pagetype %}message{% endblock %}
+
+{% block banner %}
+	<div class="container-fluid bg-white sticky shop-tabs" style="padding-bottom: 0 !important;">
+		<div class="row box-shadow-bottom">
+			<div class="col p-0">
+				<div class="container" style="padding-bottom: 0;">
+					<div class="row box-shadow-bottom bg-white" style="justify-content: center;">
+						<a class="btn btn-primary btn-block m-0 shop-tab" href="/shop">
+							<span class="mr-auto ml-auto"><i class="fas fa-gift mr-2"></i>AWARDS</span>
+						</a>
+						<a class="btn btn-primary btn-block m-0 shop-tab active" href="/hats">
+							<span class="mr-auto ml-auto"><i class="fas fa-hat-cowboy mr-2"></i>HATS</span>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<header class="container pb-1 text-center">
+		<img loading="lazy" id="hats-banner" class="mt-5" alt="hats banner" src="/i/hats.webp?v=1" width="50%">
+		<h5 class="mt-4">Number of hats you bought: {{v.num_of_owned_hats}}</h5>
+		<h5 class="mt-4">Number of hats you designed: {{v.num_of_designed_hats}}</h5>
+		<h5 class="mt-4">Coins you spent on hats: {{"{:,}".format(v.coins_spent_on_hats)}}</h5>
+		<h5 class="mt-4">Total hat sales:  {{"{:,}".format(sales)}}</h5>
+		<h5 class="mt-4">Number of hats: {{num_of_hats}}</h5>
+	</header>
+{% endblock %}
+
+{% block content %}
+	<script defer src="{{'js/hats.js' | asset}}"></script>
+
+	<div class="overflow-x-auto mt-1 mb-5">
+		<table class="table table-striped shop">
+		<thead class="bg-primary text-white">
+			<tr>
+				<th class="disable-sort-click">Hat</th>
+				<th>Name</th>
+				<th>Description</th>
+				{% if SITE == 'rdrama.net' %}
+					<th>Author</a></th>
+				{% endif %}
+				<th>Owners</th>
+				<th>Price</th>
+				<th class="disable-sort-click">Actions</th>
+				<th>Added on</th>
+			</tr>
+		</thead>
+
+		<tbody>
+			{% for hat, user in hats %}
+				<tr>
+					<td>
+						<div class="profile-pic-75-wrapper mt-4">
+							<img loading="lazy" alt="avatar" src="{{v.profile_url}}" class="profile-pic-75">
+							<img loading="lazy" alt="{{hat.name}}" class="profile-pic-75-hat" src="/i/hats/{{hat.name}}.webp?h=7">
+						</div>
+					</td>
+					<td>{{hat.name}}</td>
+					<td style="word-break:break-word">{{hat.censored_description(v)}}</td>
+					{% if SITE == 'rdrama.net' %}
+						<td>{% include "user_in_table.html" %}</td>
+					{% endif %}
+					<td><a href="/hat_owners/{{hat.id}}">{{hat.number_sold(g.db)}}</a></td>
+					<td>{{hat.price}}</td>
+					<td class="shop-table-actions" style="width:unset">
+						{% if hat.id not in owned_hat_ids and hat.is_purchasable %}
+							<div id="if-not-owned-{{hat.id}}">
+								<button type="button" id="buy1-{{hat.id}}" class="btn btn-success {% if v.coins < hat.price %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200)document.getElementById('user-coins-amount').innerHTML-={{hat.price}}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy</span></button>
+
+								{% if FEATURES['MARSEYBUX'] %}
+									<button type="button" id="buy2-{{hat.id}}" class="marseybux btn btn-success {% if v.marseybux < hat.price %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}?mb=true', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200)document.getElementById('user-bux-amount').innerHTML-={{hat.price}}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">MBux</span></button>
+								{% endif %}
+							</div>
+						{% endif %}
+
+						<div id="if-owned-{{hat.id}}" {% if hat.id not in owned_hat_ids %}class="d-none"{% endif %}>
+							<button type="button" id="unequip-{{hat.id}}" class="unequip {% if hat.id not in v.equipped_hat_ids %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this, '/unequip_hat/{{hat.id}}', 'equip-{{hat.id}}', 'unequip-{{hat.id}}', 'd-none')"><span class="m-auto">Unequip</span></button>
+
+							<button type="button" id="equip-{{hat.id}}" class="equip {% if hat.id in v.equipped_hat_ids %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="equip_hat(this, '{{hat.id}}', '{{hat.name}}')"><span class="m-auto">Equip</span></button>
+						</div>
+					</td>
+
+					<td data-time="{{hat.created_utc}}"></td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+{% endblock %}

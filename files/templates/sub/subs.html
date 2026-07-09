@@ -1,0 +1,37 @@
+{% extends "default.html" %}
+{% block pagetitle %}{{HOLE_NAME|capitalize}} List{% endblock %}
+{% block content %}
+<h5 class="mt-3 mb-1">{{HOLE_NAME|capitalize}} List</h5>
+<div class="overflow-x-auto">
+	<table class="table table-striped mb-5">
+		<thead class="bg-primary text-white">
+			<tr>
+				<th>#</th>
+				<th>Name</th>
+				<th>Posts</th>
+				<th>Followers</th>
+				<th>Blockers</th>
+				<th>Created on</th>
+			</tr>
+		</thead>
+
+		{% for sub, count in subs %}
+			<tr>
+				<td>{{loop.index}}</td>
+				<td><a href="/h/{{sub}}">{{sub}} {% if sub.name in v.all_blocks %}<span class="text-danger">[blocked, visit it to unblock it]</span>{% endif %}</a></td>
+				<td><a href="/h/{{sub}}" >{{count}}</a></td>
+				<td><a href="/h/{{sub}}/followers">{{sub.follow_num}}</a></td>
+				{% if sub.stealth %}
+					<td>{{total_users - sub.join_num}}</td>
+				{% else %}
+					<td><a href="/h/{{sub}}/blockers">{{sub.block_num}}</a></td>
+				{% endif %}
+				<td data-time="{{sub.created_utc}}"></td>
+			</tr>
+		{% endfor %}
+	</table>
+</div>
+
+
+
+{% endblock %}

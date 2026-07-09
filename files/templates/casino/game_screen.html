@@ -1,0 +1,101 @@
+{% extends "default.html" %}
+{% block pagetitle %}{{game.capitalize()}}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{('css/casino/game_screen.css') | asset}}">
+<script defer src="{{'js/casino/game_screen.js' | asset}}"></script>
+
+{% block script %}{% endblock %}
+
+<div id="casino-game-wrapper" data-game="{{game}}" class="container-fluid" style="max-width: 500px">
+	<div class="row row-cols-1">
+		<div class="col game_screen-title">
+			<h3>{{game}}</h3>
+			<hr>
+		</div>
+		<div class="col">{% block screen %} {% endblock %}</div>
+		<div class="col">
+			<div id="casinoGameResult" class="alert">
+				{% block result %}{% endblock %}
+			</div>
+		</div>
+		<div class="col">
+			{% set stats_alert_class = 'success' if v_stats[0] >= v_stats[2] else 'danger' %}
+			<div id="casinoGameStats" class="alert alert-{{stats_alert_class}}">
+				{{v_stats[0]}} win{{macros.plural(v_stats[0])}}{% if v_stats[1] %} - {{v_stats[1]}} tie{{macros.plural(v_stats[1])}}{% endif %} - {{v_stats[2]}} loss{{macros.plural(v_stats[2], 'es')}}
+			</div>
+		</div>
+		<div class="col">
+			<div class="row row-cols-2">
+				<div class="col">
+					<div class="game_screen-title" style="max-width:150px">
+						<h5>Wager</h5>
+						<hr>
+					</div>
+					<input id="wagerAmount" type="number" min="5" step="1" value="5" class="form-control">
+				</div>
+				<div class="col">
+					<div class="game_screen-title">
+						<h5>Currency</h5>
+						<hr>
+					</div>
+					<div class="btn-group">
+						<input type="radio" class="btn-check" name="wagerCurrency" autocomplete="off" id="wagerCoins"
+							value="coin" checked>
+						<label for="wagerCoins" class="btn btn-primary">
+							<img loading="lazy" src="/i/rDrama/coins.webp?v=3009" alt="coin" width="32" data-bs-toggle="tooltip"
+								data-bs-placement="bottom" title="Coin">
+						</label>
+						<input type="radio" class="btn-check ml-2" name="wagerCurrency" autocomplete="off" id="wagerMarseybux"
+							value="marseybux">
+						<label for="wagerMarseybux" class="btn btn-primary">
+							<img loading="lazy" src="/i/marseybux.webp?v=2000" alt="marseybux" width="32" data-bs-toggle="tooltip"
+								data-bs-placement="bottom" title="Marseybux">
+						</label>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col">
+			<div class="game_screen-title">
+				<h5>{% block actiontext %}Actions{% endblock %}</h5>
+				<hr>
+			</div>
+			{% block actions %} {% endblock %}
+		</div>
+		<div id="casinoGameFeed" data-feed="{{feed}}" class="col">
+			<div class="game_screen-title">
+				<h5>Feed</h5>
+				<hr>
+			</div>
+			<ul id="casinoGameFeedList"></ul>
+			<button type="button" class="btn btn-secondary" style="width: 100%" data-nonce="{{g.nonce}}" data-onclick="reloadFeed()">
+				Reload Feed
+			</button>
+		</div>
+		<div class="col">
+			<div class="game_screen-title">
+				<h5>Leaders</h5>
+				<hr>
+			</div>
+			<div id="gameLeaderboard" data-leaderboard="{{leaderboard}}">
+				{%- macro leaderboard(text, css_class, marsey, color) -%}
+				<div class="casino-game-leaderboard">
+					<div class="leaderboard-marsey-trophy">
+						<img loading="lazy" class="leaderboard-marsey-trophy__marsey" src="/e/{{marsey}}.webp">
+						<i class="fas fa-trophy leaderboard-marsey-trophy__trophy" style="color: {{color}};"></i>
+					</div>
+					<div class="casino-game-leaderboard-info">
+						<small>{{text}}</small>
+						<h3 id="{{css_class}}">-</h3>
+					</div>
+				</div>
+				{%- endmacro -%}
+				{{leaderboard('Biggest Winner (All Time)', 'biggestWinnerAllTime', 'marseyhappytears', 'gold')}}
+				{{leaderboard('Biggest Winner (Last 24h)', 'biggestWinner24h', 'marseyexcited', 'gold')}}
+				{{leaderboard('Biggest Loser (Last 24h)', 'biggestLoser24h', 'marseycry', 'darkred')}}
+				{{leaderboard('Biggest Loser (All Time)', 'biggestLoserAllTime', 'marseyrain', 'darkred')}}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

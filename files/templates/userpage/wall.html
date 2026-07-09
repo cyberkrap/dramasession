@@ -1,0 +1,24 @@
+{% extends "userpage/userpage.html" %}
+{% block userpage_content %}
+<div class="userpage-wall">
+	{{macros.comment_reply_box(u.fullname, 'replying-to-' + u.fullname, '', 'mb-3 mt-4', '', enable_cancel_button=false)}}
+	<div class="row no-gutters {% if listing %}mt-md-3{% elif not listing %}my-md-3{% endif %} px-3 p-md-0 userpage-wall" style="margin-top: 10px;">
+		<div class="col">
+			<div class="comment-section" id="replies-of-{{u.fullname}}">
+				{% with comments=listing %}
+					{% include "comments.html" %}
+				{% endwith %}
+			</div>
+			{% if not listing %}
+				<div class="text-center px-3 my-3">
+					<span class="fa-stack fa-2x text-muted mb-4">
+						<i class="fas fa-square text-gray-500 opacity-25 fa-stack-2x"></i>
+						<i class="fas text-gray-500 fa-scroll-old fa-stack-1x text-lg"></i>
+					</span>
+					<h5>There's no comments on {% if u.id == v.id %}your{% else %}@{{u.username}}'s{% endif %} wall yet!</h5>
+				</div>
+			{% endif %}
+	</div>
+	</div>
+</div>
+{% endblock %}

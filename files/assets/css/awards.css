@@ -1,0 +1,181 @@
+#awards-container {
+	position:fixed;
+	pointer-events: none;
+	z-index:9999;
+}
+
+.stackable-container > div {
+	position: absolute;
+}
+
+.stackable-container div,
+.stackable-container img, .ricardo {
+	animation-iteration-count: infinite !important;
+	animation-timing-function: linear !important;
+}
+
+/*seal*/
+.wholesome img {
+	width: 100px !important;
+	height: 89.5px !important;
+}
+@media (max-width: 992px) {
+	.wholesome img {
+		width: 40px !important;
+		height: 27px !important;
+	}
+}
+
+.wholesome {animation: sealX 9s alternate}
+.wholesome img {animation: sealY 10s alternate}
+
+.wholesome:nth-child(even),
+.wholesome:nth-child(n+2):nth-child(n+3) img
+{animation-direction: alternate-reverse}
+
+@keyframes sealX {
+	100% {transform: translateX(98vw)}
+}
+@keyframes sealY {
+	100% {transform: translateY(85vh)}
+}
+
+/*train*/
+.train img {
+	width: 100px !important;
+	height: 51px !important;
+}
+@media (max-width: 992px) {
+	.train img {
+		width: 40px !important;
+		height: 20px !important;
+	}
+}
+
+.train:nth-child(1), .scooter:nth-child(1) {top:2%}
+.train:nth-child(2), .scooter:nth-child(2) {top:27%}
+.train:nth-child(3), .scooter:nth-child(3) {top:52%}
+.train:nth-child(4), .scooter:nth-child(4) {top:77%}
+
+.train {animation: train 12s;}
+.train:nth-child(odd) {animation-direction: reverse;}
+.train:nth-child(odd) img {transform: scaleX(-1);}
+
+@keyframes train {
+	from {transform: translateX(-3vw)}
+	to {transform: translateX(99vw)}
+}
+
+/*scooter*/
+.scooter img {
+	width: 100px !important;
+	height: 135px !important;
+}
+@media (max-width: 992px) {
+	.scooter img {
+		width: 40px !important;
+		height: 54px !important;
+	}
+}
+
+.scooter {animation: train 14s;}
+.scooter:nth-child(even) {animation-direction: reverse;}
+.scooter:nth-child(even) img {transform: scaleX(-1);}
+
+/*confetti*/
+.confetti {
+	background-image: url(/assets/images/confetti2.webp);
+	background-repeat: repeat;
+}
+
+/*fireworks*/
+.firework img {
+	max-width: 15rem;
+}
+
+/*ricardo*/
+.ricardo {
+	position: fixed !important;
+	bottom: 0;
+}
+.ricardo img {
+	max-height: min(30vw,15rem);
+}
+
+.ricardo1 {animation: ricardo1Xa 5.8s, ricardo1Xb 11.6s, ricardo1Y 23.2s;}
+.ricardo2 {animation: ricardo2 8.5s;}
+.ricardo3 {animation: ricardo3 10s;}
+
+@keyframes ricardo1Xa {
+	0% {right: -200px}
+	50% {right: 200px}
+	100% {right: -200px}
+}
+
+@keyframes ricardo1Xb {
+	0%{left:unset}
+	49% {left: unset}
+	50% {left: -200px}
+	75% {left:200px}
+	100% {left: -200px}
+}
+
+@keyframes ricardo1Y {
+	0% {bottom:20vh}
+	24% {bottom: 20vh}
+	25% {bottom: 60vh}
+	49% {bottom: 60vh}
+	50% {bottom: 10vh}
+	74% {bottom: 10vh}
+	75% {bottom: 50vh}
+	99% {bottom: 50vh}
+	100% {bottom: 20vh}
+}
+
+
+@keyframes ricardo2 {
+	0% { opacity: 1; left: 0; right: unset;}
+	18% {opacity: 0; left: 0; right: unset;}
+	19% {opacity: 0; left: unset; right: 20vw;}
+	20% {opacity: 1; left: unset; right: 20vw;}
+	38% {opacity: 0; left: unset; right: 20vw;}
+	39% {opacity: 0; left: 20vw; right: unset;}
+	40% {opacity: 1; left: 20vw; right: unset;}
+	58% {opacity: 0; left: 20vw; right: unset;}
+	59% {opacity: 0; left: unset;right: 60vw;}
+	60% {opacity: 1; left: unset; right: 60vw;}
+	78% {opacity: 0; left: unset; right: 60vw;}
+	79% {opacity: 0; left: 80vw; right: unset;}
+	80% {opacity: 1; left: 80vw; right: unset;}
+	98% {opacity: 0; left: 80vw; right: unset;}
+	99% {opacity: 0; left: 0; right: unset;}
+	100% {opacity: 1; left: 0; right: unset;}
+}
+
+@keyframes ricardo3 {
+	50% {transform: translateX(100vw); top: unset; bottom: 0;}
+	51% {transform: translateX(100vw) rotate(180deg); top: 0; bottom: unset;}
+	100% {transform: translateX(-15vw) rotate(180deg); top: 0; bottom: unset;}
+}
+
+@keyframes tilt {
+	0% {transform: rotate(0deg);}
+	25% {transform: rotate({{p.award_count("tilt", v)}}deg);}
+	75% {transform: rotate(-{{p.award_count("tilt", v)}}deg);}
+	100% {transform: rotate(0deg);}
+}
+@media (max-width: 720px) {
+	@keyframes tilt {
+		0% {transform: rotate(0deg);}
+		25% {transform: rotate({{p.award_count("tilt", v)/4}}deg);}
+		75% {transform: rotate(-{{p.award_count("tilt", v)/4}}deg);}
+		100% {transform: rotate(0deg);}
+	}
+}
+.tilt {
+	animation-name: tilt;
+	animation-duration: 60s !important;
+	animation-iteration-count: infinite !important;
+	animation-direction: alternate !important;
+	animation-timing-function: linear !important;
+}

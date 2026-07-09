@@ -1,0 +1,67 @@
+{% if v and v.id==p.author_id and p.private %}
+	<form class="btn-block mb-0" action="/publish/{{p.id}}" method="post">
+		<input hidden name="formkey", value="{{v|formkey}}">
+		<button type="submit" class="nobackground btn btn-link btn-lg text-left text-muted" data-bs-dismiss="modal" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)"><i class="fas fa-globe text-center mr-2"></i>Publish</button>
+	</form>
+{% endif %}
+
+
+{% if not p.ghost or (v and v.admin_level >= PERMS['SEE_GHOST_VOTES']) %}
+	<a class="nobackground btn btn-link btn-block btn-lg text-left text-muted" href="/votes/{{p.fullname}}">
+		<i class="fas fa-arrows-v text-center text-muted mr-2"></i>Votes
+	</a>
+{% endif %}
+
+<button type="button" data-bs-dismiss="modal" class="copy-link nobackground btn btn-link btn-block btn-lg text-left text-muted" data-clipboard-text="{% if SITE == 'rdrama.net' %}https://{{BAN_EVASION_DOMAIN}}{{p.shortlink}}{% else %}{{p.permalink}}{% endif %}"><i class="far fa-copy text-center text-muted mr-2"></i>Copy link</button>
+
+<button type="button" class="nobackground btn btn-link btn-block btn-lg text-left text-muted" data-bs-toggle="modal" data-bs-dismiss="modal" data-bs-target="#reportPostModal" data-nonce="{{g.nonce}}" data-onclick="report_postModal('{{p.id}}')"><i class="far fa-flag text-center text-muted mr-2"></i>Report</button>
+
+{% if FEATURES['AWARDS'] -%}
+<button type="button" class="nobackground btn btn-link btn-block btn-lg text-left text-muted" data-bs-toggle="modal" data-bs-dismiss="modal" data-bs-target="#awardModal" data-url='/award/post/{{p.id}}' data-nonce="{{g.nonce}}"><i class="fas fa-gift text-center text-muted mr-2"></i>Give Award</button>
+{%- endif %}
+
+<button type="button" id="subscribe2-{{p.id}}" class="{% if p.id in v.subscribed_idlist %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-muted" data-areyousure="postToastSwitch(this,'/subscribe/{{p.id}}','subscribe2-{{p.id}}','unsubscribe2-{{p.id}}','d-none')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)" data-dismiss="modal"><i class="fas fa-eye text-center text-muted mr-2"></i>Subscribe</button>
+
+<button type="button" id="unsubscribe2-{{p.id}}" class="{% if not p.id in v.subscribed_idlist %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-muted" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unsubscribe/{{p.id}}','subscribe2-{{p.id}}','unsubscribe2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-eye-slash text-center text-muted mr-2"></i>Unsubscribe</button>
+
+<button type="button" id="save2-{{p.id}}" class="{% if p.id in v.saved_idlist %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-muted" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/save_post/{{p.id}}','save2-{{p.id}}','unsave2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-save text-center text-muted mr-2"></i>Save</button>
+<button type="button" id="unsave2-{{p.id}}" class="{% if not p.id in v.saved_idlist %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-muted" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unsave_post/{{p.id}}','save2-{{p.id}}','unsave2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-save text-center text-muted mr-2"></i>Unsave</button>
+
+{% if v.id==p.author_id and request.path.startswith('/@') %}
+	<button type="button" id="pin-profile2-{{p.id}}" class="{% if p.is_pinned %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-muted text-left" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/pin/{{p.id}}','pin-profile2-{{p.id}}','unpin-profile2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-thumbtack fa-rotate--45 text-center mr-2"></i>Pin to profile</button>
+	<button type="button" id="unpin-profile2-{{p.id}}" class="{% if not p.is_pinned %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-muted text-left" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/pin/{{p.id}}','pin-profile2-{{p.id}}','unpin-profile2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-thumbtack fa-rotate--45 text-center mr-2"></i>Unpin from profile</button>
+{% endif %}
+
+{% if p.sub and v.mods(p.sub) %}
+	<button type="button" id="hole-pin2-{{p.id}}" class="{% if p.hole_pinned %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-info" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/hole_pin/{{p.id}}','hole-pin2-{{p.id}}','hole-unpin2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-thumbtack fa-rotate--45 text-center text-info mr-2"></i>Pin to /h/{{p.sub}}</button>
+	<button type="button" id="hole-unpin2-{{p.id}}" class="{% if not p.hole_pinned %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-info" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/hole_unpin/{{p.id}}','hole-pin2-{{p.id}}','hole-unpin2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-thumbtack fa-rotate--45 text-center text-info mr-2"></i>Unpin from /h/{{p.sub}}</button>
+{% endif %}
+
+{% if v.id==p.author_id %}
+	<button type="button" id="undelete-{{p.id}}" class="{% if not p.deleted_utc %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/undelete_post/{{p.id}}', 'delete-{{p.id}}', 'undelete-{{p.id}}','d-none')" data-toggleelement="post-{{p.id}}" data-toggleattr="deleted" data-bs-dismiss="modal"><i class="far fa-trash-alt text-center mr-2"></i>Undelete</button>
+
+	<button type="button" id="delete-{{p.id}}" class="{% if p.deleted_utc %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-danger" data-bs-toggle="modal" data-bs-dismiss="modal" data-bs-target="#deletePostModal" data-nonce="{{g.nonce}}" data-onclick="delete_postModal(this, '{{p.id}}')"><i class="far fa-trash-alt mr-2"></i>Delete</button>
+{% else %}
+	{% if not p.ghost %}
+		<button type="button" id="unblock2-{{p.id}}" class="nobackground btn btn-link btn-block btn-lg text-success text-left {% if not p.is_blocking %}d-none{% endif %}" data-bs-dismiss="modal" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/settings/unblock?username={{p.author.username}}','block2-{{p.id}}','unblock2-{{p.id}}','d-none')"><i class="fas fa-eye mr-2 text-success"></i>Unblock user</button>
+		<button type="button" id="block2-{{p.id}}" class="blockuser nobackground btn btn-link btn-block btn-lg text-danger text-left" data-areyousure="postToastSwitch(this,'/settings/block?username={{p.author.username}}','block2-{{p.id}}','unblock2-{{p.id}}','d-none')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)" data-dismiss="modal"><i class="fas fa-eye-slash mr-2 text-danger"></i>Block user</button>
+	{% endif %}
+	{% if p.sub %}
+		<button type="button" id="unblock-sub2-{{p.id}}" class="nobackground btn btn-link btn-block btn-lg text-success text-left {% if not v.blocks(p.sub) %}d-none{% endif %}" data-bs-dismiss="modal" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/h/{{p.sub}}/unblock','block-sub2-{{p.id}}','unblock-sub2-{{p.id}}','d-none')"><i class="fas fa-eye mr-2 text-success"></i>Unblock /h/{{p.sub}}</button>
+		<button type="button" id="block-sub2-{{p.id}}" class="nobackground btn btn-link btn-block btn-lg text-danger text-left {% if v.blocks(p.sub) %}d-none{% endif %}" data-bs-dismiss="modal" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/h/{{p.sub}}/block','block-sub2-{{p.id}}','unblock-sub2-{{p.id}}','d-none')"><i class="fas fa-eye mr-2 text-danger"></i>Block /h/{{p.sub}}</button>
+	{% endif %}
+{% endif %}
+
+{% if FEATURES['NSFW_MARKING'] and (v.id==p.author_id or (p.sub and v.mods(p.sub))) %}
+	<button type="button" id="mark3-{{p.id}}" class="{% if p.over_18 %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/mark_post_nsfw/{{p.id}}','mark3-{{p.id}}','unmark3-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="far fa-eye-evil text-center mr-2"></i>Mark +18</button>
+	<button type="button" id="unmark3-{{p.id}}" class="{% if not p.over_18 %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unmark_post_nsfw/{{p.id}}','mark3-{{p.id}}','unmark3-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="far fa-eye-evil text-center mr-2"></i>Unmark +18</button>
+{% endif %}
+
+{% if p.sub and v.mods(p.sub) %}
+	<button type="button" data-bs-dismiss="modal" class="nobackground btn btn-link btn-block btn-lg text-left text-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/kick/{{p.id}}')"><i class="fas fa-sign-out text-danger text-center mr-2"></i>Kick</button>
+
+	{% if not p.author.mods(p.sub) %}
+		<button type="button" data-bs-dismiss="modal" id="exile2" class="{% if p.author.exiled_from(p.sub) %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/exile/post/{{p.id}}','exile2','unexile2','d-none')"><i class="fas fa-campfire mr-2 text-danger"></i>Exile user</button>
+		<button type="button" data-bs-dismiss="modal" id="unexile2" class="{% if not p.author.exiled_from(p.sub) %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/h/{{sub}}/unexile/{{p.author_id}}','exile2','unexile2','d-none')"><i class="fas fa-campfire mr-2 text-success"></i>Unexile user</button>
+	{% endif %}
+{% endif %}

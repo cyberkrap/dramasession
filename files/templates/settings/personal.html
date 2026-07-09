@@ -1,0 +1,310 @@
+{% extends "settings.html" %}
+{% block pagetitle %}Personal Settings{% endblock %}
+{% block content %}
+<div class="row settings-page" id="settings-page-personal">
+	<div class="col col-lg-10">
+		<div class="settings">
+			<section id="site-settings-experience-section" class="settings-section-section">
+				<h5>Site Experience</h5>
+				<div class="settings-section rounded" id="site-settings-experience">
+					{% if v.can_toggle_event_music %}
+						{{common.toggle_section('Event Music', 'event_music_switch', 'event_music', v.event_music, 'Toggle event music.', false)}}
+					{% endif %}
+					<div class="d-lg-flex border-bottom">
+						<div class="title w-lg-25">
+							<label for="patron-status">{{patron}} Status</label>
+						</div>
+						<div class="body w-lg-100">
+							<p>You're a {{TIERS_ID_TO_NAME[v.patron] if v.patron else "freeloader"}}!</p>{% if v.patron %} Thanks ily! &lt;3{% endif %}
+							{% if not v.patron and v.truescore >= TRUESCORE_DONATE_MINIMUM %}
+								<p class="font-italic">To stop freeloading, first <a href="/settings/security#new_email">verify your email</a>, support us on <a href="{{DONATE_LINK}}">{{DONATE_SERVICE}}</a> with the same email, and click "Claim {{patron}} Rewards"</p>
+							{% elif not v.patron %}
+								<p class="font-italic">To stop freeloading, you can <a href="/donate">donate via crypto</a>. Please let us know first beforehand by <a href="/contact">sending us a modmail.</a> Thanks!</p>
+							{% endif %}
+						</div>
+					</div>
+					<div class="d-lg-flex border-bottom">
+						<div class="title w-lg-25">
+							<label for="theme">Website Theme</label>
+						</div>
+						<div class="body w-lg-100">
+							<div class="input-group mb2">
+								<select autocomplete="off" id='theme' class="form-control setting_select" form="profile-settings" name="theme" data-nonce="{{g.nonce}}" data-reload="1">
+								{% for entry in THEMES %}
+									<option value="{{entry}}" {% if v.theme==entry %} selected {% endif %}>
+										{{entry}}
+									</option>
+								{% endfor %}
+							</select>
+							</div>
+						</div>
+					</div>
+					{{common.color_section('theme-color', '/settings/themecolor', 'themecolor', 'Theme Color', v.themecolor)}}
+					<div class="d-lg-flex border-bottom">
+						<div class="title w-lg-25">
+							<label for="background">Website Backgrounds</label>
+						</div>
+							<div class="body w-lg-100">
+								<p>Change the background for the website.</p>
+								<div class="input-group mb2">
+									<select autocomplete="off" id='backgroundSelector' class="form-control" form="profile-settings" name="background" data-nonce="{{g.nonce}}" data-onchange="updatebgselection();">
+									{% for entry in BACKGROUND_CATEGORIES %}
+										<option value="{{entry}}" {% if v.background and v.background.startswith(entry) %}selected{% endif %}>
+											{{entry}}
+										</option>
+									{% endfor %}
+									</select>
+								</div>
+							<form class="d-flex mt-3 mb-2" id="upload-custom-background" action="/settings/custom_background" method="post" enctype="multipart/form-data">
+								<input hidden name="formkey" value="{{v|formkey}}">
+								<label class="btn btn-primary" for="upload-custom-background-file">
+									<i class="fas fa-image mr-1"></i>
+									{% if v.background and v.background.startswith('/images/') %}
+										{{v.background}}
+									{% else %}
+										Upload custom site background
+									{% endif %}
+								</label>
+								<input autocomplete="off" id="upload-custom-background-file" accept="image/*", type="file" name="file" data-nonce="{{g.nonce}}" onchange_submit hidden>
+							</form>
+							{% if v.background %}
+								<div class="d-flex mb-3">
+									<button type="button" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/background', 'DELETE')">
+										<i class="fas fa-image-slash mr-1"></i>
+										Remove current background
+									</button>
+								</div>
+							{% endif %}
+							<div id="bgcontainer"></div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section id="site-settings-aesthetic-section" class="settings-section-section">
+				<h5>Your Aesthetic</h5>
+				<div class="settings-section rounded" id="site-settings-aesthetic">
+					{% if FEATURES['HOUSES'] %}
+						<div class="d-lg-flex border-bottom">
+							<div class="title w-lg-25">
+								<label for="theme">House</label>
+							</div>
+							<div class="body w-lg-100">
+								{% if v.house %}
+									{% set cost = HOUSE_SWITCH_COST %}
+									<p>Change your house (cost: {{cost}} coins or marseybux).</p>
+									{% if ' Founder' in v.house %}
+										<p>Warning: you'll lose your founder status if you join a different house</p>
+									{% endif %}
+								{% else %}
+									{% set cost = HOUSE_JOIN_COST %}
+									<p>Join a house (cost: {{cost}} coins or marseybux).</p>
+								{% endif %}
+								<div class="input-group mb2">
+									<select {% if v.coins < cost and v.marseybux < cost or v.bite %}disabled{% endif %} autocomplete="off" id='house' class="form-control setting_select" form="profile-settings" name="house" data-nonce="{{g.nonce}}" data-reload="1">
+										{% for entry in HOUSES %}
+											<option value="{{entry}}" {% if v.house.startswith(entry) %} selected {% endif %}>
+												{{entry}}
+											</option>
+										{% endfor %}
+									</select>
+								</div>
+							</div>
+						</div>
+					{%- endif %}
+					<div class="d-lg-flex border-bottom">
+						<div class="title w-lg-25">
+							<label for="profile-picture">Profile Picture</label>
+						</div>
+						<div class="title w-lg-25 text-md-center">
+							<img loading="lazy" alt="your profile picture" src="{{v.profile_url}}" class="profile-pic-75">
+						</div>
+						<div class="body w-lg-100 my-auto">
+							<div class="d-flex">
+								<div>
+									<form action="/settings/images/profile" method="post" enctype="multipart/form-data">
+										<input hidden name="formkey" value="{{v|formkey}}">
+										<label class="btn btn-secondary text-capitalize mr-2 mb-0">
+											Update<input autocomplete="off" type="file" accept="image/*" {% if g.is_tor %}disabled{% endif %} hidden name="profile" data-nonce="{{g.nonce}}" onchange_submit>
+										</label>
+									</form>
+								</div>
+							</div>
+							<div class="text-small text-muted mt-3">All image files are supported. Max file size is {% if v and v.patron %}16{% else %}8{% endif %} MB.</div>
+						</div>
+					</div>
+					{% if FEATURES['USERS_PROFILE_BANNER'] -%}
+						<div class="d-lg-flex border-bottom">
+							<div class="title w-lg-25">
+								<label for="banner">Banner</label>
+							</div>
+							<div class="title w-lg-75 text-md-center">
+								<img loading="lazy" alt="your banner" src="{{v.banner_url}}" class="banner-pic-135">
+							</div>
+							<div class="body w-lg-100 my-auto">
+								<div class="d-flex">
+									<div>
+										<form action="/settings/images/banner" method="post" enctype="multipart/form-data">
+											<input hidden name="formkey" value="{{v|formkey}}">
+											<label class="btn btn-secondary text-capitalize mr-2 mb-0">
+												Update<input autocomplete="off" type="file" {% if g.is_tor %}disabled{% endif %} accept="image/*" hidden name="banner" data-nonce="{{g.nonce}}" onchange_submit>
+											</label>
+										</form>
+									</div>
+								</div>
+								<div class="text-small text-muted mt-3">All image files are supported. Max file size is {% if v and v.patron %}16{% else %}8{% endif %} MB.</div>
+							</div>
+						</div>
+					{%- endif %}
+					<div class="d-lg-flex border-bottom">
+						<div class="title w-lg-25">
+							<label for="name">Username</label>
+						</div>
+						<div class="body w-lg-100">
+							<p>Your original username will always stay reserved for you: <code>{{v.original_username}}</code></p>
+							<form action="/settings/name_change" method="post">
+								<input hidden name="formkey" value="{{v|formkey}}">
+								<input autocomplete="off" type="text" name="name" class="form-control" value="{{v.username}}">
+								<small>3-25 characters, including letters, numbers, _ , and -</small>
+								<div class="d-flex mt-2">
+									<input autocomplete="off" class="btn btn-primary ml-auto" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Change Display Name">
+								</div>
+							</form>
+						</div>
+					</div>
+					{{common.color_section('namecolor', '/settings/namecolor', 'namecolor', 'Name Color', v.name_color)}}
+					{{common.line_text_section('pronouns', '/settings/pronouns_change', 'pronouns', 'Pronouns', v.pronouns, '{2-5 characters} / {2-5 characters}', 'Enter pronouns here', 'Change Pronouns', false, 3, 11, '([a-zA-Z]{1,5})/[a-zA-Z]{1,5}(/[a-zA-Z]{1,5})?', FEATURES['PRONOUNS'], false)}}
+					{# common.line_text_section(id, form_action, form_name, section_title, contents, below_text, placeholder_text, button_text, show_marseys, minlength, maxlength, pattern, show_if, disabled) #}
+					{{common.line_text_section('flair', '/settings/title_change', 'title', 'Flair', v.customtitleplain, 'Limit of 100 characters', 'Enter a flair here', 'Change Flair', true, 0, 100, '.*', true, v.flairchanged)}}
+					{{common.color_section('flaircolor', '/settings/titlecolor', 'titlecolor', 'Flair Color', v.titlecolor)}}
+					{% if v.verified %}
+						{{common.color_section('verifiedcolor', '/settings/verifiedcolor', 'verifiedcolor', 'Checkmark Color', v.verifiedcolor)}}
+						{{common.line_text_section('checkmark_text', '/settings/checkmark_text', 'checkmark-text', 'Checkmark Text', v.verified, 'Limit of 100 characters', 'Enter checkmark hover text here', 'Change Text', false, 0, 100, '.*', v.verified, false)}}
+					{% endif %}
+					{% if FEATURES['USERS_PROFILE_SONG'] -%}
+						<div class="d-lg-flex border-bottom">
+							<div class="title w-lg-25">
+								<label for="anthem">Profile Anthem</label>
+							</div>
+							<div class="body w-lg-100">
+								<p>You can use an MP3 file or a YouTube video.</p>
+								<form action="/settings/song_change_mp3" method="post" enctype="multipart/form-data">
+									<input hidden name="formkey" value="{{v|formkey}}">
+									<label class="btn btn-secondary d-inline-block m-0 mb-3">
+										<div id="filename-show2"><i class="fas fa-file"></i>
+											{% if v.song and v.song|length in (1,2,3,4,5,17) %}
+												{{v.song}}.mp3
+											{% else %}
+												Use an MP3 file (Max size is 8MB)
+											{% endif %}
+										</div>
+										<input autocomplete="off" id="file-upload2" type="file" name="file" {% if g.is_tor %}disabled{% endif %} accept="audio/mp3" data-nonce="{{g.nonce}}" onchange_submit hidden>
+									</label>
+								</form>
+								<form action="/settings/song_change" method="post">
+									<input hidden name="formkey" value="{{v|formkey}}">
+									<input class="form-control" style="display:inline;max-width:75%;font-size: min(3.5vw,16px)!important" autocomplete="off" type="text" name="song" class="form-control" value="{% if v.song and v.song|length not in (1,2,3,4,5,17) %}https://youtu.be/{{v.song}}{% endif %}" placeholder='Enter a YouTube video link here'>
+									<input class="btn btn-primary" style="margin-top:-6px;font-size: min(3.5vw,16px)!important" autocomplete="off" class="btn btn-primary ml-auto" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Submit">
+								</form>
+								<br><small>In some browsers, users have to click at least once anywhere in the profile page for the anthem to play.</small>
+							</div>
+						</div>
+					{%- endif %}
+					{# common.text_area_section(id, form_action, form_name, section_title, contents, below_text, placeholder_text, show_extras, show_file_upload, maxlength, show_if) #}
+					{{common.text_area_section('profile-bio', '/settings/personal', 'bio', 'Bio', v.bio, 'Limit of 1500 characters', 'Tell the community a bit about yourself.', true, true, 1500, FEATURES['USERS_PROFILE_BODYTEXT'])}}
+					{{common.text_area_section('profile-friends', '/settings/personal', 'friends', 'Friends', v.friends, 'Limit of 500 characters', 'Enter your friends on the site...', false, false, 500, true)}}
+					{{common.text_area_section('profile-enemies', '/settings/personal', 'enemies', 'Enemies', v.enemies, 'Limit of 500 characters', 'Enter your enemies on the site...', false, false, 500, true)}}
+					{{common.text_area_section('profile-signature', '/settings/personal', 'sig', 'Signature', v.sig, 'Limit of 200 characters', 'Enter a signature...', true, false, 200, v.patron or v.sig)}}
+					{# toggle_section(title, id, name, flag, below_text, disabled) #}
+					{{common.toggle_section('Private Mode', 'privateswitch', 'private', v.is_private, 'This will hide your post and comment history from others. We will also ask search engines to not index your profile page. (Your content will still be accessible via direct link.)', false)}}
+					{{common.toggle_section('Spider', 'spiderswitch', 'spider', v.spider, 'Have a spider friend accompany you during your journey on the site.', false)}}
+				</div>
+			</section>
+			<section id="site-settings-filters-section" class="settings-section-section">
+				<h5>Filters</h5>
+				<div class="settings-section rounded" id="site-settings-filters">
+					{% set ns = namespace(slurtext='Enable if you would like to automatically replace slurs.', profanitytext='Enable if you would like to automatically replace profanities.') %}
+					{% if FEATURES['USERS_PERMANENT_WORD_FILTERS'] and v.slurreplacer %}
+						{% if v.slurreplacer == 1 %}
+							{% set ns.slurtext = 'Enable if you would like to automatically replace slurs. <a id="slurreplacer-perma-link" href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#modal-slurreplacer">Make filter permanent for a badge!</a>' %}
+						{% else %}
+							{% set ns.slurtext = "You've enabled the slur replacer permanently! ✊🏿" %}
+						{% endif %}
+					{% endif %}
+					{% if FEATURES['USERS_PERMANENT_WORD_FILTERS'] and v.profanityreplacer %}
+						{% if v.profanityreplacer == 1 %}
+							{% set ns.profanitytext = 'Enable if you would like to automatically replace profanities. <a id="profanityreplacer-perma-link" href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#modal-profanityreplacer">Make filter permanent for a badge!</a>' %}
+						{% else %}
+							{% set ns.profanitytext = "You've enabled the profanity replacer permanently! 😇" %}
+						{% endif %}
+					{% endif %}
+					{{common.toggle_section("Slur Replacer", "slurreplacer", 'slurreplacer', v.slurreplacer, ns.slurtext, FEATURES['USERS_PERMANENT_WORD_FILTERS'] and v.slurreplacer > 1)}}
+					{{common.toggle_section("Profanity Replacer", "profanityreplacer", 'profanityreplacer', v.profanityreplacer, ns.profanitytext, FEATURES['USERS_PERMANENT_WORD_FILTERS'] and v.profanityreplacer > 1)}}
+				</div>
+			</section>
+			<section id="site-settings-referral-section" class="settings-section-section">
+				<h5>Refer a Friend!</h5>
+				<div class="settings-section rounded" id="site-settings-referral">
+					<div class="d-lg-flex border-bottom">
+						<div class="title w-lg-25">
+							<label for="referral_code">Referral code</label>
+						</div>
+						<div class="body w-lg-100">
+							<div class="input-group">
+								<input autocomplete="off" type="text" readonly class="form-control copy-link" id="referral_code" value="{{SITE_FULL}}/signup?ref={{v.username}}" data-clipboard-text="{{SITE_FULL}}/signup?ref={{v.username}}">
+								<span class="input-group-append" data-bs-toggle="tooltip" data-bs-placement="top" title="You have referred {{v.referral_count}} user{{'s' if v.referral_count != 1 else ''}} so far. {% if v.referral_count==0 %}¯\_(ツ)_/¯{% elif v.referral_count>10%}Wow!{% endif %}">
+									<span class="input-group-text text-primary border-0"><i class="far fa-user mr-1"></i>{{v.referral_count}}</span>
+								</span>
+							</div>
+							<div class="text-small text-muted mt-3">Share this link with a friend. {% if v.referral_count==0 %} When they sign up, you'll get the bronze recruitment badge. <a href="/badges">Learn more.</a>{% elif v.referral_count<10 %} When you refer 10 friends, you'll receive the silver recruitment badge. <a href="/badges">Learn more.</a>{% elif v.referral_count<100 %} When you refer 100 friends, you'll receive the gold recruitment badge. <a href="/badges">Learn more</a>.{% endif %}</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+</div>
+{% include "modals/emoji.html" %}
+{% include "modals/gif.html" %}
+
+{% if v.flairchanged %}
+	<input hidden id="flairchanged" value="{{v.flairchanged}}">
+{% endif %}
+
+<script defer src="{{'js/settings_profile.js' | asset}}"></script>
+
+{% macro permanent_filter_modal(id, form_action, field, friendly_name, badge_name) %}
+{% if FEATURES['USERS_PERMANENT_WORD_FILTERS'] -%}
+<div class="modal fade" id="modal-{{id}}" tabindex="-1">
+	<div class="modal-dialog modal-dialog-centered">
+		<form class="m-auto" action="{{form_action}}" id="{{id}}-form" method="post">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Make {{friendly_name}} Permanent</h5>
+					<button type="button" class="close" data-bs-dismiss="modal">
+						<span><i class="far fa-times"></i></span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<input hidden name="{{field}}" value="true">
+					<input hidden name="permanent" value="true">
+					<input hidden name="formkey" value="{{v|formkey}}">
+					<p>This form will permanently enable the filter for you. You will receive the {{badge_name}} badge and <strong>will not</strong> be able to disable the filter.<br>Type your username to continue.</p>
+					<input autocomplete="off" type="text" name="username" placeholder="Enter your username to confirm" id="username-{{id}}" class="form-control" pattern="{{v.username}}" required>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancel</button>
+					<button type="submit" class="btn btn-danger" id="submit-{{id}}-form">Make Permanent</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+{%- endif %}
+{% endmacro %}
+{% if v.slurreplacer == 1 -%}
+{{permanent_filter_modal('slurreplacer', '/settings/personal', 'slurreplacer', 'Slur Replacer', 'Social Justice Berserker')}}
+{%- endif %}
+{% if v.profanityreplacer == 1 -%}
+{{permanent_filter_modal('profanityreplacer', '/settings/personal', 'profanityreplacer', 'Profanity Replacer', 'Soapy-Mouthed Angel')}}
+{%- endif %}
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "default.html" %}
+{% block pagetitle %}@{{u.username}}'s blockers{% endblock %}
+{% block content %}
+<h5 class="my-3">@{{u.username}}'s blockers</h5>
+<div class="overflow-x-auto mt-1"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>Name</th>
+		<th class="disable-sort-click">Blocking since</td>
+	</tr>
+</thead>
+<tbody id="blockers-table">
+{% for block, user in users %}
+	<tr>
+		<td>{% include "user_in_table.html" %}</td>
+		<td {% if block.created_utc > 1599343262 %}data-time="{{block.created_utc}}"{% endif %}></td>
+	</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<script defer src="{{'js/blockers.js' | asset}}"></script>
+
+{% endblock %}
+
+{% block pagenav %}
+<nav>
+	<ul class="pagination pagination-sm py-3 pl-3 mb-0">
+		{% if page>1 %}
+		<li class="page-item">
+			<small><a class="page-link" href="?page={{page-1}}" tabindex="-1">Prev</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Prev</span></li>
+		{% endif %}
+		{% if next_exists %}
+		<li class="page-item">
+			<small><a class="page-link" href="?page={{page+1}}">Next</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Next</span></li>
+		{% endif %}
+	</ul>
+</nav>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+{% block pagetitle %}/h/{{sub}} {{verb | capitalize}}{% endblock %}
+{% block content %}
+<h5 class="mt-3">Users {{verb}} /h/{{sub}}</h5>
+<div class="overflow-x-auto mt-1"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>Name</th>
+		<th>{{verb.title()}} since</th>
+	</tr>
+</thead>
+{% for user, object in users %}
+	<tr>
+		<td>{{loop.index}}</td>
+		<td>{% include "user_in_table.html" %}</td>
+		<td {% if object.created_utc %}data-time="{{object.created_utc}}"{% endif %}></td>
+	</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

@@ -1,0 +1,81 @@
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+!.env.template
+.cookies
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.token
+*.secret
+secrets.*
+
+# Codex / AI / agent local metadata
+.codex/
+.agents/
+*.prompt
+*.prompts
+*prompt*.md
+*planning*.md
+*scratch*.md
+*notes*.md
+chat*.log
+transcript*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+coverage.xml
+htmlcov/
+venv/
+.venv/
+env/
+ENV/
+
+# Node / frontend caches
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local databases and Docker/runtime data
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.bak
+*.backup
+postgres-data/
+pgdata/
+redis-data/
+docker-data/
+volumes/
+
+# Caches and logs
+.cache/
+cache/
+.cache-*/
+*.cache
+logs/
+log/
+*.log
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo

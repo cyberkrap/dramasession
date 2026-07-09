@@ -1,0 +1,52 @@
+<div id="awards-container" class="w-100 h-100">
+{% macro stackable_award(award, src, alt) %}
+	<div class="stackable-container">
+	{% for i in range(min(p.award_count(award, v), 4)) %}
+		<div class="{{award}}">
+			<img loading="lazy" alt="{{alt}}" src="{{src}}">
+		</div>
+	{% endfor %}
+	</div>
+{% endmacro %}
+
+{% if p.award_count("wholesome", v) %}
+	{% set wholesome = '/e/marseywholesome.webp' %}
+	{{ stackable_award('wholesome', wholesome, ':#marseywholesome:') }}
+{% endif %}
+
+{% if p.award_count("train", v) %}
+	{{ stackable_award('train', '/e/marseytrain.webp', ':#marseytrain:') }}
+{% endif %}
+
+{% if p.award_count("scooter", v) %}
+	{{ stackable_award('scooter', '/e/marseyscooter.webp', ':#marseyscooter:') }}
+{% endif %}
+
+{% if p.award_count("firework", v) %}
+	<script defer src="{{'js/fireworks.js' | asset}}"></script>
+	{{ stackable_award('firework') }}
+{% endif %}
+
+{% if p.award_count("confetti", v) %}
+	<div class="confetti w-100 h-100"></div>
+{% endif %}
+
+{% if p.award_count("ricardo", v) %}
+	{% for i in range(min(p.award_count("ricardo", v), 3)) %}
+		<div class="ricardo ricardo{{i+1}}">
+			<img loading="lazy" src="/i/ricardo{{i+1}}.webp">
+		</div>
+	{% endfor %}
+{% endif %}
+
+{% if p.award_count("shit", v) %}
+	<script defer src="{{'js/vendor/critters.js' | asset}}"></script>
+	<script defer src="{{'js/bugs.js' | asset}}"></script>
+{% endif %}
+
+{% if p.award_count("fireflies", v) %}
+	<script defer src="{{'js/vendor/critters.js' | asset}}"></script>
+	<script defer src="{{'js/fireflies.js' | asset}}"></script>
+{% endif %}
+
+</div>

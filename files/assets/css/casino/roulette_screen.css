@@ -1,0 +1,96 @@
+.roulette-table-number {
+	flex: 1;
+	height: 60px;
+	border: 1px solid white;
+	background: green;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-weight: bolder;
+}
+
+.roulette-table-number__black {
+	background: black;
+}
+
+.roulette-table-number__red {
+	background: red;
+}
+
+.roulette-table-number__green {
+	background: green;
+}
+
+.roulette-table-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.roulette-table-column {
+	flex: 1;
+	height: 60px;
+	border: 1px solid white;
+	background: green;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-weight: bolder;
+	writing-mode: vertical-rl;
+	text-orientation: sideways;
+}
+
+.roulette-table-line,
+.roulette-table-1to1 {
+	border: 1px solid white;
+	background: green;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-weight: bolder;
+}
+
+.roulette-table-line {
+	flex: 4;
+}
+
+.roulette-table-1to1 {
+	flex: 2;
+}
+
+.roulette-poker-chip {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 50px;
+	height: 50px;
+}
+
+.roulette-bet-summary--heading {
+	display: flex;
+	align-items: center;
+}
+
+.roulette-bet-summary--heading p {
+	margin: 0;
+	margin-left: 1rem;
+	font-weight: bolder;
+}
+
+.roulette-bet-summary--list {
+	list-style-type: none;
+}
+
+.roulette-poker-chip img:last-child {
+	position: absolute;
+	border-radius: 50%;
+}
+
+.roulette-total-bets {
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	text-align: right;
+}

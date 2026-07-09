@@ -1,0 +1,31 @@
+<div class="awards-container">
+	{% set gingerbread_count = p.award_count("gingerbread", v) * 2 if p.award_count("gingerbread", v) <= 10 else 20 %}
+	{% for i in range(gingerbread_count) %}
+		<div class="fall-snowflake">
+			<img loading="lazy" src="/assets/fistmas/images/awards/gingerbread.webp?v=1" class="animate-spin object-contain" style="width: 40px; height: 40px;" alt="animate marsey gingerbread icon" />
+		</div>
+	{% endfor %}
+
+	{# idk why snow isn't working vvvvvvvvvv #}
+	{% if p.award_count("snow", v) %}
+		<script defer src="{{'fistmas/js/vendor/snow.js'|asset}}"></script>
+	{% endif %}
+
+	{% if p.award_count("frostbite", v) %}
+		<div class="frost"></div>
+		<script defer src="{{'fistmas/js/frostbite.js' | asset}}"></script>
+		<script defer src="{{'fistmas/css/frostbite.css' | asset}}"></script>
+	{% endif %}
+</div>
+
+{% if p.award_count("lights", v) %}
+	<link rel="stylesheet" href="{{('fistmas/css/lights.css') | asset}}">
+{% endif %}
+
+{% if p.award_count("candycane", v) %}
+	<link rel="stylesheet" href="{{('fistmas/css/candycane.css') | asset}}">
+{% endif %}
+
+{% if p.award_count("fireplace", v) %}
+	<link rel="stylesheet" href="{{('fistmas/css/fireplace.css') | asset}}">
+{% endif %}

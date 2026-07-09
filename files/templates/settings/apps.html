@@ -1,0 +1,136 @@
+{% extends "settings.html" %}
+{% block pagetitle %}Apps/Bots{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="col col-lg-8">
+		<div class="settings">
+<h5><a href="/api">API Guide</a></h5>
+<h5 class="mt-1">Your API Applications</h5>
+{% for app in v.applications if app.client_id %}
+<form id="edit-app-{{app.id}}" action="/edit_app/{{app.id}}" method="post">
+	<div class="settings-section rounded">
+		<div class="d-lg-flex">
+				<div class="title w-lg-25">
+					<label for="name-{{app.id}}">{{app.app_name}}</label>
+					</div>
+				<div class="body w-lg-100">
+				<input hidden name="formkey" value="{{v|formkey}}">
+				<label for="edit-{{app.id}}-name" class="mb-0 w-lg-25">App Name</label>
+				<input autocomplete="off" id="edit-{{app.id}}-name" class="form-control" type="text" name="name" value="{{app.app_name}}">
+
+				{% if app.client_id %}
+				<label for="edit-{{app.id}}-client-id" class="mb-0 w-lg-25">Client ID</label>
+				<input autocomplete="off" id="edit-{{app.id}}-client-id" class="form-control copy-link" type="text" name="name" value="{{app.client_id}}" data-clipboard-text="{{app.client_id}}" readonly="readonly">
+				{% endif %}
+
+				<label for="edit-{{app.id}}-redirect" class="mb-0 w-lg-25">Redirect URI</label>
+				<input autocomplete="off" id="edit-{{app.id}}-redirect" class="form-control" type="text" name="redirect_uri" value="{{app.redirect_uri}}">
+				<label for="edit-{{app.id}}-desc" class="mb-0 w-lg-25">Description</label>
+				<textarea rows="10" autocomplete="off" form="edit-app-{{app.id}}" class="form-control" name="description" id="edit-{{app.id}}-desc" maxlength="256">{{app.description}}</textarea>
+			</div>
+		</div>
+		<div class="footer">
+			<div class="d-flex">
+				<button type="button" class="btn btn-secondary ml-auto" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/reroll/{{app.id}}')">Reroll Client ID</button>
+				<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary ml-2" value="Save Changes">
+			</div>
+		</div>
+	</div>
+</form>
+{% else %}
+<p>None</p>
+{% endfor %}
+
+<h5>API Applications Awaiting Approval</h5>
+{% for app in v.applications if not app.client_id %}
+<form id="edit-app-{{app.id}}" action="/edit_app/{{app.id}}" method="post">
+	<div class="settings-section rounded">
+		<div class="d-lg-flex">
+				<div class="title w-lg-25">
+					<label for="name-{{app.id}}">{{app.app_name}}</label>
+				</div>
+				<div class="body w-lg-100">
+				<input hidden name="formkey" value="{{v|formkey}}">
+				<label for="edit-{{app.id}}-name" class="mb-0 w-lg-25">App Name</label>
+				<input autocomplete="off" id="edit-{{app.id}}-name" class="form-control" type="text" name="name" value="{{app.app_name}}" maxlength="50" required>
+
+				{% if app.client_id %}
+					<label for="edit-{{app.id}}-client-id" class="mb-0 w-lg-25">Client ID</label>
+					<input autocomplete="off" id="edit-{{app.id}}-client-id" class="form-control copy-link" type="text" name="name" value="{{app.client_id}}" data-clipboard-text="{{app.client_id}}" readonly>
+				{% endif %}
+
+				<label for="edit-{{app.id}}-redirect" class="mb-0 w-lg-25">Redirect URI</label>
+				<input autocomplete="off" id="edit-{{app.id}}-redirect" class="form-control" type="text" name="redirect_uri" value="{{app.redirect_uri}}" maxlength="4096" required>
+				<label for="edit-{{app.id}}-desc" class="mb-0 w-lg-25">Description</label>
+				<textarea rows="10" autocomplete="off" form="edit-app-{{app.id}}" class="form-control" name="description" id="edit-{{app.id}}-desc" maxlength="256" required>{{app.description}}</textarea>
+			</div>
+		</div>
+		<div class="footer">
+			<div class="d-flex">
+				<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary ml-auto" value="Save Changes">
+			</div>
+		</div>
+	</div>
+</form>
+{% else %}
+<p>None</p>
+{% endfor %}
+
+<h5>Your Authorized Applications</h5>
+{% for auth in v.authorizations %}
+	<div id="auth-{{auth.id}}" class="settings-section rounded">
+		<div class="d-lg-flex">
+				<div class="title w-lg-25">
+					<label for="name-{{auth.application.id}}">{{auth.application.app_name}}</label>
+				</div>
+				<div class="body w-lg-100">
+				<input hidden name="formkey" value="{{v|formkey}}">
+				<label class="mb-0 w-lg-25">Description</label>
+				<textarea autocomplete="off" class="form-control" name="description" maxlength="256" readonly="readonly">{{auth.application.description}}</textarea>
+			</div>
+		</div>
+		<div class="footer">
+			<div class="d-flex">
+				<button type="button" class="btn btn-primary ml-auto text-white" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/rescind/{{auth.application.id}}')">Revoke</button>
+			</div>
+		</div>
+	</div>
+{% else %}
+<p>None</p>
+{% endfor %}
+
+<h2>Request API Keys</h2>
+
+<form id="api-key-request-form" action="/api_keys" method="post">
+	<div class="settings-section rounded">
+		<div class="d-lg-flex">
+			<div class="body w-lg-100">
+				<input hidden name="formkey" value="{{v|formkey}}">
+				<label for="form-username">Username</label>
+				<input autocomplete="off" type="text" id="form-username" class="form-control" name="username" value="{{v.username}}" readonly>
+				<label for="form-appname">Application Name</label>
+				<input autocomplete="off" type="text" id="form-appname" class="form-control" name="name" maxlength="50" required>
+				<label for="form-redirect">Redirect URI</label>
+				<input autocomplete="off" type="text" id="form-redirect" class="form-control" name="redirect_uri" placeholder="Custom URI scheme can be used. Separate multiple options with comma." maxlength="4096" required>
+				<label for="form-username">Description</label>
+				<textarea autocomplete="off" form="api-key-request-form" id="form-desc" class="form-control" name="description" maxlength="256" required></textarea>
+			</div>
+		</div>
+		<div class="footer">
+			<div class="d-flex">
+				<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary ml-auto" value="Request API Key">
+			</div>
+		</div>
+	</div>
+</form>
+</div>
+</div>
+</div>
+{% endblock %}
+{% block clipboard %}
+<div class="toast clipboard" id="toast-success" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
+	<div class="toast-body text-center">
+		<i class="fas fa-check-circle text-success mr-2"></i>Token copied to clipboard
+	</div>
+</div>
+{% endblock %}

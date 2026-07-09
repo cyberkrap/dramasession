@@ -1,0 +1,37 @@
+{% extends "default.html" %}
+{% block pagetitle %}User Badges{% endblock %}
+{% block content %}
+<h1 class="mt-3">User Badges</h1>
+<div>This page describes the requirements for obtaining all profile badges.</div>
+<div class="overflow-x-auto mt-3">
+	<table class="table table-striped mb-5">
+		<thead class="bg-primary text-white">
+			<tr>
+				<th>ID</th>
+				<th>Name</th>
+				<th>Image</th>
+				<th>Description</th>
+				<th>#</th>
+				<th>Rarity</th>
+			</tr>
+		</thead>
+
+		{% for badge in badges %}
+			<tr>
+				<td>{{badge.id}}</td>
+				<td>{{badge.name}}</td>
+				<td>
+					<img class="contain" alt="{{badge.name}}" loading="lazy" src="{{badge.path}}?b=6" width=45.83 height=50>
+				</td>
+				<td>{{badge.description}}</td>
+				{%- set ct = counts[badge.id] if badge.id in counts else (0, 0) %}
+				<td class="badges-rarity-qty"><a href="/badge_owners/{{badge.id}}">{{ct[0]}}</a></td>
+				<td class="badges-rarity-ratio">{{"{:0.3f}".format(ct[1])}}%</td>
+			</tr>
+		{% endfor %}
+	</table>
+</div>
+
+
+
+{% endblock %}

@@ -1,0 +1,118 @@
+{%- extends 'login/authforms.html' -%}
+{% block pagetitle -%}
+{{ref_user.username ~ " invites you to " ~ SITE_NAME if ref_user else "Sign Up"}}
+{%- endblock %}
+{% block pagetype %}login{% endblock %}
+
+{% block template_config %}
+	{% set root_scope.js = true %}
+	{% set root_scope.include_user_css = false %}
+	{% set root_scope.include_seo = false %}
+	{% set root_scope.include_cf_2fa_verify = false %}
+{% endblock %}
+
+{% set login_namespace = namespace() %}
+{% if ref_user %}
+	{% set login_namespace.authtitle = '@' ~ ref_user.username ~ ' has invited you!' %}
+	{% set login_namespace.authtext = 'Looks like someone wants you to join ' ~ SITE_NAME ~ '.' %}
+{% elif not site_settings['login_required'] %}
+	{% set login_namespace.authtitle = "Create your account." %}
+	{% set login_namespace.authtext = "No email address required." %}
+{% endif %}
+{% if ref_user or not site_settings['login_required'] %}
+	{% block authtitle %}{{login_namespace.authtitle}}{% endblock %}
+	{% block authtext %}{{login_namespace.authtext}}{% endblock %}
+{% endif %}
+
+{% block content %}
+<div id="register-form">
+	{% if not ref_user and SITE_NAME == 'rDrama' and site_settings['login_required'] %}
+	<img loading="lazy" id="logo" alt="logo" src="{{'logo.webp' | asset_siteimg}}" width=70>
+	<hr>
+	<p class="text-muted text-justify mb-3" style="line-height: 1.2em">
+		Hiiiiii it’s your favorite user Carp! We’re currently on <span style="font-variant-caps: small-caps;">Login Required</span> mode for one of a few reasons:
+	</p>
+	<ol style="padding-left: 1.5em">
+		<li>The site is running really slowly and we think it might be miscreants up to no good, or</li>
+		<li>It’s our monthly 24 hours of login-required-mode to encourage lovely lurkers to become lovely new friends of ours, or</li>
+		<li>Someone clicked the toggle by mistake lol oops sorry!</li>
+	</ol>
+	<p class="text-muted text-justify mb-1" style="line-height: 1.2em">
+		But that’s all fine. Signing up is easy. It takes literally like 4 seconds if you’re slow. You don’t even need an email! Just pick a username, make up some neat new password where you replace all the e’s with 3s or whatever and bam, done, you’re in.<br>
+		Remember to click “Follow” on my profile!
+	</p>
+	<p class="text-muted mb-md-2">
+		I love you.<br>
+		<em>xoxo carp</em> 💋
+	</p>
+	<hr>
+	{% elif not ref_user and SITE_NAME == 'WPD' and site_settings['login_required'] %}
+	<img loading="lazy" id="logo" alt="logo" src="{{'logo.webp' | asset_siteimg}}" width=70>
+	<hr>
+	<p class="text-muted text-justify mb-1" style="line-height: 1.2em">
+		<strong>Hi you!</strong> &mdash; <span style="font-variant-caps: small-caps;">watchpeopledie.tv</span> is currently doing our monthly 24(ish) hours* of "everyone needs to have an account" &mdash; sorry about that! But making an account is actually super easy. <strong>You don't even need an email address!</strong> Literally just pick a username, set a password, and that's that. Bam, done, like 8 seconds, tops.<br>
+	</p>
+	<p class="text-muted mb-md-2">
+		We WANT you with us &#128150;<br>
+		Please join!
+	</p>
+	<hr>
+	{% endif %}
+	<form action="/signup" method="post" class="mt-md-3" id="signup">
+
+	<input hidden name="formkey" value="{{formkey}}">
+	<input hidden name="now" value="{{now}}">
+	{% if redirect %}<input hidden name="redirect" value="{{redirect}}">{% endif %}
+	{% if ref_user %}<input hidden name="referred_by" value="{{ref_user.id}}">{% endif %}
+
+	<label for="username-register" class="mt-3">Username</label>
+
+	<input autocomplete="off" class="form-control" id="username-register" type="text" name="username" pattern="[a-zA-Z0-9_\-]{3,25}" min="3" max="25" required {% if username %}value="{{username}}"{% endif %}>
+	<small id="usernameHelpRegister"></small>
+
+	<label for="email-register" class="mt-3">Email Address</label>
+
+	<small class="d-inline-block text-muted ml-1">(optional)</small>
+
+	<input style="background-color: var(--gray-800)" autocomplete="off" class="form-control" id="email-register" type="email" pattern='{{EMAIL_REGEX_PATTERN}}' name="email" readonly data-nonce="{{g.nonce}}" {% if email %}value="{{email}}"{% endif %}>
+
+	<label for="password-register" class="mt-3">Password</label>
+
+	<input autocomplete="off" class="form-control" id="password-register" type="password" name="password" required>
+	<small id="passwordHelpRegister" class="form-text font-weight-bold text-muted d-none mt-1">Minimum of 8
+		characters
+	required.</small>
+	<small id="passwordHelpSuccess" class="form-text font-weight-bold text-success d-none mt-1">Your password meets the requirements.
+	</small>
+
+	<label for="password_confirm" class="mt-3">Confirm Password</label>
+
+	<input autocomplete="off" class="form-control" id="password_confirm" type="password" name="password_confirm" required>
+	<div class="custom-control custom-checkbox mt-4">
+		<input autocomplete="off" type="checkbox" class="custom-control-input" id="termsCheck" required>
+		<label class="custom-control-label terms" for="termsCheck">I accept the <a href="/sidebar">rules</a></label>
+	</div>
+
+	{% if turnstile != DEFAULT_CONFIG_VALUE %}
+		<div class="cf-turnstile" data-sitekey="{{turnstile}}" data-theme="dark"></div>
+	{% endif %}
+
+	<button type="submit" class="btn btn-primary login w-100 mt-3" id="register_button">Register</button>
+
+	<div class="text-center text-muted text-small mt-5 mb-3">
+		Already have an account? <a href="/login{{'?redirect='+redirect if redirect else ''}}" class="font-weight-bold toggle-login">Log in</a>
+	</div>
+	</form>
+	{% if not ref_user and SITE_NAME == 'WPD' and site_settings['login_required'] %}
+	<p class="text-muted text-justify mb-1" style="line-height: 1.2em; font-size: 10px">
+		* okay so it's actually whenever I feel like hitting that Login Required button. I'm really sorry, but you have to understand: WE WANT TO BE YOUR FRIEND. And we can't do that unless you join. There's really no reason not to. Like I said, 8 seconds <em>at most</em> to register. What are you worried about? Your email being sold? I don't even know what that means and you don't either. Go ahead, tell me what you'd do if someone said like, "alright bud, go sell your email address to someone." WHAT DOES THAT MEAN? And, again, you really don't even need an email. Just a username and some stupid password. That's <strong>all</strong>. Come on. Peer pressure.
+	</p>
+	{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script defer src="{{'js/signup.js' | asset}}"></script>
+{% if turnstile != DEFAULT_CONFIG_VALUE %}
+	<script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+{% endif %}
+{% endblock %}

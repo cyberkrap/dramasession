@@ -1,0 +1,29 @@
+{% extends "default.html" %}
+{% block pagetitle %}Donate{% endblock %}
+{% block content %}
+	<h1 class="py-3">Donate</h1>
+	<div class="overflow-x-auto">
+		<table class="table table-striped mb-5">
+			<tbody>
+				{% if v and v.truescore >= TRUESCORE_DONATE_MINIMUM %}
+					<tr>
+						<td>{{DONATE_SERVICE}}</td>
+						<td><a rel="nofollow noopener" href="{{DONATE_LINK}}">{{DONATE_LINK}}</a></td>
+					</tr>
+				{% endif %}
+				<tr>
+					<td>Ethereum/Brave Attention Token</td>
+					<td>0xBBf1043A60C6894Db17b3118CA960FFDF84c9eea</td>
+				</tr>
+				<tr>
+					<td>Bitcoin</td>
+					<td>bc1qs5hamvytnkllgml89flzhcyt3l4a3u4gs8lvvp</td>
+				</tr>
+				<tr>
+					<td>Monero</td>
+					<td>44hdEpAYXkB2VwkWz6LR9zZhcaG8zrUzn21aPy1HSdcsjT51fPdpMV8hkf5QQdHKs9VsAs3so5Vq5easdBbzmcifGcqfxfw</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+{% endblock %}

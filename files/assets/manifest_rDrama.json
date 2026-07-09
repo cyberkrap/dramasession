@@ -1,0 +1,21 @@
+{
+	"name": "rDrama",
+	"short_name": "rDrama",
+	"start_url": "https://rdrama.net",
+	"display": "minimal-ui",
+	"background_color": "#FF66AC",
+	"description": "rDrama",
+	"icons": [
+			{
+				"src": "/i/rDrama/192.png?v=2001",
+				"sizes": "192x192",
+				"type": "image/png",
+				"purpose": "any"
+			},
+			{
+				"src": "/i/rDrama/512.png?v=2001",
+				"sizes": "512x512",
+				"type": "image/png"
+			}
+	]
+}

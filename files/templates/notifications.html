@@ -1,0 +1,159 @@
+{% extends "default.html" %}
+{% block pagetitle %}Notifications{% endblock %}
+{% block pagetype %}notifications{% endblock %}
+{% block PseudoSubmitForm %}{% endblock %}
+{% block navbar %}
+<div class="font-weight-bold py-3"></div>
+{% endblock %}
+{% block content %}
+
+<div class="row border-bottom bg-white w-200 pr-0" style="overflow: visible;">
+	<div class="col p-0 w-100">
+	<ul class="nav settings-nav" style="padding:0 0 0 20px" id="notifications--nav-list">
+	<li class="nav-item">
+		<a class="nav-link py-3{% if request.path == '/notifications' %} active{% endif %}" href="/notifications">
+		All {% if v.normal_notifications_count %}<span class="font-weight-bold" style="color:#dc3545">({{v.normal_notifications_count}})</span>{% endif %}
+		</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link py-3{% if request.path == '/notifications/messages' %} active{% endif %}" href="/notifications/messages">
+		Messages {% if v.message_notifications_count %}<span class="font-weight-bold" style="color:#d8910d">({{v.message_notifications_count}})</span>{% endif %}
+		</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link py-3{% if request.path == '/notifications/posts' %} active{% endif %}" href="/notifications/posts">
+		Posts {% if v.post_notifications_count %}<span class="font-weight-bold" style="color:#0000ff">({{v.post_notifications_count}})</span>{% endif %}
+		</a>
+	</li>
+	{% if v.admin_level >= PERMS['NOTIFICATIONS_MODERATOR_ACTIONS'] or v.moderated_subs %}
+		<li class="nav-item">
+			<a class="nav-link py-3{% if request.path == '/notifications/modactions' %} active{% endif %}" href="/notifications/modactions">
+			Modactions {% if v.modaction_notifications_count %}<span class="font-weight-bold" style="color:#1ad80d">({{v.modaction_notifications_count}})</span>{% endif %}
+			</a>
+		</li>
+	{% endif %}
+	{% if v.admin_level >= PERMS['VIEW_MODMAIL'] %}
+		<li class="nav-item">
+			<a class="nav-link py-3{% if request.path == '/notifications/modmail' %} active{% endif %}" href="/notifications/modmail">
+			Modmail
+			</a>
+		</li>
+	{% endif %}
+	{% if v.can_view_offsitementions %}
+		<li class="nav-item">
+			<a class="nav-link py-3{% if request.path == '/notifications/reddit' %} active{% endif %}" href="/notifications/reddit">
+			Reddit {% if v.reddit_notifications_count %}<span class="font-weight-bold" style="color:#805ad5">({{v.reddit_notifications_count}})</span>{% endif %}
+			</a>
+		</li>
+	{% endif %}
+	</ul>
+	</div>
+</div>
+
+<button type="button" class="btn btn-primary btn-rainbow ml-3 mt-4" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/clear')">Mark all notifications as read</button>
+
+<div class="notifs px-3 p-md-0">
+
+	{% if request.path == '/notifications/posts' %}
+		{% with listing=notifications %}
+			<div class="mt-4">
+				{% include "submission_listing.html" %}
+			</div>
+		{% endwith %}
+	{% elif request.path == '/notifications/modactions' %}
+		<div class="rounded border bg-white mx-auto mt-4">
+			{% for ma in notifications %}
+
+				<div id="action-{{ma.id}}" class="{% if ma.unread %}unread{% endif %} position-relative d-flex justify-content-between flex-wrap align-items-center h-min-16 px-3 py-3 bg-white{% if loop.index > 1 %} border-top{% endif %}">
+
+				<div class="d-flex flex-grow-1 align-items-center">
+					<div class="d-flex align-items-center justify-content-center {{ma.color}} mr-3 rounded-lg flex-shrink-0" style="width: 32px;height: 32px;"><i class="far text-center {{ma.icon}} text-lg text-white fa-fw"></i></div>
+					<div class="d-flex align-items-center">
+						<span class="rounded">
+							<div class="profile-pic-35-wrapper">
+								<img loading="lazy" src="{{ma.user.profile_url}}" alt="avatar" class="profile-pic-35">
+								{% if ma.user.hat_active(v)[0] -%}
+									<img id="profile-pic-35-hat" class="profile-pic-35-hat hat" loading="lazy" src="{{ma.user.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ma.user.hat_active(v)[1]}}">
+								{%- endif %}
+							</div>
+						</span>
+						<div class="text-muted pl-3">
+							<div>
+								{% if ma.sub %}
+									<a href="/h/{{ma.sub}}">/h/{{ma.sub}}</a>
+									 -
+								{% endif %}
+								<a href="{{ma.user.url}}" class="font-weight-bold text-black" target="_self">@{{ma.user.username}}</a>
+								<span>{{ma.string | safe}}</span>
+							</div>
+							<div class="text-gray-500">
+								<span class="log--item-age" id="{{ma.id}}-age" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{ma.created_utc}}')">{{ma.age_string}}</span>
+								<a href="{{ma.permalink}}"><i class="far fa-link ml-3 text-muted"></i></a>
+								<button type="button" class="copy-link ml-3" data-clipboard-text="{{ma.permalink}}"><i class="far fa-copy text-muted"></i></button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+			{% else %}
+				<div class="p-3">There's nothing here right now.</div>
+			{% endfor %}
+		</div>
+		<div class="toast clipboard" id="toast-success" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
+			<div class="toast-body text-center">
+				<i class="fas fa-check-circle text-success mr-2"></i>Link copied to clipboard
+			</div>
+		</div>
+
+		<script defer src="{{'js/vendor/clipboard.js' | asset}}"></script>
+	{% else %}
+		{% with comments=notifications %}
+			{% include "comments.html" %}
+		{% endwith %}
+	{% endif %}
+
+	{% if not notifications %}
+		<div class="text-center py-6 py-md-8">
+			<span class="fa-stack fa-2x text-muted mb-4">
+				<i class="fas fa-square text-gray-400 fa-stack-2x"></i>
+				<i class="fas text-gray-600 fa-envelope fa-stack-1x text-lg"></i>
+			</span>
+
+			<h5>No notifications</h5>
+		</div>
+	{% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block pagenav %}
+{% if notifications %}
+<nav>
+	<ul class="pagination pagination-sm mb-0 mt-4">
+		{% if page>1 %}
+		<li class="page-item">
+			<small><a class="page-link" href="{{request.path}}?page={{page-1}}">Previous</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Prev</span></li>
+		{% endif %}
+
+		{% if next_exists %}
+		<li class="page-item">
+			<small><a class="page-link" href="{{request.path}}?page={{page+1}}">Next</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Next</span></li>
+		{% endif %}
+	</ul>
+</nav>
+{% endif %}
+
+<link rel="stylesheet" href="{{('css/notifications.css') | asset}}">
+
+{% endblock %}
+
+{% block GIFpicker %}{% endblock %}

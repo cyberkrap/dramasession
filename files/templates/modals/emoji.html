@@ -1,0 +1,62 @@
+<div id="form" class="d-none"></div>
+<div class="modal fade" id="emojiModal" tabindex="-1">
+	<div id="emojiModalInternalDivIDK" class="modal-dialog modal-dialog-scrollable modal-dialog-centered emoji-modal">
+		<div class="modal-content" id="emojiTabs">
+			<div class="modal-header">
+				<div id="emoji-modal-tabs-container">
+					<ul class="nav nav-pills py-2" id="emoji-modal-tabs">
+						<li class="nav-item">
+							<a class="nav-link active emojitab" data-class-name="favorite" data-bs-toggle="tab" href="#">⭐ Favorite ⭐</a>
+						</li>
+					</ul>
+				</div>
+				<button type="button" class="close" data-bs-dismiss="modal">
+					<i class="fas fa-times text-muted"></i>
+				</button>
+			</div>
+
+			<div class="px-3">
+				<input disabled autocomplete="off" class="form-control px-2" type="text" id="emoji_search" placeholder="Search.." data-nonce="{{g.nonce}}" data-onchange="start_search()" {% if not (v and v.poor) %}data-oninput="start_search()"{% endif %}>
+			</div>
+			<div class="px-3 d-flex flex-row">
+				<fieldset class="py-2 pr-2 pl-1">
+					<div class="mr-2" style="display: inline" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Makes the emoji larger">
+						<input type="checkbox" id="emoji-sel-0" value="#" class="emoji-suffix">
+						<label class="emoji-option" for="emoji-sel-0">Large</label>
+					</div>
+
+					<div class="mr-2" style="display: inline" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Mirror the emoji along the Y axis">
+						<input type="checkbox" id="emoji-sel-1" value="!" class="emoji-suffix">
+						<label class="emoji-option" for="emoji-sel-1">Mirror</label>
+					</div>
+
+					<div style="display: inline" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Adds a hand that pats the emoji">
+						<input type="checkbox" id="emoji-sel-2" value="pat" class="emoji-postfix">
+						<label class="emoji-option" for="emoji-sel-2">Pat</label>
+					</div>
+				</fieldset>
+			</div>
+
+			<div style="overflow-y: auto;">
+				<div class="modal-body p-0" id="emoji-modal-body">
+					<div id="no-emojis-found" class="tab-content py-3 pl-2" hidden>
+						No results... Next time be better with your query. 💅
+					</div>
+					<div id="emojis-work" class="tab-content py-3 pl-2">
+						I am working as hard as I can, sweaty... 🚴
+					</div>
+					<div id="tab-content" class="tab-content d-flex flex-wrap py-3 pl-2" hidden style="text-align:center;">
+						<template id="emoji-button-template">
+							<button type="button" class="btn m-1 px-0 emoji2" data-bs-toggle="tooltip">
+								<img loading="lazy" width=60 height=85>
+							</button>
+						</template>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script defer src="{{'js/emoji_modal.js' | asset}}"></script>

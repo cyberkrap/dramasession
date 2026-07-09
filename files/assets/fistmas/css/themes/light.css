@@ -1,0 +1,20 @@
+blockquote {
+	color: var(--gray-400);
+}
+.comment-anchor:target, .unread {
+	background: #00000022 !important;
+}
+.deleted {
+	background-color: #bebe28 !important;
+	border-left: 10px solid #bebe28 !important;
+}
+.banned {
+	background-color: #ff7e7e !important;
+	border-left: 10px solid #ff7e7e !important;
+}
+blockquote a {
+    color: #15de59;
+}
+.dropdown-item:hover, .dropdown-item:focus, .dropdown-item.active {
+    background-color: #becad5;
+}

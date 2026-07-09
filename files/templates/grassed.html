@@ -1,0 +1,22 @@
+{% extends "settings2.html" %}
+{% block pagetitle %}Grassed Users{% endblock %}
+{% block content %}
+<div class="overflow-x-auto">
+<table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>Name</th>
+		<th>Grasser</th>
+	</tr>
+</thead>
+{% for user in users %}
+	<tr>
+		<td>{{loop.index}}</td>
+		<td>{% include "user_in_table.html" %}</td>
+		<td>{{user.ban_reason.split('by ')[1]}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

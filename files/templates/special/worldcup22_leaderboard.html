@@ -1,0 +1,35 @@
+{%- extends 'default.html' -%}
+{% block pagetitle %}World Cup 2022 Betting Leaderboard{% endblock %}
+{% block content %}
+<h1>World Cup 2022 Betting Leaderboard</h1>
+<div class="overflow-x-auto">
+<table class="table table-striped mb-5">
+	<thead class="bg-primary text-white">
+		<tr>
+			<th>#</th>
+			<th>Name</th>
+			<th>Wins</th>
+			<th>Bets</th>
+			<th>Win rate</th>
+			<th>Winnings</th>
+		</tr>
+	</thead>
+	<tbody>
+	{% for r in result %}
+	<tr>
+		{% set user = users.get(r[0]) %}
+		<td>{{loop.index}}</td>
+		<td data-sort-key="{{user.username.lower() if user else ''}}">{%- include 'user_in_table.html' -%}</td>
+		<td>{{r[1]}}</td>
+		<td>{{r[2]}}</td>
+		{% set ratio = r[1]/r[2] %}
+		{% set percent = (ratio*100)|string %}
+		<td data-sort-key="{{ratio}}">{{percent[:3].replace('0.0', '0').rstrip('.')}}%</td>
+		<td>{{r[3]}}</td>
+	</tr>
+	{% endfor %}
+	</tbody>
+</table>
+</div>
+
+{% endblock %}

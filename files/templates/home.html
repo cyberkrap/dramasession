@@ -1,0 +1,187 @@
+{% extends "default.html" %}
+{% block title %}
+	{% if sub %}
+		<title>/h/{{sub.name}}</title>
+	{% elif request.path == '/' %}
+		<title>{{SITE_NAME}}{% if TAGLINES %}: {{TAGLINES|random()}}{% endif %}</title>
+	{% else %}
+		{{super()}}
+	{% endif %}
+{% endblock %}
+{% block pagetitle %}{{SITE_NAME if not sub else '/h/' ~ sub.name}}{% endblock %}
+
+{% block head_final %}
+{% set preview = sub.siderbarurl if sub and sub.sidebarurl else sub.bannerurl %}
+{% if sub %}
+<meta property="og:type" content="article">
+<meta property="og:title" content="/h/{{sub}}">
+<meta property="og:site_name" content="{{SITE}}">
+<meta property="og:image" content="{{preview}}">
+<meta property="og:url" content="{{request.full_path}}">
+<meta property="og:author" name="author" content="{{SITE_FULL}}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="{{SITE_FULL}}">
+<meta name="twitter:title" content="/h/{{sub.name}}">
+<meta name="twitter:creator" content="{{SITE_FULL}}">
+<meta name="twitter:image" content="{{preview}}">
+<meta name="twitter:url" content="{{request.full_path}}">
+{% endif %}
+{% if sub.sidebar %}
+	<meta property="og:description" name="description" content="{{sub.sidebar}}">
+	<meta name="twitter:description" content="{{sub.sidebar}}">
+{% endif %}
+{% endblock %}
+{% block desktopBanner %}
+<div class="row" style="overflow: visible;padding-top:5px;">
+	<div class="col">
+		<form id="searchform" class="form-inline d-md-none search flex-nowrap mt-2" action="/search/posts" method="get">
+			<input autocomplete="off" class="form-control form-control-sm w-100" type="search" placeholder="{{search_placeholder}}" name="q">
+			<span class="input-group-append">
+				<span class="input-group-text border-0 bg-transparent" style="margin-left: -2.5rem" data-nonce="{{g.nonce}}" onclick_submit>
+					<i class="fa fa-search"></i>
+				</span>
+			</span>
+		</form>
+
+		<a class="btn btn-primary btn-block mt-3" href="/submit"><i class="fas fa-feather-alt mr-2"></i>Create Post</a>
+
+		{% if sub %}
+			{% if v %}
+				{% if sub.stealth %}
+					<button type="button" id="subscribe-sub" class="btn btn-primary btn-block {% if v.subscribes(sub.name) %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/h/{{sub.name}}/subscribe','subscribe-sub','unsubscribe-sub','d-none')"><i class="fas fa-eye mr-2"></i>Unblock /h/{{sub.name}}</button>
+					<button type="button" id="unsubscribe-sub" class="btn btn-primary btn-block {% if not v.subscribes(sub.name) %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/h/{{sub.name}}/unsubscribe','subscribe-sub','unsubscribe-sub','d-none')"><i class="fas fa-eye-slash mr-2"></i>Block /h/{{sub.name}}</button>
+				{% else %}
+					<button type="button" id="block-sub" class="btn btn-primary btn-block mt-3 {% if v.blocks(sub.name) %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/h/{{sub.name}}/block','block-sub','unblock-sub','d-none')"><i class="fas fa-eye-slash mr-2"></i>Block /h/{{sub.name}}</button>
+					<button type="button" id="unblock-sub" class="btn btn-primary btn-block mt-3 {% if not v.blocks(sub.name) %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/h/{{sub.name}}/unblock','block-sub','unblock-sub','d-none')"><i class="fas fa-eye mr-2"></i>Unblock /h/{{sub.name}}</button>
+				{% endif %}
+
+				<button type="button" id="follow-sub" class="btn btn-primary btn-follow {% if v.follows(sub.name) %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/h/{{sub.name}}/follow','follow-sub','unfollow-sub','d-none')"><i class="fas fa-bell mr-2"></i>Follow /h/{{sub.name}}</button>
+				<button type="button" id="unfollow-sub" class="btn btn-primary btn-follow {% if not v.follows(sub.name) %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/h/{{sub.name}}/unfollow','follow-sub','unfollow-sub','d-none')"><i class="fas fa-bell-slash mr-2"></i>Unfollow /h/{{sub.name}}</button>
+			{% else %}
+				<a class="btn btn-primary btn-block" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-eye-slash mr-2"></i>Block /h/{{sub.name}}</a>
+				<a class="btn btn-primary btn-block" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-bell mr-2"></i>Follow /h/{{sub.name}}</a>
+			{% endif %}
+		{% endif %}
+
+		<div class="d-flex justify-content-between align-items-center pt-3 pb-2 sorting" style="float:right">
+
+			{% block navbar %}
+			<div class="d-flex align-items-center">
+				{% if SITE_NAME != 'WPD' and not sub %}
+				<link rel="stylesheet" href="{{('css/smolfp.css') | asset}}">
+				{% set hcolor = "primary" if holes else "secondary" %}
+					<a class="btn btn-{{hcolor}} text-{{hcolor}} mx-2 smol-fp" href="/toggle_holes"><i class="fas fas fa-manhole mr-2 "></i>Holes</a>
+				{% endif %}
+
+				{% set pcolor = "primary" if pins else "secondary" %}
+				<a class="btn btn-{{pcolor}} text-{{pcolor}} mx-2 smol-fp" href="/toggle_pins/{{sort}}"><i class="fas fas fa-thumbtack fa-rotate--45 mr-2 "></i>Pins</a>
+
+
+				<div class="dropdown dropdown-actions mx-2">
+					<button type="button" class="btn btn-secondary dropdown-toggle smol-fp" id="dropdownMenuButton" data-bs-toggle="dropdown">
+						{% if t=="hour" %}<i class="fas fa-clock mr-2 "></i>
+						{% elif t=="day" %}<i class="fas fa-calendar-day mr-2 "></i>
+						{% elif t=="week" %}<i class="fas fa-calendar-week mr-2 "></i>
+						{% elif t=="month" %}<i class="fas fa-calendar-alt mr-2 "></i>
+						{% elif t=="year" %}<i class="fas fa-calendar mr-2 "></i>
+						{% elif t=="all" %}<i class="fas fa-infinity mr-2 "></i>
+						{% endif %}
+						{{t | capitalize}}
+					</button>
+					<div class="dropdown-menu smol-fp" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px;">
+						{% if t != "hour" %}<a class="dropdown-item" href="?sort={{sort}}&t=hour"><i class="fas fa-clock mr-2 "></i>Hour</a>{% endif %}
+						{% if t != "day" %}<a class="dropdown-item" href="?sort={{sort}}&t=day"><i class="fas fa-calendar-day mr-2 "></i>Day</a>{% endif %}
+						{% if t != "week" %}<a class="dropdown-item" href="?sort={{sort}}&t=week"><i class="fas fa-calendar-week mr-2 "></i>Week</a>{% endif %}
+						{% if t != "month" %}<a class="dropdown-item" href="?sort={{sort}}&t=month"><i class="fas fa-calendar-alt mr-2 "></i>Month</a>{% endif %}
+						{% if t != "year" %}<a class="dropdown-item" href="?sort={{sort}}&t=year"><i class="fas fa-calendar mr-2 "></i>Year</a>{% endif %}
+						{% if t != "all" %}<a class="dropdown-item" href="?sort={{sort}}&t=all"><i class="fas fa-infinity mr-2 "></i>All</a>{% endif %}
+					</div>
+				</div>
+
+				<div class="dropdown dropdown-actions ml-2">
+					<button type="button" class="btn btn-secondary dropdown-toggle smol-fp" id="dropdownMenuButton2" data-bs-toggle="dropdown">
+						{% if sort=="hot" %}<i class="fas fa-fire mr-2 "></i>{% endif %}
+						{% if sort=="bump" %}<i class="fas fa-arrow-up mr-2 "></i>{% endif %}
+						{% if sort=="top" %}<i class="fas fa-arrow-alt-circle-up mr-2 "></i>{% endif %}
+						{% if sort=="bottom" %}<i class="fas fa-arrow-alt-circle-down mr-2 "></i>{% endif %}
+						{% if sort=="new" %}<i class="fas fa-sparkles mr-2 "></i>{% endif %}
+						{% if sort=="old" %}<i class="fas fa-book mr-2 "></i>{% endif %}
+						{% if sort=="controversial" %}<i class="fas fa-bullhorn mr-2 "></i>{% endif %}
+						{% if sort=="comments" %}<i class="fas fa-comments mr-2 "></i>{% endif %}
+						{{sort | capitalize}}
+					</button>
+					<div class="dropdown-menu smol-fp" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px;">
+						{% if sort != "hot" %}<a class="dropdown-item" href="?sort=hot&t={{t}}"><i class="fas fa-fire mr-2 "></i>Hot</a>{% endif %}
+						{% if sort != "bump" %}<a class="dropdown-item" href="?sort=bump&t={{t}}"><i class="fas fa-arrow-up mr-2 "></i>Bump</a>{% endif %}
+						{% if sort != "top" %}<a class="dropdown-item" href="?sort=top&t={{t}}"><i class="fas fa-arrow-alt-circle-up mr-2 "></i>Top</a>{% endif %}
+						{% if sort != "bottom" %}<a class="dropdown-item" href="?sort=bottom&t={{t}}"><i class="fas fa-arrow-alt-circle-down mr-2 "></i>Bottom</a>{% endif %}
+						{% if sort != "new" %}<a class="dropdown-item" href="?sort=new&t={{t}}"><i class="fas fa-sparkles mr-2 "></i>New</a>{% endif %}
+						{% if sort != "old" %}<a class="dropdown-item" href="?sort=old&t={{t}}"><i class="fas fa-book mr-2 "></i>Old</a>{% endif %}
+						{% if sort != "controversial" %}<a class="dropdown-item" href="?sort=controversial&t={{t}}"><i class="fas fa-bullhorn mr-2 "></i>Controversial</a>{% endif %}
+						{% if sort != "comments" %}<a class="dropdown-item" href="?sort=comments&t={{t}}"><i class="fas fa-comments mr-2 "></i>Comments</a>{% endif %}
+					</div>
+				</div>
+			</div>
+			{% endblock %}
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block PseudoSubmitForm %}{% endblock %}
+
+{% block content %}
+
+<div class="row no-gutters {% if listing %}mt-md-3{% elif not listing %}my-md-3{% endif %}">
+	<div class="col-12">
+		<div class="posts" id="posts">
+			{% include "submission_listing.html" %}
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block pagenav %}
+{% if listing %}
+<nav>
+	<ul class="pagination pagination-sm mb-0">
+		{% if page>1 %}
+		<li class="page-item">
+			<small><a class="page-link" href="?sort={{sort}}&page={{page-1}}&t={{t}}" tabindex="-1">Prev</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Prev</span></li>
+		{% endif %}
+		{% if next_exists %}
+		<li class="page-item">
+			<small><a class="page-link" href="?sort={{sort}}&page={{page+1}}&t={{t}}">Next</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Next</span></li>
+		{% endif %}
+	</ul>
+</nav>
+{% endif %}
+
+{% if request.path == '/' and v %}
+	<script defer src="{{'js/register_service_worker.js' | asset}}"></script>
+	<input hidden id="VAPID_PUBLIC_KEY" value="{{VAPID_PUBLIC_KEY}}">
+{% endif %}
+
+{% if request.path == '/' and g.browser != 'webview' and time.time() > session.get('tooltip_last_dismissed',0)+86400*30 %}
+	<div id="mobile-prompt-container" class="fixed-top">
+		<div id="mobile-prompt" data-bs-toggle="tooltip" data-bs-container="#mobile-prompt-container" data-bs-placement="top" data-bs-trigger="click" data-bs-html="true" title="<i class='dismiss-beg fas fa-x'></i>Click me to install the {{SITE_NAME}} mobile app!"></div>
+	</div>
+
+	<script defer src="{{'js/mobile_prompt.js' | asset}}"></script>
+{% endif %}
+
+{% if FP and request.path == '/' and v and not v.fp %}
+	<input hidden id="fp_token" value="{{FP}}">
+	<script defer src="{{'js/fp.js' | asset}}"></script>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "casino/game_screen.html" %}
+
+{% block script %}
+	<script defer src="{{'js/casino/blackjack_screen.js' | asset}}"></script>
+{% endblock %}
+
+{% block screen %}
+<div id="blackjack-table-deck"></div>
+<div id="blackjack-table" data-state="{{game_state}}" style="position: relative;">
+</div>
+{% endblock %}
+
+{% block actions %}
+<link rel="stylesheet" href="{{('css/casino/blackjack_screen.css') | asset}}">
+
+<div class="btn-group">
+	<button type="button" id="twentyone-DEAL" class="btn btn-primary twentyone-btn" data-nonce="{{g.nonce}}" data-onclick="deal()">Deal</button>
+	<button type="button" id="twentyone-HIT" class="btn btn-primary twentyone-btn" data-nonce="{{g.nonce}}" data-onclick="hit()" style="display: none;">Hit</button>
+	<button type="button" id="twentyone-STAY" class="btn btn-primary twentyone-btn" data-nonce="{{g.nonce}}" data-onclick="stay()"
+		style="display: none;">Stay</button>
+	<button type="button" id="twentyone-DOUBLE_DOWN" class="btn btn-primary twentyone-btn" data-nonce="{{g.nonce}}" data-onclick="doubleDown()"
+		style="display: none;">Double Down</button>
+	<button type="button" id="twentyone-BUY_INSURANCE" class="btn btn-primary twentyone-btn" data-nonce="{{g.nonce}}" data-onclick="buyInsurance()"
+		style="display: none;">Buy
+		Insurance</button>
+</div>
+{% endblock %}
+
+{% block leaders %}
+Blackjack
+{% endblock %}
+
+{% block feed %}
+Blackjack
+{% endblock %}

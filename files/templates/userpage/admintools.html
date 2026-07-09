@@ -1,0 +1,114 @@
+{% macro userBanBlock(deviceType) %}
+	{% if u.is_suspended %}
+		<h5 class="text-primary" id="profile-{{deviceType}}--banned">BANNED USER
+		{% if u.ban_reason %}:
+			{{u.ban_reason | safe}}
+		{% endif %}
+		(by <a href="{{u.banned_by.url}}">@{{u.banned_by.username}}</a>)
+		</h5>
+		{% if u.unban_utc %}
+			<h5 class="text-primary" id="profile--unban">{{u.unban_string}}</h5>
+		{% endif %}
+	{% endif %}
+	{% if v and v.admin_level >= PERMS['USER_SHADOWBAN'] and u.shadowbanned %}
+		<h5 class="text-primary" id="profile-{{deviceType}}--shadowbanned">SHADOWBANNED USER
+		{% if u.ban_reason %}:
+			{{u.ban_reason | safe}}
+		{% endif %}
+		(by <a href="/@{{u.shadowbanner}}">@{{u.shadowbanner}}</a>)
+		</h5>
+	{% endif %}
+{% endmacro %}
+
+{% macro userAdminTools(deviceType) %}
+	{% if v and v.id != u.id and v.admin_level >= PERMS['USER_MODERATION_TOOLS_VISIBLE'] %}
+		<div class="admintools-user-lower-{{deviceType}}">
+			{% if v.admin_level >= PERMS['USER_TITLE_CHANGE'] %}
+				<div class="body d-lg-flex border-bottom mb-2">
+					<div class="w-lg-100">
+						<form action="/admin/title_change/{{u.id}}" method="post" data-nonce="{{g.nonce}}" data-onsubmit="sendFormXHR(this)">
+							<input hidden name="formkey" value="{{v|formkey}}">
+							<input maxlength=100 autocomplete="off" id="customtitlebody-{{deviceType}}" type="text" name="title" class="form-control" placeholder='Enter a flair here' value="{% if u.customtitleplain %}{{u.customtitleplain}}{% endif %}">
+							<div class="d-flex mt-2">
+								<div class="format"><i class="btn btn-secondary format d-inline-block m-0 fas fa-smile-beam" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('customtitlebody-{{deviceType}}')" data-bs-toggle="modal" data-bs-target="#emojiModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add Emoji"></i></div>
+								<div class="custom-control custom-checkbox ml-3">
+									<input autocomplete="off" type="checkbox" class="custom-control-input" id="locked-{{deviceType}}" name="locked-{{deviceType}}" {% if u.flairchanged %}checked{% endif %}>
+									<label class="custom-control-label" for="locked-{{deviceType}}">locked</label>
+								</div>
+								<input autocomplete="off" class="btn btn-primary ml-auto" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Change Flair">
+							</div>
+						</form>
+					</div>
+				</div>
+			{% endif %}
+			{% if v.admin_level >= PERMS['USER_BAN'] %}
+				<button type="button" id="unban-{{deviceType}}" class="mt-1 {% if not u.is_suspended %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unban_user/{{u.id}}','ban-{{deviceType}}','unban-{{deviceType}}','d-none')">Unban user</button>
+
+				<form id="ban-{{deviceType}}" class="my-3 {% if u.is_suspended %}d-none{% endif %}" action="/ban_user/{{u.id}}" method="post" data-nonce="{{g.nonce}}" data-onsubmit="sendFormXHRSwitch(this)">
+					<input hidden name="formkey" value="{{v|formkey}}">
+					<input autocomplete="off" style="font-size:11px" type="text" class="form-control" maxlength="256" name="reason" placeholder="Ban Reason" data-nonce="{{g.nonce}}" data-undisable_element="user-ban-submit-{{deviceType}}" required>
+					<input autocomplete="off" style="font-size:11px" type="number" step="any" class="form-control" name="days" placeholder="Days (blank = permanent)">
+					<div class="custom-control custom-checkbox mb-1">
+						<input autocomplete="off" type="checkbox" id="alts-2-{{deviceType}}" class="custom-control-input" name="alts" value="1">
+						<label class="custom-control-label" for="alts-2-{{deviceType}}">Include alts</label>
+					</div>
+					<input autocomplete="off" id="user-ban-submit-{{deviceType}}" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-danger" value="Ban user" disabled>
+				</form>
+			{% endif %}
+			{% if v.admin_level >= PERMS['USER_SHADOWBAN'] %}
+				<button type="button" id="unshadowban-{{deviceType}}" class="mt-1 {% if not u.shadowbanned %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unshadowban/{{u.id}}','shadowban-{{deviceType}}','unshadowban-{{deviceType}}','d-none')">Unshadowban user</button>
+
+				<form id="shadowban-{{deviceType}}" class="my-3 {% if u.shadowbanned %}d-none{% endif %}" action="/shadowban/{{u.id}}" method="post" data-nonce="{{g.nonce}}" data-onsubmit="sendFormXHRSwitch(this)">
+					<input hidden name="formkey" value="{{v|formkey}}">
+					<input autocomplete="off" style="font-size:11px" type="text" class="form-control" maxlength="256" name="reason" placeholder="Shadowban Reason" data-nonce="{{g.nonce}}" data-undisable_element="user-shadowban-submit-{{deviceType}}" required>
+					<input autocomplete="off" id="user-shadowban-submit-{{deviceType}}" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-danger" value="Shadowban user" disabled>
+				</form>
+			{% endif %}
+			{% if v.admin_level >= PERMS['USER_AGENDAPOSTER'] %}
+				<button type="button" id="unagendaposter-{{deviceType}}" class="mt-1 {% if not u.agendaposter %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{u.id}}','agendaposter-{{deviceType}}','unagendaposter-{{deviceType}}','d-none')">Unchud</button>
+
+				<form id="agendaposter-{{deviceType}}" class="my-3 {% if u.agendaposter %}d-none{% endif %}" action="/agendaposter/{{u.id}}" method="post" data-nonce="{{g.nonce}}" data-onsubmit="sendFormXHRSwitch(this)">
+					<input hidden name="formkey" value="{{v|formkey}}">
+					<input autocomplete="off" type="number" step="any" name="days" class="form-control" placeholder="Days (0 or blank = permanent)">
+					<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-danger" value="Chud">
+				</form>
+			{% endif %}
+
+			<div class="actionbtns mt-3">
+				{% if v.admin_level >= PERMS['ADMIN_ADD'] %}
+					<button type="button" id="add-admin-{{deviceType}}" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/make_admin','add-admin-{{deviceType}}','remove-admin-{{deviceType}}','d-none')">Make Admin</button>
+				{% endif %}
+				{% if v.admin_level >= PERMS['ADMIN_REMOVE'] %}
+					<button type="button" id="remove-admin-{{deviceType}}" class="{% if u.admin_level < 1 %}d-none{% endif %} btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/remove_admin','add-admin-{{deviceType}}','remove-admin-{{deviceType}}','d-none')">Remove Admin</button>
+				{% endif %}
+				{% if v.admin_level >= PERMS['ADMIN_ACTIONS_REVERT'] and u.admin_level %}
+					<button type="button" class="btn btn-danger" data-areyousure="postToastSwitch(this,'/@{{u.username}}/revert_actions')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">Revert Admin Actions</button>
+				{% endif %}
+
+				{% if v.admin_level >= PERMS['USER_BAN'] %}
+					<button type="button" id="mute-user-{{deviceType}}" class="{% if u.is_muted %}d-none{% endif %} btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/mute_user/{{u.id}}','mute-user-{{deviceType}}','unmute-user-{{deviceType}}','d-none')">Mute</button>
+					<button type="button" id="unmute-user-{{deviceType}}" class="mb-1 {% if not u.is_muted %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unmute_user/{{u.id}}','mute-user-{{deviceType}}','unmute-user-{{deviceType}}','d-none')">Unmute</button>
+				{% endif %}
+				{% if v and v.admin_level >= PERMS['POST_COMMENT_MODERATION'] %}
+					<form action="/admin/unnuke_user" method="post" data-nonce="{{g.nonce}}" data-onsubmit="sendFormXHR(this)">
+						<input hidden name="formkey", value="{{v|formkey}}">
+						<input hidden name="user" value="{{u.username}}">
+						<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-success" value="Approve User's Content">
+					</form>
+					<form class="mt-1" action="/admin/nuke_user" method="post" data-nonce="{{g.nonce}}" data-onsubmit="sendFormXHR(this)">
+						<input hidden name="formkey", value="{{v|formkey}}">
+						<input hidden name="user" value="{{u.username}}">
+						<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-danger" value="Remove User's Content">
+					</form>
+				{% endif %}
+
+				{% if v.admin_level >= PERMS['USER_BLACKLIST'] %}
+					<button type="button" id="unblacklist-{{deviceType}}" class="mt-1 {% if not u.blacklisted_by %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unblacklist/{{u.id}}','blacklist-{{deviceType}}','unblacklist-{{deviceType}}','d-none')">Unblacklist From Restricted Holes</button>
+
+					<button type="button" id="blacklist-{{deviceType}}" class="mt-1 {% if u.blacklisted_by %}d-none{% endif %} btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/blacklist/{{u.id}}','blacklist-{{deviceType}}','unblacklist-{{deviceType}}','d-none')">Blacklist From Restricted Holes</button>
+				{% endif %}
+
+			</div>
+		</div>
+	{% endif %}
+{%- endmacro %}

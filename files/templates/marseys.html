@@ -1,0 +1,45 @@
+{% extends "default.html" %}
+{% block pagetitle %}Marseys{% endblock %}
+{% block pagetype %}marseys{% endblock %}
+{% block content %}
+<div class="overflow-x-auto mt-3"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>Name</th>
+		<th>Marsey</th>
+		<th>Usage</th>
+		{% if FEATURES['ASSET_SUBMISSIONS'] %}
+			<th>Author</th>
+		{% endif %}
+		<th>Added on</th>
+		{% if FEATURES['ASSET_SUBMISSIONS'] %}
+			<th>Original File</th>
+		{% endif %}
+	</tr>
+</thead>
+<tbody id="marseys-table">
+{% for marsey in marseys %}
+<tr>
+	<td>{{loop.index}}</td>
+	<td>{{marsey.name}}</td>
+	<td><img class="marsey" loading="lazy" data-bs-toggle="tooltip" alt=":#{{marsey.name}}:" title=":{{marsey.name}}:" src="/e/{{marsey.name}}.webp"></td>
+	<td>{{marsey.count}}</td>
+	{% if FEATURES['ASSET_SUBMISSIONS'] %}
+	{% set user = marsey.user %}
+	<td>{% include "user_in_table.html" %}</td>
+	{% endif %}
+	<td data-sort-key="{{marsey.created_utc or 0}}" {% if marsey.created_utc != None %}data-time="{{marsey.created_utc}}"{% endif %}></td>
+	{% if FEATURES['ASSET_SUBMISSIONS'] %}
+	<td>
+		{% if marsey.og %}
+			<a href="/asset_submissions/marseys/original/{{marsey.og}}">{{marsey.og}}</a>
+		{% endif %}
+	</td>
+	{% endif %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% endblock %}

@@ -1,0 +1,166 @@
+#chat-window {
+	max-height: calc(100vh - 240px);
+	overflow-y: auto;
+	background-color: transparent !important;
+}
+
+#online {
+	max-height: calc(100vh - 200px);
+	overflow-y: auto;
+	background-color: var(--background) !important;
+}
+
+#chat-window .chat-profile {
+	min-width: 42px;
+	width: 42px;
+	height: 42px;
+}
+
+#chat-window::-webkit-scrollbar {
+	display: none;
+}
+
+#chat-window {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.chat-mention {
+    position: relative;
+}
+
+.chat-mention::before {
+    content: "";
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    background-color: var(--primary);
+    opacity: 0.2;
+	pointer-events: none !important;
+}
+
+p, h1, h2, h3, h4, h5 {
+	display: inherit;
+}
+
+blockquote + :not(blockquote) {
+	display: inline-block;
+	margin-top: 0.5rem;
+}
+
+blockquote {
+	margin-top: 0.5rem;
+}
+
+.chat-group {
+	margin-top: 1rem;
+	padding-left: 5px;
+}
+
+@media (max-width: 768px) {
+	#shrink * {
+		font-size: 12px !important;
+	}
+	#chat-window {
+		max-height: 62vh;
+	}
+}
+
+p {
+	margin: 0;
+}
+
+.chat-line .btn {
+	background-color: transparent !important;
+}
+
+.chat-line-content {
+	width: 100%;
+}
+
+.chat-line {
+	overflow: hidden;
+	padding: 0 10px;
+	margin: 0 0 0 15px;
+}
+
+.quote, .del {
+	padding: 0 0.5rem !important;
+	border: none !important;
+	float: right;
+	color: var(--black);
+	font-size: 12px;
+	margin-top: auto;
+	margin-bottom: auto;
+}
+
+lite-youtube {
+	max-width: min(80vw,500px);
+}
+
+.chat-group:nth-child(even) {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-secondary {
+    border: none !important;
+}
+
+#cancel {
+	font-size: 12px;
+	padding: 0 0 0.2rem 0.5rem;
+}
+
+.btn:focus, .btn.focus {
+	box-shadow: none;
+}
+
+.time {
+	font-size: 12px;
+	opacity: 0.95;
+}
+
+.chat-line:target {
+	background: #ffffff44 !important;
+}
+
+.QuotedMessage * {
+	font-size: 12px !important;
+}
+
+.chat-message {
+	max-height: 50vh;
+	overflow: auto;
+    max-width: 80%;
+}
+
+.resizable>video {
+    max-height: 28vh!important;
+	margin: 14px 0 0 0!important;
+}
+
+img[alt^="![]("] {
+    height: 150px;
+    width: 90%;
+    -o-object-fit: contain;
+    object-fit: contain;
+    object-position: left;
+}
+
+* {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+	display: none;
+}
+
+.muted {
+	cursor: pointer;
+}
+
+#online > li, #online3 > li {
+    margin-top: 0.35rem;
+}

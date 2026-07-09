@@ -1,0 +1,22 @@
+#post-title, #post-content p {
+	--color2: #cc4145;
+	--color1: rgb(12, 128, 101);
+	font-family: "Open Sans", sans-serif;
+	background: repeating-linear-gradient(
+		45deg, var(--color2), var(--color2) 10px,
+		var(--color1) 11px, var(--color1) 30px
+	);
+	background-clip: text;
+	color: transparent;
+	-webkit-background-clip: text;
+	animation: 45s linear 0s infinite candycorn-move;
+}
+
+#post-title a {
+	color: transparent !important;
+}
+
+@keyframes candycorn-move {
+	from {background-position: 0px;}
+	to {background-position: 1000px;}
+}

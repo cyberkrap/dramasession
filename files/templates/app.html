@@ -1,0 +1,19 @@
+{% extends "default.html" %}
+{% block pagetitle %}App{% endblock %}
+{% block content %}
+<div class="ml-3 mt-4">
+	<b>How to install {{SITE_NAME}}'s mobile app</b>
+
+	{% if not v and g.browser == 'chromium' %}
+		{% set type = 'chromium-lo' %}
+	{% else %}
+		{% set type = g.browser %}
+	{% endif %}
+
+	<div class="font-weight-bold mt-4 mb-2">First step:</div>
+	<img loading="lazy" data-nonce="{{g.nonce}}" data-onclick="expandImage()" alt="First step" style="height:30vh" src="/i/{{SITE_NAME}}/app-{{type}}-1.webp">
+
+	<div class="font-weight-bold mt-4 mb-2">Second step:</div>
+	<img loading="lazy" data-nonce="{{g.nonce}}" data-onclick="expandImage()" alt="Second step" style="height:30vh" src="/i/{{SITE_NAME}}/app-{{type}}-2.webp">
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+<div class="modal fade" id="banModal" tabindex="-1">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header pt-3">
+				<h5 id="banModalTitle"></h5>
+				<button type="button" class="close" data-bs-dismiss="modal">
+					<span><i class="far fa-times"></i></span>
+				</button>
+			</div>
+			<div class="modal-body" id="ban-modal-body">
+
+				<form id="banModalForm">
+
+					<input hidden name="formkey" value="{{v|formkey}}">
+
+					<label for="ban-modal-link">Public ban reason (optional)</label>
+					<textarea autocomplete="off" maxlength="256" name="reason" form="banModalForm" class="form-control" id="ban-modal-link" placeholder="Enter reason"></textarea>
+
+					<label for="days" class="mt-3">Days</label>
+					<input autocomplete="off" type="number" step="any" name="days" id="days" class="form-control" placeholder="leave blank for permanent">
+
+					<div class="custom-control custom-switch mt-3">
+						<input autocomplete="off" type="checkbox" class="custom-control-input" id="alts" name="alts">
+						<label class="custom-control-label" for="alts">Ban known alts</label>
+					</div>
+
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" id="banUserButton" class="btn btn-danger" data-bs-dismiss="modal"></button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="chudModal" tabindex="-1">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header pt-3">
+				<h5 id="chudModalTitle"></h5>
+				<button type="button" class="close" data-bs-dismiss="modal">
+					<span><i class="far fa-times"></i></span>
+				</button>
+			</div>
+			<div class="modal-body pt-0" id="chud-modal-body">
+
+				<form id="chudModalForm">
+					<input hidden name="formkey" value="{{v|formkey}}">
+					<input hidden name="reason" id="chud-modal-link">
+
+					<label for="days">Days</label>
+					<input autocomplete="off" type="number" step="any" name="days" id="days" class="form-control" placeholder="leave blank for permanent">
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" id="chudUserButton" class="btn btn-danger" data-bs-dismiss="modal"></button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script defer src="{{'js/ban_modal.js' | asset}}"></script>

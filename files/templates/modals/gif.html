@@ -1,0 +1,27 @@
+<div class="modal fade" id="gifModal" tabindex="-1">
+	<div class="modal-dialog modal-dialog-scrollable modal-dialog-centered p-5" style="max-width:100% !important">
+		<div class="modal-content">
+			<div class="modal-header border-bottom-0 shadow-md p-3">
+				<div class="form-group d-flex align-items-center w-100 mb-0">
+					<div id="gifs-back-btn"><button class="btn btn-link mx-2" id="gifs-back-btn"><i class="fas fa-long-arrow-left text-muted"></i></button></div>
+					<input autocomplete="off" type="text" class="form-control" id="gifSearch" placeholder="Search and press enter">
+					<button class="btn btn-link mx-2" data-bs-dismiss="modal"><i class="fas fa-times text-muted"></i></button>
+				</div>
+			</div>
+			<div style="overflow-y: auto;">
+				<div class="modal-body p-0" id="gif-modal-body">
+
+					<div id="no-gifs-found" class="text-center py-3 mt-3">
+						<i class="fas fa-frown text-gray-500 mb-3" style="font-size: 3.5rem"></i>
+						<p class="font-weight-bold text-gray-500">Aw shucks. No GIFs found...</p>
+					</div>
+
+					<div class="gif-categories pt-3 px-3 pb-0" id="GIFs" style="text-align:center">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script defer src="{{'js/gif_modal.js' | asset}}"></script>

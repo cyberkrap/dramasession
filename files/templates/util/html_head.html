@@ -1,0 +1,178 @@
+{% macro cf_2fa_verify() %}
+	{% if SITE == 'rdrama.net' %}
+		<meta name="cf-2fa-verify" content="4f40ca1ca249313">
+	{% elif SITE == 'watchpeopledie.tv' %}
+		<meta name="cf-2fa-verify" content="372aba5b9338e00">
+	{% endif %}
+{% endmacro %}
+
+{% macro javascript() %}
+	<script defer src="{{'js/vendor/bootstrap.js' | asset}}"></script>
+	<script defer src="{{'js/core.js' | asset}}"></script>
+{% endmacro %}
+
+{% macro page_meta(title=none) %}
+	{% if 'post/' in request.path and p %}
+		{% if not v_forbid_deleted -%}
+			{% set image = p.thumb_url if p.has_thumb %}
+			{% set image = p.realurl(v) if p.is_image %}
+			{% set video = p.realurl(v) if p.is_video %}
+			{% set audio = p.realurl(v) if p.is_audio %}
+		{% endif %}
+
+		{% if comment_info and not comment_info.is_banned and not comment_info.deleted_utc %}
+			{% set p, title = comment_info, ['@', comment_info.author_name, ' comments on ',
+			'"', title, '"'] | join %}
+		{% endif %}
+
+		{% set author, description, a_author, published, modified, url =
+		'@'+p.author_name, p.plainbody(v), '@'+p.author_name,
+		p.created_datetime, p.edited_string, p.permalink %}
+
+	{% elif '@' in request.path and u %}
+		{% set author, a_author, published, url, title, image, section =
+			'@'~u.username,
+			'@'~u.username,
+			u.created_date,
+			u.url,
+			u.username ~ "'s profile",
+			u.banner_url,
+			u.username ~ "'s profile" %}
+
+		{% set description %}
+			{{u.coins}} coins - Joined {{u.created_date}} -
+			{%- if u.stored_subscriber_count >=1 and not u.is_private -%}
+				{{u.stored_subscriber_count}} Followers -
+			{%- endif -%}
+			{%- if not u.is_private -%}
+				{{0 if u.shadowbanned else u.post_count}}
+					Posts -
+				{{0 if u.shadowbanned else u.comment_count}}
+					Comments
+			{%- endif -%}
+			{% if u.bio %}
+				- {{u.bio}}
+			{% endif %}
+		{% endset %}
+	{% elif sub %}
+		{% set title, description =
+		'/h/'+sub.name, sub.sidebar if sub.sidebar %}
+	{% endif %}
+
+	<link rel="icon" type="image/webp" href="/icon.webp?v=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="thumbnail" content="{{'site_preview.webp' | asset_siteimg}}">
+	<meta name="description" content="{{DESCRIPTION}}">
+
+	<meta property="og:type" content="article">
+	<meta property="og:site_name" content="{{SITE}}">
+	<meta property="og:url" content="{{request.full_path}}">
+
+	<meta property="og:title" content="{{title}}">
+	<meta property="og:author" name="author" content="{{author | default(SITE_FULL, true)}}">
+	<meta property="og:description" name="description" content="{{description | default(SITE_NAME ~ ' - ' ~ DESCRIPTION)}}">
+
+	{% if not comment_info %}
+		<meta property="og:image" content="{{image | default('site_preview.webp' | asset_siteimg)}}">
+		{% if video %}<meta property="og:video" content="{{video}}">{% endif %}
+		{% if audio %}<meta property="og:audio" content="{{audio}}">{% endif %}
+		<meta name="twitter:image" content="{{image | default('site_preview.webp' | asset_siteimg)}}">
+	{% endif %}
+
+	<meta property="og:article:author" content="{{a_author}}">
+	<meta property="og:article:published_time" content="{{published}}">
+	<meta property="og:article:modified_time" content="{{modified}}">
+	<meta property="og:article:section" content="{{section}}">
+
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:site" content="{{SITE_FULL}}">
+
+	<meta name="twitter:title" content="{{title}}">
+	<meta name="twitter:creator" content="{{author | default(SITE_FULL)}}">
+	<meta name="twitter:description" content="{{description | default(SITE_NAME ~ ' - ' ~ DESCRIPTION)}}">
+	<meta name="twitter:url" content="{{url}}">
+{% endmacro %}
+
+{% macro stylesheets(include_user_css) %}
+	<link rel="stylesheet" href="{{'css/main.css' | asset}}">
+	{% if v %}
+		{% if v.agendaposter %}
+			<link rel="stylesheet" href="{{('css/agendaposter.css') | asset}}">
+		{% endif %}
+		{% if include_user_css and not IS_FISTMAS() %}
+			{% if v.theme == 'classic_dark' %}
+				<link rel="stylesheet" href="{{('css/classic.css') | asset}}">
+			{% endif %}
+			<link rel="stylesheet" href="{{('css/'~v.theme~'.css') | asset}}">
+			{% if (v.css or v.background) and not request.path.startswith('/settings') %}
+				<link rel="stylesheet" href="/{{v.id}}/css">
+			{% endif %}
+			{% if v.themecolor == '30409f' %}
+				<link rel="stylesheet" href="{{('css/30409f.css') | asset}}">
+			{% endif %}
+		{% else %}
+			<link rel="stylesheet" href="{{('css/'~DEFAULT_THEME~'.css') | asset}}">
+		{% endif %}
+	{% else %}
+		<link rel="stylesheet" href="{{('css/'~DEFAULT_THEME~'.css') | asset}}">
+	{% endif %}
+
+	<link rel="stylesheet" href="{{'css/awards.css' | asset}}">
+
+	{% if sub and sub.css and not request.path.endswith('settings') and not request.values.get('nocss') %}
+		<link rel="stylesheet" href="/h/{{sub}}/css">
+	{% endif %}
+
+	{% if IS_FISTMAS() %}
+		<link rel="stylesheet" href="{{'fistmas/css/fistmas.css' | asset}}">
+
+		{% if v and v.event_darkmode %}
+			<link rel="stylesheet" href="{{'fistmas/css/themes/dark.css'| asset}}">
+		{% else %}
+			<link rel="stylesheet" href="{{'fistmas/css/themes/light.css'| asset}}">
+		{% endif %}
+	{% endif %}
+
+	{% if request.path.endswith('/chat') %}
+		<link rel="stylesheet" href="{{'css/chat.css' | asset}}">
+	{% endif %}
+{% endmacro %}
+
+{% macro stylesheets_lower() %}
+	{% if not (request.path.startswith('/@') and u) %}
+		{% if SITE_NAME == 'rDrama' and v and v.agendaposter %}
+			{% set background = '/i/backgrounds/anime/1.webp?v=4' %}
+		{% elif v and v.background %}
+			{% set background = v.background %}
+		{% endif %}
+
+		{% if background %}
+			{% set displaying_bg = True %}
+			<link rel="stylesheet" href="{{('css/transparent.css') | asset}}">
+		{% endif %}
+	{% endif %}
+{% endmacro %}
+
+{% macro seo() %}
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-touch-fullscreen" content="yes">
+	<meta name="format-detection" content="telephone=no">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/icon.webp?v=1">
+	<link rel="manifest" href="/assets/manifest_{{SITE_NAME}}.json?v=426">
+	<link rel="mask-icon" href="/icon.webp?v=1">
+	<link rel="shortcut icon" href="/icon.webp?v=1">
+	<meta name="apple-mobile-web-app-title" content="{{SITE_NAME}}">
+	<meta name="application-name" content="{{SITE_NAME}}">
+	<meta name="msapplication-TileColor" content="#{% if v %}{{v.themecolor}}{% else %}{{DEFAULT_COLOR}}{% endif %}">
+	<meta name="msapplication-config" content="/assets/browserconfig.xml?v=3009">
+	<meta name="theme-color" content="#{% if v %}{{v.themecolor}}{% else %}{{DEFAULT_COLOR}}{% endif %}">
+
+	{% for size in ('320x480', '640x960', '640x1136', '750x1334', '768x1004', '828x1792',
+					'1024x748', '1024x768', '1125x2436', '1242x2208', '1356x2048',
+					'1668x2224', '1792x828', '2048x1496', '2048x2732', '2208x1242',
+					'2224x1668', '2436x1125', '2668x1242', '2737x2048') %}
+			<link rel="apple-touch-startup-image" sizes="{{size}}" href="/icon.webp?v=1">
+	{% endfor %}
+{% endmacro %}

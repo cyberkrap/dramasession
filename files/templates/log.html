@@ -1,0 +1,125 @@
+{% extends "settings2.html" %}
+{% block pagetitle %}Moderation Log{% endblock %}
+{% block content %}
+{% if v %}
+	<link rel="stylesheet" href="{{'css/main.css' | asset}}">
+	{% if v.theme == 'classic_dark' %}
+		<link rel="stylesheet" href="{{('css/classic.css') | asset}}">
+	{% endif %}
+	<link rel="stylesheet" href="{{('css/'~v.theme~'.css') | asset}}">
+	{% if v.agendaposter %}
+		<link rel="stylesheet" href="{{('css/agendaposter.css') | asset}}">
+	{% elif v.css or v.background %}
+		<link rel="stylesheet" href="/{{v.id}}/css">
+	{% endif %}
+{% else %}
+	<link rel="stylesheet" href="{{'css/main.css' | asset}}">
+	<link rel="stylesheet" href="{{('css/'~DEFAULT_THEME~'.css') | asset}}">
+{% endif %}
+
+<div class="row justify-content-around">
+	<div class="col h-100">
+		<div class="justify-content-between">
+			<div>
+				<h5 class="font-weight-bolder text-center pt-2 pb-3">{% if sub %}<a href="/h/{{sub.name}}">/h/{{sub.name}}</a> {% endif %}<span>Moderation Log</span></h5>
+			</div>
+		</div>
+
+		<div class="row" style="overflow: visible;padding-top:5px;">
+			<div class="col">
+				<div class="d-flex justify-content-between align-items-center">
+
+					{% block navbar %}
+					<div class="d-flex align-items-center mb-3 ml-auto">
+						<div class="dropdown dropdown-actions">
+
+							<button type="button" class="btn btn-secondary dropdown-toggle" id="dropdownMenuButton" data-bs-toggle="dropdown">
+								{% if admin %}<img loading="lazy" src="/@{{admin}}/pic" alt="avatar" class="profile-pic-20 mr-2">{{admin}}{% else %}<img loading="lazy" src="/e/marseyjanny.webp" alt="avatar" class="profile-pic-20 mr-2">All{% endif %}
+							</button>
+							<div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 31px, 0px); max-height: 50vh;
+							overflow: auto;">
+								<a class="dropdown-item" href="/log{% if type %}?kind={{type}}{% endif %}"><img loading="lazy" src="/e/marseyjanny.webp" alt="avatar" class="profile-pic-20 mr-2">All</a>
+								{% for a in admins %}
+									<a class="dropdown-item" href="?{{single_user_url}}={{a}}{% if type %}&kind={{type}}{% endif %}"><img loading="lazy" src="/@{{a}}/pic" alt="avatar" class="profile-pic-20 mr-2">{{a}}</a>
+								{% endfor %}
+							</div>
+						</div>
+
+						<div class="dropdown dropdown-actions ml-3">
+							<button type="button" class="btn btn-secondary dropdown-toggle" id="dropdownMenuButton2" data-bs-toggle="dropdown">
+								{% if type %}<i class="fas {{types[type]['icon']}} mr-2"></i>{{type}}{% else %}<i class="fas fa-broom mr-2"></i>All{% endif %}
+							</button>
+							<div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 31px, 0px); max-height: 50vh;
+							overflow: auto;">
+								<a class="dropdown-item" href="/log{% if admin %}?{{single_user_url}}={{admin}}{% endif %}"><i class="fas fa-broom mr-2"></i>All</a>
+								{% for t, v in types.items() %}
+									<a class="dropdown-item" href="?{% if admin %}{{single_user_url}}={{admin}}&{% endif %}kind={{t}}"><i class="fas {{v['icon']}} mr-2"></i>{{t}}</a>
+								{% endfor %}
+							</div>
+						</div>
+					</div>
+					{% endblock %}
+				</div>
+			</div>
+		</div>
+
+		<div class="rounded border bg-white mx-auto">
+			{% for ma in actions %}
+				<div id="action-{{ma.id}}" class="modlog-action{% if ma.unread %} unread{% endif %}">
+				<div class="d-flex flex-grow-1 align-items-center">
+					<div class="d-flex align-items-center justify-content-center {{ma.color}} mr-3 rounded-lg flex-shrink-0" style="width: 32px;height: 32px;"><i class="far text-center {{ma.icon}} text-lg text-white fa-fw"></i></div>
+					<div class="d-flex align-items-center">
+						<span class="rounded">
+							<div class="profile-pic-35-wrapper">
+								<img loading="lazy" src="{{ma.user.profile_url}}" alt="avatar" class="profile-pic-35">
+								{% if ma.user.hat_active(v)[0] -%}
+									<img id="profile-pic-35-hat" class="profile-pic-35-hat hat" loading="lazy" src="{{ma.user.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ma.user.hat_active(v)[1]}}">
+								{%- endif %}
+							</div>
+						</span>
+						<div class="text-muted pl-3">
+							<div>
+								<a href="{{ma.user.url}}" class="font-weight-bold text-black" target="_self">@{{ma.user.username}}</a>
+								<span>{{ma.string | safe}}</span>
+							</div>
+							<div class="text-gray-500">
+								<span class="log--item-age" id="{{ma.id}}-age" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{ma.created_utc}}')">{{ma.age_string}}</span>
+								<a href="{{ma.permalink}}"><i class="far fa-link ml-3 text-muted"></i></a>
+								<button type="button" class="copy-link ml-3" data-clipboard-text="{{ma.permalink}}"><i class="far fa-copy text-muted"></i></button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			{% else %}
+				<div class="p-3">There's nothing here right now.</div>
+			{% endfor %}
+		</div>
+		<nav class="mb-5">
+			<ul class="pagination pagination-sm mb-0">
+				{% if page>1 %}
+					<li class="page-item">
+						<small><a class="page-link" href="{% if sub %}/h/{{sub}}{% endif %}/log?page={{page-1}}{% if admin %}&{{single_user_url}}={{admin}}{% endif %}{% if type %}&kind={{type}}{% endif %}" tabindex="-1">Prev</a></small>
+					</li>
+				{% else %}
+					<li class="page-item disabled"><span class="page-link">Prev</span></li>
+				{% endif %}
+				{% if next_exists %}
+				<li class="page-item">
+					<small><a class="page-link" href="{% if sub %}/h/{{sub}}{% endif %}/log?page={{page+1}}{% if admin %}&{{single_user_url}}={{admin}}{% endif %}{% if type %}&kind={{type}}{% endif %}">Next</a></small>
+				</li>
+				{% else %}
+					<li class="page-item disabled"><span class="page-link">Next</span></li>
+				{% endif %}
+			</ul>
+		</nav>
+	</div>
+</div>
+
+<div class="toast clipboard" id="toast-success" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
+	<div class="toast-body text-center">
+		<i class="fas fa-check-circle text-success mr-2"></i>Link copied to clipboard
+	</div>
+</div>
+<script defer src="{{'js/vendor/clipboard.js' | asset}}"></script>
+{% endblock %}

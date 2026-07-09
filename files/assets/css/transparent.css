@@ -1,0 +1,19 @@
+:root {
+	--light: transparent;
+	--gray-600: transparent;
+	--gray-700: transparent;
+	--gray-800: transparent;
+	--gray-900: transparent;
+}
+
+.container, #userpage > div.container-fluid, #root > div.App {
+	background: rgba(var(--background), 0.9) !important;
+}
+
+.fixed-bottom, .popover, .modal-content, .dropdown-menu, .navbar, body, .form-control, #speed-carot-modal {
+	background-color: rgb(var(--background)) !important;
+}
+
+.App-side, .flaggers, .comment-section {
+	background: transparent !important;
+}

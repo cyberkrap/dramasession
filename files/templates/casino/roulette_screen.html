@@ -1,0 +1,110 @@
+{% extends "casino/game_screen.html" %} {% block result %} N/A {% endblock %}
+
+{% block script %}
+	<script defer src="{{'js/casino/roulette_screen.js' | asset}}"></script>
+{% endblock %}
+
+{% block screen %}
+	<link rel="stylesheet" href="{{('css/casino/roulette_screen.css') | asset}}">
+	<div id="roulette-table">
+	</div>
+{% endblock %}
+
+{% block actiontext %}
+Bets
+{% endblock %}
+
+{% block actions %}
+<div id="roulette-bets">
+	<div class="roulette-bet-summary">
+		<div class="roulette-bet-summary--heading">
+			<div class="roulette-poker-chip">
+				<img loading="lazy" src="/i/pokerchip.webp" width="40" height="40">
+				<img loading="lazy" src="/e/marseycodecellove.webp" width="40" height="40">
+			</div>
+			<p>111 is betting 4 and 4:
+			</p>
+		</div>
+		<ul class="roulette-bet-summary--list">
+			<li>2 <img loading="lazy" src="/i/rDrama/coins.webp?v=3009" alt="coin" width="32" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Coin"> that
+				the number will be black.</li>
+			<li>2 <img loading="lazy" src="/i/rDrama/coins.webp?v=3009" alt="coin" width="32" data-bs-toggle="tooltip"
+					data-bs-placement="bottom" title="Coin"> that
+				the number will be even.</li>
+		</ul>
+	</div>
+</div>
+
+<div class="game_screen-title">
+	<h5>How to Bet</h5>
+	<hr>
+</div>
+<table class="table">
+	<thead>
+		<tr>
+			<th>Bet</th>
+			<th>Payout</th>
+			<th>Description</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Straight Up</td>
+			<td>35:1</td>
+			<td>
+				Click any single number. <br>
+				You win if the roulette lands on that number.
+			</td>
+		</tr>
+		<tr>
+			<td>Line</td>
+			<td>5:1</td>
+			<td>
+				Click Line 1, Line 2 ... Line 6. <br>
+				You win if the roulette lands on any of the six numbers beneath the line.
+			</td>
+		</tr>
+		<tr>
+			<td>Column</td>
+			<td>2:1</td>
+			<td>
+				Click Col 1, Col 2 or Col 3. <br>
+				You win if the roulette lands on any of the 12 numbers to the left of the column.
+			</td>
+		</tr>
+		<tr>
+			<td>Dozen</td>
+			<td>2:1</td>
+			<td>
+				Click 1st12, 2nd12 or 3rd12. <br>
+				You win if the roulette lands on a number within 1-12, 13-24 or 25-36, respectively.
+			</td>
+		</tr>
+		<tr>
+			<td>Even/Odd</td>
+			<td>1:1</td>
+			<td>
+				Click EVEN or ODD. <br>
+				You win if the roulette lands on a number that matches your choice.
+			</td>
+		</tr>
+		<tr>
+			<td>Red/Black</td>
+			<td>1:1</td>
+			<td>
+				Click RED or BLACK. <br>
+				You win if the roulette lands on a number that is the same color as your choice.
+			</td>
+		</tr>
+		<tr>
+			<td>High/Low</td>
+			<td>1:1</td>
+			<td>
+				Click 1:18 or 19:36. <br>
+				You win if the roulette lands on a number within your selected range.
+			</td>
+		</tr>
+	</tbody>
+</table>
+{% endblock %}

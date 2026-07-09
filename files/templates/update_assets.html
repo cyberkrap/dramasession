@@ -1,0 +1,47 @@
+{% extends "default.html" %}
+{% block pagetitle %}Update {{type}}{% endblock %}
+{% block pagetype %}message{% endblock %}
+{% block content %}
+	{% if error %}{{macros.alert(error, true)}}{% endif %}
+	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+
+	<div class="mx-4">
+		<h2 class="mt-5">Update {{type}}</h2>
+			<div class="settings-section rounded">
+				<div class="d-lg-flex">
+					<div class="body w-lg-100">
+						<form action="{{request.path}}" method="post" enctype="multipart/form-data">
+							<input hidden name="formkey" value="{{v|formkey}}">
+
+							<div id="image-upload-block">
+								<div><label class="mt-3">Image</label></div>
+
+								<img loading="lazy" id="image-preview" class="d-none" style="max-width:50%;border:5px white solid">
+								<label class="btn btn-secondary m-0" for="file-upload">
+									<div id="filename-show">Select Image</div>
+									<input autocomplete="off" id="file-upload" accept="image/*" type="file" name="image" {% if g.is_tor %}disabled{% endif %} hidden>
+								</label>
+							</div>
+
+							<label class="mt-3" for="name">Name</label>
+							<input autocomplete="off" type="text" id="name" class="form-control" name="name" maxlength="30" placeholder="Required" {% if name %}value="{{name}}"{% endif %} required>
+
+							{% if type == "Marsey" %}
+							<label class="mt-3" for="tags">Tags</label>
+							<input autocomplete="off" type="text" id="name" class="form-control" name="tags" maxlength="200" placeholder="Leave empty to keep current tags" {% if tags %}value="{{tags}}"{% endif %}>
+							{% endif %}
+							<div class="footer mt-4">
+								<div class="d-flex">
+									<input id="update-asset" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary ml-auto" value="Update {{type}}">
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+	</div>
+
+	<input hidden id="IMAGE_FORMATS" value="{{IMAGE_FORMATS}}">
+
+	<script defer src="{{'js/admin/update_assets.js' | asset}}"></script>
+{% endblock %}

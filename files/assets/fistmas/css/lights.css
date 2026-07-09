@@ -1,0 +1,12 @@
+#post-root::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 57px;
+	width: 100%;
+	background: url('/assets/fistmas/images/lights.webp?v=1');
+	animation: lights 1s infinite steps(2);
+	pointer-events: none;
+	z-index: 1;
+}

@@ -1,0 +1,19 @@
+{% extends "login.html" %}
+{% block pagetitle %}Application Request for Access{% endblock %}
+{% block content %}
+<div id="auth-form">
+		<h2>{{application.app_name}}</h2>
+		<p class="mb-md-5">wants to access your @{{v.username}} account.</p>
+		<p class="mb-md-5">It will not be able to see your password, or change your account settings.</p>
+		<form action="/authorize" method="post" class="mt-md-3" id="login">
+				<input hidden name="formkey" value="{{v|formkey}}">
+				<input hidden name="scopes" value="{{scopes_txt}}">
+				<input hidden name="redirect_uri" value="{{redirect_uri}}">
+				<input hidden name="permanent" value="{{permanent}}">
+				<input hidden name="client_id" value="{{application.client_id}}">
+				<input hidden name="state" value="{{state}}">
+				<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary" id="auth_button" value="Authorize {{application.app_name}}">
+				<a href="/" class="btn btn-secondary">No, back to {{SITE_NAME}}</a>
+		</form>
+</div>
+{% endblock %}

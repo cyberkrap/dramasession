@@ -1,0 +1,16 @@
+{% if request.path == '/' %}
+	<script defer src="{{'fistmas/js/vendor/snow.js'|asset}}"></script>
+{% endif %}
+
+<a rel="nofollow noopener noreferrer" href="https://www.youtube.com/watch?v=BuKft9LpL_0" style="text-decoration: none !important">
+	{% if SITE_NAME == 'rDrama' and range(1, 20)|random() == 1 %}
+		<img loading="lazy" src="/assets/fistmas/images/banner_new.webp" style="width:100%" />
+	{% else %}
+		<link rel="stylesheet" href="{{'fistmas/css/banner.css' | asset}}">
+		{% if SITE_NAME == 'rDrama' %}
+			{% include "fistmas/banner_rDrama.svg" %}
+		{% else %}
+			{% include "fistmas/banner.svg" %}
+		{% endif %}
+	{% endif %}
+</a>

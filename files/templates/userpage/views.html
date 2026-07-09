@@ -1,0 +1,45 @@
+{% extends "default.html" %}
+{% block pagetitle %}@{{u.username}}'s Profile Views{% endblock %}
+{% block content %}
+<h5 class="pt-4 pl-2 pb-3">Users who viewed @{{u.username}}'s profile</h5>
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>Name</th>
+		<th class="disable-sort-click">Last visit</th>
+	</tr>
+</thead>
+{% for view in views %}
+	<tr>
+		<td>
+			{% with user=view.viewer %}
+				{% include "user_in_table.html" %}
+			{% endwith %}
+		</td>
+		<td>{{view.last_view_string}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+{% endblock %}
+
+{% block pagenav %}
+<nav>
+	<ul class="pagination pagination-sm py-3 pl-3 mb-0">
+		{% if page>1 %}
+		<li class="page-item">
+			<small><a class="page-link" href="?page={{page-1}}" tabindex="-1">Prev</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Prev</span></li>
+		{% endif %}
+		{% if next_exists %}
+		<li class="page-item">
+			<small><a class="page-link" href="?page={{page+1}}">Next</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Next</span></li>
+		{% endif %}
+	</ul>
+</nav>
+{% endblock %}

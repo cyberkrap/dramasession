@@ -1,0 +1,36 @@
+{% extends "casino/game_screen.html" %} {% block result %} N/A {% endblock %}
+
+{% block script %}
+	<script defer src="{{'js/casino/slots_screen.js' | asset}}"></script>
+{% endblock %}
+
+{% block screen %}
+	<link rel="stylesheet" href="{{('css/casino/slots_screen.css') | asset}}">
+
+	<div class="slots_reels">
+		<div class="slots_reel">
+			<img loading="lazy" src="/i/rDrama/coins.webp?v=3009" alt="coin">
+		</div>
+		<div class="slots_reel">
+			<img loading="lazy" src="/i/rDrama/coins.webp?v=3009" alt="coin">
+		</div>
+		<div class="slots_reel">
+			<img loading="lazy" src="/i/rDrama/coins.webp?v=3009" alt="coin">
+		</div>
+	</div>
+{% endblock %}
+
+{% block actions %}
+	<div class="btn-group">
+		<button
+			type="button"
+			id="casinoSlotsPull"
+			class="btn btn-primary"
+			style="width: 100%"
+			data-nonce="{{g.nonce}}"
+			data-onclick="pullSlots()"
+		>
+			Pull
+		</button>
+	</div>
+{% endblock %}

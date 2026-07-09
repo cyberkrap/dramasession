@@ -1,0 +1,20 @@
+{% extends "default.html" %}
+{% block pagetitle %}{{code}} {{title}}{% endblock %}
+{% block pagetype %}error-{{code}}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+	<div class="col-10 col-md-5">
+	<div class="text-center px-3 my-7">
+			{% if img -%}
+				<img alt=":#{{img}}:" loading="lazy" src="/e/{{img}}.webp">
+			{%- endif %}
+			<h5 class=" mt-1">{{code}} {{title}}</h5>
+			<p class="text-muted error-description">{{msg|safe}}</p>
+			{% if details -%}
+				<blockquote class="error-details mb-4 py-2">{{details|safe}}</blockquote>
+			{%- endif %}
+			<div><a href="/" class="btn btn-primary">Go to frontpage</a></div>
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% for u in users %}
+	<div class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-3 mb-4">
+		<div id="user-{{u.id}}" class="card h-100">
+			<div style="position: relative;">
+				<img loading="lazy" src="{{u.banner_url}}" class="card-img-top" alt="@{{u.username}} user banner" height=175 style="object-fit: cover">
+				<div class="profile-pic-50-wrapper" style="position: absolute; left: 15px; bottom: 15px; box-sizing: content-box;">
+					<img loading="lazy" src="{{u.profile_url}}" class="profile-pic-50">
+					{% if u.hat_active(v)[0] -%}
+						<img id="profile-pic-50-hat" class="profile-pic-50-hat hat" loading="lazy" src="{{u.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.hat_active(v)[1]}}">
+					{%- endif %}
+				</div>
+			</div>
+			<div class="card-body" style="word-wrap: break-word;">
+				<div class="d-flex flex-wrap justify-content-between align-items-center mb-1">
+
+					<a class="card-title text-break stretched-link mb-0" href="{{u.url}}"><h5>@{{u.username}}</h5></a>
+
+					{% if v %}
+						{% if v.id != u.id %}
+						<div id="button-sub-{{u.id}}" style="z-index: 2" class="{% if u.has_follower(v) %}d-none{% endif %}"><button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/follow/{{u.username}}','button-sub-{{u.id}}','button-unsub-{{u.id}}','d-none')">Follow</button></div>
+
+						<div id="button-unsub-{{u.id}}" style="z-index: 2" class="{% if not u.has_follower(v) %} d-none{% endif %}"><button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unfollow/{{u.username}}','button-sub-{{u.id}}','button-unsub-{{u.id}}','d-none')">Unfollow</button></div>
+						{% endif %}
+					{% else %}
+						<div id="button-sub-{{u.id}}" style="z-index: 2"><a class="btn btn-primary" href="/signup?redirect={{request.full_path | urlencode}}">Follow</a></div>
+					{% endif %}
+				</div>
+
+				<div id="profile--joined">Joined on <span id="profile--joined--time" data-time="{{u.created_utc}}"></span></div>
+
+				{% if v.admin_level >= PERMS['VIEW_LAST_ACTIVE'] -%}
+					<div id="profile--lastactive" class="mt-3">Last active on <span id="profile--lastactive--time" data-time="{{u.last_active}}"></span></div>
+				{%- endif %}
+
+				{% if FEATURES['USERS_PROFILE_BODYTEXT'] and not hide_bios and u.bio_html %}
+					<div class="card-text mt-3">{{u.bio_html | safe}}</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+{% endfor %}

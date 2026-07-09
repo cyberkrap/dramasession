@@ -1,0 +1,54 @@
+<div class="modal fade d-md-none" id="adminModal-{{p.id}}" tabindex="-1">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header p-3">
+				<h6 class="col modal-title text-center">Admin options</h6>
+				<button type="button" class="close position-absolute py-3" style="right: 1rem" data-bs-dismiss="modal">
+					<span><i class="fas fa-times-circle text-gray-500"></i></span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<ul class="list-group post-actions">
+					{% if v.admin_level >= PERMS['APPS_MODERATION'] and p.oauth_app %}
+						<a href="{{p.oauth_app.permalink}}/posts" class="nobackground btn btn-link btn-block btn-lg text-muted text-left text-info"><i class="far fa-code text-center text-info mr-2"></i>API App</a>
+					{% endif %}
+
+					{% if (request.path.startswith('/post/') or request.path.startswith('/h/')) and v.admin_level >= PERMS['POST_EDITING'] and p.id %}
+						<button type="button" class="nobackground btn btn-link btn-block btn-lg text-left text-muted" data-bs-dismiss="modal" data-nonce="{{g.nonce}}" data-onclick="togglePostEdit('{{p.id}}')"><i class="far fa-edit text-center text-muted mr-2"></i>Edit</button>
+					{% endif %}
+
+					{% if v.can_edit(p) %}
+						<button id="{{p.id}}-sort-new-mobile" type="button" class="{% if p.new %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this, '/post/{{p.id}}/new', '{{p.id}}-sort-new-mobile', '{{p.id}}-unsort-new-mobile', 'd-none', 'null', 'PUT')" data-bs-dismiss="modal"><i class="fas fa-sparkles text-center text-primary mr-2"></i>Set Default Sort New</button>
+						<button id="{{p.id}}-unsort-new-mobile" type="button" class="{% if not p.new %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-primary" id="{{p.id}}-unsort-new-mobile" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this, '/post/{{p.id}}/new', '{{p.id}}-unsort-new-mobile', '{{p.id}}-sort-new-mobile', 'd-none', 'null', 'DELETE')" data-bs-dismiss="modal"><i class="fas fa-fire text-center text-primary mr-2"></i>Set Default Sort Hot</button>
+					{% endif %}
+					{% if v.admin_level >= PERMS['POST_COMMENT_DISTINGUISH'] and (v.id == p.author.id or v.admin_level >= PERMS['POST_COMMENT_MODERATION']) %}
+					<button type="button" id="distinguish2-{{p.id}}" class="{% if p.distinguish_level %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/distinguish/{{p.id}}','distinguish2-{{p.id}}','undistinguish2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-crown text-center text-primary mr-2"></i>Distinguish</button>
+
+					<button type="button" id="undistinguish2-{{p.id}}" class="{% if not p.distinguish_level %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/distinguish/{{p.id}}','distinguish2-{{p.id}}','undistinguish2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-crown text-center text-primary mr-2"></i>Undistinguish</button>
+					{% endif %}
+					{% if v.admin_level >= PERMS['POST_COMMENT_MODERATION'] %}
+						<button type="button" id="pin2-{{p.id}}" class="{% if p.stickied and not p.stickied_utc %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-primary" data-nonce="{{g.nonce}}" data-onclick="pinPost(this,'{{p.id}}')" data-bs-dismiss="modal"><i class="fas fa-thumbtack fa-rotate--45 text-center text-primary mr-2"></i>Pin {% if p.stickied_utc %}permanently{% else %}for 1 hour{% endif %}</button>
+						<button type="button" id="unpin2-{{p.id}}" class="{% if not p.stickied %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-primary" data-nonce="{{g.nonce}}" data-onclick="unpinPost(this,'{{p.id}}')" data-bs-dismiss="modal"><i class="fas fa-thumbtack fa-rotate--45 text-center text-primary mr-2"></i>Unpin</button>
+						<button type="button" id="remove2-{{p.id}}" class="{% if p.is_banned %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-danger text-left" data-nonce="{{g.nonce}}" data-onclick="removePost(this,'{{p.id}}','remove2-{{p.id}}','approve2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="far fa-ban text-center mr-2"></i>Remove</button>
+						<button type="button" id="approve2-{{p.id}}" class="{% if not p.is_banned and request.path != '/admin/reported/posts' %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-success text-left" data-nonce="{{g.nonce}}" data-onclick="approvePost(this,'{{p.id}}','remove2-{{p.id}}','approve2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="far fa-check text-center mr-2"></i>Approve</button>
+					{% endif %}
+					{% if FEATURES['NSFW_MARKING'] and v.admin_level >= PERMS['POST_COMMENT_MODERATION'] %}
+						<button type="button" id="mark2-{{p.id}}" class="{% if p.over_18 %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/mark_post_nsfw/{{p.id}}','mark2-{{p.id}}','unmark2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="far fa-eye-evil text-center text-danger mr-2"></i>Mark +18</button>
+						<button type="button" id="unmark2-{{p.id}}" class="{% if not p.over_18 %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unmark_post_nsfw/{{p.id}}','mark2-{{p.id}}','unmark2-{{p.id}}','d-none')" data-bs-dismiss="modal"><i class="far fa-eye-evil text-center text-success mr-2"></i>Unmark +18</button>
+					{% endif %}
+					{% if v.admin_level >= PERMS['PROGSTACK'] %}
+						<button type="button" id="progstack2-{{p.id}}" class="{% if p.is_approved == PROGSTACK_ID %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-left text-danger" data-nonce="{{g.nonce}}" data-onclick="postToast(this,'/admin/progstack/post/{{p.id}}'" data-bs-dismiss="modal"><i class="fas fa-bullhorn text-center text-danger mr-2"></i>Apply Progressive Stack</button>
+					{% endif %}
+					{% if v.id != p.author_id and v.admin_level >= PERMS['USER_BAN'] %}
+						<button type="button" id="ban2-{{p.fullname}}" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#banModal" data-nonce="{{g.nonce}}" data-onclick="banModal('/post/{{p.id}}', '{{p.author_name}}', '{{p.fullname}}','d-none')" class="{% if p.author.is_suspended %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-danger text-left"><i class="fas fa-user-minus mr-2"></i>Ban user</button>
+						<button type="button" id="unban2-{{p.fullname}}" class="{% if not p.author.is_suspended %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-success text-left" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unban_user/{{p.fullname}}','ban2-{{p.fullname}}','unban2-{{p.fullname}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-user-minus mr-2"></i>Unban user</button>
+					{% endif %}
+					{% if v.id != p.author_id and v.admin_level >= PERMS['USER_AGENDAPOSTER'] %}
+						<button type="button" id="chud2-{{p.fullname}}" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#chudModal" data-nonce="{{g.nonce}}" data-onclick="chudModal('/post/{{p.id}}', '{{p.author_name}}', '{{p.fullname}}','d-none')" class="{% if p.author.agendaposter %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-danger text-left"><i class="fas fa-face-sleeping mr-2"></i>Chud user</button>
+						<button type="button" id="unchud2-{{p.fullname}}" class="{% if not p.author.agendaposter %}d-none{% endif %} nobackground btn btn-link btn-block btn-lg text-success text-left" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{p.fullname}}','chud2-{{p.fullname}}','unchud2-{{p.fullname}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-face-sleeping mr-2"></i>Unchud user</button>
+					{% endif %}
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>

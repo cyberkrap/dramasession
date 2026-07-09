@@ -1,0 +1,18 @@
+{% extends "admin/removed_posts.html" %}
+{% block pagetitle %}Removed Comments{% endblock %}
+{% block listing %}
+		<div class="posts">
+			{% with comments=listing %}
+				{% include "comments.html" %}
+			{% endwith %}
+			{% if not listing %}
+			<div class="row no-gutters">
+				<div class="col">
+					<div class="text-center py-6">
+						<h4 class="p-2">There are no comments here (yet).</h4>
+					</div>
+				</div>
+			</div>
+				{% endif %}
+		</div>
+{% endblock %}

@@ -1,0 +1,193 @@
+/*common*/
+:root {
+	--muted: #666;
+	--black: #444;
+	--primary: #b40457 !important;
+	--grey: #888;
+	--upvote: #ff8b60;
+	--downvote: #9393ff;
+	--sticky: #228822;
+	--background: 255, 255, 255;
+}
+
+.container {
+	background-color: rgb(var(--background)) !important;
+}
+
+#frontpage .container, #thread .container {
+	background-image: url(/i/classic2.webp);
+}
+
+* {
+	border-color: var(--muted) !important;
+}
+
+#frontpage .container, #thread .container {
+	max-width: 2160px;
+}
+
+.sidebar {
+	background-color: rgb(var(--background));
+	border-radius: 0px;
+	margin-top: 0;
+	margin-right: 0;
+}
+
+.no-gutters {
+	margin-top: 1rem;
+}
+
+#mobile-bottom-navigation-bar, .navbar {
+	background-color: rgb(var(--background)) !important;
+}
+
+.btn-primary {
+	background-color: var(--primary) !important;
+	color:white;
+}
+
+.dropdown-menu {
+	background-color: rgb(var(--background));
+}
+
+.dropdown-item i {
+	color: var(--muted) !important;
+}
+
+input, textarea, .form-control {
+	background-color: rgb(var(--background)) !important;
+	border: 1px solid;
+}
+
+.custom-switch .custom-control-label::after {
+	background-color: #fff !important;
+}
+
+.custom-switch .custom-control-label::before {
+	background-color: var(--muted);
+}
+
+
+/*decoration*/
+.score-up, .active.arrow-up::before, .arrow-up::after, .arrow-up:hover::before {
+	color: var(--upvote) !important;
+}
+
+.score-down, .active.arrow-down::before, .arrow-down::after, .arrow-down:hover::before {
+	color: var(--downvote) !important;
+}
+
+.arrow-up::before, .arrow-down::before, .score {
+	color: var(--muted);
+}
+
+.fa-thumbtack.text-admin {
+	color: var(--sticky);
+}
+
+.fa-broom {
+	color: var(--sticky) !important;
+}
+
+.tooltip {
+	background-color: rgb(var(--background));
+}
+
+a {
+	color: #369;
+}
+
+.spoiler, spoiler {
+	background-color: var(--grey) !important;
+	color: var(--grey) !important;
+}
+
+.spoiler:hover, spoiler:hover {
+	color:white !important;
+}
+
+/*front page*/
+a.btn-block[href~="/submit"] {
+	display:none;
+}
+
+.sorting {
+	float:left !important;
+	padding-top: 5px !important;
+}
+
+#frontpage #main-content-col .row:first-child {
+	background-image: url(/i/classic1.webp);
+	background-position:center;
+	background-repeat: repeat-x;
+	margin-top: -12px;
+	margin-bottom:-15px;
+}
+
+.sorting .btn {
+	color: white;
+	text-shadow: -1px -1px 0 black,1px -1px 0 black,-1px 1px 0 black,1px 1px 0 black;
+	border:none;
+	background-color: transparent !important;
+}
+
+#frontpage .sorting .text-primary {
+	color: yellow !important;
+	text-decoration: underline;
+	background-color:transparent !important;
+}
+
+#frontpage #dropdownMenuButton, #frontpage #dropdownMenuButton2, .sorting .dropdown i {
+	color: yellow;
+}
+
+.card {
+	border-color: var(--grey) !important;
+}
+
+.modal-content {
+	background-color: rgb(var(--background));
+}
+
+#frontpage .post-title a:not(:visited) {
+	color: #369;
+}
+
+#frontpage .card.stickied .post-title a {
+	color: var(--sticky);
+}
+
+/*posts*/
+@media (min-width: 992px){
+	#thread #main-content-col {
+		padding-left:3rem;
+		padding-right: 3rem;
+	}
+}
+
+.comment-section, .comment {
+	background-color: rgb(var(--background));
+}
+
+blockquote {
+	background-color: var(--grey);
+	color: white;
+}
+
+blockquote a {
+	color: skyblue;
+}
+
+.unread {
+	background-color: #9994 !important;
+}
+
+/*userpage*/
+.jumbotron {
+	color: var(--grey);
+}
+
+/*casino*/
+#casino-game-wrapper .row-cols-1, #casino-game-wrapper .row-cols-2 {
+	background-image: none !important;
+}

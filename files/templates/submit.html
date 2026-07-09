@@ -1,0 +1,115 @@
+{%- extends 'default.html' -%}
+{% block pagetitle %}Create a Post{% endblock %}
+{% block pagetype %}submit{% endblock %}
+{% block template_config %}
+	{% set root_scope.js = true %}
+	{% set root_scope.include_user_css = true %}
+	{% set root_scope.include_seo = false %}
+	{% set root_scope.include_cf_2fa_verify = false %}
+{% endblock %}
+{% block banner %}{% endblock %}
+{% block mobilenavbar %}{% endblock %}
+{% block content %}
+		{% block form %}
+		<div class="submit-grid-view">
+			<form id="submitform" action="{% if sub %}/h/{{sub}}{% endif %}/submit" method="post" enctype="multipart/form-data" style="grid-column: 2">
+				<div class="container">
+						<div class="row justify-content-center mb-5">
+								<div class="col p-3 py-md-0">
+										<h2 class="mt-3">Create a post</h2>
+										<div class="body">
+												<input hidden name="formkey" value="{{v|formkey}}">
+												<label class='mt-4' for="title">{{HOLE_NAME|capitalize}}</label>
+												<div class="input-group mb2">
+													{%- set hole_placeholder = 'Required' if HOLE_REQUIRED else 'Optional' -%}
+													<input list="subs" autocomplete="off" id='sub' class="form-control" form="submitform" name="sub" data-nonce="{{g.nonce}}" data-oninput="savetext()" {% if sub %}value="{{sub}}"{% endif %} placeholder="{{hole_placeholder}}">
+													<datalist id="subs">
+														{% for s in SUBS %}
+															<option value="{{s}}"></option>
+														{% endfor %}
+													</datalist>
+												</div>
+												<label class='mt-4' for="title">Post Title</label>
+												<input autocomplete="off" class="form-control allow-emojis" id="post-title" type="text" name="title" placeholder="Required" value="{{title}}" minlength="1" maxlength="500" required data-nonce="{{g.nonce}}" data-oninput="checkForRequired();savetext()">
+												<button type="button" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('post-title')" class="btn btn-secondary format d-inline-block m-0" id="emoji-reply-btn-2" data-bs-toggle="modal" data-bs-target="#emojiModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add Emoji"><i class="fas fa-smile-beam"></i></button>
+												<div id="urlblock">
+														<label for="URL" class="mt-3">URL</label>
+														<input autocomplete="off" class="form-control" id="post-url" name="url" type="url" placeholder="Optional if you have text." value="{{request.values.get('url','')}}" required data-nonce="{{g.nonce}}" data-oninput="checkForRequired();hide_image();savetext();checkRepost();autoSuggestTitle()">
+														<small id="system" class="form-text text-danger"></small>
+												</div>
+												<div id="image-upload-block">
+													<div><label class="mt-3">Attachment Upload</label></div>
+
+													<img loading="lazy" id="image-preview" style="max-width:50%">
+													<label class="btn btn-secondary m-0" for="file-upload">
+														<div id="filename-show">Select File</div>
+														<input autocomplete="off" id="file-upload" accept="image/*, video/*, audio/*" type="file" name="file-url" {% if g.is_tor %}disabled{% endif %} hidden>
+													</label>
+													<small class="form-text text-muted">Optional if you have text.</small>
+													<small class="form-text text-muted">You can upload images, videos, or audio.</small>
+												</div>
+												</div>
+												<label for="body" class="mt-3">Text<i class="fas fa-info-circle text-gray-400 ml-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Uses markdown. Limited to 20000 characters."></i></label>
+												<textarea form="submitform" id="post-text" class="form-control rounded" placeholder="Optional if you have a link or an image." rows="7" name="body" data-preview="preview" data-nonce="{{g.nonce}}" data-oninput="markdown(this);charLimit('post-text','character-count-submit-text-form');checkForRequired();savetext()" {% if v.longpost %}minlength="280"{% endif %} maxlength="{% if v.bird %}140{% else %}20000{% endif %}" required></textarea>
+												<div class="ghostdiv" style="display:none;"></div>
+												<div class="text-small font-weight-bold mt-1" id="character-count-submit-text-form" style="right: 1rem; bottom: 0.5rem; z-index: 3;"></div>
+												<p></p>
+												<div class="btn btn-secondary fl-r" data-nonce="{{g.nonce}}" data-toggleelement="preview" data-toggleattr="d-none">
+													Toggle preview
+												</div>
+												<small class="btn btn-secondary format d-inline-block m-0"><span class="font-weight-bolder text-uppercase" data-nonce="{{g.nonce}}" data-onclick="getGifs('post-text')" data-bs-toggle="modal" data-bs-target="#gifModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add GIF">GIF</span></small>
+												&nbsp;
+												<button type="button" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('post-text')" class="btn btn-secondary format d-inline-block m-0" id="emoji-reply-btn" data-bs-toggle="modal" data-bs-target="#emojiModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add Emoji"><i class="fas fa-smile-beam"></i></button>
+												<label class="format btn btn-secondary m-0 ml-2 {% if v %}d-inline-block{% else %}d-none{% endif %}" for="file-upload-submit">
+													<div id="filename-show-submit"><i class="fas fa-file"></i></div>
+													<input autocomplete="off" id="file-upload-submit" multiple="multiple" accept="image/*, video/*, audio/*" type="file" name="file" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename-show-submit','file-upload-submit');checkForRequired()" hidden>
+												</label>
+												<div id="preview" class="preview my-3"></div>
+												<div class="form-text text-small mt-1 mb-3"><a href="/formatting" {% if v and v.newtab %}data-target="t" target="_blank"{% endif %}>Formatting help</a></div>
+												<div class="custom-control custom-checkbox">
+													<input autocomplete="off" type="checkbox" class="custom-control-input" id="post-notify" name="notify" data-nonce="{{g.nonce}}" data-onchange="savetext()" checked>
+													<input hidden name="notify" value="off">
+													<label class="custom-control-label" for="post-notify">Notify followers</label>
+												</div>
+												<div class="custom-control custom-checkbox">
+													<input autocomplete="off" type="checkbox" class="custom-control-input" id="post-new" name="new" data-nonce="{{g.nonce}}" data-onchange="savetext()">
+													<label class="custom-control-label" for="post-new">Make the default comment sorting "new"</label>
+												</div>
+												{% if FEATURES['NSFW_MARKING'] %}
+													<div class="custom-control custom-checkbox">
+														<input autocomplete="off" type="checkbox" class="custom-control-input" id="post-nsfw" name="over_18" data-nonce="{{g.nonce}}" data-onchange="savetext()">
+														<label class="custom-control-label" for="post-nsfw">+18</label>
+													</div>
+												{% endif %}
+												<div class="custom-control custom-checkbox">
+													<input autocomplete="off" type="checkbox" class="custom-control-input" id="post-private" name="private" data-nonce="{{g.nonce}}" data-onchange="savetext()">
+													<label class="custom-control-label" for="post-private">Draft</label>
+												</div>
+												<div class="custom-control custom-checkbox mb-5 {% if not v.can_post_in_ghost_threads %}d-none{% endif %}">
+													<input data-nonce="{{g.nonce}}" data-onchange='ghost_toggle(this)' autocomplete="off" type="checkbox" class="custom-control-input" id="post-ghost" name="ghost">
+													<label class="custom-control-label" for="post-ghost">Ghost thread</label>
+												</div>
+										</div>
+								</div>
+						</div>
+				<div class="container">
+						<div class="row fixed-bottom bg-white border-top p-3" style="z-index: 100; bottom: 0px; transition: bottom 220ms cubic-bezier(0, 0, 0.2, 1) 0s;">
+								<div class="col">
+										<a href="/" class="btn btn-secondary">Cancel</a>
+								</div>
+								<div class="col text-right">
+										{% if error %}<span class="text-danger text-large mr-2">{{error | safe}}</span>{% endif %}
+										<button type="submit" class="btn btn-primary" id="create_button" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this);remove_dialog()">Post</button>
+								</div>
+						</div>
+				</div>
+			</form>
+		</div>
+		{% endblock %}
+		<script defer src="{{'js/vendor/marked.js' | asset}}"></script>
+		<script defer src="{{'js/markdown.js' | asset}}"></script>
+		<input hidden id="IMAGE_FORMATS" value="{{IMAGE_FORMATS}}">
+		<script defer src="{{'js/submit.js' | asset}}"></script>
+		{% include "modals/emoji.html" %}
+		{% include "modals/gif.html" %}
+{% endblock %}

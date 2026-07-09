@@ -1,0 +1,195 @@
+{%- macro plural(value, suffix='s') -%}
+	{%- if value != 1 -%}
+		{{suffix}}
+	{%- endif -%}
+{%- endmacro -%}
+
+{%- macro banner(src, href, alt, expand, class) %}
+	<a href="{{href|default(src)}}" rel="nofollow noopener">
+		<img loading="lazy" data-nonce="{{g.nonce}}" data-onclick="{{expand|default('expandImage()')}}" class="{{class|default('site-banner')}}" alt="{{alt|default('site banner')}}" src="{{src|default(live_banner())}}">
+	</a>
+{% endmacro -%}
+
+{%- macro live_banner() -%}
+	{% set path = "files/assets/images/" ~ SITE_NAME %}
+	{%- if not v and os_path.exists(path ~ "/cached.webp") -%}
+		{{ 'cached.webp' | asset_siteimg -}}
+	{% elif os_path.exists(path ~ "/banners") -%}
+		{{ random_image("assets/images/" ~ SITE_NAME ~ "/banners") -}}
+	{% else -%}
+		{{ 'banner.webp' | asset_siteimg -}}
+	{% endif %}
+{%- endmacro -%}
+
+{%- macro random_image(path) -%}
+	{{- "/" ~ path ~ "/" ~ listdir('files/' ~ path)|random() ~ '?v=45' }}
+{%- endmacro -%}
+
+{% macro post_meta(p) %}
+	{% if p.sub %}
+		{% if not HOLE_STYLE_FLAIR -%}
+			<a class="mr-2" href='/h/{{p.sub}}'>/h/{{p.sub}}</a>
+		{%- else -%}
+			<a href='/h/{{p.sub}}' class="sub-flair">{{p.sub|capitalize}}</a>
+		{%- endif %}
+	{% endif %}
+
+	{% if p.sub and p.author.exiled_from(p.sub) %}
+		<a><i class="fas fa-campfire text-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="User has been exiled from {% if not HOLE_STYLE_FLAIR %}/h/{% endif %}{{p.sub}}"></i></a>
+	{% endif %}
+
+	{% if p.bannedfor %}
+		<i class="fas fa-hammer-crash text-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="User was banned for this post {{p.bannedfor}}"></i>
+	{% endif %}
+
+	{% if p.chuddedfor %}
+		<i class="fas fa-face-sleeping text-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="User was chudded for this post {{p.chuddedfor}}"></i>
+	{% endif %}
+
+	{% for a in p.awards %}
+		<i class="{{a.class_list}} px-1" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{a.title}} Award given by @{{a.user.username}}"></i>
+	{% endfor %}
+
+	{% if v and v.admin_level >= PERMS['USER_SHADOWBAN'] and p.author.shadowbanned %}
+		<i class="fas fa-user-times text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title='Shadowbanned by @{{p.author.shadowbanner}} for "{{p.author.ban_reason}}"'></i>
+	{% endif %}
+
+	{% if p.stickied %}
+		<i id='pinned-{{p.id}}' class="fas fa-thumbtack fa-rotate--45 pr-1 ml-1 mt-3 text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pinned by @{{p.stickied}}" {% if p.stickied_utc %}data-onmouseover="pinned_timestamp('pinned-{{p.id}}')" data-timestamp={{p.stickied_utc}} data-nonce="{{g.nonce}}"{% endif %}></i>
+	{% endif %}
+
+	{% if p.hole_pinned %}
+		<i id='hole-pinned-{{p.id}}' class="fas fa-thumbtack fa-rotate--45 pr-1 ml-1 mt-3 text-blue" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pinned to /h/{{p.sub}} by @{{p.hole_pinned}}"></i>
+	{% endif %}
+
+	{% if p.distinguish_level %}<i class="fas fa-broom text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{SITE_NAME}} Admin, speaking officially"></i>{% endif %}
+	{% if p.is_pinned and request.path != '/' %}
+		<i class="fas fa-thumbtack fa-rotate--45 pr-1 ml-1 mt-3 text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pinned to profile"></i>
+	{% endif %}
+	{% if p.over_18 %}<span class="badge badge-danger text-small-extra mr-1">+18</span>{% endif %}
+	{% if p.is_bot %} <i class="fas fa-robot text-info" data-bs-toggle="tooltip" data-bs-placement="bottom"	title="Bot"></i>{% endif %}
+	{% if p.is_blocking and not p.ghost %}<i class="fas fa-user-minus text-warning" data-bs-toggle="tooltip" data-bs-placement="bottom" title="You're blocking this user, but you can see this post because you're an admin."></i>{% endif %}
+	{% if p.is_blocked and not p.ghost %}<i class="fas fa-user-minus text-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="This user is blocking you."></i>{% endif %}
+	{% if p.private %}<span class="badge border-warning border-1 text-small-extra">Draft</span>{% endif %}
+	{% if p.active_flags(v) %}<button type="button" class="btn btn-primary" style="padding:1px 5px; font-size:10px" data-nonce="{{g.nonce}}" data-toggleelement="flaggers-{{p.id}}" data-toggleattr="d-none">{{p.active_flags(v)}} Report{{plural(p.active_flags(v))}}</button>{% endif %}
+
+	{% if p.ghost %}
+		<span {% if p.distinguish_level %}class="mod {% if SITE_NAME == 'rDrama' %}mod-rdrama{% endif %}"{% endif %}>👻</span>
+	{% else %}
+		{% if FEATURES['PATRON_ICONS'] and p.author.patron %}
+			<img loading="lazy" src="/i/{{SITE_NAME}}/badges/2{{p.author.patron}}.webp?v=1" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{p.author.patron_tooltip}}" alt="{{p.author.patron_tooltip}}">
+		{% endif %}
+
+		{% if FEATURES['HOUSES'] and p.author.house %}
+			<img loading="lazy" src="/i/{{SITE_NAME}}/houses/{{p.author.house}}.webp?v=2000" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{p.author.house}}" alt="House {{p.author.house}}">
+		{% endif %}
+
+		{% if p.author.verified %}<i class="fas fa-badge-check align-middle ml-1 {% if p.author.verified=='Glowiefied' %}glow{% endif %}" style="color:{% if p.author.verifiedcolor %}#{{p.author.verifiedcolor}}{% else %}#1DA1F2{% endif %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{p.author.verified}}"></i>
+		{% endif %}
+		<a class="user-name text-decoration-none" href="{{p.author.url}}" data-pop-info='{{p.author.json_popover(v) | tojson}}' data-bs-placement="bottom" data-bs-toggle="popover" data-bs-trigger="focus" data-content-id="popover" tabindex="0" style="color: #{{p.author.name_color}}; font-weight: bold;">
+			<div class="profile-pic-30-wrapper" style="margin-top:9px">
+				<img loading="lazy" src="{{p.author.profile_url}}" class="profile-pic-30 mr-2">
+				{% if p.author.hat_active(v)[0] -%}
+					<img class="profile-pic-30-hat hat" loading="lazy" src="{{p.author.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{p.author.hat_active(v)[1]}}">
+				{%- endif %}
+			</div>
+			<span {% if p.author.patron and not p.distinguish_level %}class="patron" style="background-color:#{{p.author.name_color}};"{% elif p.distinguish_level %}class="mod {% if SITE_NAME == 'rDrama' %}mod-rdrama{% endif %}"{% endif %}>{{p.author_name}}</span>
+		</a>
+		{% if FEATURES['PRONOUNS'] %}
+			<span class="pronouns" style="color:#{{p.author.titlecolor}};border-color:#{{p.author.titlecolor}}">{{p.author.pronouns}}</span>
+		{% endif %}
+		{% if p.author.customtitle %}
+			<bdi class="ml-2" style="color: #{{p.author.titlecolor}}">{{p.author.customtitle | safe}}</bdi>
+		{% endif %}
+	{% endif %}
+	<span class="ml-2 d-inline-block" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{p.created_utc}}')" id="timestamp-{{p.id}}">&nbsp;{{p.age_string}}</span>
+	<span class="ml-2 d-inline-block">({% if p.is_image %}image post{% elif p.is_video %}video post{% elif p.is_audio %}audio post{% elif p.domain %}<a href="/search/posts/?q=domain%3A{{p.domain}}&sort=new&t=all" class="post-meta-domain" {% if v and v.newtab %}data-target="t" target="_blank"{% endif %}>{{p.domain|truncate(50, True)}}</a>{% else %}text post{% endif %})</span>
+	{% if p.edited_utc %}
+		<span class="ml-2 d-inline-block">Edited <span data-bs-toggle="tooltip" data-bs-placement="bottom" id="edited_timestamp-{{p.id}}" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{p.edited_utc}}')">{{p.edited_string}}</span></span>
+	{% endif %}
+	<span class="ml-2 d-inline-block">{{p.views}} thread views</span>
+{% endmacro %}
+
+{% macro comment_reply_box(target_fullname, html_id, wrapper_css_classes="", subwrapper_css_classes="", hide="", allow_file_upload=true, enable_cancel_button=true) %}
+	<div class="comment-box-wrapper{% if wrapper_css_classes %} {{wrapper_css_classes}}{% endif %}" id="{{html_id}}">
+	{% if v %}
+		<div id="comment-form-space-{{target_fullname}}" class="comment-write {{subwrapper_css_classes}}">
+			<input hidden name="formkey" value="{{v|formkey}}">
+			<input hidden name="parent_fullname" value="{target_fullname}}">
+			<textarea required autocomplete="off" {% if not (p and p.id in ADMIGGER_THREADS) %}{% if v.longpost %}minlength="280"{% elif v.bird %}maxlength="140"{% endif %}{% endif %} minlength="1" maxlength="10000" data-preview="form-preview-{{target_fullname}}" data-nonce="{{g.nonce}}" data-oninput="markdown(this);charLimit('reply-form-body-{{target_fullname}}','charcount-{{target_fullname}}')" id="reply-form-body-{{target_fullname}}" data-fullname="{{target_fullname}}" class="comment-box form-control rounded" name="body" form="reply-to-{{target_fullname}}" placeholder="Add your comment..." rows="3"></textarea>
+
+			<div class="text-small font-weight-bold mt-1" id="charcount-{{target_fullname}}" style="right: 1rem; bottom: 0.5rem; z-index: 3;"></div>
+
+			<div class="comment-format">
+				<button type="button" class="btn btn-secondary format d-inline-block m-0" for="gif-reply-btn-{{target_fullname}}">
+					<span id="gif-reply-btn-{{target_fullname}}" class="font-weight-bolder text-uppercase" data-nonce="{{g.nonce}}" data-onclick="getGifs('reply-form-body-{{target_fullname}}')" data-bs-toggle="modal" data-bs-target="#gifModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add GIF">GIF</span>
+				</button>
+				&nbsp;
+				<button type="button" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('reply-form-body-{{target_fullname}}')" class="btn btn-secondary format d-inline-block m-0" id="emoji-reply-btn-{{target_fullname}}" data-bs-toggle="modal" data-bs-target="#emojiModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add Emoji"><i class="fas fa-smile-beam"></i></button>
+				&nbsp;
+				{% if allow_file_upload %}
+					<label class="format btn btn-secondary m-0 {% if v %}d-inline-block{% else %}d-none{% endif %}" for="file-upload-reply-{{target_fullname}}">
+						<div id="filename-show-reply-{{target_fullname}}"><i class="fas fa-file"></i></div>
+						<input autocomplete="off" id="file-upload-reply-{{target_fullname}}" accept="image/*, video/*, audio/*" type="file" multiple="multiple" name="file" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename-show-reply-{{target_fullname}}','file-upload-reply-{{target_fullname}}')" hidden>
+					</label>
+				{% endif %}
+			</div>
+			<button type="button" id="save-reply-to-{{target_fullname}}" form="reply-to-{{target_fullname}}" class="btn btn-primary text-whitebtn ml-auto fl-r" data-nonce="{{g.nonce}}" data-onclick="post_comment('{{target_fullname}}', '{{hide}}');remove_dialog();">Comment</button>
+			{% if enable_cancel_button %}
+				<button type="button" data-nonce="{{g.nonce}}" data-onclick="remove_dialog()" data-toggleelement="reply-to-{{target_fullname}}" data-toggleattr="d-none" class="btn btn-link text-muted ml-auto fl-r mr-3">Cancel</button>
+			{% endif %}
+			<div id="form-preview-{{target_fullname}}" class="preview mb-3 mt-5"></div>
+			<div class="form-text text-small p-0 m-0"><a href="/formatting" {% if v and v.newtab %}data-target="t" target="_blank"{% endif %}>Formatting help</a></div>
+		</div>
+	{% else %}
+		<div class="comment-write mt-4 mb-3 mx-3">
+			<textarea autocomplete="off" maxlength="10000" class="comment-box form-control rounded" name="body" placeholder="Add your comment..." rows="3" data-href="/login?redirect={{request.full_path | urlencode}}"></textarea>
+		</div>
+
+		<div class="card border-0 mt-4">
+			<div class="card-body">
+				<h5 class="card-title">Jump in the discussion.</h5>
+				<p class="card-text">No email address required.</p>
+				<div>
+					<a href="/signup?redirect={{request.full_path | urlencode}}" class="btn btn-primary">Sign up</a>
+					<a href="/login?redirect={{request.full_path | urlencode}}" class="btn btn-link text-muted">Sign in</a>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+	</div>
+{% endmacro %}
+
+{% macro ghost_box(text1, text2, mode, extra_css) %}
+{# TODO: use in saved (search for "fa-ghost" in source) #}
+{% if mode == 1 %}
+<div class="text-center py-6 ghost-town-box ghost-town-box-1"{% if extra_css %} style="{{extra_css}}"{% endif %}>
+	<span class="fa-stack fa-2x text-muted mb-4">
+		<i class="fas fa-square text-gray-500 opacity-25 fa-stack-2x"></i>
+		<i class="fas text-gray-500 fa-ghost fa-stack-1x text-lg"></i>
+	</span>
+	{% if text1 %}
+	<h5>{{text1|safe}}</h5>
+	<p></p>
+	{% endif %}
+	{% if text2 %}
+	<p class="text-muted">{{text2|safe}}</p>
+	{% endif %}
+</div>
+{% elif mode == 2 %}
+<div class="text-center border-md rounded py-6 ghost-town-box ghost-town-box-2"{% if extra_css %} style="{{extra_css}}"{% endif %}>
+	<i class="fas fa-ghost text-gray-500 mb-3" style="font-size: 3.5rem;"></i>
+	<p class="font-weight-bold text-gray-500 mb-0">{{text1|safe}}</p>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro alert(msg, error=false) %}
+<div class="alert {% if error %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show mb-3 mt-4">
+	<i class="fas {% if error %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} my-auto"></i>
+	<span>{{msg}}</span>
+	<button type="button" class="close" data-bs-dismiss="alert">
+		<span><i class="far fa-times"></i></span>
+	</button>
+</div>
+{% endmacro %}

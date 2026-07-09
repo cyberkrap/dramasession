@@ -1,0 +1,21 @@
+{% extends "settings2.html" %}
+{% block pagetitle %}Blocks{% endblock %}
+{% block content %}
+<h5 class="font-weight-bolder text-center pt-2 pb-3"><span>Blocks</span></h5>
+<div class="overflow-x-auto mt-3"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>#</th>
+		<th>User</th>
+		<th>Target</th>
+	</tr>
+</thead>
+{% for user in users %}
+	<tr>
+		<td>{{loop.index}}</td>
+		<td><a style="font-weight:bold;color:#{{user.name_color}}" href="/@{{user.username}}"><span {% if user.patron %}class="patron" style="background-color:#{{user.name_color}}"{% endif %}>{{user.user_name}}</span></a></td>
+		<td><a style="font-weight:bold;color:#{{targets[loop.index-1].name_color}}" href="/@{{targets[loop.index-1].username}}"><span {% if targets[loop.index-1].patron %}class="patron" style="background-color:#{{targets[loop.index-1].name_color}}"{% endif %}>{{targets[loop.index-1].user_name}}</span></a></td>
+	</tr>
+{% endfor %}
+</table>
+{% endblock %}

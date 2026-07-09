@@ -1,0 +1,522 @@
+{% import 'userpage/admintools.html' as userpage_admintools with context %}
+{% set hats_total = u.hats_owned_proportion_display[1] if u else 0 %}
+{% set hats_owned_percent = u.hats_owned_proportion_display[0] if u else '' %}
+{% if v and (v.admin_level >= PERMS['VIEW_ALTS'] or v.alt) %}
+	{% set alts = get_alt_graph(u.id) %}
+{% endif %}
+{% block desktopUserBanner %}
+<div class="row d-mob-none">
+	<div class="col px-0">
+		<div class="jumbotron jumbotron-fluid jumbotron-guild d-mob-none" {% if FEATURES['USERS_PROFILE_BANNER'] %}style="background-image: url({{u.banner_url}})"{% endif %}>
+			<div class="jumbotron-overlay"></div>
+			<div class="w-100 my-3">
+				<div class="container-fluid nobackground">
+					<div class="d-md-flex text-center text-md-left">
+						<div id="profile--pfp" {% if u.hat_active(v)[0] %}class="profile--pfp--hat hat"{% endif %}>
+							<a rel="nofollow noopener" href="{% if u.highres %}{{u.highres}}{% else %}{{u.profile_url}}{% endif %}" class="profile-pic-100-wrapper">
+								<img data-nonce="{{g.nonce}}" data-onclick="expandImage('{% if u.highres %}{{u.highres}}{% else %}{{u.profile_url}}{% endif %}')" loading="lazy" src="{{u.profile_url}}" class="profile-pic profile-pic-100 mb-5">
+								{% if u.hat_active(v)[0] -%}
+									<img data-nonce="{{g.nonce}}" data-onclick="expandImage('{% if u.highres %}{{u.highres}}{% else %}{{u.profile_url}}{% endif %}')" class="profile-pic-100-hat hat" loading="lazy" src="{{u.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.hat_active(v)[1]}}">
+								{%- endif %}
+							</a>
+						</div>
+						<div id="profilestuff" class="ml-3 w-100">
+							{{userpage_admintools.userBanBlock('desktop')}}
+							<div class="d-flex align-items-center mt-1 mb-2">
+								<h3 class="font-weight-bolder my-0 mr-2" id="profile--name" style="color: #{{u.name_color}}"><span {% if u.patron %}class="patron" style="background-color:#{{u.name_color}}"{% endif %}>{{u.user_name}}</span></h3>
+
+								{% if u.username != u.original_username %}
+								<span id="profile--origname">
+									<i class="fas fa-user-tag text-info align-middle ml-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Original Username: @{{u.original_username}}"></i>
+								</span>
+								{% endif %}
+
+								{% if FEATURES['PATRON_ICONS'] and u.patron %}
+									<img loading="lazy" class="ml-3" src="/i/{{SITE_NAME}}/badges/2{{u.patron}}.webp?v=1" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.patron_tooltip}}" alt="{{u.patron_tooltip}}">
+								{% endif %}
+
+								{% if FEATURES['HOUSES'] and u.house %}
+									<img loading="lazy" class="ml-3" id="profile--house" src="/i/{{SITE_NAME}}/houses/{{u.house}}.webp?v=2000" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{u.house}}" alt="House {{u.house}}">
+								{% endif %}
+
+								{% if u.verified %}
+									<span id="profile--verified"><i class="fas fa-badge-check align-middle ml-2 {% if u.verified=='Glowiefied' %}glow{% endif %}" style="color:{% if u.verifiedcolor %}#{{u.verifiedcolor}}{% else %}#1DA1F2{% endif %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.verified}}"></i></span>
+								{% endif %}
+
+								{% if u.admin_level >= PERMS['ADMIN_MOP_VISIBLE'] %}
+									<span id="profile--mop">
+										<i class="fas fa-broom text-admin align-middle ml-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Admin"></i>
+									</span>
+								{% endif %}
+								{% if v and v.id != u.id and v.has_follower(u) %}
+									<span class="followsyou badge badge-secondary text-small align-middle ml-2" id="profile--follows-you">Follows you</span>
+								{% endif %}
+				</div>
+
+				{% if FEATURES['PRONOUNS'] %}
+					<p class="font-weight-bolder" id="profile--pronouns" style="color: #{{u.titlecolor}}">{{u.pronouns}}</p>
+				{% endif %}
+
+				{% if u.customtitle %}
+					<p class="font-weight-bolder" id="profile--flair" style="color: #{{u.titlecolor}}">{{u.customtitle | safe}}</p>
+				{% endif %}
+
+				{% if v and (v.id == u.id or v.admin_level >= PERMS['USER_VOTERS_VISIBLE']) -%}
+				<div class="font-weight-bolder mb-2" id="profile--simphate">
+					<a class="mr-1" href="/@{{u.username}}/views">Profile Views</a> | <a class="mx-1" href="/@{{u.username}}/upvoters">Simps</a> | <a class="mx-1" href="/@{{u.username}}/downvoters">Haters</a> | <a class="mx-1" href="/@{{u.username}}/upvoting">Simps For</a> | <a class="mx-1" href="/@{{u.username}}/downvoting">Hates</a> | <a class="ml-1" href="/@{{u.username}}/voted/posts">Voted</a>
+				</div>
+				{%- endif %}
+
+				<div class="font-weight-bolder">
+					<span id="profile-coins-amount">{{u.coins}}</span>
+					<img loading="lazy" alt="coins" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Coins" height="20" src="{{'coins.webp' | asset_siteimg}}">
+
+					{% if FEATURES['MARSEYBUX'] %}
+						<span id="profile-bux-amount">{{u.marseybux}}</span>
+						<img loading="lazy" alt="marseybux" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Marseybux" height="20" width="46" src="/i/marseybux.webp?v=2000">
+					{% endif %}
+
+					{% if PERMS['USER_FOLLOWS_VISIBLE'] == 0 or (v and v.admin_level >= PERMS['USER_FOLLOWS_VISIBLE']) -%}
+						<a class="mr-2" href="/@{{u.username}}/followers" id="profile--followers">{{u.stored_subscriber_count}} follower{{'s' if u.stored_subscriber_count != 1 else ''}}</a>
+
+						<a class="mr-2" href="/@{{u.username}}/following" id="profile--following">follows {{u.follow_count}} user{{'s' if u.follow_count != 1 else ''}}</a>
+					{%- endif %}
+
+					<span id="profile--joined">joined <span id="profile--joined--time" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{u.created_utc}}')">{{u.created_date}}</span></span>
+
+					{% if v and v.admin_level >= PERMS['VIEW_LAST_ACTIVE'] -%}
+						<span id="profile--lastactive" class="ml-2">last active <span id="profile--lastactive--time" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{u.last_active}}')">{{u.last_active_date}}</span></span>
+					{%- endif %}
+				</div>
+
+				{% if FEATURES['USERS_PROFILE_BODYTEXT'] -%}
+					{% if u.bio_html %}
+						<div class="text-muted font-weight-bolder mt-1" id="profile--bio">{{u.bio_html | safe}}</div>
+					{% else %}
+						<p class="text-muted" id="profile--bio">No bio...</p>
+					{% endif %}
+
+					{% if u.friends_html %}
+						<p class="text-muted font-weight-bold">Friends:</p>
+						<div id="profile--friends">{{u.friends_html | safe}}</div>
+					{% endif %}
+
+					{% if u.enemies_html %}
+						<p class="text-muted font-weight-bold">Enemies:</p>
+						<div id="profile--enemies">{{u.enemies_html | safe}}</div>
+					{% endif %}
+				{%- endif %}
+
+				{% if u.received_awards and FEATURES['AWARDS'] %}
+				<div class="text-white rounded p-2 mb-3" id="profile--awards" style="background-color: rgba(50, 50, 50, 0.6); width: 30%;">
+					<p class="text-uppercase my-0" style="font-weight: bold; font-size: 12px;">Awards received</p>
+					{% for a in u.received_awards %}
+					<span class="d-inline-block mx-1 profile--awards--award">
+						<i class="{{a['icon']}} {{a['color']}} fa-fw" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{a['title']}} Awards received"></i>
+						x{{a['count']}}
+					</span>
+					{% endfor %}
+				</div>
+				{% endif %}
+
+				{% if u.moderated_subs %}
+					<div class="text-white rounded p-2 mb-3" id="profile--holes" style="background-color: rgba(50, 50, 50, 0.6); width: 30%;">
+						<p class="text-uppercase my-0 pb-1" style="font-weight: bold; font-size: 12px;">Moderator of</p>
+						{% for a in u.moderated_subs %}
+							<span class="d-inline-block mx-1">
+								<a href="/h/{{a}}">/h/{{a}}</a>
+							</span>
+						{% endfor %}
+					</div>
+				{% endif %}
+
+				<div class="d-flex justify-content-between align-items-center">
+					<div>
+					{% if v and v.id != u.id %}
+						<div id="profile--actionbtns">
+							<div class="actionbtns mb-3">
+								<button type="button" id="button-unsub" class="btn btn-secondary {% if not is_following %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unfollow/{{u.username}}','button-unsub','button-sub','d-none')">Unfollow</button>
+
+								<button type="button" id="button-sub" class="btn btn-primary {% if is_following or u.is_blocked %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/follow/{{u.username}}','button-unsub','button-sub','d-none')">Follow</button>
+								<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('message', 'input-message')">Message</button>
+
+								{% if FEATURES['USERS_SUICIDE'] -%}
+									<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/suicide')">Get Them Help</button>
+								{%- endif %}
+								<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('coin-transfer', 'coin-transfer-amount')">Gift Coins</button>
+								{% if FEATURES['MARSEYBUX'] -%}
+									<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('bux-transfer', 'bux-transfer-amount')">Gift Marseybux</button>
+								{%- endif %}
+
+								<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/block?username={{u.username}}')">Block</button>
+							</div>
+						</div>
+						<form class="d-none toggleable" id="message" action="/@{{u.username}}/message" data-nonce="{{g.nonce}}" data-onsubmit="sendMessage(this)">
+							<input hidden name="formkey" value="{{v|formkey}}">
+							<textarea autocomplete="off" id="input-message" form="message" name="message" rows="3" minlength="1" maxlength="10000" class="form-control b2 mt-1" data-preview="message-preview" data-nonce="{{g.nonce}}" data-oninput="markdown(this)"></textarea>
+
+							<button type="button" class="btn btn-secondary format d-inline-block m-0 py-2 fas fa-smile-beam" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-message')" data-bs-toggle="modal" data-bs-target="#emojiModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add Emoji"></button>
+
+							{% set upload_disabled = g.is_tor or not get_setting('dm_images') %}
+
+							<label class="btn btn-secondary m-0 py-1 px-2 {% if upload_disabled %}disabled{% endif %}" for="file-upload">
+								<div id="filename"><i class="fas fa-image"></i></div>
+								<input autocomplete="off" id="file-upload" accept="image/*" type="file" name="file" multiple="multiple" {% if upload_disabled %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename','file-upload')" hidden>
+							</label>
+
+							&nbsp;
+							<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this);remove_dialog()" value="Submit" class="btn btn-primary">
+						</form>
+
+						<div id="message-preview" class="preview mt-2"></div>
+
+						<div class="d-none mt-3 toggleable" id="coin-transfer">
+							<input autocomplete="off" id="coin-transfer-amount" class="form-control" name="amount" type="number" data-nonce="{{g.nonce}}" data-oninput="updateTax()">
+							<input autocomplete="off" id="coin-transfer-reason" maxlength=200 type="text" class="form-control" name="reason" placeholder="Gift message! (optional)">
+							<div>{{u.username}} will receive <span id="coins-transfer-taxed">0</span> coins</div>
+							<button type="button" class="btn btn-primary mt-2 mb-3" data-nonce="{{g.nonce}}" data-onclick="transferCoins(this)">Gift</button>
+						</div>
+
+						<div class="d-none mt-3 toggleable" id="bux-transfer">
+							<input autocomplete="off" id="bux-transfer-amount" class="form-control" name="amount" type="number" data-nonce="{{g.nonce}}" data-oninput="updateBux()">
+							<input autocomplete="off" id="bux-transfer-reason" type="text" class="form-control" name="reason" placeholder="Gift message! (optional)">
+							<div>{{u.username}} will receive <span id="bux-transfer-taxed">0</span> marseybux</div>
+							<button type="button" class="btn btn-primary mt-2 mb-3" data-nonce="{{g.nonce}}" data-onclick="transferBux(this)">Gift</button>
+						</div>
+
+						{{userpage_admintools.userAdminTools('desktop')}}
+					{% endif %}
+
+					<div class="actionbtns">
+						{% if v and v.id == u.id %}
+							<a href="/settings/personal" class="btn btn-secondary"><i class="fas fa-edit mr-1"></i> Edit Profile</a>
+						{% endif %}
+
+						{% if FEATURES['USERS_PROFILE_SONG'] and u.song and v and (v.id == u.id or v.mute and not u.unmutable) %}
+							<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="toggle()" {% if v.id == u.id %}style="margin-bottom:0!important;padding:0.3rem 0.75rem!important"{% endif %}><i class="fas fa-music mr-1"></i> Toggle Anthem</button>
+						{% endif %}
+
+						{% if v and v.id == u.id %}
+							<form id="upload-profile-background" action="/settings/profile_background" method="post" enctype="multipart/form-data">
+								<input hidden name="formkey" value="{{v|formkey}}">
+								<label class="btn btn-primary" for="upload-profile-background-file" style="margin-bottom:0!important">
+									<i class="fas fa-image mr-1"></i>
+									{% if v.profile_background -%}
+										{{v.profile_background}}
+									{% else -%}
+										Upload Profile Background
+									{% endif %}
+								</label>
+								<input autocomplete="off" id="upload-profile-background-file" accept="image/*", type="file" name="file" data-nonce="{{g.nonce}}" onchange_submit hidden>
+							</form>
+
+							{% if v.profile_background -%}
+								<div class="d-flex mb-3">
+									<button type="button" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/profile_background', 'DELETE')">
+										<i class="fas fa-image-slash mr-1"></i>
+										Remove current background
+									</button>
+								</div>
+							{%- endif %}
+						{% endif %}
+					</div>
+
+					<div class="mt-4" id="profile--info">
+						<p id="profile--info--id">User ID: {{u.id}}</p>
+						<p id="profile--info--spent">Coins spent: {{u.coins_spent}}</p>
+						<p id="profile--info--truescore">True score: {{u.truescore}}</p>
+						<p id="profile--info--winnings">Winnings: {{u.winnings}}</p>
+						<p id="profile--info--hats-owned" {% if u.num_of_owned_hats >= hats_total %}class="profile-owned-all-hats"{% endif %}>{{u.num_of_owned_hats}} / {{hats_total}} hats owned ({{hats_owned_percent}})</p>
+						{% if u.is_private %}
+							<p id="profile--info--private">User has private mode enabled</p>
+						{% endif %}
+						{% if v and (v.admin_level >= PERMS['VIEW_ALTS'] or v.alt) %}
+							{% if v.admin_level >= PERMS['USER_LINK'] %}
+								<span id="profile--alts"><a href="/@{{u.username}}/alts">{{alts|length}} Alt{{macros.plural(alts|length)}}</a>:</span>
+							{% else %}
+								<span id="profile--alts">{{alts|length}} Alt{{macros.plural(alts|length)}}:</span>
+							{% endif %}
+							<ul id="profile--alts-list">
+								{% for account in alts if v.can_see_shadowbanned or not account.shadowbanned %}
+									<li><a href="{{account.url}}">@{{account.username}}</a>{% if account._is_manual %} [m]{% endif %}</li>
+								{% endfor %}
+							</ul>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+
+			{% if FEATURES['BADGES'] -%}
+				<div id="profile--badges">
+					{% for b in u.badges %}
+						{% if b.url %}
+							<a class="contain" rel="nofollow noopener" href="{{b.url}}">
+								<img alt="{{b.name}}" width=55 height=60 loading="lazy" src="{{b.path}}?b=6" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{b.text}}" {% if b.until %}data-until="{{b.until}}" data-nonce="{{g.nonce}}" data-onmouseover="badge_timestamp(this)"{% endif %}>
+							</a>
+						{% else %}
+							<img class="contain" alt="{{b.name}}" width=55 height=60 loading="lazy" src="{{b.path}}?b=6" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{b.text}}" {% if b.until %}data-until="{{b.until}}" data-nonce="{{g.nonce}}" data-onmouseover="badge_timestamp(this)"{% endif %}>
+						{% endif %}
+					{% endfor %}
+				</div>
+			{%- endif %}
+		</div>
+	</div>
+ </div>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block mobileUserBanner %}
+<div class="container-fluid pb-0 text-center bg-white d-md-none" style="margin-top:-6px;border-radius:0!important;">
+	<div class="row">
+		<div class="col px-0">
+			<a rel="nofollow noopener" href="{{u.banner_url}}">
+				<img loading="lazy" alt="@{{u.username}}'s banner" data-nonce="{{g.nonce}}" data-onclick="expandImage()" src="{{u.banner_url}}" width=100% style="object-fit:cover;max-height:30vh!important">
+			</a>
+		</div>
+	</div>
+	<div class="row border-bottom">
+		<div class="col">
+			<div style="margin-top: -34px;" id="profile-mobile--pfp">
+				<a rel="nofollow noopener" href="{% if u.highres %}{{u.highres}}{% else %}{{u.profile_url}}{% endif %}" class="profile-pic-65-wrapper">
+					<img data-nonce="{{g.nonce}}" data-onclick="expandImage('{% if u.highres %}{{u.highres}}{% else %}{{u.profile_url}}{% endif %}')" loading="lazy" src="{{u.profile_url}}" class="profile-pic-65 bg-white mb-2">
+					{% if u.hat_active(v)[0] -%}
+						<img data-nonce="{{g.nonce}}" data-onclick="expandImage('{% if u.highres %}{{u.highres}}{% else %}{{u.profile_url}}{% endif %}')" class="profile-pic-65-hat hat" loading="lazy" src="{{u.hat_active(v)[0]}}?h=7">
+					{%- endif %}
+				</a>
+			</div>
+			<div class="mt-n3 py-3">
+				{{userpage_admintools.userBanBlock('mobile')}}
+				<h5 class=" d-inline-block" id="profile-mobile--name" style="color: #{{u.name_color}}"><span {% if u.patron %}class="patron" style="background-color:#{{u.name_color}}"{% endif %}>{{u.user_name}}</span></h5>
+
+				{% if u.username != u.original_username %}
+					<span id="profile-mobile--origname">
+						<i class="fas fa-user-tag text-info align-middle ml-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Original Username: @{{u.original_username}}"></i>
+					</span>
+				{% endif %}
+
+				{% if FEATURES['PATRON_ICONS'] and u.patron %}
+					<img loading="lazy" class="ml-2" src="/i/{{SITE_NAME}}/badges/2{{u.patron}}.webp?v=1" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.patron_tooltip}}" alt="{{u.patron_tooltip}}">
+				{% endif %}
+
+				{% if FEATURES['HOUSES'] and u.house %}
+					<img loading="lazy" class="ml-2" id="profile-mobile--house" src="/i/{{SITE_NAME}}/houses/{{u.house}}.webp?v=2000" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{u.house}}" alt="House {{u.house}}">
+				{% endif %}
+
+				{% if u.verified %}
+					<span id="profile-mobile--verified"><i class="fas fa-badge-check align-middle ml-2 {% if u.verified=='Glowiefied' %}glow{% endif %}" style="color:{% if u.verifiedcolor %}#{{u.verifiedcolor}}{% else %}#1DA1F2{% endif %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.verified}}"></i></span>&nbsp;
+				{% endif %}
+
+				{% if u.admin_level >= PERMS['ADMIN_MOP_VISIBLE'] %}
+					<span id="profile-mobile--mop">
+						<i class="fas fa-broom text-admin align-middle ml-1" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Admin"></i>
+					</span>
+				{% endif %}
+				{% if v and v.id != u.id and v.has_follower(u) %}
+					<span class="followsyou badge badge-secondary text-small align-middle mx-1" id="profile-mobile--follows-you">Follows you</span>
+				{% endif %}
+
+				{% if FEATURES['PRONOUNS'] %}
+					<p style="color: #{{u.titlecolor}}" id="profile-mobile--pronouns">{{u.pronouns}}</p>
+				{% endif %}
+
+				{% if u.customtitle %}
+					<p style="color: #{{u.titlecolor}}" id="profile-mobile--flair">{{u.customtitle | safe}}</p>
+				{% endif %}
+
+				{% if v and (v.id == u.id or v.admin_level >= PERMS['USER_VOTERS_VISIBLE']) -%}
+					<div class="font-weight-bolder mb-2" id="profile-mobile--simphate">
+						<a class="mr-1" href="/@{{u.username}}/views">Profile Views</a> | <a class="mx-1" href="/@{{u.username}}/upvoters">Simps</a> | <a class="mx-1" href="/@{{u.username}}/downvoters">Haters</a> | <a class="mx-1" href="/@{{u.username}}/upvoting">Simps For</a> | <a class="mx-1" href="/@{{u.username}}/downvoting">Hates</a> | <a class="ml-1" href="/@{{u.username}}/voted/posts">Voted</a>
+					</div>
+				{%- endif %}
+
+				<div class="font-weight-normal">
+					<span id="profile-coins-amount-mobile" class="font-weight-bold">{{u.coins}}</span>
+					<img loading="lazy" alt="coins" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Coins" height="15" src="{{'coins.webp' | asset_siteimg}}">
+
+					{% if FEATURES['MARSEYBUX'] %}
+						<span id="profile-bux-amount-mobile" class="font-weight-bold">{{u.marseybux}}</span>
+						<img loading="lazy" alt="marseybux" class="ml-1 mb-1 mr-2" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Marseybux" height="15" width="35" src="/i/marseybux.webp?v=2000">
+					{% endif %}
+
+					{% if PERMS['USER_FOLLOWS_VISIBLE'] == 0 or (v and v.admin_level >= PERMS['USER_FOLLOWS_VISIBLE']) -%}
+						<a href="/@{{u.username}}/followers" class="font-weight-bold mr-2" id="profile-mobile--followers">{{u.stored_subscriber_count}} follower{{'s' if u.stored_subscriber_count != 1 else ''}}</a>
+
+						<a href="/@{{u.username}}/following" class="font-weight-bold mr-2" id="profile-mobile--following" style="display:block">follows {{u.follow_count}} user{{'s' if u.follow_count != 1 else ''}}</a>
+					{%- endif %}
+
+					<br><span id="profile-mobile--joined">joined <span id="profile-mobile--joined--time" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{u.created_utc}}')" class="font-weight-bold">{{u.created_date}}</span></span>
+
+					{% if v and v.admin_level >= PERMS['VIEW_LAST_ACTIVE'] -%}
+						<br><span id="profile-mobile--lastactive">last active <span id="profile-mobile--lastactive--time" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{u.last_active}}')" class="font-weight-bold">{{u.last_active_date}}</span></span>
+					{%- endif %}
+				</div>
+
+				{% if FEATURES['USERS_PROFILE_BODYTEXT'] -%}
+					{% if u.bio_html %}
+						<div class="text-muted text-break" id="profile-mobile--bio">{{u.bio_html | safe}}</div>
+					{% endif %}
+
+					{% if u.friends_html %}
+						<p class="text-muted font-weight-bold mt-3">Friends:</p>
+						<div id="profile-mobile--friends">{{u.friends_html | safe}}</div>
+					{% endif %}
+
+					{% if u.enemies_html %}
+						<p class="text-muted font-weight-bold mt-3">Enemies:</p>
+						<div id="profile-mobile--enemies">{{u.enemies_html | safe}}</div>
+					{% endif %}
+				{%- endif %}
+
+				{% if u.received_awards and FEATURES['AWARDS'] %}
+				<div class="text-white rounded p-2 my-3 text-center" id="profile-mobile--awards" style="background-color: rgba(50, 50, 50, 0.6);">
+					<p class="text-uppercase my-0" style="font-weight: bold; font-size: 12px;">Awards received</p>
+					{% for a in u.received_awards %}
+					<span class="d-inline-block mx-1 profile-mobile--awards--award">
+						<i class="{{a['icon']}} {{a['color']}} fa-fw" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{a['title']}} Awards received"></i>
+						x{{a['count']}}
+					</span>
+					{% endfor %}
+				</div>
+				{% endif %}
+
+				{% if u.moderated_subs %}
+					<div class="text-white rounded p-2 mb-3" id="profile-mobile--holes" style="background-color: rgba(50, 50, 50, 0.6);">
+						<p class="text-uppercase my-0 pb-1" style="font-weight: bold; font-size: 12px;">Moderator of</p>
+						{% for a in u.moderated_subs %}
+							<span class="d-inline-block mx-1">
+								<a href="/h/{{a}}">/h/{{a}}</a>
+							</span>
+						{% endfor %}
+					</div>
+				{% endif %}
+
+				<div class="mb-3" id="profile-mobile--badges">
+					{% for b in u.badges %}
+						{% if b.url %}
+							<a rel="nofollow noopener" href="{{b.url}}">
+								<img class="contain" alt="{{b.name}}" width=29.33 height=32 loading="lazy" src="{{b.path}}?b=6" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{b.text}}" {% if b.until %}data-until="{{b.until}}" data-nonce="{{g.nonce}}" data-onmouseover="badge_timestamp(this)"{% endif %}>
+							</a>
+						{% else %}
+							<img class="contain" alt="{{b.name}}" width=29.33 height=32 loading="lazy" src="{{b.path}}?b=6" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{b.text}}" {% if b.until %}data-until="{{b.until}}" data-nonce="{{g.nonce}}" data-onmouseover="badge_timestamp(this)"{% endif %}>
+						{% endif %}
+					{% endfor %}
+				</div>
+
+				<div class="actionbtns">
+					{% if v and v.id == u.id %}
+						<a href="/settings/personal" class="btn btn-secondary"><i class="fas fa-edit mr-1"></i> Edit Profile</a>
+					{% endif %}
+
+					{% if FEATURES['USERS_PROFILE_SONG'] and u.song and v and (v.id == u.id or v.mute and not u.unmutable) %}
+						<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="toggle()" {% if v.id == u.id %}style="margin-bottom:0!important;padding:0.3rem 0.75rem!important"{% endif %}><i class="fas fa-music mr-1"></i> Toggle Anthem</button>
+					{% endif %}
+
+					{% if v and v.id == u.id %}
+						<div>
+							<form class="mt-3" id="upload-profile-background-mobile" action="/settings/profile_background" method="post" enctype="multipart/form-data">
+								<input hidden name="formkey" value="{{v|formkey}}">
+								<label class="btn btn-primary" for="upload-profile-background-file-mobile" style="margin-bottom:0!important">
+									<i class="fas fa-image mr-1"></i>
+									{% if v.profile_background %}
+										{{v.profile_background}}
+									{% else %}
+										Upload Profile Background
+									{% endif %}
+								</label>
+								<input autocomplete="off" id="upload-profile-background-file-mobile" accept="image/*", type="file" name="file" data-nonce="{{g.nonce}}" onchange_submit hidden>
+							</form>
+
+							{% if v.profile_background -%}
+								<div class="d-block mt-3">
+									<button type="button" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/profile_background', 'DELETE')">
+										<i class="fas fa-image-slash mr-1"></i>
+										Remove current background
+									</button>
+								</div>
+							{%- endif %}
+						</div>
+					{% else %}
+						<br>
+					{% endif %}
+
+					{% if v and v.id != u.id %}
+						<button type="button" id="button-unsub2" class="btn btn-secondary {% if not is_following %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unfollow/{{u.username}}','button-unsub2','button-sub2','d-none')">Unfollow</button>
+
+						<button type="button" id="button-sub2" class="btn btn-primary {% if is_following or u.is_blocked %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/follow/{{u.username}}','button-unsub2','button-sub2','d-none')">Follow</button>
+
+						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('message-mobile', 'input-message-mobile')">Message</button>
+						{% if FEATURES['USERS_SUICIDE'] -%}
+							<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/suicide')">Get Them Help</button>
+						{%- endif %}
+						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('coin-transfer-mobile', 'coin-transfer-amount-mobile')">Gift Coins</button>
+						{% if FEATURES['MARSEYBUX'] -%}
+							<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('bux-transfer-mobile', 'bux-transfer-amount-mobile')">Gift Marseybux</button>
+						{%- endif %}
+
+						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/block?username={{u.username}}')">Block</button>
+					{% endif %}
+				</div>
+
+				{% if v and v.id != u.id %}
+					<form class="d-none toggleable" id='message-mobile' action="/@{{u.username}}/message" data-nonce="{{g.nonce}}" data-onsubmit="sendMessage(this)">
+						<input class="mt-1" hidden name="formkey" value="{{v|formkey}}">
+						<textarea autocomplete="off" id="input-message-mobile" form="message-mobile" name="message" rows="3" minlength="1" maxlength="10000" class="form-control" data-preview="message-preview-mobile" data-nonce="{{g.nonce}}" data-oninput="markdown(this)" required></textarea>
+						<button type="button" class="btn btn-secondary format d-inline-block m-0 py-2 fas fa-smile-beam" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-message')" data-bs-toggle="modal" data-bs-target="#emojiModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add Emoji"></button>
+
+						<label class="btn btn-secondary m-0 py-1 px-2 {% if upload_disabled %}disabled{% endif %}" for="file-upload-mobile">
+							<div id="filename-mobile"><i class="fas fa-image"></i></div>
+							<input autocomplete="off" id="file-upload-mobile" accept="image/*" type="file" name="file" multiple="multiple" {% if upload_disabled %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename-mobile','file-upload-mobile')" hidden>
+						</label>
+
+						&nbsp;
+						<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this);remove_dialog()" value="Submit" class="btn btn-primary">
+					</form>
+
+					<div id="message-preview-mobile" class="preview my-3"></div>
+
+					<div class="d-none mt-3 toggleable" id="coin-transfer-mobile">
+						<input autocomplete="off" id="coin-transfer-amount-mobile" class="form-control" name="amount" type="number" data-nonce="{{g.nonce}}" data-oninput="updateTax(true)">
+						<input autocomplete="off" id="coin-transfer-reason-mobile" maxlength=200 type="text" class="form-control" name="reason" placeholder="Gift message! (optional)">
+						<div>{{u.username}} will receive <span id="coins-transfer-taxed-mobile">0</span> coins</div>
+						<button type="button" class="btn btn-primary mt-2 mb-3" data-nonce="{{g.nonce}}" data-onclick="transferCoins(this, true)">Gift</button>
+					</div>
+
+					<div class="d-none mt-3 toggleable" id="bux-transfer-mobile">
+						<input autocomplete="off" id="bux-transfer-amount-mobile" class="form-control" name="amount" type="number" data-nonce="{{g.nonce}}" data-oninput="updateBux(true)">
+						<input autocomplete="off" id="bux-transfer-reason-mobile" type="text" class="form-control" name="reason" placeholder="Gift message! (optional)">
+						<div>{{u.username}} will receive <span id="bux-transfer-taxed-mobile">0</span> marseybux</div>
+						<button type="button" class="btn btn-primary mt-2 mb-3" data-nonce="{{g.nonce}}" data-onclick="transferBux(this, true)">Gift</button>
+					</div>
+					{{userpage_admintools.userAdminTools('mobile')}}
+				{% endif %}
+
+				<div id="profile-mobile--info">
+					<p id="profile-mobile--info--id">User ID: {{u.id}}</p>
+					<p id="profile-mobile--info--spent">Coins spent: {{u.coins_spent}}</p>
+					<p id="profile-mobile--info--truescore">True score: {{u.truescore}}</p>
+					<p id="profile-mobile--info--winnings">Winnings: {{u.winnings}}</p>
+					<p id="profile-mobile--info--hats-owned" {% if u.num_of_owned_hats >= hats_total %}class="profile-owned-all-hats"{% endif %}>{{u.num_of_owned_hats}} / {{hats_total}} hats owned ({{hats_owned_percent}})</p>
+					{% if u.is_private %}
+						<p id="profile-mobile--info--private">User has private mode enabled</p>
+					{% endif %}
+					{% if v and (v.admin_level >= PERMS['VIEW_ALTS'] or v.alt) %}
+						{% if v.admin_level >= PERMS['USER_LINK'] %}
+							<span id="profile-mobile--alts"><a href="/@{{u.username}}/alts">{{alts|length}} Alt{{macros.plural(alts|length)}}</a>:</span>
+						{% else %}
+							<span id="profile-mobile--alts">{{alts|length}} Alt{{macros.plural(alts|length)}}:</span>
+						{% endif %}
+						<ul id="profile-mobile--alts-list">
+						{% for account in alts if v.can_see_shadowbanned or not account.shadowbanned %}
+							<li><a href="{{account.url}}">@{{account.username}}</a>{% if account._is_manual %} [m]{% endif %}</li>
+						{% endfor %}
+						</ul>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

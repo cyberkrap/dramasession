@@ -1,0 +1,141 @@
+{%- extends 'root.html' -%}
+{% block pagetitle -%}Chat{%- endblock %}
+{% block pagetype %}chat{% endblock %}
+{% block body %}
+	{% include "header.html" %}
+	{% include "modals/expanded_image.html" %}
+	{% include "modals/emoji.html" %}
+	{% set vlink = '<a href="/id/' ~ v.id ~ '">' %}
+	<div class="container pb-4">
+		<div class="row justify-content-around" id="main-content-row">
+			<div class="col h-100 {% block customPadding %}{% if request.path.startswith('/@') %}user-gutters{% else %}custom-gutters{% endif %}{% endblock %}" id="main-content-col">	
+
+			<div class="border-right pb-1 pt-2 px-3">
+				<span id="online2" data-bs-html="true" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Users Online" class="text-muted">
+					<i class="far fa-user fa-sm mr-1"></i>
+					<span class="board-chat-count">0</span>
+				</span>
+			</div>
+
+			{% macro chat_group_template(id, m) %}
+				<div class="chat-group">
+					<a class="font-weight-bold userlink" target="_blank" {% if m %}style="color:#{{m['namecolor']}}" href="/@{{m['username']}}" {% endif %}><div class="avatar profile-pic-20-wrapper mr-1"><img loading="lazy" class="avatar-pic pp20 mr-1" {% if m %}src="/pp/{{m['user_id']}}"{% endif %}><img class="avatar-hat profile-pic-20-hat hat" loading="lazy" {% if m %}src="{{m['hat']}}"{% endif %}></div>{% if m %}{{m['username']}}{% else %}NULL{% endif %}</a>
+					<span class="text-black time ml-1 mb-3 text-center">{% if m %}{{m['time'] | timestamp}}{% else %}just now{% endif %}</span>
+					<input hidden class="user_id" {% if m %}value="{{m['user_id']}}"{% endif %}>
+			{% endmacro %}
+
+			{% macro chat_line_template(id, m) %}
+				{% set quote_exists = m and m['quotes'] and messages.get(m['quotes']) %}
+				{% set mentioned = m and vlink in m['text_html'] or (quote_exists and messages[m['quotes']]['user_id'] == v.id) %}
+				<div class="chat-line {% if mentioned %}chat-mention{% endif %}" {% if m %}id="{{id}}"{% endif %}>
+					<div class="d-flex align-items-center">
+						<div class="text-muted chat-line-content row">
+							<div class="{% if not (m and m['quotes']) %}d-none{% endif %} quotes" style="font-size:12px">
+								<a class="QuotedMessageLink" {% if m and m['quotes'] %}href="#{{m['quotes']}}"{% endif %}>
+									<i class="fas fa-reply"></i> 
+									<span class="text-primary">@<span class="QuotedUser">
+										{%- if quote_exists -%}
+											{{messages[m['quotes']]['username']}}
+										{%- endif -%}
+									</span></span>: 
+									<em class="QuotedMessage">
+										{%- if quote_exists -%}
+											{{messages[m['quotes']]['text']}}
+										{%- endif -%}
+									</em>
+								</a>
+							</div>
+
+							<span class="chat-message text-black text-break col">
+								{% if m %}
+									{% if v.slurreplacer %}
+										{{m['text_censored'] | safe}}
+									{% else %}
+										{{m['text_html'] | safe}}
+									{% endif %}
+								{% endif %}
+							</span>
+							<span class="text d-none">{% if m %}{{m['text']}}{% endif %}</span>
+							{% if v.admin_level > 1 %}
+								<i class="btn del fas fa-trash-alt"></i>
+								<i class="btn d-none del delmsg fas fa-trash-alt text-danger" data-nonce="{{g.nonce}}" data-onclick="del(this)"></i>
+							{% endif %}
+							<i class="quote btn fas fa-reply" data-nonce="{{g.nonce}}" data-onclick="quote(this)"></i>
+						</div>
+					</div>
+				</div>
+			{% endmacro %}
+
+
+			<div id="chat-group-template" class="d-none">
+				{{chat_group_template()}}
+				</div>
+			</div>
+
+			<div id="chat-line-template" class="d-none">
+				{{chat_line_template()}}
+			</div>
+
+			<div id="shrink">
+				<div id="chat-window" class="container pl-0 py-0">
+					{% set messages_list = messages.items()|list %}
+					{% for id, m in messages_list %}
+						{% set same = loop.index > 1 and m['user_id'] == messages_list[loop.index-2][1]['user_id'] %}
+						{% if not same %}
+							{% if loop.index > 1 %}
+								</div>
+							{% endif %}
+							{{chat_group_template(id, m)}}
+						{% endif %}
+						{{chat_line_template(id, m)}}
+					{% endfor %}
+					</div>
+				</div>
+
+				<div class="mt-3"></div>
+				<div id="quotes" class="mt-3 ml-3 mb-2 d-none" style="font-size:12px">
+					<a id="QuotedMessageLink">
+						<i class="fas fa-reply"></i> <span class="text-primary">@<span id="QuotedUser"></span></span>: <em id="QuotedMessage"></em>
+						<button type="button" id="cancel" class="btn btn-secondary">Cancel</button>
+						<input hidden id="quotes_id">
+					</a>
+				</div>
+
+				<div id='message' class="d-none position-relative form-group d-flex">
+					<div class="position-absolute text-muted text-small ml-1" style="bottom: -1.5rem; line-height: 1;">
+						<span id="typing-indicator"></span>
+						<span id="loading-indicator" class="d-none"></span>
+					</div>
+					<span class="my-auto">
+						<i class="btn btn-secondary fas fa-smile-beam" style="font-size:1.3rem!important" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-text')" data-bs-toggle="modal" data-bs-target="#emojiModal"></i>
+					</span>
+					
+					<span class="my-auto ml-1">
+						<label class="btn btn-secondary format mb-0">
+							<div id="filename" class="mr-3" style="font-size:12px"><i class="fas fa-image" style="font-size:1.3rem!important"></i></div>
+							<input autocomplete="off" id="file" accept="image/*" type="file" multiple="multiple" name="file" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename','file')" hidden>
+						</label>
+					</span>
+
+					<textarea id="input-text" minlength="1" maxlength="{% if SITE == 'rdrama.net' %}200{% else %}1000{% endif %}" {% if g.browser == "apple" %}style="font-size:16px!important"{% endif %} class="form-control" placeholder="Message" autocomplete="off" autofocus rows="1"></textarea>
+
+					<i id="chatsend" data-nonce="{{g.nonce}}" data-onclick="send()" class="btn btn-secondary fas fa-reply ml-3 my-auto" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" style="transform:rotateY(180deg);font-size:1.3rem!important"></i>
+				</div>
+			</div>
+		</div>
+
+		<div class="col text-left d-none d-lg-block pt-3" style="max-width:300px">
+			<h5>Users Online</h5>
+			<div id="online" class="mt-3"></div>
+		</div>
+	</div>
+
+	<input id="vid" hidden value="{{v.id}}">
+	<input id="site_name" hidden value="{{SITE_NAME}}">
+	<input id="slurreplacer" hidden value="{{v.slurreplacer}}">
+	<input id="admin_level" hidden value="{{v.admin_level}}">
+	<script defer src="{{'js/vendor/socketio.js' | asset}}"></script>
+	<script defer src="{{'js/chat.js' | asset}}"></script>
+	<script defer src="{{'js/vendor/lozad.js' | asset}}"></script>
+	<script defer src="{{'js/vendor/lite-youtube.js' | asset}}"></script>
+{% endblock %}

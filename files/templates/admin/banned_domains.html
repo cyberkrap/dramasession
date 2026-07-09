@@ -1,0 +1,40 @@
+{% extends "default.html" %}
+{% block pagetitle %}Banned Domains{% endblock %}
+
+{% block content %}
+
+<script defer src="{{'js/banned_domains.js' | asset}}"></script>
+
+<div class="overflow-x-auto mt-2">
+	<table class="table table-striped mb-5" id="domains-table">
+		<thead class="bg-primary text-white">
+			<tr>
+				<th>Domain</th>
+				<th>Ban reason</th>
+				<th></th>
+			</tr>
+		</thead>
+
+		<tbody>
+			{% for domain in banned_domains %}
+				<tr>
+					<td>{{domain.domain}}</td>
+					<td>{{domain.reason}}</td>
+					<td>
+						<button type="button" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="unbanDomain(this, '{{domain.domain}}')">Unban</button>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+
+	<form action="/admin/ban_domain" method="post">
+		<input hidden name="formkey" value="{{v|formkey}}">
+		<input autocomplete="off" name="domain" placeholder="Enter domain here.." class="form-control" required>
+		<input autocomplete="off" name="reason" placeholder="Enter ban reason here.." data-nonce="{{g.nonce}}" data-undisable_element="ban-submit" class="form-control mt-2">
+		<input autocomplete="off" id="ban-submit" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary mt-2" value="Ban domain" disabled>
+	</form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "default.html" %}
+{% block pagetitle %}Transfers{% endblock %}
+{% block pagetype %}transfers{% endblock %}
+{% block PseudoSubmitForm %}{% endblock %}
+{% block sortnav %}{% endblock %}
+{% block content %}
+	<div class="row no-gutters {% if listing %}mt-md-3{% elif not listing %}my-md-3{% endif %} mt-1">
+		<div class="col-12 px-3">
+			<div class="posts" id="posts">
+				{% include "comments.html" %}
+			</div>
+		</div>
+	</div>
+{% endblock %}
+{% block pagenav %}
+<nav>
+	<ul class="pagination pagination-sm mb-0">
+		{% if page>1 %}
+		<li class="page-item">
+			<small><a class="page-link" href="?page={{page-1}}" tabindex="-1">Prev</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Prev</span></li>
+		{% endif %}
+		{% if next_exists %}
+		<li class="page-item">
+			<small><a class="page-link" href="?page={{page+1}}">Next</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Next</span></li>
+		{% endif %}
+	</ul>
+</nav>
+<div class="toast clipboard" id="toast-success" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
+	<div class="toast-body text-center">
+		<i class="fas fa-check-circle text-success mr-2"></i>Link copied to clipboard
+	</div>
+</div>
+<script defer src="{{'js/vendor/clipboard.js' | asset}}"></script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "default.html" %}
+{% block pagetitle %}Poll Votes{% endblock %}
+{% block content %}
+{% if thing %}
+
+<h3 class="mt-5">{{thing.body_html | safe}} - {{ups | length}} {% if thing.exclusive == 2 %}bets{% else %}votes{% endif %}</h3>
+
+<p><b>Link:</b> <a href="{{thing.parent.permalink}}">{{thing.parent.permalink}}</a></p>
+<p><b>Author:</b> <a href="{{thing.parent.url}}">@{{thing.parent.author.username}}</a></p>
+<p><b>Author Created At:</b> <span data-time="{{thing.parent.author.created_utc}}"></span></p>
+<p><b>Author Truescore:</b> {{"{:,}".format(thing.parent.author.truescore)}}</p>
+<p><b>Total voter truescore: </b>{{total_ts}}</p>
+{% if total_patrons %}
+	<p><b>Total patrons: </b>{{total_patrons}}</p>
+{% endif %}
+
+<div class="overflow-x-auto mt-5">
+	<table class="table table-striped mb-5">
+		<thead class="bg-primary text-white">
+			<tr>
+				<th>#</th>
+				<th>User</th>
+				<th>User Truescore</th>
+				<th>Vote Time</th>
+			</tr>
+		</thead>
+
+		{% for vote in ups %}
+			<tr>
+				<td>{{loop.index}}</td>
+				<td>
+					{% with user=vote.user %}
+						{% include "user_in_table.html" %}
+					{% endwith %}
+				</td>
+				<td>{{"{:,}".format(vote.user.truescore)}}</td>
+				<td data-time="{{vote.created_utc}}"></td>
+			</tr>
+		{% endfor %}
+	</table>
+</div>
+
+{% endif %}
+{% endblock %}

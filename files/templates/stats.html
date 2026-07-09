@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+{% block pagetitle %}Content Statistics{% endblock %}
+{% block content %}
+<div class="overflow-x-auto mt-1"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th class="disable-sort-click">Statistic</th>
+		<th class="disable-sort-click">Value</th>
+	</tr>
+</thead>
+{% for key, value in data.items() %}
+	<tr>
+		<td>{{key}}</td>
+		{% if key == 'time' -%}
+			<td data-time="{{value}}"></td>
+		{% else -%}
+			<td>{{value}}</td>
+		{%- endif %}
+	</tr>
+{% endfor %}
+</table>
+{% endblock %}
