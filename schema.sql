@@ -991,6 +991,7 @@ CREATE TABLE public.users (
     frontsize integer DEFAULT 25 NOT NULL,
     coins_spent integer DEFAULT 0 NOT NULL,
     marseybux integer DEFAULT 0 NOT NULL,
+    unlimited_spending boolean DEFAULT false NOT NULL,
     verifiedcolor character varying(6),
     marseyawarded integer,
     sig character varying(200),

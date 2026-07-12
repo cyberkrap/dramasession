@@ -13,7 +13,7 @@
 				<div class="awards-wrapper" style="text-align:center">
 					{% for award in v.user_awards %}
 						{% set price = (award.price*v.discount)|int %}
-						<div data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{price}} coins/marseybux - {{award.description}}" id="{{award.kind}}" data-nonce="{{g.nonce}}" data-onclick="pick('{{award.kind}}', {{price}}, {{v.coins}}, {{v.marseybux}})">
+						<div data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{price}} coins/marseybux - {{award.description}}" id="{{award.kind}}" data-nonce="{{g.nonce}}" data-onclick="pick('{{award.kind}}', {{price}}, {{v.coins}}, {{v.marseybux}}, {{'true' if v.has_unlimited_spending else 'false'}})">
 							<i class="{{award.icon}} {{award.color}}"></i>
 							<div class="pt-1 award-name">{{award.title}}</div>
 							<div class="text-muted award-owned"><span id="{{award.kind}}-owned">{{award.owned}}</span> owned</div>

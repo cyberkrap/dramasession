@@ -69,10 +69,10 @@
 					<td class="shop-table-actions" style="width:unset">
 						{% if hat.id not in owned_hat_ids and hat.is_purchasable %}
 							<div id="if-not-owned-{{hat.id}}">
-								<button type="button" id="buy1-{{hat.id}}" class="btn btn-success {% if v.coins < hat.price %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200)document.getElementById('user-coins-amount').innerHTML-={{hat.price}}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy</span></button>
+								<button type="button" id="buy1-{{hat.id}}" class="btn btn-success {% if not v.can_spend('coins', hat.price) %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200){% if not v.has_unlimited_spending %}document.getElementById('user-coins-amount').innerHTML-={{hat.price}}{% endif %}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy</span></button>
 
 								{% if FEATURES['MARSEYBUX'] %}
-									<button type="button" id="buy2-{{hat.id}}" class="marseybux btn btn-success {% if v.marseybux < hat.price %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}?mb=true', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200)document.getElementById('user-bux-amount').innerHTML-={{hat.price}}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">MBux</span></button>
+									<button type="button" id="buy2-{{hat.id}}" class="marseybux btn btn-success {% if not v.can_spend('marseybux', hat.price) %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}?mb=true', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200){% if not v.has_unlimited_spending %}document.getElementById('user-bux-amount').innerHTML-={{hat.price}}{% endif %}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">MBux</span></button>
 								{% endif %}
 							</div>
 						{% endif %}

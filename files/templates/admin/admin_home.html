@@ -108,6 +108,13 @@
 	{% endif %}
 </ul>
 
+<h4>Account</h4>
+<div class="custom-control custom-switch mb-3" id="unlimited-spending-container">
+	<input autocomplete="off" type="checkbox" class="custom-control-input" id="unlimited-spending" {% if v.has_unlimited_spending %}checked{% endif %} data-nonce="{{g.nonce}}" data-onchange="postToastSwitch(this, '/admin/unlimited_spending');">
+	<label class="custom-control-label" for="unlimited-spending">Unlimited Spending</label>
+	<small class="form-text text-muted">Allows this admin account to use purchase and wagering features without deducting its displayed balance.</small>
+</div>
+
 {% if v.admin_level >= PERMS['SITE_SETTINGS'] %}
 	{% for setting in site_settings.keys() %}
 	<div class="custom-control custom-switch{% if loop.index > 1 %} mt-1{% endif %}" id="settings-{{setting}}-container">

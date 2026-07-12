@@ -62,11 +62,11 @@
 				{% set kind = a['kind'] %}
 				<td class="shop-table-actions">
 					{% if kind != "benefactor" %}
-						<button type="button" id="buy1-{{loop.index}}" class="btn btn-success {% if v.coins < a['price'] %}disabled{% endif %}" data-areyousure="postToastSwitch(this,'/buy/{{kind}}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy</span></button>
+						<button type="button" id="buy1-{{loop.index}}" class="btn btn-success {% if not v.can_spend('coins', a['price']) %}disabled{% endif %}" data-areyousure="postToastSwitch(this,'/buy/{{kind}}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy</span></button>
 					{% endif %}
 					{% if FEATURES['MARSEYBUX'] %}
 						{% if kind != "grass" %}
-							<button type="button" id="buy2-{{loop.index}}" class="marseybux btn btn-success {% if v.marseybux < a['price'] %}disabled{% endif %}" data-areyousure="postToastSwitch(this,'/buy/{{kind}}?mb=true')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy with MBux</span></button>
+							<button type="button" id="buy2-{{loop.index}}" class="marseybux btn btn-success {% if not v.can_spend('marseybux', a['price']) %}disabled{% endif %}" data-areyousure="postToastSwitch(this,'/buy/{{kind}}?mb=true')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy with MBux</span></button>
 						{% endif %}
 					{% endif %}
 				</td>

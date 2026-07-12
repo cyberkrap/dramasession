@@ -342,7 +342,7 @@ def transfer_currency(v:User, username:str, currency_name:Literal['coins', 'mars
 		notif_text += f"\n\n> {reason}"
 		log_message += f"\n\n> {reason}"
 
-	if not v.charge_account(currency_name, amount):
+	if not v.charge_account(currency_name, amount, allow_unlimited=False):
 		abort(400, f"You don't have enough {currency_name}")
 
 	if not v.shadowbanned:

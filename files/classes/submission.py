@@ -286,7 +286,7 @@ class Submission(Base):
 			if o.exclusive > 1:
 				body += f'''<div class="custom-control mt-2"><input name="option-{self.id}" autocomplete="off" class="custom-control-input bet" type="radio" id="{o.id}" data-nonce="{g.nonce}" data-onclick="bet_vote(this,'{o.id}')"'''
 				if o.voted(v): body += " checked "
-				if not (v and v.coins >= POLL_BET_COINS) or self.total_bet_voted(v): body += " disabled "
+				if not (v and v.can_spend('coins', POLL_BET_COINS)) or self.total_bet_voted(v): body += " disabled "
 
 				body += f'''><label class="custom-control-label" for="{o.id}">{o.body_html}<span class="presult-{self.id}'''
 				body += f'"> - <a href="/votes/post/option/{o.id}"><span id="option-{o.id}">{o.upvotes}</span> bets</a>'

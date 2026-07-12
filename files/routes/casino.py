@@ -98,7 +98,7 @@ def pull_slots(v:User):
 	except:
 		abort(400, "Invalid currency (expected 'coins' or 'marseybux').")
 
-	if (currency == "coins" and wager > v.coins) or (currency == "marseybux" and wager > v.marseybux):
+	if not v.can_spend(currency, wager):
 		abort(400, f"Not enough {currency} to make that bet")
 
 	game_id, game_state = casino_slot_pull(v, wager, currency)

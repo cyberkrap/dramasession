@@ -30,7 +30,7 @@ def casino_slot_pull(gambler, wager_value, currency):
 		payout = determine_payout()
 		reward = wager_value * payout
 
-		gambler.pay_account(currency, reward)
+		gambler.pay_account(currency, reward, skip_if_unlimited=True)
 
 		if currency == 'coins':
 			distribute_wager_badges(gambler, wager_value, won=(payout > 0))
@@ -151,7 +151,7 @@ def check_slots_command(c:Comment, v:User, u:User):
 			abort(400, f"Wager must be 100 {currency} or more")
 		return
 
-	if (currency == "coins" and wager > u.coins) or (currency == "marseybux" and wager > u.marseybux):
+	if not u.can_spend(currency, wager):
 		if v.id == u.id:
 			abort(400, f"Not enough {currency} to make that bet")
 		return

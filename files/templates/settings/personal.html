@@ -100,7 +100,7 @@
 									<p>Join a house (cost: {{cost}} Wishcoins or marseybux).</p>
 								{% endif %}
 								<div class="input-group mb2">
-									<select {% if v.coins < cost and v.marseybux < cost or v.bite %}disabled{% endif %} autocomplete="off" id='house' class="form-control setting_select" form="profile-settings" name="house" data-nonce="{{g.nonce}}" data-reload="1">
+									<select {% if (not v.can_spend('coins', cost) and not v.can_spend('marseybux', cost)) or v.bite %}disabled{% endif %} autocomplete="off" id='house' class="form-control setting_select" form="profile-settings" name="house" data-nonce="{{g.nonce}}" data-reload="1">
 										{% for entry in HOUSES %}
 											<option value="{{entry}}" {% if v.house.startswith(entry) %} selected {% endif %}>
 												{{entry}}

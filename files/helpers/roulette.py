@@ -178,8 +178,8 @@ def spin_roulette_wheel():
 			coin_winnings = gambler_payout['coins']
 			procoin_winnings = gambler_payout['marseybux']
 
-			gambler.pay_account('coins', coin_winnings)
-			gambler.pay_account('marseybux', procoin_winnings)
+			gambler.pay_account('coins', coin_winnings, skip_if_unlimited=True)
+			gambler.pay_account('marseybux', procoin_winnings, skip_if_unlimited=True)
 
 			# Notify the winners.
 			notification_text = f"Winning number: {number}\nCongratulations! One or more of your roulette bets paid off!\n"

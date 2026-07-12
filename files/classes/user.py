@@ -137,6 +137,7 @@ class User(Base):
 	coins = Column(Integer, default=DEFAULT_COINS)
 	truescore = Column(Integer, default=0)
 	marseybux = Column(Integer, default=DEFAULT_MARSEYBUX)
+	unlimited_spending = Column(Boolean, default=False, nullable=False)
 	mfa_secret = deferred(Column(String))
 	is_private = Column(Boolean, default=False)
 	stored_subscriber_count = Column(Integer, default=0)
@@ -198,7 +199,25 @@ class User(Base):
 	def __repr__(self):
 		return f"<{self.__class__.__name__}(id={self.id}, username={self.username})>"
 
-	def pay_account(self, currency, amount):
+	@property
+	def has_unlimited_spending(self):
+		return bool(self.admin_level and self.unlimited_spending)
+
+
+	def can_spend(self, currency, amount):
+		if self.has_unlimited_spending:
+			return True
+		if currency == 'coins':
+			return self.coins >= amount
+		if currency == 'marseybux':
+			return self.marseybux >= amount
+		return False
+
+
+	def pay_account(self, currency, amount, **kwargs):
+		if kwargs.get('skip_if_unlimited') and self.has_unlimited_spending:
+			return
+
 		if currency == 'coins':
 			g.db.query(User).filter(User.id == self.id).update({ User.coins: User.coins + amount })
 		else:
@@ -208,9 +227,14 @@ class User(Base):
 
 
 	def charge_account(self, currency, amount, **kwargs):
-		in_db = g.db.query(User).filter(User.id == self.id).with_for_update().one()
-		succeeded = False
+		if currency not in {'coins', 'marseybux'}:
+			return False
 
+		in_db = g.db.query(User).filter(User.id == self.id).with_for_update().one()
+		if kwargs.get('allow_unlimited', True) and in_db.admin_level and in_db.unlimited_spending:
+			return True
+
+		succeeded = False
 		should_check_balance = kwargs.get('should_check_balance', True)
 
 		if currency == 'coins':

@@ -153,7 +153,7 @@ def distribute(v:User, option_id):
 		if o.exclusive >= 2: pool += o.upvotes
 	pool *= POLL_BET_COINS
 
-	autojanny.charge_account('coins', pool)
+	autojanny.charge_account('coins', pool, allow_unlimited=False)
 	if autojanny.coins < 0: autojanny.coins = 0
 	g.db.add(autojanny)
 
@@ -333,6 +333,24 @@ def admin_home(v):
 
 	return render_template("admin/admin_home.html", v=v,
 		under_attack=under_attack)
+
+@app.post("/admin/unlimited_spending")
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_HOME_VISIBLE'])
+def toggle_unlimited_spending(v:User):
+	v.unlimited_spending = not v.unlimited_spending
+	g.db.add(v)
+
+	word = 'enable' if v.unlimited_spending else 'disable'
+	ma = ModAction(
+		kind=f"{word}_unlimited_spending",
+		user_id=v.id,
+		target_user_id=v.id,
+	)
+	g.db.add(ma)
+
+	return {'message': f"Unlimited Spending {word}d successfully!"}
+
 
 @app.post("/admin/site_settings/<setting>")
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
@@ -1219,7 +1237,7 @@ def approve_post(post_id, v):
 
 	cache.delete_memoized(frontlist)
 
-	v.charge_account('coins', 1)
+	v.charge_account('coins', 1, allow_unlimited=False)
 	g.db.add(v)
 
 	return {"message": "Post approved!"}

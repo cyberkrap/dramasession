@@ -48,7 +48,7 @@ def end_lottery_session():
 	winner = choice(raffle)
 	active_lottery.winner_id = winner
 	winning_user = next(filter(lambda x: x.id == winner, participating_users))
-	winning_user.pay_account('coins', active_lottery.prize)
+	winning_user.pay_account('coins', active_lottery.prize, skip_if_unlimited=True)
 	winning_user.total_lottery_winnings += active_lottery.prize
 	badge_grant(user=winning_user, badge_id=LOTTERY_WINNER_BADGE_ID)
 
@@ -105,7 +105,7 @@ def lottery_ticket_net_value():
 def purchase_lottery_tickets(v, quantity=1):
 	if quantity < 1:
 		return False, f"Must purchase one or more lottershe tickets!"
-	elif (v.coins < LOTTERY_TICKET_COST * quantity):
+	elif not v.can_spend('coins', LOTTERY_TICKET_COST * quantity):
 		return False, f"Lottery tickets cost {LOTTERY_TICKET_COST} coins each!"
 
 	most_recent_lottery = get_active_lottery()

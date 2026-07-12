@@ -91,6 +91,11 @@ MODACTION_TYPES = {
 		"icon": 'fa-images',
 		"color": 'bg-muted'
 	},
+	'disable_unlimited_spending': {
+		"str": 'disabled Unlimited Spending for {self.target_link}',
+		"icon": 'fa-infinity',
+		"color": 'bg-muted'
+	},
 	'distinguish_comment': {
 		"str": 'distinguished {self.target_link}',
 		"icon": 'fa-crown',
@@ -154,6 +159,11 @@ MODACTION_TYPES = {
 	'enable_dm_images': {
 		"str": 'enabled DM images',
 		"icon": 'fa-images',
+		"color": 'bg-success',
+	},
+	'enable_unlimited_spending': {
+		"str": 'enabled Unlimited Spending for {self.target_link}',
+		"icon": 'fa-infinity',
 		"color": 'bg-success',
 	},
 	'flair_post': {

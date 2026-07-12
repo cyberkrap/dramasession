@@ -243,7 +243,7 @@ def handle_payout(gambler, state, game):
 	else:
 		raise Exception("Attempted to payout a game that has not finished.")
 
-	gambler.pay_account(game.currency, payout)
+	gambler.pay_account(game.currency, payout, skip_if_unlimited=True)
 
 	if game.currency == 'coins':
 		if status in {BlackjackStatus.BLACKJACK, BlackjackStatus.WON}:

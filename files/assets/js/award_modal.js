@@ -91,19 +91,19 @@ function vote(type, id, dir) {
 	xhr[0].send(xhr[1]);
 }
 
-function pick(kind, price, coins, marseybux) {
+function pick(kind, price, coins, marseybux, unlimitedSpending = false) {
 	price = parseInt(price)
 	coins = parseInt(coins)
 	marseybux = parseInt(marseybux)
 
 	const buy1 = document.getElementById('buy1')
-	if (marseybux >= price && kind != "grass")
+	if ((unlimitedSpending || marseybux >= price) && kind != "grass")
 		buy1.disabled=false;
 	else
 		buy1.disabled=true;
 
 	const buy2 = document.getElementById('buy2')
-	if (coins >= price && kind != "benefactor")
+	if ((unlimitedSpending || coins >= price) && kind != "benefactor")
 		buy2.disabled=false;
 	else
 		buy2.disabled=true;
