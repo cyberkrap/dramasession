@@ -1,8 +1,8 @@
 {% extends "settings2.html" %}
-{% block pagetitle %}Chuds{% endblock %}
+{% block pagetitle %}Restricted Users{% endblock %}
 {% block content %}
 
-<h5 class="my-4">Chudded Users</h5>
+<h5 class="my-4">Restricted Users</h5>
 <div class="overflow-x-auto"><table class="table table-striped mb-5">
 <thead class="bg-primary text-white">
 	<tr>
@@ -12,7 +12,7 @@
 			<th>Last Active</th>
 		{%- endif %}
 		<th>Truescore</th>
-		<th>Unchud in</th>
+		<th>Restriction ends</th>
 	</tr>
 </thead>
 {% for user in users %}

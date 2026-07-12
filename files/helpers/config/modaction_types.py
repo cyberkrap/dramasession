@@ -42,7 +42,7 @@ MODACTION_TYPES = {
 		"color": 'bg-danger'
 	},
 	'blacklist_user': {
-		"str": 'blacklisted user {self.target_link} from restricted holes',
+		"str": 'blacklisted user {self.target_link} from restricted boards',
 		"icon": 'fa-lock',
 		"color": 'bg-danger'
 	},
@@ -197,7 +197,7 @@ MODACTION_TYPES = {
 		"color": 'bg-success'
 	},
 	'move_hole': {
-		"str": 'changed hole of {self.target_link}',
+		"str": 'changed board of {self.target_link}',
 		"icon": 'fa-manhole',
 		"color": 'bg-primary'
 	},
@@ -312,7 +312,7 @@ MODACTION_TYPES = {
 		"color": 'bg-success'
 	},
 	'unblacklist_user': {
-		"str": 'unblacklisted user {self.target_link} from restricted holes',
+		"str": 'unblacklisted user {self.target_link} from restricted boards',
 		"icon": 'fa-lock-open',
 		"color": 'bg-success'
 	},
@@ -362,7 +362,7 @@ MODACTION_TYPES = {
 		"color": 'bg-success'
 	},
 	'update_marsey': {
-		"str": 'updated marsey',
+		"str": 'updated community emote',
 		"icon": 'fa-cat',
 		"color": 'bg-success'
 	},

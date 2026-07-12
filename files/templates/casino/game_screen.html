@@ -48,8 +48,8 @@
 						<input type="radio" class="btn-check ml-2" name="wagerCurrency" autocomplete="off" id="wagerMarseybux"
 							value="marseybux">
 						<label for="wagerMarseybux" class="btn btn-primary">
-							<img loading="lazy" src="/i/marseybux.webp?v=2000" alt="marseybux" width="32" data-bs-toggle="tooltip"
-								data-bs-placement="bottom" title="Marseybux">
+							<img loading="lazy" src="/i/marseybux.webp?v=2000" alt="Wishbux" width="32" data-bs-toggle="tooltip"
+								data-bs-placement="bottom" title="Wishbux">
 						</label>
 					</div>
 				</div>
@@ -78,10 +78,9 @@
 				<hr>
 			</div>
 			<div id="gameLeaderboard" data-leaderboard="{{leaderboard}}">
-				{%- macro leaderboard(text, css_class, marsey, color) -%}
+				{%- macro leaderboard(text, css_class, color) -%}
 				<div class="casino-game-leaderboard">
 					<div class="leaderboard-marsey-trophy">
-						<img loading="lazy" class="leaderboard-marsey-trophy__marsey" src="/e/{{marsey}}.webp">
 						<i class="fas fa-trophy leaderboard-marsey-trophy__trophy" style="color: {{color}};"></i>
 					</div>
 					<div class="casino-game-leaderboard-info">
@@ -90,10 +89,10 @@
 					</div>
 				</div>
 				{%- endmacro -%}
-				{{leaderboard('Biggest Winner (All Time)', 'biggestWinnerAllTime', 'marseyhappytears', 'gold')}}
-				{{leaderboard('Biggest Winner (Last 24h)', 'biggestWinner24h', 'marseyexcited', 'gold')}}
-				{{leaderboard('Biggest Loser (Last 24h)', 'biggestLoser24h', 'marseycry', 'darkred')}}
-				{{leaderboard('Biggest Loser (All Time)', 'biggestLoserAllTime', 'marseyrain', 'darkred')}}
+				{{leaderboard('Biggest Winner (All Time)', 'biggestWinnerAllTime', 'gold')}}
+				{{leaderboard('Biggest Winner (Last 24h)', 'biggestWinner24h', 'gold')}}
+				{{leaderboard('Biggest Loser (Last 24h)', 'biggestLoser24h', 'darkred')}}
+				{{leaderboard('Biggest Loser (All Time)', 'biggestLoserAllTime', 'darkred')}}
 			</div>
 		</div>
 	</div>

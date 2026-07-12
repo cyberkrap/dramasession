@@ -20,10 +20,11 @@
 </thead>
 <tbody id="marseys-table">
 {% for marsey in marseys %}
+	{% set emote_display_name = marsey.name | replace('Marsey', 'Community') | replace('marsey', 'community') | replace('rDrama', 'Obsession') | replace('rdrama', 'Obsession') | replace('WPD', 'Obsession') %}
 <tr>
 	<td>{{loop.index}}</td>
-	<td>{{marsey.name}}</td>
-	<td><img class="marsey" loading="lazy" data-bs-toggle="tooltip" alt=":#{{marsey.name}}:" title=":{{marsey.name}}:" src="/i/Obsession/icon.webp"></td>
+	<td>{{emote_display_name}}</td>
+	<td><img class="marsey" loading="lazy" data-bs-toggle="tooltip" alt="{{emote_display_name}}" title="{{emote_display_name}}" src="/i/Obsession/icon.webp"></td>
 	<td>{{marsey.count}}</td>
 	{% if FEATURES['ASSET_SUBMISSIONS'] %}
 	{% set user = marsey.user %}

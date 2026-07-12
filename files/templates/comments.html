@@ -139,7 +139,7 @@
 				{% endif %}
 
 				{% if c.chuddedfor %}
-					<i class="fas fa-face-sleeping text-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="User was chudded for this comment {{c.chuddedfor}}"></i>
+					<i class="fas fa-face-sleeping text-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="User was restricted for this comment {{c.chuddedfor}}"></i>
 				{% endif %}
 
 				{% if c.active_flags(v) %}<button type="button" class="btn btn-primary" style="padding:1px 5px; font-size:10px" data-toggleelement="flaggers-{{c.id}}" data-toggleattr="d-none">{{c.active_flags(v)}} Report{{macros.plural(c.active_flags(v))}}</button>{% endif %}
@@ -471,8 +471,8 @@
 {% endif %}
 
 {% if v.admin_level >= PERMS['USER_AGENDAPOSTER'] and v.id != c.author_id %}
-	<button type="button" id="unchud-{{c.fullname}}" class="dropdown-item list-inline-item d-none {% if c.author.agendaposter %}d-md-block{% endif %} text-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{c.fullname}}','chud-{{c.fullname}}','unchud-{{c.fullname}}','d-md-block')"><i class="fas fa-face-sleeping text-success fa-fw"></i>Unchud user</button>
-	<button type="button" id="chud-{{c.fullname}}" class="dropdown-item list-inline-item d-none {% if not c.author.agendaposter %}d-md-block{% endif %} text-danger" data-bs-toggle="modal" data-bs-target="#chudModal" data-nonce="{{g.nonce}}" data-onclick="chudModal('/comment/{{c.id}}', '{{c.author_name}}', '{{c.fullname}}','d-md-block')"><i class="fas fa-face-sleeping text-danger fa-fw"></i>Chud user</button>
+	<button type="button" id="unchud-{{c.fullname}}" class="dropdown-item list-inline-item d-none {% if c.author.agendaposter %}d-md-block{% endif %} text-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{c.fullname}}','chud-{{c.fullname}}','unchud-{{c.fullname}}','d-md-block')"><i class="fas fa-face-sleeping text-success fa-fw"></i>Remove restriction</button>
+	<button type="button" id="chud-{{c.fullname}}" class="dropdown-item list-inline-item d-none {% if not c.author.agendaposter %}d-md-block{% endif %} text-danger" data-bs-toggle="modal" data-bs-target="#chudModal" data-nonce="{{g.nonce}}" data-onclick="chudModal('/comment/{{c.id}}', '{{c.author_name}}', '{{c.fullname}}','d-md-block')"><i class="fas fa-face-sleeping text-danger fa-fw"></i>Restrict user</button>
 {% endif %}
 
 							</ul>
@@ -673,8 +673,8 @@
 						{% endif %}
 
 						{% if v.id != c.author_id and v.admin_level >= PERMS['USER_AGENDAPOSTER'] %}
-							<button type="button" id="chud2-{{c.fullname}}" class="{% if c.author.agendaposter %}d-none{% endif %} list-group-item text-danger" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#chudModal" data-nonce="{{g.nonce}}" data-onclick="chudModal('/comment/{{c.id}}', '{{c.author_name}}', '{{c.fullname}}','d-none')" ><i class="fas fa-face-sleeping text-danger fa-fw mr-2"></i>Chud user</button>
-							<button type="button" id="unchud2-{{c.fullname}}" class="{% if not c.author.agendaposter %}d-none{% endif %} list-group-item text-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{c.fullname}}','chud2-{{c.fullname}}','unchud2-{{c.fullname}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-face-sleeping fa-fw text-success mr-2"></i>Unchud user</button>
+							<button type="button" id="chud2-{{c.fullname}}" class="{% if c.author.agendaposter %}d-none{% endif %} list-group-item text-danger" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#chudModal" data-nonce="{{g.nonce}}" data-onclick="chudModal('/comment/{{c.id}}', '{{c.author_name}}', '{{c.fullname}}','d-none')" ><i class="fas fa-face-sleeping text-danger fa-fw mr-2"></i>Restrict user</button>
+							<button type="button" id="unchud2-{{c.fullname}}" class="{% if not c.author.agendaposter %}d-none{% endif %} list-group-item text-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{c.fullname}}','chud2-{{c.fullname}}','unchud2-{{c.fullname}}','d-none')" data-bs-dismiss="modal"><i class="fas fa-face-sleeping fa-fw text-success mr-2"></i>Remove restriction</button>
 						{% endif %}
 
 						{% if v.admin_level >= PERMS['POST_COMMENT_MODERATION'] %}

@@ -313,8 +313,8 @@ AWARDS = {
 	### Standard
 	"marsify": {
 		"kind": "marsify",
-		"title": "Marsify",
-		"description": "Marsifies the recipient's comments for 24 hours.",
+		"title": "Spotlight",
+		"description": "Gives the recipient a playful comment style for 24 hours.",
 		"icon": "fas fa-cat",
 		"color": "text-white",
 		"price": 150,
@@ -325,9 +325,9 @@ AWARDS = {
 	},
 	"shit": {
 		"kind": "shit",
-		"title": "Shit",
-		"description": "Makes flies swarm the post.",
-		"icon": "fas fa-poop",
+		"title": "Spark Trail",
+		"description": "Adds a trail of sparks around the post.",
+		"icon": "fas fa-sparkles",
 		"color": "text-black-50",
 		"price": 150,
 		"deflectable": False,
@@ -374,7 +374,7 @@ AWARDS = {
 	"wholesome": {
 		"kind": "wholesome",
 		"title": "Wholesome",
-		"description": "Summons a wholesome marsey on the post.",
+		"description": "Adds a cheerful reaction to the post.",
 		"icon": "fas fa-smile-beam",
 		"color": "text-yellow",
 		"price": 150,
@@ -409,8 +409,8 @@ AWARDS = {
 	},
 	"ricardo": {
 		"kind": "ricardo",
-		"title": "Stripper Cake",
-		"description": "Summons Ricardo to dance on the post.",
+		"title": "Celebration",
+		"description": "Adds a celebratory animation to the post.",
 		"icon": "fas fa-pinata",
 		"color": "text-pink",
 		"price": 150,
@@ -433,8 +433,8 @@ AWARDS = {
 	},
 	"glowie": {
 		"kind": "glowie",
-		"title": "Glowie",
-		"description": "Indicates that the recipient can be seen when driving. Just run them over.",
+		"title": "Night Glow",
+		"description": "Adds a subtle glow effect to the recipient.",
 		"icon": "fas fa-user-secret",
 		"color": "text-green",
 		"price": 150,
@@ -457,8 +457,8 @@ AWARDS = {
 	},
 	"agendaposter": {
 		"kind": "agendaposter",
-		"title": "Chud",
-		"description": "Chuds the recipient for 24 hours.",
+		"title": "Restrict",
+		"description": "Restricts the recipient for 24 hours.",
 		"icon": "fas fa-snooze",
 		"color": "text-purple",
 		"price": 1000,
@@ -589,8 +589,8 @@ AWARDS = {
 	},
 	"marsey": {
 		"kind": "marsey",
-		"title": "Marsey",
-		"description": "Makes the recipient unable to post/comment anything but marsey emojis for 24 hours.",
+		"title": "Emote Mode",
+		"description": "Limits the recipient to community emotes for 24 hours.",
 		"icon": "fas fa-cat",
 		"color": "text-orange",
 		"price": 3000,
@@ -626,7 +626,7 @@ AWARDS = {
 	"benefactor": {
 		"kind": "benefactor",
 		"title": "Benefactor",
-		"description": f"Grants one month of {patron} status and 2500 marseybux to the recipient. Cannot be used on yourself.",
+		"description": f"Grants one month of {patron} status and 2500 Wishbux to the recipient. Cannot be used on yourself.",
 		"icon": "fas fa-gift",
 		"color": "text-blue",
 		"price": 4000,
@@ -650,7 +650,7 @@ AWARDS = {
 	"grass": {
 		"kind": "grass",
 		"title": "Grass",
-		"description": "Ban the recipient for 30 days (if they provide a timestamped picture of them touching grass/snow/sand/ass to the admins, they will get unbanned immediately)",
+		"description": "Starts a 30-day community break that moderators can review on appeal.",
 		"icon": "fas fa-seedling",
 		"color": "text-success",
 		"price": 10000,
@@ -803,8 +803,8 @@ HOUSE_AWARDS = {
 	},
 	"Racist": {
 		"kind": "Racist",
-		"title": "Early Life",
-		"description": "Checks the recipient's Early Life section on Wikipedia. Notices.",
+		"title": "Profile Accent",
+		"description": "Adds a distinctive accent to the recipient's profile.",
 		"icon": "fas fa-star-of-david",
 		"color": "text-yellow",
 		"price": 400,

@@ -152,7 +152,7 @@ class Submission(Base):
 	@lazy
 	def thumb_url(self):
 		if self.over_18: return f"{SITE_FULL}/i/nsfw.webp?v=1"
-		elif not self.url: return f"{SITE_FULL}/i/{SITE_NAME}/default_text.webp?v=2"
+		elif not self.url: return f"{SITE_FULL}/i/{SITE_NAME}/icon.webp?v=1" if SITE_NAME == "Obsession" else f"{SITE_FULL}/i/{SITE_NAME}/default_text.webp?v=2"
 		elif self.thumburl:
 			if self.thumburl.startswith('/'): return SITE_FULL + self.thumburl
 			return self.thumburl

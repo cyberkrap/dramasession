@@ -90,8 +90,8 @@
 			<button type="button" id="unban-{{p.fullname}}" class="dropdown-item {% if not p.author.is_suspended %}d-none{% endif %} list-inline-item text-success" id="unexile2-user-{{p.id}}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unban_user/{{p.fullname}}','ban-{{p.fullname}}','unban-{{p.fullname}}','d-none')"><i class="fas fa-user-slash"></i>Unban user</button>
 		{% endif %}
 		{% if v.admin_level >= PERMS['USER_AGENDAPOSTER'] and v.id != p.author_id %}
-			<button type="button" id="chud-{{p.fullname}}" class="dropdown-item {% if p.author.agendaposter %}d-none{% endif %} list-inline-item text-danger" data-bs-toggle="modal" data-bs-target="#chudModal" data-nonce="{{g.nonce}}" data-onclick="chudModal('/post/{{p.id}}', '{{p.author_name}}', '{{p.fullname}}','d-none')"><i class="fas fa-face-sleeping text-danger fa-fw"></i>Chud user</button>
-			<button type="button" id="unchud-{{p.fullname}}" class="dropdown-item {% if not p.author.agendaposter %}d-none{% endif %} list-inline-item text-success" id="unexile2-user-{{p.id}}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{p.fullname}}','chud-{{p.fullname}}','unchud-{{p.fullname}}','d-none')"><i class="fas fa-face-sleeping"></i>Unchud user</button>
+			<button type="button" id="chud-{{p.fullname}}" class="dropdown-item {% if p.author.agendaposter %}d-none{% endif %} list-inline-item text-danger" data-bs-toggle="modal" data-bs-target="#chudModal" data-nonce="{{g.nonce}}" data-onclick="chudModal('/post/{{p.id}}', '{{p.author_name}}', '{{p.fullname}}','d-none')"><i class="fas fa-face-sleeping text-danger fa-fw"></i>Restrict user</button>
+			<button type="button" id="unchud-{{p.fullname}}" class="dropdown-item {% if not p.author.agendaposter %}d-none{% endif %} list-inline-item text-success" id="unexile2-user-{{p.id}}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{p.fullname}}','chud-{{p.fullname}}','unchud-{{p.fullname}}','d-none')"><i class="fas fa-face-sleeping"></i>Remove restriction</button>
 		{% endif %}
 	</ul>
 {% endif %}

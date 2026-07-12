@@ -1004,21 +1004,21 @@ has_sidebar = path.exists(f'files/templates/sidebar_{SITE_NAME}.html')
 has_logo = path.exists(f'files/assets/images/{SITE_NAME}/logo.webp')
 
 forced_hats = {
-	"rehab": ("Roulette", "I'm a recovering ludomaniac!"),
-	"progressivestack": ("Attention Whore", "I won the oppression olympics!"),
-	"longpost": ("The Pizzashill", "We need to get rid of the character limit!"),
-	"bird": ("Bluecheck", "Three sentences is too much for me..."),
-	"marseyawarded": ("Three Lil Marseys", ":marseynotes: :marseynotes: :I prefer to speak in cats:"),
-	"bite": ("Vampire Mask", "When other little girls wanted to be ballet dancers I kind of wanted to be a vampire."),
-	"rainbow": ("Globohomo", "Homosexuality is no longer optional!"),
-	"owoify": ("Cat Ears (wiggly)", "Nuzzles, pounces on you, UwU, you're so warm!.."),
-	"earlylife": ("The Merchant", "SHUT IT DOWN, the goys know!"),
-	"marsify": ("Marsified", "I can't pick my own Marseys, help!"),
-	"is_suspended": ("Behind Bars", "This user is banned and needs to do better!"),
-	"agendaposter": (("Egg_irl", "This user is getting in touch with xir identity!"),
-				("Trans Flag", "Just in case you forgot, trans lives matter."),
-				("Trans Flag II", "Your egg is cracked; wear it with pride!"),
-				("Pride Flag", "Never forget that this is a primarily gay community. Dude bussy lmao."),
+	"rehab": ("Roulette", "Taking a mindful break."),
+	"progressivestack": ("Attention Whore", "Recognized in a community event."),
+	"longpost": ("The Pizzashill", "Shared a detailed post."),
+	"bird": ("Bluecheck", "Quick thoughts, clearly shared."),
+	"marseyawarded": ("Three Lil Marseys", "Recognized by the community."),
+	"bite": ("Vampire Mask", "A little midnight mystery."),
+	"rainbow": ("Globohomo", "Celebrating community pride."),
+	"owoify": ("Cat Ears (wiggly)", "Playful profile style."),
+	"earlylife": ("The Merchant", "A community marketplace regular."),
+	"marsify": ("Marsified", "Profile transformed by a community award."),
+	"is_suspended": ("Behind Bars", "This account is currently suspended."),
+	"agendaposter": (("Egg_irl", "This account has a temporary restriction."),
+				("Trans Flag", "This account has a temporary restriction."),
+				("Trans Flag II", "This account has a temporary restriction."),
+				("Pride Flag", "This account has a temporary restriction."),
 				("Pride Flag II", "This user is a proud supporter of LGBTQ+ rights."))
 
 }

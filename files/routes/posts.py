@@ -282,7 +282,7 @@ def edit_post(pid, v):
 		title_html = filter_emojis_only(title, golden=False, torture=torture)
 
 		if v.id == p.author_id and v.marseyawarded and not marseyaward_title_regex.fullmatch(title_html):
-			abort(403, "You can only type marseys!")
+			abort(403, "You can only use community emotes!")
 
 		if 'megathread' in title.lower() and 'megathread' not in p.title.lower():
 			p.new = True
@@ -304,7 +304,7 @@ def edit_post(pid, v):
 		body_html = sanitize(body, golden=False, limit_pings=100, showmore=False, torture=torture)
 
 		if v.id == p.author_id and v.marseyawarded and marseyaward_body_regex.search(body_html):
-			abort(403, "You can only type marseys!")
+			abort(403, "You can only use community emotes!")
 
 
 		p.body = body
@@ -548,7 +548,7 @@ def submit_post(v:User, sub=None):
 	torture = (v.agendaposter and not v.marseyawarded and sub != 'chudrama')
 	title_html = filter_emojis_only(title, graceful=True, count_marseys=True, torture=torture)
 	if v.marseyawarded and not marseyaward_title_regex.fullmatch(title_html):
-		return error("You can only type marseys!")
+		return error("You can only use community emotes!")
 	if len(title_html) > POST_TITLE_HTML_LENGTH_LIMIT:
 		return error("Rendered title is too big!")
 
@@ -667,7 +667,7 @@ def submit_post(v:User, sub=None):
 	body_html = sanitize(body, count_marseys=True, limit_pings=100, showmore=False, torture=torture)
 
 	if v.marseyawarded and marseyaward_body_regex.search(body_html):
-		return error("You can only type marseys!")
+		return error("You can only use community emotes!")
 
 	if len(body_html) > POST_BODY_HTML_LENGTH_LIMIT:
 		return error(f"Submission body_html too long!")

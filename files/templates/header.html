@@ -167,7 +167,7 @@
 								<div style="color: #{{v.name_color}}" class="text-small font-weight-bold"><span id="header--username" {% if v.patron %}class="patron" style="background-color:#{{v.name_color}}"{% endif %}>{{v.user_name}}</span></div>
 								<div class="header--currency"><img loading="lazy" alt="Wishcoins" class="mr-1 ml-1" data-bs-toggle="tooltip" data-bs-placement="bottom" src="{{'coins.webp' | asset_siteimg}}" title="Wishcoins"><span id="user-coins-amount">{{v.coins}}</span>{% if v.has_unlimited_spending %}<span class="ml-1" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unlimited Spending enabled">&infin;</span>{% endif %}{% if not FEATURES['MARSEYBUX'] %} Wishcoin{{macros.plural(v.coins)}}{% endif %}</div>
 								{% if FEATURES['MARSEYBUX'] %}
-									<div class="header--currency"><img loading="lazy" alt="marseybux" class="mr-1 ml-1" data-bs-toggle="tooltip" data-bs-placement="bottom" src="/i/marseybux.webp?v=2000" title="Wishbux"><span id="user-bux-amount">{{v.marseybux}}</span>{% if v.has_unlimited_spending %}<span class="ml-1" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unlimited Spending enabled">&infin;</span>{% endif %}</div>
+									<div class="header--currency"><img loading="lazy" alt="Wishbux" class="mr-1 ml-1" data-bs-toggle="tooltip" data-bs-placement="bottom" src="/i/marseybux.webp?v=2000" title="Wishbux"><span id="user-bux-amount">{{v.marseybux}}</span>{% if v.has_unlimited_spending %}<span class="ml-1" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unlimited Spending enabled">&infin;</span>{% endif %}</div>
 								{% endif %}
 							</div>
 						</div>

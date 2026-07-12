@@ -60,7 +60,7 @@ SUBACTION_TYPES = {
 		"color": 'bg-primary'
 	},
 	'change_marsey': {
-		"str": 'changed the hole marsey',
+		"str": 'changed the board emote',
 		"icon": 'fa-cat',
 		"color": 'bg-primary'
 	},

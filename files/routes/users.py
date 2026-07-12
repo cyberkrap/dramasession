@@ -321,20 +321,21 @@ def get_coins(v:User, username:str):
 def transfer_currency(v:User, username:str, currency_name:Literal['coins', 'marseybux'], apply_tax:bool):
 	MIN_CURRENCY_TRANSFER = 100
 	TAX_PCT = 0.03
+	currency_label = "Wishbux" if currency_name == "marseybux" else "Wishcoins"
 	receiver = get_user(username, v=v, include_shadowbanned=False)
-	if receiver.id == v.id: abort(400, f"You can't transfer {currency_name} to yourself!")
+	if receiver.id == v.id: abort(400, f"You can't transfer {currency_label} to yourself!")
 	amount = request.values.get("amount", "").strip()
 	amount = int(amount) if amount.isdigit() else None
 
-	if amount is None or amount <= 0: abort(400, f"Invalid number of {currency_name}")
-	if amount < MIN_CURRENCY_TRANSFER: abort(400, f"You have to gift at least {MIN_CURRENCY_TRANSFER} {currency_name}")
+	if amount is None or amount <= 0: abort(400, f"Invalid number of {currency_label}")
+	if amount < MIN_CURRENCY_TRANSFER: abort(400, f"You have to gift at least {MIN_CURRENCY_TRANSFER} {currency_label}")
 	tax = 0
 	if apply_tax and not v.patron and not receiver.patron:
 		tax = math.ceil(amount*TAX_PCT)
 
 	reason = request.values.get("reason", "").strip()
-	log_message = f"@{v.username} has transferred {amount} {currency_name} to @{receiver.username}"
-	notif_text = f":marseycapitalistmanlet: @{v.username} has gifted you {amount-tax} {currency_name}!"
+	log_message = f"@{v.username} has transferred {amount} {currency_label} to @{receiver.username}"
+	notif_text = f"@{v.username} has gifted you {amount-tax} {currency_label}!"
 
 	if reason:
 		if len(reason) > TRANSFER_MESSAGE_LENGTH_LIMIT:
@@ -343,7 +344,7 @@ def transfer_currency(v:User, username:str, currency_name:Literal['coins', 'mars
 		log_message += f"\n\n> {reason}"
 
 	if not v.charge_account(currency_name, amount, allow_unlimited=False):
-		abort(400, f"You don't have enough {currency_name}")
+		abort(400, f"You don't have enough {currency_label}")
 
 	if not v.shadowbanned:
 		if currency_name == 'marseybux':
@@ -356,7 +357,7 @@ def transfer_currency(v:User, username:str, currency_name:Literal['coins', 'mars
 		if GIFT_NOTIF_ID: send_repeatable_notification(GIFT_NOTIF_ID, log_message)
 		send_repeatable_notification(receiver.id, notif_text)
 	g.db.add(v)
-	return {"message": f"{amount - tax} {currency_name} have been transferred to @{receiver.username}"}
+	return {"message": f"{amount - tax} {currency_label} have been transferred to @{receiver.username}"}
 
 @app.post("/@<username>/transfer_coins")
 @limiter.limit(DEFAULT_RATELIMIT_SLOWER)
@@ -1293,7 +1294,7 @@ def claim_rewards(v):
 
 	v.pay_account('marseybux', marseybux)
 
-	send_repeatable_notification(v.id, f"You have received {marseybux} Marseybux! You can use them to buy awards or hats in the [shop](/shop) or gamble them in the [casino](/casino).")
+	send_repeatable_notification(v.id, f"You have received {marseybux} Wishbux! You can use them to buy awards or hats in the [shop](/shop) or gamble them in the [casino](/casino).")
 	g.db.add(v)
 
 

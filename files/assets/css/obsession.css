@@ -995,3 +995,225 @@ body {
 @media (prefers-reduced-motion: reduce) {
 	.obsession-aurora canvas { display: none; }
 }
+/* Secondary application surfaces */
+.bg-white,
+.bg-light {
+	color: var(--obs-text) !important;
+	background-color: #0d0d10 !important;
+}
+
+.box-shadow-bottom {
+	border-bottom: 1px solid var(--obs-border);
+	box-shadow: none !important;
+}
+
+.shop-tabs {
+	z-index: 1020;
+	border-bottom: 1px solid var(--obs-border);
+}
+
+.shop-tabs .container,
+.shop-tabs .row {
+	background: transparent !important;
+}
+
+.shop-tabs .shop-tab {
+	border-color: transparent !important;
+	border-right-color: var(--obs-border) !important;
+	border-radius: 0 !important;
+}
+
+.shop-tabs .shop-tab:not(.active) {
+	color: var(--obs-muted) !important;
+	background: #111115 !important;
+}
+
+.shop-mark {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 72px;
+	height: 72px;
+	margin: 28px auto 8px;
+	color: #d8d4d5;
+	font-size: 2rem;
+	background: #111115;
+	border: 1px solid var(--obs-border-strong);
+	border-radius: 50%;
+}
+
+.shop {
+	background: #101014 !important;
+}
+
+.shop thead,
+.table thead.bg-primary {
+	background: #19181c !important;
+	border-bottom: 2px solid var(--obs-accent);
+}
+
+.shop td,
+.shop th {
+	vertical-align: middle;
+}
+
+.shop .btn-success {
+	color: #dbeee3 !important;
+	background: #173d2a !important;
+}
+
+#casino-game-wrapper {
+	margin-top: 22px;
+	margin-bottom: 32px;
+	padding: 22px !important;
+	background: rgba(17,17,21,.92) !important;
+	border: 1px solid var(--obs-border);
+	border-radius: var(--obs-radius);
+	box-shadow: 0 18px 44px rgba(0,0,0,.26);
+}
+
+#casino-game-wrapper hr {
+	border-color: var(--obs-border);
+}
+
+#casino-game-wrapper .alert {
+	color: var(--obs-text);
+	background: #0d0d10;
+}
+
+.leaderboard-marsey-trophy {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 44px;
+	min-height: 44px;
+	background: #0b0b0d;
+	border: 1px solid var(--obs-border);
+	border-radius: 4px;
+}
+
+.leaderboard-marsey-trophy__trophy {
+	position: static !important;
+	font-size: 1.15rem;
+}
+
+#chat .container {
+	max-width: 1440px;
+}
+
+#chat #main-content-row {
+	margin-top: 18px;
+	background: rgba(13,13,16,.88);
+	border: 1px solid var(--obs-border);
+	border-radius: var(--obs-radius);
+	box-shadow: 0 18px 44px rgba(0,0,0,.24);
+}
+
+#chat #shrink {
+	padding: 6px 10px 14px;
+}
+
+#chat-window .chat-group {
+	padding: 10px;
+	border-radius: 4px;
+}
+
+#chat-window .chat-group:nth-child(even) {
+	background: rgba(255,255,255,.035);
+}
+
+#chat .chat-line {
+	margin-left: 10px;
+	padding: 3px 8px;
+}
+
+#chat .chat-message {
+	color: #d7d3d4 !important;
+}
+
+#chat #message {
+	gap: 6px;
+	align-items: flex-end;
+	padding: 12px;
+	background: #0b0b0d;
+	border: 1px solid var(--obs-border);
+	border-radius: var(--obs-radius);
+}
+
+#chat #input-text {
+	min-height: 42px;
+	max-height: 120px;
+	resize: vertical !important;
+}
+
+#chat #online {
+	padding: 10px;
+	background: transparent !important;
+	border-left: 1px solid var(--obs-border);
+}
+
+#submit .submission,
+#thread #main-content-col > .card,
+#search .search-results {
+	border-color: var(--obs-border) !important;
+}
+
+@media (max-width: 767.98px) {
+	.shop-mark {
+		width: 58px;
+		height: 58px;
+		margin-top: 18px;
+		font-size: 1.5rem;
+	}
+
+	.shop {
+		font-size: .78rem;
+	}
+
+	.shop td,
+	.shop th {
+		padding: 9px 7px;
+	}
+
+	.shop-table-actions .btn {
+		width: 100%;
+		margin: 2px 0;
+		padding: 5px;
+		font-size: .72rem;
+	}
+
+	#casino-game-wrapper {
+		margin-top: 12px;
+		padding: 16px 12px !important;
+		border-right: 0;
+		border-left: 0;
+		border-radius: 0;
+	}
+
+	#chat #main-content-row {
+		margin: 8px 0 0;
+		border-right: 0;
+		border-left: 0;
+		border-radius: 0;
+	}
+
+	#chat #main-content-col {
+		padding: 0;
+	}
+
+	#chat #message {
+		position: sticky;
+		bottom: 58px;
+		z-index: 5;
+		padding: 8px;
+	}
+
+	#chat #message .btn {
+		min-width: 38px;
+		padding: 7px;
+	}
+
+	#chat #chatsend {
+		margin-left: 0 !important;
+	}
+}

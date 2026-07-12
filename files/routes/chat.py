@@ -167,7 +167,8 @@ def typing_indicator(data, v):
 @socketio.on('delete')
 @admin_level_required(PERMS['POST_COMMENT_MODERATION'])
 def delete(id, v):
-	del messages[id]
+	if messages.pop(id, None) is None:
+		return '', 204
 
 	emit('delete', id, broadcast=True)
 

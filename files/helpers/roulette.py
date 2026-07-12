@@ -190,7 +190,7 @@ def spin_roulette_wheel():
 
 			if procoin_winnings > 0:
 				notification_text = notification_text + \
-					f"* You received {procoin_winnings} marseybux.\n"
+					f"* You received {procoin_winnings} Wishbux.\n"
 
 			send_repeatable_notification(user_id, notification_text)
 

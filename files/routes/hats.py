@@ -46,17 +46,17 @@ def buy_hat(v:User, hat_id):
 
 	if request.values.get("mb"):
 		charged = v.charge_account('marseybux', hat.price)
-		if not charged: abort(400, "Not enough marseybux!")
+		if not charged: abort(400, "Not enough Wishbux!")
 
 		hat.author.pay_account('marseybux', hat.price * 0.1)
-		currency = "marseybux"
+		currency = "Wishbux"
 	else:
 		charged = v.charge_account('coins', hat.price)
-		if not charged: abort(400, "Not enough coins!")
+		if not charged: abort(400, "Not enough Wishcoins!")
 
 		v.coins_spent_on_hats += hat.price
 		hat.author.pay_account('coins', hat.price * 0.1)
-		currency = "coins"
+		currency = "Wishcoins"
 
 	new_hat = Hat(user_id=v.id, hat_id=hat.id)
 	g.db.add(new_hat)
@@ -66,7 +66,7 @@ def buy_hat(v:User, hat_id):
 
 	send_repeatable_notification(
 		hat.author.id,
-		f":marseycapitalistmanlet: @{v.username} has just bought `{hat.name}`, you have received your 10% cut ({int(hat.price * 0.1)} {currency}) :!marseycapitalistmanlet:"
+		f"@{v.username} bought the hat {hat.name}; you received a 10% creator share ({int(hat.price * 0.1)} {currency})."
 	)
 
 	if v.num_of_owned_hats >= 250:

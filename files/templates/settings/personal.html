@@ -91,13 +91,13 @@
 							<div class="body w-lg-100">
 								{% if v.house %}
 									{% set cost = HOUSE_SWITCH_COST %}
-									<p>Change your house (cost: {{cost}} Wishcoins or marseybux).</p>
+									<p>Change your house (cost: {{cost}} Wishcoins or Wishbux).</p>
 									{% if ' Founder' in v.house %}
 										<p>Warning: you'll lose your founder status if you join a different house</p>
 									{% endif %}
 								{% else %}
 									{% set cost = HOUSE_JOIN_COST %}
-									<p>Join a house (cost: {{cost}} Wishcoins or marseybux).</p>
+									<p>Join a house (cost: {{cost}} Wishcoins or Wishbux).</p>
 								{% endif %}
 								<div class="input-group mb2">
 									<select {% if (not v.can_spend('coins', cost) and not v.can_spend('marseybux', cost)) or v.bite %}disabled{% endif %} autocomplete="off" id='house' class="form-control setting_select" form="profile-settings" name="house" data-nonce="{{g.nonce}}" data-reload="1">

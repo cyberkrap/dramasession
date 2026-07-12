@@ -351,7 +351,7 @@ def create_sub2(v):
 
 		admins = [x[0] for x in g.db.query(User.id).filter(User.admin_level >= PERMS['NOTIFICATIONS_HOLE_CREATION'], User.id != v.id).all()]
 		for admin in admins:
-			send_repeatable_notification(admin, f":!marseyparty: /h/{sub} has been created by @{v.username} :marseyparty:")
+			send_repeatable_notification(admin, f"Board /h/{sub} was created by @{v.username}.")
 
 	return redirect(f'/h/{sub}')
 

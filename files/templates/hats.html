@@ -52,15 +52,16 @@
 
 		<tbody>
 			{% for hat, user in hats %}
+				{% set hat_display_name = hat.name | replace('MARSEY', 'COMMUNITY') | replace('Marsey', 'Community') | replace('marsey', 'community') | replace('rDrama', 'Obsession') | replace('rdrama', 'Obsession') | replace('WPD', 'Obsession') %}
 				<tr>
 					<td>
 						<div class="profile-pic-75-wrapper mt-4">
 							<img loading="lazy" alt="avatar" src="{{v.profile_url}}" class="profile-pic-75">
-							<img loading="lazy" alt="{{hat.name}}" class="profile-pic-75-hat" src="/i/hats/{{hat.name}}.webp?h=7">
+							<img loading="lazy" alt="{{hat_display_name}}" class="profile-pic-75-hat" src="/i/hats/{{hat.name}}.webp?h=7">
 						</div>
 					</td>
-					<td>{{hat.name}}</td>
-					<td style="word-break:break-word">{{hat.censored_description(v)}}</td>
+					<td>{{hat_display_name}}</td>
+					<td style="word-break:break-word">{{hat.censored_description(v) | replace('MARSEY', 'COMMUNITY EMOTE') | replace('Marsey', 'community emote') | replace('marsey', 'community emote') | replace('rDrama', 'Obsession') | replace('rdrama', 'Obsession') | replace('WPD', 'Obsession')}}</td>
 					{% if SITE == 'rdrama.net' %}
 						<td>{% include "user_in_table.html" %}</td>
 					{% endif %}
@@ -72,7 +73,7 @@
 								<button type="button" id="buy1-{{hat.id}}" class="btn btn-success {% if not v.can_spend('coins', hat.price) %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200){% if not v.has_unlimited_spending %}document.getElementById('user-coins-amount').innerHTML-={{hat.price}}{% endif %}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy</span></button>
 
 								{% if FEATURES['MARSEYBUX'] %}
-									<button type="button" id="buy2-{{hat.id}}" class="marseybux btn btn-success {% if not v.can_spend('marseybux', hat.price) %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}?mb=true', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200){% if not v.has_unlimited_spending %}document.getElementById('user-bux-amount').innerHTML-={{hat.price}}{% endif %}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">MBux</span></button>
+									<button type="button" id="buy2-{{hat.id}}" class="marseybux btn btn-success {% if not v.can_spend('marseybux', hat.price) %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}?mb=true', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200){% if not v.has_unlimited_spending %}document.getElementById('user-bux-amount').innerHTML-={{hat.price}}{% endif %}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Wishbux</span></button>
 								{% endif %}
 							</div>
 						{% endif %}
