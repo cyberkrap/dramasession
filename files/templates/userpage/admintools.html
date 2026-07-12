@@ -65,12 +65,12 @@
 				</form>
 			{% endif %}
 			{% if v.admin_level >= PERMS['USER_AGENDAPOSTER'] %}
-				<button type="button" id="unagendaposter-{{deviceType}}" class="mt-1 {% if not u.agendaposter %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{u.id}}','agendaposter-{{deviceType}}','unagendaposter-{{deviceType}}','d-none')">Unchud</button>
+				<button type="button" id="unagendaposter-{{deviceType}}" class="mt-1 {% if not u.agendaposter %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{u.id}}','agendaposter-{{deviceType}}','unagendaposter-{{deviceType}}','d-none')">Remove restriction</button>
 
 				<form id="agendaposter-{{deviceType}}" class="my-3 {% if u.agendaposter %}d-none{% endif %}" action="/agendaposter/{{u.id}}" method="post" data-nonce="{{g.nonce}}" data-onsubmit="sendFormXHRSwitch(this)">
 					<input hidden name="formkey" value="{{v|formkey}}">
 					<input autocomplete="off" type="number" step="any" name="days" class="form-control" placeholder="Days (0 or blank = permanent)">
-					<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-danger" value="Chud">
+					<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-danger" value="Restrict user">
 				</form>
 			{% endif %}
 
