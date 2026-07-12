@@ -118,6 +118,9 @@
 	{% endif %}
 
 	<link rel="stylesheet" href="{{'css/awards.css' | asset}}">
+	{% if SITE_NAME == 'Obsession' %}
+		<link rel="stylesheet" href="{{'css/obsession.css' | asset}}">
+	{% endif %}
 
 	{% if sub and sub.css and not request.path.endswith('settings') and not request.values.get('nocss') %}
 		<link rel="stylesheet" href="/h/{{sub}}/css">

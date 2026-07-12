@@ -5,7 +5,7 @@
 {%- endmacro -%}
 
 {%- macro banner(src, href, alt, expand, class) %}
-	<a href="{{href|default(src)}}" rel="nofollow noopener">
+	<a class="site-banner-link" href="{{href|default(src)}}" rel="nofollow noopener">
 		<img loading="lazy" data-nonce="{{g.nonce}}" data-onclick="{{expand|default('expandImage()')}}" class="{{class|default('site-banner')}}" alt="{{alt|default('site banner')}}" src="{{src|default(live_banner())}}">
 	</a>
 {% endmacro -%}
