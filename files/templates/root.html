@@ -22,7 +22,11 @@
 		{% block head_final %}{% endblock %}
 	{% endblock %}
 	</head>
-	<body {% block body_attributes %}id="{%block pagetype %}{% endblock %}"{% endblock %}>
+	<body class="{% if request.path.startswith('/@') %}page-profile{% else %}page-standard{% endif %}" {% block body_attributes %}id="{%block pagetype %}{% endblock %}"{% endblock %}>
+		{% if SITE_NAME == 'Obsession' and not request.path.startswith('/@') %}
+			<div id="obsession-aurora" class="obsession-aurora" aria-hidden="true"></div>
+			<script defer src="{{'js/aurora.js' | asset}}"></script>
+		{% endif %}
 		<input hidden id="gnonce" value="{{g.nonce}}">
 		<input hidden id="gbrowser" value="{{g.browser}}">
 		<script src="{{'js/top.js' | asset}}"></script>	
