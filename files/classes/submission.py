@@ -126,7 +126,7 @@ class Submission(Base):
 	@property
 	@lazy
 	def permalink(self):
-		return SITE_FULL + self.shortlink
+		return self.shortlink
 
 	@property
 	@lazy
@@ -151,16 +151,16 @@ class Submission(Base):
 	@property
 	@lazy
 	def thumb_url(self):
-		if self.over_18: return f"{SITE_FULL}/i/nsfw.webp?v=1"
-		elif not self.url: return f"{SITE_FULL}/i/{SITE_NAME}/icon.webp?v=1" if SITE_NAME == "Obsession" else f"{SITE_FULL}/i/{SITE_NAME}/default_text.webp?v=2"
+		if self.over_18: return "/i/nsfw.webp?v=1"
+		elif not self.url: return f"/i/{SITE_NAME}/icon.webp?v=1" if SITE_NAME == "Obsession" else f"/i/{SITE_NAME}/default_text.webp?v=2"
 		elif self.thumburl:
-			if self.thumburl.startswith('/'): return SITE_FULL + self.thumburl
+			if self.thumburl.startswith('/'): return root_relative_url(self.thumburl)
 			return self.thumburl
-		elif self.is_youtube or self.is_video: return f"{SITE_FULL}/i/default_thumb_video.webp?v=2"
-		elif self.is_audio: return f"{SITE_FULL}/i/default_thumb_audio.webp?v=1"
+		elif self.is_youtube or self.is_video: return "/i/default_thumb_video.webp?v=2"
+		elif self.is_audio: return "/i/default_thumb_audio.webp?v=1"
 		elif self.domain.split('.')[0] == SITE.split('.')[0]:
-			return f"{SITE_FULL}/i/{SITE_NAME}/site_preview.webp?v=3009"
-		else: return f"{SITE_FULL}/i/default_thumb_link.webp?v=1"
+			return f"/i/{SITE_NAME}/site_preview.webp?v=3009"
+		else: return "/i/default_thumb_link.webp?v=1"
 
 	@lazy
 	def json(self, db:scoped_session):
@@ -234,7 +234,9 @@ class Submission(Base):
 
 		if not url: return ''
 
-		if url.startswith('/'): return SITE_FULL + url
+		url = root_relative_url(url)
+
+		if url.startswith('/'): return root_relative_url(url)
 
 		url = normalize_urls_runtime(url, v)
 

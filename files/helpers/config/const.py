@@ -974,6 +974,15 @@ def is_site_url(url):
 		and ((url.startswith('/') and not url.startswith('//'))
 			or url.startswith(f'{SITE_FULL}/')))
 
+def root_relative_url(url):
+	if not url:
+		return url
+	if url == SITE_FULL:
+		return '/'
+	if url.startswith(f'{SITE_FULL}/'):
+		return url[len(SITE_FULL):]
+	return url
+
 def is_safe_url(url):
 	domain = tldextract.extract(url)
 	return (is_site_url(url)

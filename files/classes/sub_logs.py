@@ -66,6 +66,6 @@ class SubAction(Base):
 	@property
 	@lazy
 	def permalink(self):
-		return f"{SITE_FULL}/h/{self.sub}/log/{self.id}"
+		return f"/h/{self.sub}/log/{self.id}"
 
 from files.helpers.config.subaction_types import SUBACTION_TYPES

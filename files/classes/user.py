@@ -771,20 +771,20 @@ class User(Base):
 	@lazy
 	def banner_url(self):
 		if FEATURES['USERS_PROFILE_BANNER'] and self.bannerurl:
-			return self.bannerurl
+			return root_relative_url(self.bannerurl)
 		return f"/i/{SITE_NAME}/site_preview.webp?v=3009"
 
 	@property
 	@lazy
 	def profile_url(self):
 		if self.agendaposter:
-			return f"{SITE_FULL}/e/chudsey.webp"
+			return "/e/chudsey.webp"
 		if self.rainbow:
-			return f"{SITE_FULL}/e/marseysalutepride.webp"
+			return "/e/marseysalutepride.webp"
 		if self.profileurl:
-			if self.profileurl.startswith('/'): return SITE_FULL + self.profileurl
+			if self.profileurl.startswith('/'): return root_relative_url(self.profileurl)
 			return self.profileurl
-		return f"{SITE_FULL}/i/default-profile-pic.webp?v=1008"
+		return "/i/default-profile-pic.webp?v=1008"
 
 	@lazy
 	def json_popover(self, v):

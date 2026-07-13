@@ -40,9 +40,9 @@ def process_files(files, v):
 			url = process_image(name, v)
 			body += f"\n\n![]({url})"
 		elif file.content_type.startswith('video/'):
-			body += f"\n\n{SITE_FULL}{process_video(file, v)}"
+			body += f"\n\n{process_video(file, v)}"
 		elif file.content_type.startswith('audio/'):
-			body += f"\n\n{SITE_FULL}{process_audio(file, v)}"
+			body += f"\n\n{process_audio(file, v)}"
 		else:
 			abort(415)
 	return body

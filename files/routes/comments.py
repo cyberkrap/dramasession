@@ -202,9 +202,9 @@ def comment(v:User):
 							abort(400, str(e))
 				body += f"\n\n![]({image})"
 			elif file.content_type.startswith('video/'):
-				body += f"\n\n{SITE_FULL}{process_video(file, v)}"
+				body += f"\n\n{process_video(file, v)}"
 			elif file.content_type.startswith('audio/'):
-				body += f"\n\n{SITE_FULL}{process_audio(file, v)}"
+				body += f"\n\n{process_audio(file, v)}"
 			else:
 				abort(415)
 
@@ -324,9 +324,9 @@ def comment(v:User):
 			else: notifbody = c.body
 
 			if posting_to_submission:
-				url = f'{SITE_FULL}/comment/{c.id}?read=true#context'
+				url = f'/comment/{c.id}?read=true#context'
 			else:
-				url = f'{SITE_FULL}/@{c.wall_user.username}/wall/comment/{c.id}?read=true#context'
+				url = f'/@{c.wall_user.username}/wall/comment/{c.id}?read=true#context'
 
 			if parent_user.id != AEVANN_ID:
 				push_notif({parent_user.id}, title, notifbody, url)

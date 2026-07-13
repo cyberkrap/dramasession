@@ -162,17 +162,17 @@ class Comment(Base):
 	@property
 	@lazy
 	def permalink(self):
-		return f"{SITE_FULL}{self.shortlink}"
+		return self.shortlink
 
 	@property
 	@lazy
 	def log_link(self):
-		return f"{SITE_FULL}/transfers/{self.id}"
+		return f"/transfers/{self.id}"
 
 	@property
 	@lazy
 	def more_comments(self):
-		return f"{self.post.permalink}/{self.id}?context=0#context"
+		return f"{self.post.shortlink}/{self.id}?context=0#context"
 
 	@property
 	@lazy

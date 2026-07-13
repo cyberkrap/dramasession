@@ -151,7 +151,7 @@ def sign_up_get(v:Optional[User]):
 	if not get_setting('signups'):
 		abort(403, "New account registration is currently closed. Please come back later!")
 
-	if v: return redirect(SITE_FULL)
+	if v: return redirect("/")
 	ref = request.values.get("ref")
 
 	if ref:

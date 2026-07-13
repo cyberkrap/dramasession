@@ -40,13 +40,13 @@ class Sub(Base):
 	@property
 	@lazy
 	def sidebar_url(self):
-		if self.sidebarurl: return SITE_FULL + self.sidebarurl
+		if self.sidebarurl: return root_relative_url(self.sidebarurl)
 		return f'/i/{SITE_NAME}/sidebar.webp?v=3009'
 
 	@property
 	@lazy
 	def banner_urls(self):
-		if self.bannerurls: return [f"{SITE_FULL}{banner}" for banner in self.bannerurls]
+		if self.bannerurls: return [root_relative_url(banner) for banner in self.bannerurls]
 		return []
 
 	@lazy
@@ -62,7 +62,7 @@ class Sub(Base):
 	@property
 	@lazy
 	def marsey_url(self):
-		if self.marseyurl: return SITE_FULL + self.marseyurl
+		if self.marseyurl: return root_relative_url(self.marseyurl)
 		return f'/i/{SITE_NAME}/headericon.webp?v=3009'
 
 	@property

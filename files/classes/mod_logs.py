@@ -74,6 +74,6 @@ class ModAction(Base):
 	@property
 	@lazy
 	def permalink(self):
-		return f"{SITE_FULL}/log/{self.id}"
+		return f"/log/{self.id}"
 
 from files.helpers.config.modaction_types import MODACTION_TYPES, MODACTION_TYPES_FILTERED

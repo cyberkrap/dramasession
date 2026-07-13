@@ -52,8 +52,8 @@ self.addEventListener('push', function(event) {
 		data = JSON.parse(pushData);
 		title = data.title;
 		body = data.body;
-		url = data.url;
-		icon = data.icon;
+		url = data.url ? new URL(data.url, self.registration.scope).href : self.registration.scope;
+		icon = data.icon ? new URL(data.icon, self.registration.scope).href : undefined;
 	} catch(e) {
 		title = "Untitled";
 		body = pushData;

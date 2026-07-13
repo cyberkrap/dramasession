@@ -532,7 +532,7 @@ def message2(v:User, username:str):
 		if len(message) > 500: notifbody = message[:500] + '...'
 		else: notifbody = message
 
-		url = f'{SITE_FULL}/notifications/messages'
+		url = '/notifications/messages'
 
 		push_notif({user.id}, title, notifbody, url)
 
@@ -601,7 +601,7 @@ def messagereply(v:User):
 			if len(body) > 500: notifbody = body[:500] + '...'
 			else: notifbody = body
 
-			url = f'{SITE_FULL}/notifications/messages'
+			url = '/notifications/messages'
 
 			push_notif({user_id}, title, notifbody, url)
 
@@ -880,7 +880,7 @@ def u_username_wall_comment(v:User, username:str, cid):
 def u_username(v:Optional[User], username:str):
 	u = get_user(username, v=v, include_blocks=True, include_shadowbanned=False)
 	if username != u.username:
-		return redirect(SITE_FULL + request.full_path.replace(username, u.username))
+		return redirect(request.full_path.replace(username, u.username))
 
 	if v and hasattr(u, 'is_blocking') and u.is_blocking:
 		if g.is_api_or_xhr or request.path.endswith(".json"):
