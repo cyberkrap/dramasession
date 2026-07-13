@@ -14,7 +14,7 @@ def before_request():
 	if SITE == 'marsey.world' and request.path != '/kofi':
 		abort(404)
 
-	if request.headers.get("CF-Worker"):
+	if request.headers.get("CF-Worker") and not IS_LOCALHOST:
 		abort(403, "Cloudflare workers are not allowed to access this website!")
 
 	g.agent = request.headers.get("User-Agent", "")
