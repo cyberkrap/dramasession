@@ -60,9 +60,9 @@
 
 			{% if v %}
 				{% if v.notifications_count %}
-					<a class="mobile-nav-icon d-md-none" href="/notifications{% if v.notifications_do %}/{{v.notifications_do}}{% endif %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"><i class="notif-{{v.notifications_do}}-bell fas fa-bell align-middle" style="color: {{v.notifications_color}}"></i><span class="notif-count notif-{{v.notifications_do}} ml-1" style="padding-left: 4.5px;{% if v.notifications_do %}background:{{v.notifications_color}}{% endif %}">{{v.notifications_count}}</span></a>
+					<a class="mobile-nav-icon d-md-none" href="/notifications{% if v.notifications_do %}/{{v.notifications_do}}{% endif %}"><i class="notif-{{v.notifications_do}}-bell fas fa-bell align-middle" style="color: {{v.notifications_color}}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"></i><span class="notif-count notif-{{v.notifications_do}} ml-1" style="padding-left: 4.5px;{% if v.notifications_do %}background:{{v.notifications_color}}{% endif %}">{{v.notifications_count}}</span></a>
 				{% else %}
-					<a class="mobile-nav-icon d-md-none" href="/notifications" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"><i class="fas fa-bell align-middle text-gray-500 black"></i></a>
+					<a class="mobile-nav-icon d-md-none" href="/notifications"><i class="fas fa-bell align-middle text-gray-500 black" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"></i></a>
 				{% endif %}
 			{% endif %}
 
