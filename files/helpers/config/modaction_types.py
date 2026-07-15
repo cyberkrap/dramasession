@@ -1,6 +1,11 @@
 from copy import deepcopy
 
 MODACTION_TYPES = {
+	'bootstrap_admin': {
+		"str": 'completed the one-time production admin bootstrap for {self.target_link}',
+		"icon": 'fa-shield-alt',
+		"color": 'bg-success'
+	},
 	'chud': {
 		"str": 'chudded {self.target_link}',
 		"icon": 'fa-snooze',

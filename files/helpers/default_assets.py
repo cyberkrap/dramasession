@@ -3,8 +3,8 @@ import os
 
 from files.helpers.config.const import SITE_NAME
 
-DEFAULT_ASSETS_FILE = "files/assets/default_assets.json"
-DEFAULT_ASSET_DIR = f"files/assets/images/{SITE_NAME}/defaults"
+DEFAULT_ASSETS_FILE = os.environ.get("DEFAULT_ASSETS_FILE", "files/assets/default_assets.json")
+DEFAULT_ASSET_DIR = os.environ.get("DEFAULT_ASSET_DIR", f"files/assets/images/{SITE_NAME}/defaults")
 _DEFAULTS = {"profile": None, "banner": None}
 
 

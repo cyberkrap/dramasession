@@ -1,4 +1,5 @@
 import secrets
+from urllib.parse import urlsplit
 
 from files.helpers.config.const import *
 from files.helpers.settings import get_setting
@@ -8,7 +9,8 @@ from files.__main__ import app, limiter
 
 @app.before_request
 def before_request():
-	if request.host != SITE:
+	validated_host = (urlsplit(f"//{request.host}").hostname or '').rstrip('.').lower()
+	if validated_host != SITE.rstrip('.').lower():
 		abort(403, "Unauthorized host provided!")
 
 	if SITE == 'marsey.world' and request.path != '/kofi':
@@ -47,6 +49,11 @@ def before_request():
 	g.db = db_session()
 
 	g.nonce = secrets.token_urlsafe(31)
+
+
+@app.get('/healthz')
+def healthz():
+	return {'status': 'ok'}, 200
 
 @app.after_request
 def after_request(response:Response):

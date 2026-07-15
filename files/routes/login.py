@@ -15,6 +15,7 @@ from files.helpers.logging import log_file
 from files.helpers.regex import *
 from files.helpers.security import *
 from files.helpers.useractions import badge_grant
+from files.helpers.production_bootstrap import maybe_bootstrap_admin
 from files.routes.routehelpers import check_for_alts
 from files.routes.wrappers import *
 
@@ -316,11 +317,8 @@ def sign_up_post(v:Optional[User]):
 		profileurl=profileurl
 		)
 
-	if users_count == 4:
-		new_user.admin_level = 5
-		session["history"] = []
-
 	g.db.add(new_user)
+	maybe_bootstrap_admin(new_user)
 
 	g.db.commit()
 

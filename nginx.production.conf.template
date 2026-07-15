@@ -1,0 +1,76 @@
+worker_processes auto;
+pid /tmp/nginx.pid;
+error_log /dev/stderr warn;
+
+events { worker_connections 1024; }
+
+http {
+	include /etc/nginx/mime.types;
+	default_type application/octet-stream;
+	access_log /dev/stdout;
+	sendfile on;
+	client_max_body_size 100m;
+
+	map $http_x_forwarded_proto $upstream_proto {
+		default $scheme;
+		http http;
+		https https;
+	}
+
+	server {
+		listen ${PORT};
+		server_name _;
+
+		location = /healthz {
+			default_type application/json;
+			return 200 '{"status":"ok"}';
+		}
+
+		location ^~ /socket.io/ {
+			proxy_pass http://127.0.0.1:5001/socket.io/;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection "upgrade";
+			proxy_set_header Host $http_host;
+			proxy_set_header X-Forwarded-Host $http_host;
+			proxy_set_header X-Forwarded-Proto $upstream_proto;
+			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+			proxy_read_timeout 600s;
+			proxy_send_timeout 600s;
+		}
+
+		location = /chat {
+			proxy_pass http://127.0.0.1:5001/chat;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection "upgrade";
+			proxy_set_header Host $http_host;
+			proxy_set_header X-Forwarded-Host $http_host;
+			proxy_set_header X-Forwarded-Proto $upstream_proto;
+			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+			proxy_read_timeout 600s;
+			proxy_send_timeout 600s;
+		}
+
+		location ^~ /images/ { alias /data/images/; }
+		location ^~ /audio/ { alias /data/audio/; }
+		location ^~ /videos/ { alias /data/videos/; }
+		location ^~ /songs/ { alias /data/songs/; }
+		location ^~ /chat_images/ { alias /data/chat_images/; }
+		location ^~ /dm_images/ { alias /data/dm_images/; }
+		location ^~ /asset_submissions/ { alias /data/asset_submissions/; }
+		location ^~ /assets/images/Obsession/defaults/ { alias /data/default_assets/; }
+		location ^~ /assets/ { alias /app/files/assets/; }
+		location ^~ /i/ { alias /app/files/assets/images/; }
+		location ^~ /e/ { alias /app/files/assets/images/emojis/; }
+
+		location / {
+			proxy_pass http://127.0.0.1:5000;
+			proxy_http_version 1.1;
+			proxy_set_header Host $http_host;
+			proxy_set_header X-Forwarded-Host $http_host;
+			proxy_set_header X-Forwarded-Proto $upstream_proto;
+			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		}
+	}
+}

@@ -11,6 +11,7 @@ from flask import Flask
 from flask_caching import Cache
 from flask_compress import Compress
 from flask_limiter import Limiter
+from werkzeug.middleware.proxy_fix import ProxyFix
 from sqlalchemy import *
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -24,6 +25,16 @@ app.jinja_env.cache = {}
 app.jinja_env.auto_reload = True
 app.jinja_env.add_extension('jinja2.ext.do')
 faulthandler.enable()
+
+_trusted_proxy_hops = int(environ.get('TRUSTED_PROXY_HOPS', '0'))
+if _trusted_proxy_hops:
+	app.wsgi_app = ProxyFix(
+		app.wsgi_app,
+		x_for=_trusted_proxy_hops,
+		x_proto=_trusted_proxy_hops,
+	x_host=_trusted_proxy_hops,
+	x_port=_trusted_proxy_hops,
+	)
 
 def _startup_check():
 	'''
