@@ -95,11 +95,11 @@
 
 				{% if v.notifications_count %}
 				<li class="nav-item d-flex align-items-center text-center justify-content-center mx-1">
-					<a class="nav-link position-relative" href="/notifications{% if v.notifications_do %}/{{v.notifications_do}}{% endif %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"><i class="notif-{{v.notifications_do}}-bell fas fa-bell" style="color: {{v.notifications_color}}"></i><span class="notif-{{v.notifications_do}} notif-count ml-1" style="padding-left: 4.5px;{% if v.notifications_do %}background:{{v.notifications_color}}{% endif %}">{{v.notifications_count}}</span></a>
+					<a class="nav-link position-relative" href="/notifications{% if v.notifications_do %}/{{v.notifications_do}}{% endif %}"><i class="notif-{{v.notifications_do}}-bell fas fa-bell" style="color: {{v.notifications_color}}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"></i><span class="notif-{{v.notifications_do}} notif-count ml-1" style="padding-left: 4.5px;{% if v.notifications_do %}background:{{v.notifications_color}}{% endif %}">{{v.notifications_count}}</span></a>
 				</li>
 				{% else %}
 				<li class="nav-item d-flex align-items-center text-center justify-content-center mx-1">
-					<a class="nav-link" href="/notifications" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"><i class="fas fa-bell"></i></a>
+					<a class="nav-link" href="/notifications"><i class="fas fa-bell" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"></i></a>
 				</li>
 				{% endif %}
 

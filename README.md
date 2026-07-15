@@ -1,6 +1,6 @@
 # Obsession Forum
 
-Obsession Forum is a dark, community-focused forum platform for the Obsession community, built around posts, comments, profiles, badges, public chat, moderation tools, and community interaction.
+Obsession Forum is a movie-related community website for discussion, profiles, badges, public chat, moderation, and shared discoveries.
 
 ## Features
 

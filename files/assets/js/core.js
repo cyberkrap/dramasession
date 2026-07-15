@@ -236,7 +236,7 @@ function bs_trigger(e) {
 		return new bootstrap.Tooltip(element, {
 			container: 'body',
 			placement: element.getAttribute('data-bs-placement') || 'bottom',
-			fallbackPlacements: ['top', 'right', 'left'],
+			fallbackPlacements: [],
 			boundary: 'viewport',
 			offset: [0, 6],
 		});
