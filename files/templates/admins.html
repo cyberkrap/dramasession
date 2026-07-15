@@ -12,6 +12,7 @@
 				<th>#</th>
 				<th>Name</th>
 				<th style="text-align:right;">Truescore</th>
+				<th style="text-align:right;">Perms</th>
 				<th style="text-align:right;">Mod actions</th>
 			</tr>
 		</thead>
@@ -21,6 +22,7 @@
 				<td>{{loop.index}}</td>
 				<td>{% include "user_in_table.html" %}</td>
 				<td style="text-align:right;">{{"{:,}".format(user.truescore)}}</td>
+				<td style="text-align:right;">{% if user.has_all_admin_permissions %}<strong>EVERYTHING</strong>{% else %}{{user.admin_permission_count}}{% endif %}</td>
 				<td style="text-align:right;"><a href="/log?admin={{user.username}}">{{"{:,}".format(user.modaction_num)}}</a></td>
 			</tr>
 		{% endfor %}

@@ -1,3 +1,8 @@
+function formatNumber(value) {
+	const numeric = Number(String(value).replaceAll(',', ''));
+	return Number.isFinite(numeric) ? numeric.toLocaleString('en-US') : value;
+}
+
 function getMessageFromJsonData(success, json) {
 	let message = success ? "Success!" : "Error, please try again later";
 	let key = success ? "message" : "error";
@@ -9,6 +14,22 @@ function getMessageFromJsonData(success, json) {
 	return message;
 }
 
+let votePointer = {x: window.innerWidth / 2, y: window.innerHeight / 2};
+
+document.addEventListener('pointerdown', (event) => {
+	votePointer = {x: event.clientX, y: event.clientY};
+}, {passive: true});
+
+function showVoteXp(delta) {
+	const label = document.createElement('span');
+	label.className = 'vote-xp-float';
+	label.textContent = (delta > 0 ? '+' : '') + delta + ' XP';
+	label.style.left = `${votePointer.x + 10}px`;
+	label.style.top = `${votePointer.y - 8}px`;
+	document.body.append(label);
+	requestAnimationFrame(() => label.classList.add('is-visible'));
+	setTimeout(() => label.remove(), 1000);
+}
 function showToast(success, message, isToastTwo=false) {
 	let element = success ? "toast-post-success" : "toast-post-error";
 	let textElement = element + "-text";
@@ -210,7 +231,15 @@ function expandImage(url) {
 function bs_trigger(e) {
 	let tooltipTriggerList = [].slice.call(e.querySelectorAll('[data-bs-toggle="tooltip"]'));
 	tooltipTriggerList.map(function(element){
-		return bootstrap.Tooltip.getOrCreateInstance(element);
+		const existing = bootstrap.Tooltip.getInstance(element);
+		if (existing) existing.dispose();
+		return new bootstrap.Tooltip(element, {
+			container: 'body',
+			placement: element.getAttribute('data-bs-placement') || 'bottom',
+			fallbackPlacements: ['top', 'right', 'left'],
+			boundary: 'viewport',
+			offset: [0, 6],
+		});
 	});
 
 	const popoverTriggerList = [].slice.call(e.querySelectorAll('[data-bs-toggle="popover"]'));

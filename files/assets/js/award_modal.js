@@ -88,88 +88,54 @@ function vote(type, id, dir) {
 	}
 
 	const xhr = createXhrWithFormKey("/vote/" + type.replace('-mobile','') + "/" + id + "/" + votedirection);
+	xhr[0].onload = function() {
+		if (xhr[0].status < 200 || xhr[0].status >= 300) return;
+		let result = {};
+		try { result = JSON.parse(xhr[0].responseText || "{}"); } catch (e) {}
+		const delta = Number(result.xp_delta || 0);
+		if (!delta) return;
+		showVoteXp(delta);
+
+	};
 	xhr[0].send(xhr[1]);
 }
 
-function pick(kind, price, coins, marseybux, unlimitedSpending = false) {
-	price = parseInt(price)
-	coins = parseInt(coins)
-	marseybux = parseInt(marseybux)
+let selectedAwardCurrency = "coins";
 
-	const buy1 = document.getElementById('buy1')
-	if ((unlimitedSpending || marseybux >= price) && kind != "grass")
-		buy1.disabled=false;
-	else
-		buy1.disabled=true;
-
-	const buy2 = document.getElementById('buy2')
-	if ((unlimitedSpending || coins >= price) && kind != "benefactor")
-		buy2.disabled=false;
-	else
-		buy2.disabled=true;
-
-	let ownednum = Number(document.getElementById(`${kind}-owned`).textContent);
-	document.getElementById('giveaward').disabled = (ownednum == 0);
-	document.getElementById('kind').value=kind;
-	if (document.getElementsByClassName('picked').length > 0) {
-		document.getElementsByClassName('picked')[0].classList.toggle('picked');
-	}
-	document.getElementById(kind).classList.toggle('picked')
-	if (kind == "flairlock") {
-		document.getElementById('notelabel').innerHTML = "New flair:";
-		document.getElementById('note').placeholder = "Insert new flair here, or leave empty to add 1 day to the duration of the current flair. 100 characters max.";
+function pick(kind, price, coins, marseybux, unlimitedSpending = false, currency = "coins") {
+	price = parseInt(price);
+	coins = parseInt(coins);
+	marseybux = parseInt(marseybux);
+	selectedAwardCurrency = currency;
+	document.getElementById('kind').value = kind;
+	for (const choice of document.querySelectorAll('.award-choice.picked')) choice.classList.remove('picked');
+	document.getElementById(kind).classList.add('picked');
+	const balance = currency === 'marseybux' ? marseybux : coins;
+	const canGive = unlimitedSpending || balance >= price;
+	const button = document.getElementById('giveaward');
+	button.disabled = !canGive;
+	button.textContent = `Give Award - ${price.toLocaleString()} ${currency === 'marseybux' ? 'Wishbux' : 'Wishcoins'}`;
+	document.getElementById('award-price-summary').textContent = canGive ? 'Ready to apply' : `Needs ${price.toLocaleString()} ${currency === 'marseybux' ? 'Wishbux' : 'Wishcoins'}`;
+	if (kind === "flairlock") {
+		document.getElementById('notelabel').textContent = "New flair:";
+		document.getElementById('note').placeholder = "Insert new flair here, or leave empty to extend the current flair.";
 		document.getElementById('note').maxLength = 100;
-	}
-	else {
-		document.getElementById('notelabel').innerHTML = "Note (optional):";
-		document.getElementById('note').placeholder = "Note to include in award notification";
+	} else {
+		document.getElementById('notelabel').textContent = "Note (optional):";
+		document.getElementById('note').placeholder = "Note to include in award notification...";
 		document.getElementById('note').maxLength = 200;
 	}
 }
 
-function buy(mb) {
-	const kind = document.getElementById('kind').value;
-	url = `/buy/${kind}`
-	if (mb) url += "?mb=true"
-	const xhr = createXhrWithFormKey(url);
-	xhr[0].onload = function() {
-		let data
-		try {data = JSON.parse(xhr[0].response)}
-		catch(e) {console.log(e)}
-		success = xhr[0].status >= 200 && xhr[0].status < 300;
-		showToast(success, getMessageFromJsonData(success, data), true);
-		if (success) {
-			if (kind != "lootbox")
-			{
-				document.getElementById('giveaward').disabled=false;
-				let owned = document.getElementById(`${kind}-owned`)
-				let ownednum = Number(owned.textContent) + 1;
-				owned.textContent = ownednum
-			}
-		}
-	};
-
-	xhr[0].send(xhr[1]);
-
-}
-
 function giveaward(t) {
 	const kind = document.getElementById('kind').value;
-	postToast(t, t.dataset.action,
-		{
-		"kind": kind,
-		"note": document.getElementById('note').value
-		},
-		() => {
-			let owned = document.getElementById(`${kind}-owned`)
-			let ownednum = Number(owned.textContent) - 1;
-			owned.textContent = ownednum
-			if (ownednum == 0)
-				document.getElementById('giveaward').disabled=true;
-		}
-	);
+	postToast(t, t.dataset.action, {
+		kind: kind,
+		note: document.getElementById('note').value
+	}, () => {
+		document.getElementById('award-price-summary').textContent = 'Award applied';
+	});
 }
-
 const data_url = document.querySelectorAll('[data-url]');
 for (const element of data_url) {
 	if (element.dataset.nonce != nonce) {
@@ -180,3 +146,10 @@ for (const element of data_url) {
 		document.getElementById('giveaward').dataset.action = element.dataset.url
 	});
 }
+
+document.querySelectorAll('[data-award-tab]').forEach(tab => {
+	tab.addEventListener('click', () => {
+		document.querySelectorAll('[data-award-tab]').forEach(item => item.classList.toggle('active', item === tab));
+		document.querySelectorAll('[data-award-panel]').forEach(panel => panel.classList.toggle('d-none', panel.dataset.awardPanel !== tab.dataset.awardTab));
+	});
+});

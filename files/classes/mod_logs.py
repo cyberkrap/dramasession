@@ -50,7 +50,7 @@ class ModAction(Base):
 	@lazy
 	def string(self):
 		output = MODACTION_TYPES[self.kind]["str"].format(self=self)
-		if self.note: output += f" <i>({self.note})</i>"
+		if self.note and self.kind != "chat_timeout": output += f" <i>({self.note})</i>"
 		return output
 
 	@property

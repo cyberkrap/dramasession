@@ -91,6 +91,44 @@ MODACTION_TYPES = {
 		"icon": 'fa-images',
 		"color": 'bg-muted'
 	},
+	'grant_currency': {
+		"str": 'granted currency to {self.target_link}',
+		"icon": 'fa-coins',
+		"color": 'bg-success'
+	},
+	'remove_currency': {
+		"str": 'removed currency from {self.target_link}',
+		"icon": 'fa-coins',
+		"color": 'bg-danger'
+	},
+	'wipe_profile_picture': {
+		"str": 'reset the profile picture of {self.target_link}',
+		"icon": 'fa-user-slash',
+		"color": 'bg-danger'
+	},
+	'wipe_profile_banner': {
+		"str": 'reset the profile banner of {self.target_link}',
+		"icon": 'fa-image',
+		"color": 'bg-danger'
+	},
+	'wipe_profile_background': {
+		"str": 'reset the profile background of {self.target_link}',
+		"icon": 'fa-image',
+		"color": 'bg-danger'
+	},	'approve_community_asset': {
+		"str": 'approved a community asset',
+		"icon": 'fa-check',
+		"color": 'bg-success'
+	},
+	'reject_community_asset': {
+		"str": 'rejected a community asset',
+		"icon": 'fa-times',
+		"color": 'bg-danger'
+	},	'update_default_profile_assets': {
+		"str": 'updated the default signup profile assets',
+		"icon": 'fa-images',
+		"color": 'bg-muted'
+	},
 	'disable_unlimited_spending': {
 		"str": 'disabled Unlimited Spending for {self.target_link}',
 		"icon": 'fa-infinity',
@@ -166,6 +204,16 @@ MODACTION_TYPES = {
 		"icon": 'fa-infinity',
 		"color": 'bg-success',
 	},
+	'chat_timeout': {
+		"str": 'timed out {self.target_link} from speaking in {self.note}',
+		"icon": "fa-comment-slash",
+		"color": "bg-danger"
+	},
+	'chat_untimeout': {
+		"str": 'removed the chat timeout from {self.target_link} in {self.note}',
+		"icon": "fa-comment-check",
+		"color": "bg-success"
+	},
 	'flair_post': {
 		"str": 'set a flair on {self.target_link}',
 		"icon": 'fa-tag',
@@ -185,6 +233,10 @@ MODACTION_TYPES = {
 		"str": 'made {self.target_link} an admin',
 		"icon": 'fa-user-crown',
 		"color": 'bg-success'
+	},	'admin_permissions': {
+		"str": 'updated {self.target_link} admin permissions',
+		"icon": 'fa-user-crown',
+		"color": 'bg-primary'
 	},
 	'mod_mute_user': {
 		"str": 'muted reports from user {self.target_link}',

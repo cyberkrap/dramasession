@@ -3,7 +3,7 @@ from urllib.parse import quote, urlencode
 
 from flask import redirect, render_template, request, session, g
 
-from files.helpers.config.const import ERROR_MARSEYS, ERROR_MSGS, ERROR_TITLES, WERKZEUG_ERROR_DESCRIPTIONS, is_site_url
+from files.helpers.config.const import ERROR_MSGS, ERROR_TITLES, WERKZEUG_ERROR_DESCRIPTIONS, is_site_url
 from files.helpers.settings import get_setting
 from files.__main__ import app
 
@@ -35,8 +35,7 @@ def error(e):
 	# for here and 401, not using g.is_api_or_xhr is intentional since API users won't get invalid token errors otherwise
 	if request.headers.get("Authorization") or request.headers.get("xhr"):
 		return {"error": title, "code": e.code, "description": msg, "details": details}, e.code
-	img = ERROR_MARSEYS.get(e.code, 'marseyl')
-	return render_template('errors/error.html', err=True, title=title, msg=msg, details=details, img=img), e.code
+	return render_template('errors/error.html', err=True, code=e.code, title=title, msg=msg, details=details), e.code
 
 @app.errorhandler(401)
 def error_401(e):

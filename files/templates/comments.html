@@ -58,9 +58,7 @@
 
 {% if v %}
 	{% set voted=c.voted %}
-	{% if not voted and v.id == c.author_id %}
-		{% set voted=1 %}
-	{% endif %}
+
 {% else %}
 	{% set voted=-2 %}
 {% endif %}
@@ -146,7 +144,7 @@
 				{% if c.over_18 %}<span class="badge badge-danger text-small-extra mr-1">+18</span>{% endif %}
 				{% if v and v.admin_level >= PERMS['USER_SHADOWBAN'] and c.author.shadowbanned %}<i class="fas fa-user-times text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title='Shadowbanned by @{{c.author.shadowbanner}} for "{{c.author.ban_reason}}"'></i>{% endif %}
 				{% if c.stickied %}
-					<i id='pinned-{{c.id}}'class="fas fa-thumbtack fa-rotate--45 pr-1 text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pinned by @{{c.stickied}}" {% if c.stickied_utc %}data-onmouseover="pinned_timestamp('pinned-{{c.id}}')" data-timestamp={{c.stickied_utc}} data-nonce="{{g.nonce}}"{% endif %}></i>
+					<i id='pinned-{{c.id}}' class="fas fa-thumbtack fa-rotate--45 pr-1 moderation-badge" data-bs-toggle="tooltip" data-bs-container="body" data-bs-placement="bottom" title="Pinned by @{{c.stickied}}" {% if c.stickied_utc %}data-onmouseover="pinned_timestamp('pinned-{{c.id}}')" data-timestamp={{c.stickied_utc}} data-nonce="{{g.nonce}}"{% endif %}></i>
 				{% endif %}
 				{% if c.distinguish_level and not c.ghost %}<i class="fas fa-broom text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{SITE_NAME}} Admin, speaking officially"></i>{% endif %}
 				{% if c.is_op %}<i class="fas fa-microphone-stand text-info" data-bs-toggle="tooltip" data-bs-placement="bottom" title="OP"></i>{% endif %}
@@ -406,7 +404,8 @@
 						{% endif %}
 
 						{% if v and (not c.ghost or v.id == c.author_id or v.admin_level) %}
-							<button type="button" style="margin-top:0.2rem" class="btn caction py-0 nobackground px-1 text-muted" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-h fa-fw"></i></button>
+							<div class="dropdown dropdown-actions d-inline-block">
+							<button type="button" style="margin-top:0.2rem" class="btn caction py-0 nobackground px-1 text-muted" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-h fa-fw"></i></button>
 							<ul class="dropdown-menu">
 
 {% if v.admin_level >= PERMS['APPS_MODERATION'] and c.oauth_app %}
@@ -436,9 +435,9 @@
 {% endif %}
 
 {% if url != "" %}
-	<button type="button" id="unpin-{{c.id}}" class="dropdown-item list-inline-item {% if c.stickied %}d-md-block{% endif %} text-muted d-none text-info" data-bs-dismiss="modal" data-bs-target="#actionsModal-{{c.id}}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/un{{url}}/{{c.id}}','pin-{{c.id}}','unpin-{{c.id}}','d-md-block')"><i class="fas fa-thumbtack fa-rotate--45 text-info fa-fw"></i>Unpin</button>
+	<button type="button" id="unpin-{{c.id}}" class="dropdown-item list-inline-item {% if not c.stickied %}d-none{% endif %} text-muted text-info" data-bs-dismiss="modal" data-bs-target="#actionsModal-{{c.id}}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/un{{url}}/{{c.id}}','pin-{{c.id}}','unpin-{{c.id}}','d-none')"><i class="fas fa-thumbtack fa-rotate--45 text-info fa-fw"></i>Unpin</button>
 
-	<button type="button" id="pin-{{c.id}}" class="dropdown-item list-inline-item {% if not c.stickied %}d-md-block{% endif %} text-muted d-none text-info" data-bs-dismiss="modal" data-bs-target="#actionsModal-{{c.id}}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/{{url}}/{{c.id}}','pin-{{c.id}}','unpin-{{c.id}}','d-md-block')"><i class="fas fa-thumbtack fa-rotate--45 text-info fa-fw"></i>Pin</button>
+	<button type="button" id="pin-{{c.id}}" class="dropdown-item list-inline-item {% if c.stickied %}d-none{% endif %} text-muted text-info" data-bs-dismiss="modal" data-bs-target="#actionsModal-{{c.id}}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/{{url}}/{{c.id}}','pin-{{c.id}}','unpin-{{c.id}}','d-none')"><i class="fas fa-thumbtack fa-rotate--45 text-info fa-fw"></i>Pin</button>
 {% endif %}
 {% endif %}
 
@@ -476,6 +475,7 @@
 {% endif %}
 
 							</ul>
+							</div>
 						{% endif %}
 						</li>
 					</ul>

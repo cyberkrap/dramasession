@@ -1,6 +1,8 @@
 <div class="col sidebar community-sidebar text-left {% if '/sidebar' not in request.path %}d-none d-lg-block{% endif %} pt-3" {% if request.path != '/sidebar' %}id="sidebar-content"{% endif %}>
 	{% if sub %}
 		{% set image = sub.sidebar_url %}
+	{% elif os_path.exists("files/assets/images/" ~ SITE_NAME ~ "/sidebar") and listdir("files/assets/images/" ~ SITE_NAME ~ "/sidebar") %}
+		{% set image = macros.random_image("assets/images/" ~ SITE_NAME ~ "/sidebar") %}
 	{% endif %}
 
 	{% if request.path != '/sidebar' and image %}
@@ -9,9 +11,25 @@
 		</a>
 	{% endif %}
 
+	{% if not sub and sidebar_data %}
+		<section class="sidebar-widget sidebar-community-stats" aria-label="Community activity">
+			{% if sidebar_data.top_poster %}
+				<div class="sidebar-widget__eyebrow">Top poster today</div>
+				<a class="sidebar-featured-user" href="/@{{sidebar_data.top_poster[0].username}}">
+					<img src="/pp/{{sidebar_data.top_poster[0].id}}" alt="">
+					<span>@{{sidebar_data.top_poster[0].username}}</span>
+					<strong>{{sidebar_data.top_poster[1]|number}}</strong>
+				</a>
+			{% endif %}
+			<div class="sidebar-stat-row">
+				<a href="/users"><span><i class="fas fa-users mr-1"></i>Registered Users</span></a>
+				<strong>{{sidebar_data.registered_users|number}}</strong>
+			</div>
+		</section>
+	{% endif %}
 	<p class="text-center text-md mb-4">
 		<a class="sidebar-link d-md-none" href="/random_user" data-bs-toggle="tooltip" data-bs-placement="top" title="Random User"><i class="fas fa-music"></i></a>
-		<a class="sidebar-link" href="/marseys" data-bs-toggle="tooltip" data-bs-placement="top" title="Obsession Emotes"><i class="fas fa-face-smile"></i></a>
+		<a class="sidebar-link" href="/marseys" data-bs-toggle="tooltip" data-bs-placement="top" title="Obsession Emotes"><i class="fas fa-smile-beam" aria-hidden="true"></i></a>
 		<a class="sidebar-link" href="/badges" data-bs-toggle="tooltip" data-bs-placement="top" title="Badges"><i class="fas fa-hexagon"></i></a>
 		<a class="sidebar-link" href="/admins" data-bs-toggle="tooltip" data-bs-placement="top" title="Admins"><i class="fas fa-crown"></i></a>
 		<a class="sidebar-link" href="/log" data-bs-toggle="tooltip" data-bs-placement="top" title="Moderation Log"><i class="fas fa-scroll-old"></i></a>
@@ -36,6 +54,36 @@
 		</a>
 		<a class="btn btn-secondary btn-block mb-3" href="/holes">BROWSE BOARDS</a>
 		{% if v and v.can_create_hole %}<a class="btn btn-secondary btn-block mb-3" href="/create_hole">CREATE BOARD</a>{% endif %}
+		{% if sidebar_data %}
+
+			{% if sidebar_data.poll %}
+				<section class="sidebar-widget sidebar-poll">
+					<div class="sidebar-widget__eyebrow">Community poll</div>
+					<a class="sidebar-widget__title" href="{{sidebar_data.poll.shortlink}}">{{sidebar_data.poll.title}}</a>
+					<div class="sidebar-poll__options">
+						{% for option in sidebar_data.poll.options %}
+							<a href="{{sidebar_data.poll.shortlink}}" title="Open poll">
+								<span>{{option.body_html|safe}}</span>
+								<strong>{{option.upvotes|number}}</strong>
+							</a>
+						{% endfor %}
+					</div>
+				</section>
+			{% endif %}
+
+			<section class="sidebar-widget sidebar-levels">
+				<div class="sidebar-widget__eyebrow">Level leaderboard</div>
+				{% for member in sidebar_data.level_leaderboard %}
+					<a class="sidebar-level-row" href="/@{{member.username}}">
+						<img src="/pp/{{member.id}}" alt="">
+						<span>@{{member.username}}</span>
+						<strong>Lv {{member.level}}</strong>
+					</a>
+				{% else %}
+					<p class="sidebar-empty">The first level rankings will appear after the community starts voting.</p>
+				{% endfor %}
+			</section>
+		{% endif %}
 		<div class="sidebar--rules pt-2">{% include "rules_Obsession.html" %}</div>
 	{% endif %}
 </div>

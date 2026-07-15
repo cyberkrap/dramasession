@@ -27,7 +27,7 @@
 {% block content %}
 <div id="register-form">
 	{% if not ref_user and SITE_NAME == 'rDrama' and site_settings['login_required'] %}
-	<img loading="lazy" id="logo" alt="logo" src="{{'logo.webp' | asset_siteimg}}" width=70>
+	<img loading="lazy" id="logo" alt="{{SITE_NAME}} logo" src="{{('official-logo.png' if SITE_NAME == 'Obsession' else 'logo.webp') | asset_siteimg}}" width=70>
 	<hr>
 	<p class="text-muted text-justify mb-3" style="line-height: 1.2em">
 		Hiiiiii it’s your favorite user Carp! We’re currently on <span style="font-variant-caps: small-caps;">Login Required</span> mode for one of a few reasons:
@@ -47,7 +47,7 @@
 	</p>
 	<hr>
 	{% elif not ref_user and SITE_NAME == 'WPD' and site_settings['login_required'] %}
-	<img loading="lazy" id="logo" alt="logo" src="{{'logo.webp' | asset_siteimg}}" width=70>
+	<img loading="lazy" id="logo" alt="{{SITE_NAME}} logo" src="{{('official-logo.png' if SITE_NAME == 'Obsession' else 'logo.webp') | asset_siteimg}}" width=70>
 	<hr>
 	<p class="text-muted text-justify mb-1" style="line-height: 1.2em">
 		<strong>Hi you!</strong> &mdash; <span style="font-variant-caps: small-caps;">watchpeopledie.tv</span> is currently doing our monthly 24(ish) hours* of "everyone needs to have an account" &mdash; sorry about that! But making an account is actually super easy. <strong>You don't even need an email address!</strong> Literally just pick a username, set a password, and that's that. Bam, done, like 8 seconds, tops.<br>

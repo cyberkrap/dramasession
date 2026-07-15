@@ -79,7 +79,9 @@ def upload_custom_background(v):
 def upload_profile_background(v):
 	if g.is_tor: abort(403, "Image uploads are not allowed through TOR!")
 
-	file = request.files["file"]
+	file = request.files.get("file")
+	if not file or not file.filename:
+		abort(400, "Please choose an image to upload.")
 
 	name = f'/images/{time.time()}'.replace('.','') + '.webp'
 	file.save(name)
@@ -98,9 +100,10 @@ def upload_profile_background(v):
 @limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
 @auth_required
 def delete_profile_background(v):
-	if v.profile_background:
+	if v.profile_background and path.isfile(v.profile_background):
 		os.remove(v.profile_background)
-		v.profile_background = None
+	v.profile_background = None
+	g.db.add(v)
 	return {"message": "Profile background removed!"}
 
 @app.post("/settings/personal")
@@ -704,21 +707,28 @@ def settings_name_change(v):
 @limiter.limit("1/second;10/day", key_func=get_ID)
 @auth_required
 def settings_song_change_mp3(v):
-	file = request.files['file']
-	if file.content_type != 'audio/mpeg':
-		return redirect("/settings/personal?error=Not a valid MP3 file!")
+	file = request.files.get('file')
+	content_type = (file.content_type or '').lower() if file else ''
+	filename = (file.filename or '').lower() if file else ''
+	allowed_types = {'audio/mpeg', 'audio/mp3', 'audio/x-mpeg', 'application/octet-stream'}
+	if not file or not filename.endswith('.mp3') or content_type not in allowed_types:
+		return redirect("/settings/personal?error=Please upload a valid MP3 file."), 400
 
 	song = str(time.time()).replace('.','')
-
 	name = f'/songs/{song}.mp3'
-	file.save(name)
+	os.makedirs('/songs', exist_ok=True)
+	try:
+		file.save(name)
+		size = os.stat(name).st_size
+	except OSError:
+		if path.isfile(name): os.remove(name)
+		return redirect("/settings/personal?error=The anthem storage service is unavailable. Please try again."), 503
 
-	size = os.stat(name).st_size
 	if size > 8 * 1024 * 1024:
 		os.remove(name)
-		return redirect("/settings/personal?error=MP3 file must be smaller than 8MB")
+		return redirect("/settings/personal?error=MP3 file must be smaller than 8MB"), 413
 
-	if path.isfile(f"/songs/{v.song}.mp3") and g.db.query(User).filter_by(song=v.song).count() == 1:
+	if v.song and path.isfile(f"/songs/{v.song}.mp3") and g.db.query(User).filter_by(song=v.song).count() == 1:
 		os.remove(f"/songs/{v.song}.mp3")
 
 	v.song = song

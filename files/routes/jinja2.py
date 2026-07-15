@@ -45,6 +45,15 @@ def template_asset_siteimg(asset_path):
 def timestamp(timestamp):
 	return make_age_string(timestamp)
 
+@app.template_filter("number")
+def number(value):
+	if value is None or value == '':
+		return ''
+	try:
+		return f'{int(value):,}'
+	except (TypeError, ValueError):
+		return value
+
 @app.context_processor
 def calc_users():
 	loggedin_counter = 0

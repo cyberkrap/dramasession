@@ -38,7 +38,8 @@
 {% endif %}
 
 {% if v and (not p.ghost or v.id == p.author_id or v.admin_level) %}
-	<button type="button" class="list-inline-item" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-h fa-fw"></i></button>
+	<li class="list-inline-item dropdown dropdown-actions">
+	<button type="button" class="p-0 border-0 nobackground" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-h fa-fw"></i></button>
 	<ul class="dropdown-menu">
 		{% if v.admin_level >= PERMS['POST_COMMENT_MODERATION'] and p.oauth_app %}
 			<a class="dropdown-item list-inline-item text-info" href="{{p.oauth_app.permalink}}/posts"><i class="fas fa-code"></i>API App</a>
@@ -94,4 +95,5 @@
 			<button type="button" id="unchud-{{p.fullname}}" class="dropdown-item {% if not p.author.agendaposter %}d-none{% endif %} list-inline-item text-success" id="unexile2-user-{{p.id}}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/unagendaposter/{{p.fullname}}','chud-{{p.fullname}}','unchud-{{p.fullname}}','d-none')"><i class="fas fa-face-sleeping"></i>Remove restriction</button>
 		{% endif %}
 	</ul>
+	</li>
 {% endif %}

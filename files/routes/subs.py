@@ -337,8 +337,8 @@ def create_sub2(v):
 
 	sub = get_sub_by_name(name, graceful=True)
 	if not sub:
-		if not v.charge_account('coins', HOLE_COST):
-			return redirect(f"/create_hole?error=You don't have enough coins!")
+		if not v.charge_account('coins', HOLE_COST) and not v.charge_account('marseybux', HOLE_COST):
+			return redirect(f"/create_hole?error=You don't have enough Wishcoins or Wishbux!")
 
 		g.db.add(v)
 		if v.shadowbanned: abort(500)

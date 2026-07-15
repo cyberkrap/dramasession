@@ -1,7 +1,7 @@
 <div style="display:none" id="popover">
 	<div class="popover-user-profile">
 		<img loading="lazy" class="pop-banner w-100 h-64 object-cover">
-		<div class="d-flex align-items-end px-3 mt-n6 mb-3">
+		<div class="d-flex align-items-end px-3 mt-n6 mb-3 popover-profile-identity">
 			<div class="profile-pic-75-wrapper">
 				<img loading="lazy" class="pop-picture profile-pic-75">
 				<img class="pop-hat profile-pic-75-hat hat" loading="lazy">
@@ -9,6 +9,10 @@
 			<div class="px-3 text-truncate">
 			<h5 class="pop-username text-truncate text-black mb-1 pb-1"></h5>
 			<span class="text-black">Joined <span class="pop-created-date"></span></span>
+			<div class="popover-profile-meta text-black">
+				<span>ID <strong class="pop-user-id"></strong></span>
+				<span>Truescore <strong class="pop-truescore"></strong></span>
+			</div>
 			</div>
 		</div>
 
@@ -25,18 +29,18 @@
 			</div>
 		{%- endif %}
 
-	<div class="border-top d-flex align-items-center p-3 gap-3 smol">
-		<span>
-		<strong class="pop-postcount text-black"></strong>
-		<span class="text-black">posts</span>
+	<div class="border-top d-flex align-items-center p-3 gap-3 smol popover-profile-stats">
+		<a class="pop-post-link pop-profile-stat text-black" href="/">
+			<strong class="pop-postcount"></strong><span>posts</span>
+		</a>
+		<a class="pop-comment-link pop-profile-stat text-black" href="/">
+			<strong class="pop-commentcount"></strong><span>comments</span>
+		</a>
+		<span class="pop-profile-stat">
+			<strong class="pop-coins"></strong><span>Wishcoins</span>
 		</span>
-		<span class="ml-3">
-		<strong class="pop-commentcount text-black"></strong>
-		<span class="text-black">comments</span>
-		</span>
-		<span class="ml-3">
-			<strong class="pop-coins text-black"></strong>
-			<span class="text-black">Wishcoins</span>
+		<span class="pop-profile-stat">
+			<strong class="pop-bux"></strong><span>Wishbux</span>
 		</span>
 		<a href="/" {% if v and v.newtab %}data-target="t" target="_blank"{% endif %} class="pop-view_more ml-auto text-decoration-none">
 		<span class="ml-3">View</span>

@@ -1,11 +1,15 @@
 function pinned_timestamp(id) {
 	const el = document.getElementById(id)
-	const pintooltip = el.getAttribute("data-bs-original-title")
-	if (!pintooltip.includes('until'))
-		{
-			const time = formatDate(new Date(parseInt(el.dataset.timestamp)*1000))
-			el.setAttribute("data-bs-original-title", `${pintooltip} until ${time}`)
-		}
+	if (!el) return
+	const pintooltip = el.getAttribute("data-bs-original-title") || el.getAttribute("title") || "Pinned"
+	if (!pintooltip.includes('until')) {
+		const time = formatDate(new Date(parseInt(el.dataset.timestamp) * 1000))
+		const title = `${pintooltip} until ${time}`
+		el.setAttribute("data-bs-original-title", title)
+		el.setAttribute("title", title)
+		const tooltip = bootstrap.Tooltip.getInstance(el)
+		if (tooltip && tooltip.setContent) tooltip.setContent({'.tooltip-inner': title})
+	}
 }
 
 const popClickBadgeTemplateDOM = document.createElement("IMG");
@@ -40,9 +44,15 @@ document.addEventListener('shown.bs.popover', (e) => {
 	if (popover.getElementsByClassName('pop-bio').length > 0) {
 		popover.getElementsByClassName('pop-bio')[0].innerHTML = author["bio_html"]
 	}
-	popover.getElementsByClassName('pop-postcount')[0].innerHTML = author["post_count"]
-	popover.getElementsByClassName('pop-commentcount')[0].innerHTML = author["comment_count"]
-	popover.getElementsByClassName('pop-coins')[0].innerHTML = author["coins"]
+	const number = (value) => typeof formatNumber === 'function' ? formatNumber(value) : Number(value).toLocaleString('en-US')
+	popover.getElementsByClassName('pop-user-id')[0].textContent = number(author["id"])
+	popover.getElementsByClassName('pop-truescore')[0].textContent = number(author["truescore"])
+	popover.getElementsByClassName('pop-postcount')[0].textContent = number(author["post_count"])
+	popover.getElementsByClassName('pop-commentcount')[0].textContent = number(author["comment_count"])
+	popover.getElementsByClassName('pop-coins')[0].textContent = number(author["coins"])
+	popover.getElementsByClassName('pop-bux')[0].textContent = number(author["bux"])
+	popover.getElementsByClassName('pop-post-link')[0].href = author["url"] + '/posts'
+	popover.getElementsByClassName('pop-comment-link')[0].href = author["url"] + '/comments'
 	popover.getElementsByClassName('pop-view_more')[0].href = author["url"]
 	popover.getElementsByClassName('pop-created-date')[0].innerHTML = author["created_date"]
 })

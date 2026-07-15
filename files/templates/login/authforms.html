@@ -13,7 +13,10 @@
 						<div class="col-12 col-md-6 my-auto p-3 bg-background">
 								<div class="row justify-content-center">
 										<div class="col-10 col-md-7">
-										<h2>{% block authtitle %}{% endblock %}</h2>
+										{% if SITE_NAME == 'Obsession' %}
+<img class='auth-official-logo' alt='Obsession official logo' src="{{'official-logo.png' | asset_siteimg}}">
+{% endif %}
+<h2>{% block authtitle %}{% endblock %}</h2>
 										<p class="text-muted mb-md-5">{% block authtext %}{% endblock %}</p>
 										{% if error %}{{macros.alert(error, true)}}{% endif %}
 										{% if msg %}{{macros.alert(msg, false)}}{% endif %}

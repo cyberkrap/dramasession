@@ -31,7 +31,7 @@ const lotteryOnReady = function () {
 	const value = Math.max(1, parseInt(event.target.value))
 	purchaseQuantity = value
 	purchaseQuantityField.innerText = value
-	purchaseTotalCostField.innerText = value * 12
+	purchaseTotalCostField.innerText = formatNumber(value * 12)
 	});
 };
 
@@ -139,15 +139,15 @@ function handleLotteryResponse(xhr, method, callback) {
 
 	if (lottery) {
 		prizeImage.style.display = "inline";
-		prizeField.textContent = lottery.prize;
+		prizeField.textContent = formatNumber(lottery.prize);
 		timeLeftField.textContent = formatTimeLeft(lottery.timeLeft);
 
 		if (participants) {
-		participantsThisSessionField.textContent = participants;
+		participantsThisSessionField.textContent = formatNumber(participants);
 		}
 
-		ticketsSoldThisSessionField.textContent = lottery.ticketsSoldThisSession;
-		ticketsHeldCurrentField.textContent = user.ticketsHeld.current;
+		ticketsSoldThisSessionField.textContent = formatNumber(lottery.ticketsSoldThisSession);
+		ticketsHeldCurrentField.textContent = formatNumber(user.ticketsHeld.current);
 	} else {
 		prizeImage.style.display = "none";
 		[
@@ -160,8 +160,8 @@ function handleLotteryResponse(xhr, method, callback) {
 		purchaseTicketButton.disabled = true;
 	}
 
-	ticketsHeldTotalField.textContent = user.ticketsHeld.total;
-	winningsField.textContent = user.winnings;
+	ticketsHeldTotalField.textContent = formatNumber(user.ticketsHeld.total);
+	winningsField.textContent = formatNumber(user.winnings);
 
 	const [endButton, startButton] = [
 		"endLotterySession",

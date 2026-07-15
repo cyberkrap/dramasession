@@ -1,79 +1,46 @@
 {% extends "default.html" %}
-{%- set SHOP_FLAVOR = {'Obsession': 'Celebrate the community.'}.get(SITE_NAME, 'Celebrate the community.')
--%}
 {% block pagetitle %}Shop{% endblock %}
 {% block pagetype %}message{% endblock %}
 {% block banner %}
-	<div class="container-fluid bg-white sticky shop-tabs" style="padding-bottom: 0 !important;">
-		<div class="row box-shadow-bottom">
-			<div class="col p-0">
-				<div class="container" style="padding-bottom: 0;">
-					<div class="row box-shadow-bottom bg-white" style="justify-content: center;">
-						<a class="btn btn-primary btn-block m-0 shop-tab active" href="/shop">
-							<span class="mr-auto ml-auto"><i class="fas fa-gift mr-2"></i>AWARDS</span>
-						</a>
-						<a class="btn btn-primary btn-block m-0 shop-tab" href="/hats">
-							<span class="mr-auto ml-auto"><i class="fas fa-hat-cowboy mr-2"></i>HATS</span>
-						</a>
-					</div>
-				</div>
-			</div>
+<div class="shop-shell-header">
+	<nav class="shop-tabs" aria-label="Shop sections">
+		<a class="shop-tab active" href="/shop"><i class="fas fa-gift mr-2"></i>Awards</a>
+		<a class="shop-tab" href="/hats"><i class="fas fa-hat-cowboy mr-2"></i>Hats</a>
+		<a class="shop-tab" href="/shop#effects"><i class="fas fa-sparkles mr-2"></i>Effects</a>
+	</nav>
+	<div class="shop-heading">
+		<div class="shop-mark"><i class="fas fa-store"></i></div>
+		<h1>Obsession Shop</h1>
+		<p>Choose an effect and apply it directly to a post, comment, or member.</p>
+		<div class="shop-stats">
+			<span><strong>{{v.coins|number}}</strong> Wishcoins</span>
+			{% if FEATURES['MARSEYBUX'] %}<span><strong>{{v.marseybux|number}}</strong> Wishbux</span>{% endif %}
+			<span><strong>{{v.coins_spent|number}}</strong> spent</span>
+			<span><strong>{{v.lootboxes_bought|number}}</strong> lootboxes</span>
 		</div>
 	</div>
-
-	<header class="container pb-1 text-center">
-		<div class="shop-mark" aria-hidden="true"><i class="fas fa-store"></i></div>
-		<h5 class="mt-4">{{SHOP_FLAVOR}} Earn Wishcoins.</h5>
-		<h5 class="mt-4">Total sales: {{"{:,}".format(sales)}} Wishcoins</h5>
-		<h5 class="mt-4">Wishcoins spent by you: {{"{:,}".format(v.coins_spent)}} Wishcoins</h5>
-		<h5 class="mt-4">Lootboxes bought by you: {{v.lootboxes_bought}} lootbox{{'es' if v.lootboxes_bought != 1}}</h5>
-		<h5 class="mt-4">Your current Wishcoins: {{"{:,}".format(v.coins)}}</h5>
-		{% if FEATURES['MARSEYBUX'] %}
-			<h5 class="mt-4">Your current Wishbux: {{"{:,}".format(v.marseybux)}}</h5>
-		{% endif %}
-	</header>
-{% endblock %}
-
-{% block content %}
-	<div class="overflow-x-auto mt-1 mb-5"><table class="table table-striped shop">
-		<thead class="bg-primary text-white">
-				<tr>
-					<th class="disable-sort-click">Icon</th>
-					<th>Title</th>
-					<th>Price</th>
-					<th>Owned</th>
-					<th class="disable-sort-click">Buy</th>
-					<th>Description</th>
-				</tr>
-			</thead>
-			<tbody>
-		{% for a in awards %}
-			<tr>
-				<td class="shop-table-icon"><i class="{{a['icon']}} {{a['color']}}" style="font-size: 30px"></i></td>
-				<td class="shop-table-title">{{a['title']}}</td>
-				{% if a['baseprice'] != a['price'] %}
-					<td class="shop-table-price">
-						<span class="discounted-price">{{a['baseprice']}}</span> <em class="text-success">{{a['price']}}</em>
-					</td>
-				{% else %}
-					<td class="shop-table-price">{{a['price']}}</td>
-				{% endif %}
-				<td class="shop-table-owned">{{a['owned']}}</td>
-				{% set kind = a['kind'] %}
-				<td class="shop-table-actions">
-					{% if kind != "benefactor" %}
-						<button type="button" id="buy1-{{loop.index}}" class="btn btn-success {% if not v.can_spend('coins', a['price']) %}disabled{% endif %}" data-areyousure="postToastSwitch(this,'/buy/{{kind}}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy</span></button>
-					{% endif %}
-					{% if FEATURES['MARSEYBUX'] %}
-						{% if kind != "grass" %}
-							<button type="button" id="buy2-{{loop.index}}" class="marseybux btn btn-success {% if not v.can_spend('marseybux', a['price']) %}disabled{% endif %}" data-areyousure="postToastSwitch(this,'/buy/{{kind}}?mb=true')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy with Wishbux</span></button>
-						{% endif %}
-					{% endif %}
-				</td>
-				<td class="shop-table-description">{{a['description']}}</td>
-			</tr>
-		{% endfor %}
-	</table>
 </div>
+{% endblock %}
+{% block content %}
+<div class="shop-grid" id="effects">
+	{% for a in awards %}
+		{% set kind = a['kind'] %}
+		{% set currency = 'marseybux' if kind == 'benefactor' else 'coins' %}
+		{% set can_buy = v.can_spend(currency, a['price']) %}
+		<article class="shop-card">
+			<div class="shop-card-icon"><i class="{{a['icon']}} {{a['color']}}"></i></div>
+			<div class="shop-card-body">
+				<h2>{{a['title']}}</h2>
+				<p>{{a['description'] or 'A community effect from the Obsession collection.'}}</p>
+			</div>
+			<div class="shop-card-footer">
+				<div>
+					{% if a['baseprice'] != a['price'] %}<span class="discounted-price">{{a['baseprice']|number}}</span> {% endif %}<strong>{{a['price']|number}}</strong> {{'Wishbux' if currency == 'marseybux' else 'Wishcoins'}}
 
+				</div>
+				<button type="button" class="btn btn-primary shop-buy-button" {% if not can_buy %}disabled{% endif %} data-areyousure="postToastSwitch(this,'/buy/{{kind}}{% if currency == 'marseybux' %}?mb=true{% endif %}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">{{a['price']|number}} {{'Wishbux' if currency == 'marseybux' else 'Wishcoins'}}</button>
+			</div>
+		</article>
+	{% endfor %}
+</div>
 {% endblock %}

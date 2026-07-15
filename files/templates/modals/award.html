@@ -5,42 +5,34 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title">Give Award</h5>
-				<button type="button" class="close" data-bs-dismiss="modal">
-					<span><i class="far fa-times"></i></span>
-				</button>
+				<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><i class="far fa-times"></i></button>
 			</div>
 			<div id="awardModalBody" class="modal-body mb-3">
-				<div class="awards-wrapper" style="text-align:center">
-					{% for award in v.user_awards %}
-						{% set price = (award.price*v.discount)|int %}
-						<div data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{price}} Wishcoins/Wishbux - {{award.description}}" id="{{award.kind}}" data-nonce="{{g.nonce}}" data-onclick="pick('{{award.kind}}', {{price}}, {{v.coins}}, {{v.marseybux}}, {{'true' if v.has_unlimited_spending else 'false'}})">
-							<i class="{{award.icon}} {{award.color}}"></i>
-							<div class="pt-1 award-name">{{award.title}}</div>
-							<div class="text-muted award-owned"><span id="{{award.kind}}-owned">{{award.owned}}</span> owned</div>
-						</div>
-					{% endfor %}
+				<div class="award-tabs" role="tablist">
+					<button type="button" class="award-tab active" data-award-tab="content">Effect on Content</button>
+					<button type="button" class="award-tab" data-award-tab="author">Effect on Author</button>
 				</div>
+				{% for panel, cosmetic in [('content', true), ('author', false)] %}
+					<div class="awards-wrapper award-panel{% if panel != 'content' %} d-none{% endif %}" data-award-panel="{{panel}}">
+						{% for award in v.user_awards if award.cosmetic == cosmetic %}
+							{% set price = (award.price*v.discount)|int %}
+							{% set currency = 'marseybux' if award.kind == 'benefactor' else 'coins' %}
+							<button type="button" class="award-choice" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{award.description}}" id="{{award.kind}}" data-price="{{price}}" data-currency="{{currency}}" data-nonce="{{g.nonce}}" data-onclick="pick('{{award.kind}}', {{price}}, {{v.coins}}, {{v.marseybux}}, {{'true' if v.has_unlimited_spending else 'false'}}, '{{currency}}')">
+								<i class="{{award.icon}} {{award.color}}"></i>
+								<span class="award-name">{{award.title}}</span>
+								<span class="award-price">{{price|number}} {{'Wishbux' if currency == 'marseybux' else 'Wishcoins'}}</span>
+							</button>
+						{% endfor %}
+					</div>
+				{% endfor %}
 				<label id="notelabel" for="note" class="pt-4">Note (optional):</label>
 				<input autocomplete="off" id="kind" hidden>
 				<textarea autocomplete="off" id="note" maxlength="200" class="form-control" placeholder="Note to include in award notification..."></textarea>
-
-				<input autocomplete="off" id="giveaward" class="awardbtn btn btn-primary mt-3" style="float:right" type="submit" data-nonce="{{g.nonce}}" data-onclick="giveaward(this)" value="Give Award" data-bs-dismiss="modal" disabled>
-
-				<button type="button" id="buy1" class="awardbtn btn btn-primary mt-3 mx-3 {% if not FEATURES['MARSEYBUX'] %}d-none{% endif %}" disabled style="float:right" data-areyousure="buy(true)" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">Buy with Wishbux</button>
-
-				<button type="button" id="buy2" class="awardbtn btn btn-primary mt-3" disabled style="float:right" data-areyousure="buy()" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">Buy</button>
+				<div class="award-modal-footer">
+					<span id="award-price-summary" class="text-muted">Choose an award</span>
+					<button type="button" id="giveaward" class="awardbtn btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="giveaward(this)" data-bs-dismiss="modal" disabled>Give Award</button>
+				</div>
 			</div>
-		</div>
-	</div>
-
-	<div class="toast" id="toast-post-success2" style="position: fixed; bottom: 1.5rem; margin: 0 auto; left: 0; right: 0; width: 275px; z-index: 1000" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
-		<div class="toast-body bg-success text-center text-white">
-			<i class="fas fa-comment-alt-smile mr-2"></i><span id="toast-post-success-text2">Action successful!</span>
-		</div>
-	</div>
-	<div class="toast" id="toast-post-error2" style="position: fixed; bottom: 1.5rem; margin: 0 auto; left: 0; right: 0; width: 275px; z-index: 1000" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
-		<div class="toast-body bg-danger text-center text-white">
-			<i class="fas fa-exclamation-circle mr-2"></i><span id="toast-post-error-text2">Error, please try again later.</span>
 		</div>
 	</div>
 </div>

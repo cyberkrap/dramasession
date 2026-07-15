@@ -2,6 +2,8 @@
 {% block pagetitle %}Admin Home{% endblock %}
 {% block customPadding %}px-3{% endblock %}
 {% block content %}
+{% if error %}{{macros.alert(error, true)}}{% endif %}
+{% if msg %}{{macros.alert(msg, false)}}{% endif %}
 <h3 class="py-2">Admin Tools</h3>
 
 {% if (v.admin_level >= PERMS['SITE_SETTINGS_SIDEBARS_BANNERS_BADGES'] or v.admin_level >= PERMS['SITE_SETTINGS_SNAPPY_QUOTES']) and (SITE_NAME == 'rDrama' or SIDEBAR_THREAD or BANNER_THREAD or BADGE_THREAD or SNAPPY_THREAD) %}
@@ -60,6 +62,13 @@
 	{% endif %}
 </ul>
 
+{% if v.has_all_admin_permissions %}
+<h4>Administration</h4>
+<ul>
+	<li><a href="/admin/administrators">Manage Administrators</a></li>
+</ul>
+{% endif %}
+
 <h4>Safety</h4>
 <ul>
 	<li><a href="/admin/banned_domains">Banned Domains</a></li>
@@ -95,6 +104,37 @@
 	<li><a href="/daily_chart">Daily Stat Chart</a></li>
 </ul>
 
+<h4>Community Assets</h4>
+<ul>
+	{% if v.admin_level >= PERMS['SITE_SETTINGS'] %}
+		<li><a href="/admin/community-assets">Review Community Asset Submissions</a></li>
+<li><a href="/submit/banner">Submit Banner Art</a></li>
+		<li><a href="/submit/sidebar-art">Submit Sidebar Art</a></li>
+		<li><a href="/admin#default-profile-assets">Default Signup Profile Assets</a></li>
+	{% endif %}
+</ul>
+
+{% if v.admin_level >= PERMS['SITE_SETTINGS'] %}
+<section id="default-profile-assets" class="settings-section mb-4">
+	<h5>Default assets for new signups</h5>
+	<p class="text-muted">These assets are used when a new member has not uploaded a profile picture or banner.</p>
+	<form action="/admin/default_profile_assets" method="post" enctype="multipart/form-data" class="row align-items-end">
+		<input type="hidden" name="formkey" value="{{v|formkey}}">
+		<div class="col-12 col-md-5 mb-2">
+			<label for="default-profile-picture">Default profile picture</label>
+			<input id="default-profile-picture" class="form-control" name="profile_picture" type="file" accept="image/*">
+			{% if default_assets.profile %}<small class="text-muted">Configured</small>{% endif %}
+		</div>
+		<div class="col-12 col-md-5 mb-2">
+			<label for="default-profile-banner">Default profile banner</label>
+			<input id="default-profile-banner" class="form-control" name="profile_banner" type="file" accept="image/*">
+			{% if default_assets.banner %}<small class="text-muted">Configured</small>{% endif %}
+		</div>
+		<div class="col-12 col-md-2 mb-2"><button class="btn btn-primary w-100" type="submit">Update</button></div>
+	</form>
+</section>
+{% endif %}
+
 <h4>Configuration</h4>
 <ul class="pb-3">
 	{% if v.admin_level >= PERMS['EDIT_RULES'] %}
@@ -109,12 +149,68 @@
 </ul>
 
 <h4>Account</h4>
+{% if v.has_permission('ADMIN_UNLIMITED_SPENDING') %}
 <div class="custom-control custom-switch mb-3" id="unlimited-spending-container">
 	<input autocomplete="off" type="checkbox" class="custom-control-input" id="unlimited-spending" {% if v.has_unlimited_spending %}checked{% endif %} data-nonce="{{g.nonce}}" data-onchange="postToastSwitch(this, '/admin/unlimited_spending');">
 	<label class="custom-control-label" for="unlimited-spending">Unlimited Spending</label>
 	<small class="form-text text-muted">Allows this admin account to use purchase and wagering features without deducting its displayed balance.</small>
 </div>
+{% endif %}
+{% if v.has_permission('ADMIN_GRANT_CURRENCY') %}
+<section class="admin-currency-grant mt-4 mb-4">
+	<h5>Grant currency</h5>
+	<p class="text-muted">Add Wishcoins or Wishbux to a member account. The action is recorded in the moderation log.</p>
+	<form action="/admin/grant_currency" method="post" class="row align-items-end">
+		<input type="hidden" name="formkey" value="{{v|formkey}}">
+		<div class="col-12 col-md-4 mb-2">
+			<label for="grant-currency-username">Username</label>
+			<input id="grant-currency-username" class="form-control" name="username" type="text" autocomplete="off" required>
+		</div>
+		<div class="col-12 col-md-3 mb-2">
+			<label for="grant-currency-type">Currency</label>
+			<select id="grant-currency-type" class="form-control" name="currency">
+				<option value="coins">Wishcoins</option>
+				{% if FEATURES['MARSEYBUX'] %}<option value="marseybux">Wishbux</option>{% endif %}
+			</select>
+		</div>
+		<div class="col-12 col-md-3 mb-2">
+			<label for="grant-currency-amount">Amount</label>
+			<input id="grant-currency-amount" class="form-control" name="amount" type="number" min="1" max="1000000000000" step="1" required>
+		</div>
+		<div class="col-12 col-md-2 mb-2">
+			<button type="submit" class="btn btn-primary w-100">Grant</button>
+		</div>
+	</form>
+</section>
+{% endif %}
 
+{% if v.has_permission('ADMIN_REMOVE_CURRENCY') %}
+<section class="admin-currency-removal mb-4">
+	<h5>Remove currency</h5>
+	<p class="text-muted">Remove Wishcoins or Wishbux from a member account. Balances cannot go below zero.</p>
+	<form action="/admin/remove_currency" method="post" class="row align-items-end">
+		<input type="hidden" name="formkey" value="{{v|formkey}}">
+		<div class="col-12 col-md-4 mb-2">
+			<label for="remove-currency-username">Username</label>
+			<input id="remove-currency-username" class="form-control" name="username" type="text" autocomplete="off" required>
+		</div>
+		<div class="col-12 col-md-3 mb-2">
+			<label for="remove-currency-type">Currency</label>
+			<select id="remove-currency-type" class="form-control" name="currency">
+				<option value="coins">Wishcoins</option>
+				{% if FEATURES['MARSEYBUX'] %}<option value="marseybux">Wishbux</option>{% endif %}
+			</select>
+		</div>
+		<div class="col-12 col-md-3 mb-2">
+			<label for="remove-currency-amount">Amount</label>
+			<input id="remove-currency-amount" class="form-control" name="amount" type="number" min="1" max="1000000000000" step="1" required>
+		</div>
+		<div class="col-12 col-md-2 mb-2">
+			<button type="submit" class="btn btn-danger w-100">Remove</button>
+		</div>
+	</form>
+</section>
+{% endif %}
 {% if v.admin_level >= PERMS['SITE_SETTINGS'] %}
 	{% for setting in site_settings.keys() %}
 	<div class="custom-control custom-switch{% if loop.index > 1 %} mt-1{% endif %}" id="settings-{{setting}}-container">

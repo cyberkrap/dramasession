@@ -1,0 +1,90 @@
+{% extends "default.html" %}
+{% block pagetitle %}Submit {{label}}{% endblock %}
+{% block content %}
+<div class="container py-4 community-art-page">
+	<div class="community-art-header">
+		<div>
+			<span class="text-muted text-uppercase small font-weight-bold">Community assets</span>
+			<h1>Submit {{label}}</h1>
+			<p class="text-muted">Share original artwork for the Obsession community.</p>
+		</div>
+		<nav class="community-art-nav" aria-label="Community asset submissions">
+			<a href="/directory"><i class="fas fa-images mr-1"></i>Directory</a>
+			<a class="{% if kind == 'banner' %}active{% endif %}" href="/submit/banner"><i class="fas fa-image mr-1"></i>Banners</a>
+			<a class="{% if kind == 'sidebar' %}active{% endif %}" href="/submit/sidebar-art"><i class="fas fa-panorama mr-1"></i>Sidebar Art</a>
+			{% if v.admin_level >= PERMS['SITE_SETTINGS'] %}<a href="/admin/community-assets"><i class="fas fa-clipboard-check mr-1"></i>Review Queue</a>{% endif %}
+		</nav>
+	</div>
+	<section class="community-art-guidelines">
+		<div class="community-art-guidelines-heading"><i class="fas fa-ruler-combined"></i><div><h2>{{label}} guidelines</h2><p>These checks keep community artwork sharp, fast, and easy to review.</p></div></div>
+		<ul>
+			{% if kind == 'banner' %}<li><strong>Exact dimensions:</strong> 1920 x 192 px.</li>{% endif %}
+			<li><strong>File size:</strong> under 2 MB.</li>
+			<li>Use original, community-safe artwork with a clear focal point.</li>
+			<li>Obsession-related text or imagery is welcome, but avoid copyrighted or unsafe material.</li>
+			<li>Submissions are reviewed by an administrator before appearing on the site.</li>
+		</ul>
+	</section>
+	{% if error %}{{macros.alert(error, true)}}{% endif %}
+	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+	<section class="settings-section rounded p-3 community-art-form">
+		<form method="post" enctype="multipart/form-data">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<label for="art-image">Image</label>
+			<input id="art-image" class="form-control" type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" data-max-bytes="{{config.max_bytes}}" data-required-width="{{config.dimensions[0] if config.dimensions else ''}}" data-required-height="{{config.dimensions[1] if config.dimensions else ''}}" required>
+			<small id="art-image-help" class="form-text text-muted">{% if kind == 'banner' %}PNG, JPG, WEBP, or GIF; exactly 1920 x 192 px and under 2 MB.{% else %}PNG, JPG, WEBP, or GIF; under 2 MB. The image will be fitted to the sidebar.{% endif %}</small>
+			<label class="mt-3" for="art-title">Title</label>
+			<input id="art-title" class="form-control" name="title" maxlength="100" required>
+			<label class="mt-3" for="art-notes">Notes</label>
+			<textarea id="art-notes" class="form-control" name="notes" maxlength="1000" rows="4" placeholder="Optional context for the moderators"></textarea>
+			<button class="btn btn-primary mt-4" type="submit">Submit {{label}}</button>
+		</form>
+	</section>
+	{% if submissions %}
+	<h2 class="mt-5">{% if v.admin_level >= PERMS['SITE_SETTINGS'] %}Submission queue{% else %}Your submissions{% endif %}</h2>
+	<div class="row">
+	{% for submission in submissions %}
+		<div class="col-12 col-md-6 mb-3">
+			<section class="settings-section rounded p-3 community-art-submission">
+				{% if submission.image_url %}<img src="{{submission.image_url}}" alt="{{submission.title or 'Submitted community artwork'}}">{% endif %}
+				<strong>{{submission.title or 'Untitled submission'}}</strong>
+				<div class="text-muted small">{{submission.status|capitalize}}{% if submission.reviewed_by %} by @{{submission.reviewed_by}}{% endif %}</div>
+				{% if submission.notes %}<p class="mb-0 mt-2">{{submission.notes}}</p>{% endif %}
+			</section>
+		</div>
+	{% endfor %}
+	</div>
+	{% endif %}
+</div>
+<script>
+(() => {
+	const input = document.getElementById('art-image');
+	const help = document.getElementById('art-image-help');
+	if (!input || !help) return;
+	input.addEventListener('change', () => {
+		const file = input.files[0];
+		if (!file) return;
+		const max = Number(input.dataset.maxBytes);
+		if (file.size >= max) {
+			help.textContent = 'This file is too large. Choose an image under 2 MB.';
+			help.classList.add('text-danger');
+			return;
+		}
+		const width = Number(input.dataset.requiredWidth);
+		const height = Number(input.dataset.requiredHeight);
+		if (!width || !height) return;
+		const image = new Image();
+		image.onload = () => {
+			if (image.width !== width || image.height !== height) {
+				help.textContent = 'Banner must be exactly ' + width + ' x ' + height + ' px.';
+				help.classList.add('text-danger');
+			} else {
+				help.textContent = 'Image dimensions and file size look good.';
+				help.classList.remove('text-danger');
+			}
+		};
+		image.src = URL.createObjectURL(file);
+	});
+})();
+</script>
+{% endblock %}

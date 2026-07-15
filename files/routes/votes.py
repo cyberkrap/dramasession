@@ -70,18 +70,21 @@ def vote_post_comment(target_id, new, v, cls, vote_cls):
 
 	if not User.can_see(v, target): abort(403)
 
-	coin_delta = 1
+	score_delta = 1
+	coin_delta = 5
 	if v.id == target.author.id:
 		coin_delta = 0
 
 	alt = False
 	if target.author.id in [x.id for x in get_alt_graph(v.id)]:
-		coin_delta = -1
+		coin_delta = -5
 		alt = True
 
 	coin_mult = 1
 
 	g.db.flush()
+	xp_delta = 0
+	previous_vote = 0
 	existing = g.db.query(vote_cls).filter_by(user_id=v.id)
 	if vote_cls == Vote:
 		existing = existing.filter_by(submission_id=target.id)
@@ -90,16 +93,18 @@ def vote_post_comment(target_id, new, v, cls, vote_cls):
 	else:
 		abort(400)
 	existing = existing.one_or_none()
+	if existing:
+		previous_vote = existing.vote_type
 
 	if IS_FISTMAS():
 		coin_mult = 2
 	coin_value = coin_delta * coin_mult
 
-	if existing and existing.vote_type == new: return "", 204
+	if existing and existing.vote_type == new: return {"xp_delta": 0}
 	if existing:
 		if existing.vote_type == 0 and new != 0:
 			target.author.pay_account('coins', coin_value)
-			target.author.truescore += coin_delta
+			target.author.truescore += score_delta
 			g.db.add(target.author)
 			existing.vote_type = new
 			existing.coins = coin_value
@@ -107,7 +112,7 @@ def vote_post_comment(target_id, new, v, cls, vote_cls):
 		elif existing.vote_type != 0 and new == 0:
 			target.author.charge_account('coins', existing.coins,
 				should_check_balance=False, allow_unlimited=False)
-			target.author.truescore -= coin_delta
+			target.author.truescore -= score_delta
 			g.db.add(target.author)
 			g.db.delete(existing)
 		else:
@@ -115,7 +120,7 @@ def vote_post_comment(target_id, new, v, cls, vote_cls):
 			g.db.add(existing)
 	elif new != 0:
 		target.author.pay_account('coins', coin_value)
-		target.author.truescore += coin_delta
+		target.author.truescore += score_delta
 		g.db.add(target.author)
 
 		real = new == -1 or (not alt and v.is_votes_real)
@@ -137,6 +142,15 @@ def vote_post_comment(target_id, new, v, cls, vote_cls):
 						coins=coin_value
 			)
 		g.db.add(vote)
+	if new != 0 and previous_vote == 0:
+		xp_delta = 10
+	elif new == 0 and previous_vote != 0:
+		xp_delta = -10
+
+	if xp_delta:
+		v.xp = max(0, (v.xp or 0) + xp_delta)
+		g.db.add(v)
+
 	g.db.flush()
 
 	# this is hacky but it works, we should probably do better later
@@ -186,7 +200,7 @@ def vote_post_comment(target_id, new, v, cls, vote_cls):
 	target.realupvotes = floor(target.realupvotes * mul)
 
 	g.db.add(target)
-	return "", 204
+	return {"xp_delta": xp_delta}
 
 
 @app.post("/vote/post/<int:post_id>/<new>")

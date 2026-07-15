@@ -70,10 +70,14 @@ def get_marseys(db:scoped_session):
 
 @cache.cached(timeout=600, key_prefix=EMOJIS_CACHE_KEY)
 def get_emojis(db:scoped_session):
-	emojis = [m.json() for m in get_marseys(db)]
+	allowed_classes = {"misc", "community classics", "community emotes"}
+	emojis = []
 	for src in EMOJI_SRCS:
 		with open(src, "r", encoding="utf-8") as f:
-			emojis = emojis + json.load(f)
+			emojis.extend(
+				item for item in json.load(f)
+				if str(item.get("class", "")).strip().lower() in allowed_classes
+			)
 	return emojis
 
 @app.get('/sidebar')
@@ -120,7 +124,8 @@ def patrons(v):
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
 @auth_required
 def admins(v:User):
-	admins = g.db.query(User).filter(User.admin_level >= PERMS['ADMIN_MOP_VISIBLE']).order_by(User.truescore.desc()).all()
+	admins = g.db.query(User).filter(User.admin_level >= PERMS['ADMIN_MOP_VISIBLE']).all()
+	admins.sort(key=lambda user: (user.has_all_admin_permissions, user.admin_permission_count or 0, int(user.admin_level), user.truescore), reverse=True)
 	return render_template("admins.html", v=v, admins=admins)
 
 @app.get("/log")

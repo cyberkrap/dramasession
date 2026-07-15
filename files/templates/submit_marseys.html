@@ -23,7 +23,7 @@
 							</div>
 
 							<label class="mt-3" for="name">Name</label>
-							<input autocomplete="off" type="text" id="name" class="form-control" name="name" maxlength="30" pattern='[Mm][Aa][Rr][Ss][Ee][Yy][a-zA-Z0-9]{1,24}' placeholder="Required" value="{{name}}" required>
+							<input autocomplete="off" type="text" id="name" class="form-control" name="name" maxlength="30" pattern='[a-zA-Z0-9][a-zA-Z0-9_\-]{1,29}' placeholder="Required" value="{{name}}" required>
 
 							<label class="mt-3" for="author">Author</label>
 							<input autocomplete="off" type="text" id="author" class="form-control" name="author" maxlength="30" pattern='[a-zA-Z0-9_\-]{3,30}' placeholder="Required" value="{{username}}" required>

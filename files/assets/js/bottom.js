@@ -152,3 +152,62 @@ function register_new_elements(e) {
 
 register_new_elements(document);
 bs_trigger(document);
+
+function closeMobileModalSafely(control) {
+	const modal = control.closest('.modal');
+	if (!modal || typeof bootstrap === 'undefined') return;
+	const instance = bootstrap.Modal.getOrCreateInstance(modal);
+	const modalIsVisible = modal.classList.contains('show') || modal.getAttribute('aria-modal') === 'true' || modal.style.display === 'block' || instance._isShown;
+	if (!modalIsVisible) return;
+	if (instance._isTransitioning) {
+		modal.dataset.mobileDismissPending = 'true';
+		modal.classList.remove('fade', 'show', 'modal-static');
+		modal.style.display = 'none';
+		modal.setAttribute('aria-hidden', 'true');
+		modal.removeAttribute('aria-modal');
+		modal.removeAttribute('role');
+		instance._isTransitioning = false;
+		instance._isShown = false;
+		document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+		document.body.classList.remove('modal-open');
+		document.body.style.removeProperty('padding-right');
+		document.body.style.removeProperty('overflow');
+		return;
+	}
+	instance.hide();
+}
+
+document.addEventListener('click', event => {
+	const dismissControl = event.target.closest('[data-bs-dismiss="modal"]');
+	if (!dismissControl) return;
+	const modal = dismissControl.closest('.modal');
+	if (!modal) return;
+	setTimeout(() => closeMobileModalSafely(dismissControl), 0);
+}, true);
+
+
+document.addEventListener('shown.bs.modal', event => {
+	const modal = event.target;
+	if (modal.dataset.mobileDismissPending !== 'true') return;
+	delete modal.dataset.mobileDismissPending;
+	const instance = bootstrap.Modal.getOrCreateInstance(modal);
+	instance._isShown = false;
+	instance._isTransitioning = false;
+	modal.classList.remove('show', 'modal-static');
+	modal.style.display = 'none';
+	modal.setAttribute('aria-hidden', 'true');
+	modal.removeAttribute('aria-modal');
+	modal.removeAttribute('role');
+	document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+	document.body.classList.remove('modal-open');
+	document.body.style.removeProperty('padding-right');
+	document.body.style.removeProperty('overflow');
+}, true);
+
+document.addEventListener('hidden.bs.modal', event => {
+	if (document.querySelector('.modal.show')) return;
+	document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+	document.body.classList.remove('modal-open');
+	document.body.style.removeProperty('padding-right');
+	document.body.style.removeProperty('overflow');
+}, true);

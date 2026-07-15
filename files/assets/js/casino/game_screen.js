@@ -12,11 +12,11 @@ function initializeGame() {
 
 function updatePlayerCurrencies(updated) {
 	if (updated.coins) {
-		document.getElementById("user-coins-amount").innerText = updated.coins;
+		document.getElementById("user-coins-amount").innerText = formatNumber(updated.coins);
 	}
 
 	if (updated.marseybux) {
-		document.getElementById("user-bux-amount").innerText = updated.marseybux;
+		document.getElementById("user-bux-amount").innerText = formatNumber(updated.marseybux);
 	}
 }
 
@@ -77,8 +77,7 @@ function updateFeed(newFeed) {
 			style="display: flex; align-items: center; justify-content: space-between;"
 			class="${entry.won_or_lost === "won" ? "text-success" : "text-danger"}">
 			<div>
-				<a href="/@${entry.user}">@${entry.user}</a> ${entry.won_or_lost} ${entry.amount
-				} ${entry.currency}
+				<a href="/@${entry.user}">@${entry.user}</a> ${entry.won_or_lost} ${formatNumber(entry.amount)} ${entry.currency}
 			</div>
 		</li>
 	`
@@ -126,19 +125,19 @@ function updateLeaderboard() {
 	const formatLocalCurrencyName = currency => ({ coins: 'coins', marseybux: 'marseybux' })[currency];
 
 	biggestWinnerAllTime.innerHTML = `
-		<a href="/@${leaderboardData.all_time.biggest_win.user}">${leaderboardData.all_time.biggest_win.user}</a> <br><small>${leaderboardData.all_time.biggest_win.amount} ${formatLocalCurrencyName(leaderboardData.all_time.biggest_win.currency)}</small>
+		<a href="/@${leaderboardData.all_time.biggest_win.user}">${leaderboardData.all_time.biggest_win.user}</a> <br><small>${formatNumber(leaderboardData.all_time.biggest_win.amount)} ${formatLocalCurrencyName(leaderboardData.all_time.biggest_win.currency)}</small>
 	`;
 
 	biggestWinner24h.innerHTML = `
-		<a href="/@${leaderboardData.last_24h.biggest_win.user}">${leaderboardData.last_24h.biggest_win.user}</a> <br> <small>${leaderboardData.last_24h.biggest_win.amount} ${formatLocalCurrencyName(leaderboardData.last_24h.biggest_win.currency)}</small>
+		<a href="/@${leaderboardData.last_24h.biggest_win.user}">${leaderboardData.last_24h.biggest_win.user}</a> <br> <small>${formatNumber(leaderboardData.last_24h.biggest_win.amount)} ${formatLocalCurrencyName(leaderboardData.last_24h.biggest_win.currency)}</small>
 	`;
 
 	biggestLoser24h.innerHTML = `
-		<a href="/@${leaderboardData.last_24h.biggest_loss.user}">${leaderboardData.last_24h.biggest_loss.user}</a> <br> <small>${leaderboardData.last_24h.biggest_loss.amount} ${formatLocalCurrencyName(leaderboardData.last_24h.biggest_loss.currency)}</small>
+		<a href="/@${leaderboardData.last_24h.biggest_loss.user}">${leaderboardData.last_24h.biggest_loss.user}</a> <br> <small>${formatNumber(leaderboardData.last_24h.biggest_loss.amount)} ${formatLocalCurrencyName(leaderboardData.last_24h.biggest_loss.currency)}</small>
 	`;
 
 	biggestLoserAllTime.innerHTML = `
-		<a href="/@${leaderboardData.all_time.biggest_loss.user}">${leaderboardData.all_time.biggest_loss.user}</a> <br> <small>${leaderboardData.all_time.biggest_loss.amount} ${formatLocalCurrencyName(leaderboardData.all_time.biggest_loss.currency)}</small>
+		<a href="/@${leaderboardData.all_time.biggest_loss.user}">${leaderboardData.all_time.biggest_loss.user}</a> <br> <small>${formatNumber(leaderboardData.all_time.biggest_loss.amount)} ${formatLocalCurrencyName(leaderboardData.all_time.biggest_loss.currency)}</small>
 	`;
 }
 

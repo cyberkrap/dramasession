@@ -1,0 +1,142 @@
+{% extends "default.html" %}
+{% block pagetitle %}Administrator Management{% endblock %}
+{% block customPadding %}admin-management-padding{% endblock %}
+{% block content %}
+<div class="admin-management-page">
+	{% if error %}{{macros.alert(error, true)}}{% endif %}
+	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+	<header class="admin-management-heading">
+		<div>
+			<p class="admin-eyebrow">Administration</p>
+			<h1>Manage Administrators</h1>
+			<p class="text-muted">Assign a clear role to each administrator. Your head-admin account stays protected from self-editing.</p>
+		</div>
+		<a class="btn btn-secondary" href="/admin">Back to Admin Tools</a>
+	</header>
+
+	<section class="admin-management-section">
+		<div class="admin-section-heading">
+			<div>
+				<h2>Role presets</h2>
+				<p class="text-muted">Presets keep routine access changes quick and consistent.</p>
+			</div>
+		</div>
+		<div class="admin-role-grid">
+			{% for preset_key, preset in admin_presets.items() %}
+				<article class="admin-role-card{% if preset_key == 'head_economy' %} admin-role-card-economy{% endif %}">
+					<div class="admin-role-card-top"><span class="admin-role-level">Level {{preset.level}}</span>{% if preset_key == 'head_economy' %}<span class="admin-economy-badge">Economy</span>{% endif %}</div>
+					<h3>{{preset.label}}</h3>
+					<p>{{preset.description}}</p>
+				</article>
+			{% endfor %}
+		</div>
+	</section>
+
+	{% if v.has_all_admin_permissions and v.has_permission('ADMIN_UNLIMITED_SPENDING') and v.has_permission('ADMIN_GRANT_CURRENCY') and v.has_permission('ADMIN_REMOVE_CURRENCY') %}
+	<section class="admin-management-section admin-patron-management">
+		<div class="admin-section-heading">
+			<div>
+				<h2>Patron management</h2>
+				<p class="text-muted">Grant, update, or end patron status for a member. Permanent status uses the highest community tier.</p>
+			</div>
+		</div>
+		<form action="/admin/patrons/manage" method="post" class="admin-patron-form">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<div><label for="patron-username">Username</label><input id="patron-username" name="username" class="form-control" value="{{v.username}}" required></div>
+			<div><label for="patron-action">Action</label><select id="patron-action" name="action" class="form-control"><option value="set">Grant / update</option><option value="end">End patron status</option></select></div>
+			<div><label for="patron-level">Level</label><select id="patron-level" name="level" class="form-control">{% for level in patron_tiers %}<option value="{{level}}"{% if level == 6 %} selected{% endif %}>Level {{level}}</option>{% endfor %}</select></div>
+			<div><label for="patron-duration">Duration (days)</label><input id="patron-duration" name="duration_days" class="form-control" type="number" min="1" max="3650" value="30"></div>
+			<label class="admin-patron-permanent"><input type="checkbox" name="permanent" checked> Permanent</label>
+			<button type="submit" class="btn btn-primary">Apply patron status</button>
+		</form>
+	</section>
+	{% endif %}
+
+	<section class="admin-management-section">
+		<div class="admin-section-heading">
+			<div>
+				<h2>Current administrators</h2>
+				<p class="text-muted">Choose a preset for a fast update, or open custom access for a narrower role.</p>
+			</div>
+		</div>
+				<div class="admin-add-panel">
+			<h3>Add administrator</h3>
+			<form action="/admin/administrators/add" method="post" class="admin-preset-form admin-add-form">
+				<input type="hidden" name="formkey" value="{{v|formkey}}">
+				<div><label for="new-admin-username">Username</label><input id="new-admin-username" name="username" class="form-control" type="text" autocomplete="off" required></div>
+				<div><label for="new-admin-preset">Preset</label><select id="new-admin-preset" name="preset" class="form-control">{% for preset_key, preset in admin_presets.items() %}{% if preset_key not in ('head', 'head_economy') or (preset_key == 'head' and v.has_admin_economy_permissions) %}<option value="{{preset_key}}">{{preset.label}}</option>{% endif %}{% endfor %}</select></div>
+				<button type="submit" class="btn btn-primary">Add administrator</button>
+			</form>
+		</div><div class="admin-list">
+			{% for admin in admins %}
+				<article class="admin-list-card" id="admin-{{admin.username}}">
+					<div class="admin-list-card-header">
+						<div class="admin-identity">
+							<a href="/@{{admin.username}}" class="admin-avatar-link"><img src="{{admin.profile_url}}" alt="@{{admin.username}} profile picture" class="profile-pic-40"></a>
+							<div>
+								<a class="admin-name" href="/@{{admin.username}}">@{{admin.username}}</a>
+								<div class="admin-role-summary">{% if admin.has_all_admin_permissions %}EVERYTHING{% else %}Level {{admin.admin_level}} - {{admin.admin_permission_count or 0}} permissions{% endif %}</div>
+							</div>
+						</div>
+						<div class="admin-stat-strip">
+							<span><strong>{{admin.truescore}}</strong> true score</span>
+							{% if admin.has_permission('ADMIN_UNLIMITED_SPENDING') or admin.has_permission('ADMIN_GRANT_CURRENCY') or admin.has_permission('ADMIN_REMOVE_CURRENCY') %}<span class="admin-economy-badge">Economy access</span>{% endif %}
+						</div>
+					</div>
+{% if admin.has_all_admin_permissions and not v.has_admin_economy_permissions %}
+<div class="admin-protected-note">Head Administrator access is protected from ordinary Head Admin accounts.</div>
+{% elif admin.id == v.id %}
+<div class="admin-protected-note">This is your account. Head-admin access is protected here.</div>
+{% elif v.can_manage_admin(admin) %}
+						<div class="admin-admin-actions">
+							<form action="/admin/administrators/{{admin.username}}/preset" method="post" class="admin-preset-form">
+								<input type="hidden" name="formkey" value="{{v|formkey}}">
+								<label for="preset-{{admin.id}}">Apply preset</label>
+								<select id="preset-{{admin.id}}" name="preset" class="form-control">
+									{% set current_preset = "moderator" %}
+									{% if admin.has_all_admin_permissions %}{% set current_preset = "head_economy" if (admin.has_permission("ADMIN_UNLIMITED_SPENDING") and admin.has_permission("ADMIN_GRANT_CURRENCY") and admin.has_permission("ADMIN_REMOVE_CURRENCY")) else "head" %}{% elif admin.admin_level >= 4 %}{% set current_preset = "senior" %}{% elif admin.admin_level >= 3 %}{% set current_preset = "administrator" %}{% endif %}
+									{% for preset_key, preset in admin_presets.items() %}{% if preset_key not in ('head', 'head_economy') or (preset_key == 'head' and v.has_admin_economy_permissions) %}<option value="{{preset_key}}"{% if preset_key == current_preset %} selected{% endif %}>{{preset.label}}</option>{% endif %}{% endfor %}
+								</select>
+								<button type="submit" class="btn btn-primary">Apply preset</button>
+							</form>
+														<form action="/admin/administrators/{{admin.username}}/remove" method="post" class="admin-remove-form">
+								<input type="hidden" name="formkey" value="{{v|formkey}}">
+								<button type="submit" class="btn btn-danger">Remove administrator</button>
+							</form><details class="admin-custom-access">
+								<summary class="btn btn-secondary">Custom permissions</summary>
+								<form action="/admin/administrators/{{admin.username}}/permissions" method="post" class="admin-custom-form">
+									<input type="hidden" name="formkey" value="{{v|formkey}}">
+									<p class="text-muted small">Only permissions you already hold can be granted. Economy permissions are restricted to the head administrator.</p>
+									<div class="admin-permission-grid">
+										{% for permission_name, permission_level in PERMS.items()|sort %}
+											{% if permission_name not in currency_permissions %}
+												<label class="admin-permission-option"><input type="checkbox" name="permissions" value="{{permission_name}}" {% if admin.has_permission(permission_name) %}checked{% endif %}><span>{{permission_name.replace('_', ' ').title()}}</span><small>L{{permission_level}}</small></label>
+											{% endif %}
+									{% endfor %}
+									</div>
+									{% if v.has_all_admin_permissions %}
+										<div class="admin-economy-permissions">
+											<h4>Economy permissions</h4>
+											{% for permission_name in currency_permissions %}<label class="admin-permission-option"><input type="checkbox" name="permissions" value="{{permission_name}}" {% if admin.has_permission(permission_name) %}checked{% endif %}><span>{{permission_name.replace('ADMIN_', '').replace('_', ' ').title()}}</span><small>Head only</small></label>{% endfor %}
+										</div>
+									{% endif %}
+									<button type="submit" class="btn btn-primary">Save custom access</button>
+								</form>
+							</details>
+						</div>
+					{% endif %}
+				</article>
+			{% endfor %}
+		</div>
+	</section>
+
+	<section class="admin-management-section admin-permission-reference">
+		<div class="admin-section-heading"><div><h2>Permission reference</h2><p class="text-muted">Higher levels include the permissions listed at lower levels. Economy access is always explicit.</p></div></div>
+		<div class="admin-reference-grid">
+			{% for group in permission_groups %}
+				<div class="admin-reference-level"><h3>Level {{group.level}}</h3><div class="admin-chip-list">{% for permission_name in group.permissions %}<span class="admin-permission-chip{% if permission_name in currency_permissions %} admin-permission-chip-economy{% endif %}">{{permission_name.replace('_', ' ').title()}}</span>{% endfor %}</div></div>
+			{% endfor %}
+		</div>
+	</section>
+</div>
+{% endblock %}

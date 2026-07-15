@@ -7,7 +7,8 @@
 
 {% block desktopUserBanner %}
 <section class="profile-shell">
-	<header class="profile-hero" {% if FEATURES['USERS_PROFILE_BANNER'] %}style="background-image:url('{{u.banner_url}}')"{% endif %}>
+	{% set profile_hero_background = u.profile_background or u.banner_url %}
+	<header class="profile-hero" style="background-image:url('{{profile_hero_background}}')">
 		<div class="profile-hero__shade"></div>
 		<div class="profile-hero__content">
 			<div id="profile--pfp" class="profile-avatar{% if u.hat_active(v)[0] %} profile--pfp--hat hat{% endif %}">
@@ -67,15 +68,15 @@
 		</div>
 	</header>
 			<div class="profile-stats" aria-label="Profile statistics">
-				<div class="profile-stat"><strong id="profile-coins-amount">{{u.coins}}</strong><span>Wishcoins</span></div>
+				<div class="profile-stat"><strong id="profile-coins-amount">{{u.coins|number}}</strong><span>Wishcoins</span></div>
 				{% if FEATURES['MARSEYBUX'] %}
-					<div class="profile-stat"><strong id="profile-bux-amount">{{u.marseybux}}</strong><span>Wishbux</span></div>
+					<div class="profile-stat"><strong id="profile-bux-amount">{{u.marseybux|number}}</strong><span>Wishbux</span></div>
 				{% endif %}
-				<div class="profile-stat"><strong>{{u.post_count}}</strong><span>Posts</span></div>
-				<div class="profile-stat"><strong>{{u.comment_count}}</strong><span>Comments</span></div>
+				<div class="profile-stat"><strong>{{u.post_count|number}}</strong><span>Posts</span></div>
+				<div class="profile-stat"><strong>{{u.comment_count|number}}</strong><span>Comments</span></div>
 				{% if PERMS['USER_FOLLOWS_VISIBLE'] == 0 or (v and v.admin_level >= PERMS['USER_FOLLOWS_VISIBLE']) %}
-					<a class="profile-stat" href="/@{{u.username}}/followers" id="profile--followers"><strong>{{u.stored_subscriber_count}}</strong><span>Followers</span></a>
-					<a class="profile-stat" href="/@{{u.username}}/following" id="profile--following"><strong>{{u.follow_count}}</strong><span>Following</span></a>
+					<a class="profile-stat" href="/@{{u.username}}/followers" id="profile--followers"><strong>{{u.stored_subscriber_count|number}}</strong><span>Followers</span></a>
+					<a class="profile-stat" href="/@{{u.username}}/following" id="profile--following"><strong>{{u.follow_count|number}}</strong><span>Following</span></a>
 				{% endif %}
 			</div>
 
@@ -185,11 +186,11 @@
 			<section class="profile-panel">
 				<h2>Account details</h2>
 				<dl id="profile--info" class="profile-details">
-					<div><dt>User ID</dt><dd>{{u.id}}</dd></div>
-					<div><dt>Wishcoins spent</dt><dd>{{u.coins_spent}}</dd></div>
+					<div><dt>User ID</dt><dd>{{u.id|number}}</dd></div>
+					<div><dt>Wishcoins spent</dt><dd>{{u.coins_spent|number}}</dd></div>
 					<div><dt>True score</dt><dd>{{u.truescore}}</dd></div>
-					<div><dt>Winnings</dt><dd>{{u.winnings}}</dd></div>
-					<div><dt>Hats owned</dt><dd>{{u.num_of_owned_hats}} / {{hats_total}} ({{hats_owned_percent}})</dd></div>
+					<div><dt>Winnings</dt><dd>{{u.winnings|number}}</dd></div>
+					<div><dt>Hats owned</dt><dd>{{u.num_of_owned_hats|number}} / {{hats_total|number}} ({{hats_owned_percent}})</dd></div>
 					{% if u.is_private %}<div><dt>Privacy</dt><dd>Private mode</dd></div>{% endif %}
 				</dl>
 				{% if u.moderated_subs %}

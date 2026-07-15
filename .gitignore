@@ -79,3 +79,7 @@ desktop.ini
 .vscode/
 *.swp
 *.swo
+# Submitted community assets (local moderation queue)
+asset_submissions/banner_submissions/
+asset_submissions/sidebar_submissions/
+files/assets/images/Obsession/defaults/*.webp

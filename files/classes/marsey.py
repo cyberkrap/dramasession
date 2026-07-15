@@ -23,7 +23,7 @@ class Marsey(Base):
 		return f"<{self.__class__.__name__}(name={self.name})>"
 
 	def tags_list(self):
-		return self.tags.split(" ") + [self.name[len("marsey"):]]  # type: ignore
+		return self.tags.split(" ") + [self.name]
 
 	def json(self):
 		data = {

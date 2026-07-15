@@ -40,9 +40,9 @@
 			u.username ~ "'s profile" %}
 
 		{% set description %}
-			{{u.coins}} Wishcoins - Joined {{u.created_date}} -
+			{{u.coins|number}} Wishcoins - Joined {{u.created_date}} -
 			{%- if u.stored_subscriber_count >=1 and not u.is_private -%}
-				{{u.stored_subscriber_count}} Followers -
+				{{u.stored_subscriber_count|number}} Followers -
 			{%- endif -%}
 			{%- if not u.is_private -%}
 				{{0 if u.shadowbanned else u.post_count}}
@@ -59,7 +59,9 @@
 		'/h/'+sub.name, sub.sidebar if sub.sidebar %}
 	{% endif %}
 
-	<link rel="icon" type="image/webp" href="/icon.webp?v=1">
+	{% set app_icon = ('official-logo.png' if SITE_NAME == 'Obsession' else 'icon.webp') | asset_siteimg %}
+{% set app_icon_type = 'image/png' if SITE_NAME == 'Obsession' else 'image/webp' %}
+<link rel='icon' type='{{app_icon_type}}' href='{{app_icon}}'>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta name="thumbnail" content="{{'site_preview.webp' | asset_siteimg}}">
 	<meta name="description" content="{{DESCRIPTION}}">
@@ -157,15 +159,17 @@
 {% endmacro %}
 
 {% macro seo() %}
+	{% set app_icon = ('official-logo.png' if SITE_NAME == 'Obsession' else 'icon.webp') | asset_siteimg %}
+	{% set app_icon_type = 'image/png' if SITE_NAME == 'Obsession' else 'image/webp' %}
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-touch-fullscreen" content="yes">
 	<meta name="format-detection" content="telephone=no">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 
-	<link rel="apple-touch-icon" sizes="180x180" href="/icon.webp?v=1">
+	<link rel='apple-touch-icon' sizes='180x180' href='{{app_icon}}'>
 	<link rel="manifest" href="/assets/manifest_{{SITE_NAME}}.json?v=426">
-	<link rel="mask-icon" href="/icon.webp?v=1">
-	<link rel="shortcut icon" href="/icon.webp?v=1">
+	<link rel='mask-icon' href='{{app_icon}}'>
+	<link rel='shortcut icon' href='{{app_icon}}'>
 	<meta name="apple-mobile-web-app-title" content="{{SITE_NAME}}">
 	<meta name="application-name" content="{{SITE_NAME}}">
 	<meta name="msapplication-TileColor" content="#{% if v %}{{v.themecolor}}{% else %}{{DEFAULT_COLOR}}{% endif %}">
@@ -176,6 +180,6 @@
 					'1024x748', '1024x768', '1125x2436', '1242x2208', '1356x2048',
 					'1668x2224', '1792x828', '2048x1496', '2048x2732', '2208x1242',
 					'2224x1668', '2436x1125', '2668x1242', '2737x2048') %}
-			<link rel="apple-touch-startup-image" sizes="{{size}}" href="/icon.webp?v=1">
+			<link rel='apple-touch-startup-image' sizes='{{size}}' href='{{app_icon}}'>
 	{% endfor %}
 {% endmacro %}

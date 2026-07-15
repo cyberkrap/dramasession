@@ -13,13 +13,13 @@ const TRANSFER_TAX = Number(document.getElementById('tax')?.textContent || 0);
 function updateTax() {
 	const amount = parseInt(document.getElementById('coin-transfer-amount')?.value || 0);
 	const output = document.getElementById('coins-transfer-taxed');
-	if (output && amount > 0) output.innerText = amount - Math.ceil(amount * TRANSFER_TAX);
+	if (output && amount > 0) output.innerText = formatNumber(amount - Math.ceil(amount * TRANSFER_TAX));
 }
 
 function updateBux() {
 	const amount = parseInt(document.getElementById('bux-transfer-amount')?.value || 0);
 	const output = document.getElementById('bux-transfer-taxed');
-	if (output && amount > 0) output.innerText = amount;
+	if (output && amount > 0) output.innerText = formatNumber(amount);
 }
 
 function transferCoins(t) {
@@ -37,8 +37,8 @@ function transferCoins(t) {
 	}, () => {
 		const ownBalance = document.getElementById('user-coins-amount');
 		const profileBalance = document.getElementById('profile-coins-amount');
-		if (ownBalance) ownBalance.innerText = parseInt(ownBalance.innerText) - amount;
-		if (profileBalance) profileBalance.innerText = parseInt(profileBalance.innerText) + transferred;
+		if (ownBalance) ownBalance.innerText = formatNumber(Number(ownBalance.innerText.replaceAll(',', '')) - amount);
+		if (profileBalance) profileBalance.innerText = formatNumber(Number(profileBalance.innerText.replaceAll(',', '')) + transferred);
 	});
 	setTimeout(() => t.disabled = false, 2000);
 }
@@ -57,8 +57,8 @@ function transferBux(t) {
 	}, () => {
 		const ownBalance = document.getElementById('user-bux-amount');
 		const profileBalance = document.getElementById('profile-bux-amount');
-		if (ownBalance) ownBalance.innerText = parseInt(ownBalance.innerText) - amount;
-		if (profileBalance) profileBalance.innerText = parseInt(profileBalance.innerText) + amount;
+		if (ownBalance) ownBalance.innerText = formatNumber(Number(ownBalance.innerText.replaceAll(',', '')) - amount);
+		if (profileBalance) profileBalance.innerText = formatNumber(Number(profileBalance.innerText.replaceAll(',', '')) + amount);
 	});
 	setTimeout(() => t.disabled = false, 2000);
 }

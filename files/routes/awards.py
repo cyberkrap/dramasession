@@ -155,14 +155,7 @@ def award_thing(v, thing_type, id):
 		AwardRelationship.submission_id == None,
 		AwardRelationship.comment_id == None
 	).first()
-
-	if not award: abort(404, "You don't have that award")
-
-	if thing_type == 'post': award.submission_id = thing.id
-	else: award.comment_id = thing.id
-	award.awarded_utc = int(time.time())
-
-	g.db.add(award)
+	purchased_directly = award is None
 
 	note = request.values.get("note", "").strip()
 
@@ -185,6 +178,21 @@ def award_thing(v, thing_type, id):
 
 	if thing.ghost and not AWARDS[kind]['ghost']:
 		abort(403, "This kind of award can't be used on ghost posts!")
+
+	if purchased_directly:
+		price = int(AWARDS[kind]['price'] * v.discount)
+		currency = 'marseybux' if kind == 'benefactor' else 'coins'
+		if not v.charge_account(currency, price):
+			abort(400, f"Not enough {currency}!" )
+		if currency == 'coins':
+			v.coins_spent += price
+		award = AwardRelationship(user_id=v.id, kind=kind, price_paid=price)
+		g.db.add(v)
+
+	if thing_type == 'post': award.submission_id = thing.id
+	else: award.comment_id = thing.id
+	award.awarded_utc = int(time.time())
+	g.db.add(award)
 
 	if v.id != author.id:
 		if author.deflector and v.deflector and AWARDS[kind]['deflectable']:

@@ -8,91 +8,115 @@
 	{% set vlink = '<a href="/id/' ~ v.id ~ '">' %}
 	<div class="container pb-4">
 		<div class="row justify-content-around" id="main-content-row">
-			<div class="col h-100 {% block customPadding %}{% if request.path.startswith('/@') %}user-gutters{% else %}custom-gutters{% endif %}{% endblock %}" id="main-content-col">	
+			<div class="col h-100 {% block customPadding %}{% if request.path.startswith('/@') %}user-gutters{% else %}custom-gutters{% endif %}{% endblock %}" id="main-content-col">
+				<div class="border-right pb-1 pt-2 px-3">
+					<span id="online2" data-bs-html="true" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Users Online" class="text-muted">
+						<i class="far fa-user fa-sm mr-1"></i>
+						<span class="board-chat-count">0</span>
+					</span>
+				</div>
 
-			<div class="border-right pb-1 pt-2 px-3">
-				<span id="online2" data-bs-html="true" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Users Online" class="text-muted">
-					<i class="far fa-user fa-sm mr-1"></i>
-					<span class="board-chat-count">0</span>
-				</span>
-			</div>
-
-			{% macro chat_group_template(id, m) %}
-				<div class="chat-group">
-					<a class="font-weight-bold userlink" target="_blank" {% if m %}style="color:#{{m['namecolor']}}" href="/@{{m['username']}}" {% endif %}><div class="avatar profile-pic-20-wrapper mr-1"><img loading="lazy" class="avatar-pic pp20 mr-1" {% if m %}src="/pp/{{m['user_id']}}"{% endif %}><img class="avatar-hat profile-pic-20-hat hat" loading="lazy" {% if m %}src="{{m['hat']}}"{% endif %}></div>{% if m %}{{m['username']}}{% else %}NULL{% endif %}</a>
-					<span class="text-black time ml-1 mb-3 text-center">{% if m %}{{m['time'] | timestamp}}{% else %}just now{% endif %}</span>
-					<input hidden class="user_id" {% if m %}value="{{m['user_id']}}"{% endif %}>
-			{% endmacro %}
-
-			{% macro chat_line_template(id, m) %}
-				{% set quote_exists = m and m['quotes'] and messages.get(m['quotes']) %}
-				{% set mentioned = m and vlink in m['text_html'] or (quote_exists and messages[m['quotes']]['user_id'] == v.id) %}
-				<div class="chat-line {% if mentioned %}chat-mention{% endif %}" {% if m %}id="{{id}}"{% endif %}>
-					<div class="d-flex align-items-center">
-						<div class="text-muted chat-line-content row">
-							<div class="{% if not (m and m['quotes']) %}d-none{% endif %} quotes" style="font-size:12px">
-								<a class="QuotedMessageLink" {% if m and m['quotes'] %}href="#{{m['quotes']}}"{% endif %}>
-									<i class="fas fa-reply"></i> 
-									<span class="text-primary">@<span class="QuotedUser">
-										{%- if quote_exists -%}
-											{{messages[m['quotes']]['username']}}
-										{%- endif -%}
-									</span></span>: 
-									<em class="QuotedMessage">
-										{%- if quote_exists -%}
-											{{messages[m['quotes']]['text']}}
-										{%- endif -%}
-									</em>
-								</a>
+				{% if v.admin_level >= PERMS['POST_COMMENT_MODERATION'] %}
+					<div class="chat-filter-toolbar mt-2 mb-2">
+						<button type="button" id="chat-filter-toggle" class="btn btn-secondary" aria-expanded="false">
+							<i class="fas fa-filter mr-1"></i>Filters
+						</button>
+						<span id="chat-filter-summary" class="text-muted ml-2">Recent public chat</span>
+					</div>
+					<div id="chat-filters" class="d-none border rounded p-2 mb-2">
+						<div class="row">
+							<div class="col-12 col-md-4 mb-2">
+								<label for="chat-filter-author" class="text-muted small mb-1">Author</label>
+								<input id="chat-filter-author" class="form-control" type="text" maxlength="80" placeholder="username">
 							</div>
+							<div class="col-12 col-md-4 mb-2">
+								<label for="chat-filter-keyword" class="text-muted small mb-1">Keyword</label>
+								<input id="chat-filter-keyword" class="form-control" type="search" maxlength="120" placeholder="message text">
+							</div>
+							<div class="col-12 col-md-4 mb-2">
+								<label for="chat-filter-mentions" class="text-muted small mb-1">Mentions user</label>
+								<input id="chat-filter-mentions" class="form-control" type="text" maxlength="80" placeholder="username">
+							</div>
+							<div class="col-12 col-md-4 mb-2">
+								<label class="text-muted small d-flex align-items-center">
+									<input id="chat-filter-attachment" type="checkbox" class="mr-2"> Includes an attachment
+								</label>
+							</div>
+							<div class="col-12 col-md-4 mb-2">
+								<label for="chat-filter-from" class="text-muted small mb-1">From date</label>
+								<input id="chat-filter-from" class="form-control" type="datetime-local">
+							</div>
+							<div class="col-12 col-md-4 mb-2">
+								<label for="chat-filter-to" class="text-muted small mb-1">To date</label>
+								<input id="chat-filter-to" class="form-control" type="datetime-local">
+							</div>
+						</div>
+						<button type="button" id="chat-filter-apply" class="btn btn-secondary mr-1"><i class="fas fa-search mr-1"></i>Apply</button>
+						<button type="button" id="chat-filter-clear" class="btn btn-secondary">Clear</button>
+					</div>
+				{% endif %}
 
-							<span class="chat-message text-black text-break col">
-								{% if m %}
-									{% if v.slurreplacer %}
-										{{m['text_censored'] | safe}}
-									{% else %}
-										{{m['text_html'] | safe}}
+				{% macro chat_group_template(id, m) %}
+					<div class="chat-group" data-user-id="{% if m %}{{m['user_id']}}{% endif %}">
+						<a class="font-weight-bold userlink" target="_blank" {% if m %}style="color:#{{m['namecolor']}}" href="/@{{m['username']}}" {% endif %}>
+							<div class="avatar profile-pic-20-wrapper mr-1">
+								<img loading="lazy" class="avatar-pic pp20 mr-1" {% if m %}src="/pp/{{m['user_id']}}"{% endif %}>
+								<img class="avatar-hat profile-pic-20-hat hat" loading="lazy" {% if m and m['hat'] %}src="{{m['hat']}}"{% endif %}>
+							</div>
+							<span class="chat-username {% if m and m.get('distinguish_by') %}mod{% elif m and m.get('patron') %}patron{% endif %}"{% if m and m.get('patron') and not m.get('distinguish_by') %} style="background-color:#{{m['namecolor']}}"{% endif %}>{% if m %}{{m['username']}}{% else %}NULL{% endif %}</span>
+							<i class="fas fa-shield-alt chat-admin-icon {% if not (m and m.get('distinguish_by')) %}d-none{% endif %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Obsession admin, speaking officially." aria-label="Obsession admin, speaking officially."></i>
+						</a>
+						<span class="text-black time ml-1 mb-3 text-center" data-epoch="{% if m %}{{m['time']}}{% endif %}">
+							<a class="chat-local-time" {% if m %}href="/chat#{{id}}"{% endif %}></a>
+							<a class="chat-message-id" {% if m %}href="/chat#{{id}}"{% endif %}>{% if m %}#{{id}}{% endif %}</a>
+						</span>
+						<input hidden class="user_id" {% if m %}value="{{m['user_id']}}"{% endif %}>
+					</div>
+				{% endmacro %}
+
+				{% macro chat_line_template(id, m) %}
+					{% set quote_exists = m and m['quotes'] and messages.get(m['quotes']) %}
+					{% set mentioned = m and vlink in m['text_html'] or (quote_exists and messages[m['quotes']]['user_id'] == v.id) %}
+					<div class="chat-line {% if mentioned %}chat-mention{% endif %}{% if m and m.get('distinguish_by') %} chat-admin-message chat-distinguished{% endif %}{% if m and m.get('removed_by') %} chat-removed{% endif %}" {% if m %}id="{{id}}"{% endif %}>
+						<div class="d-flex align-items-center">
+							<div class="text-muted chat-line-content row">
+								<div class="{% if not (m and m['quotes']) %}d-none{% endif %} quotes" style="font-size:12px">
+									<a class="QuotedMessageLink" {% if m and m['quotes'] %}href="#{{m['quotes']}}"{% endif %}>
+										<i class="fas fa-reply"></i>
+										<span class="text-primary">@<span class="QuotedUser">{% if quote_exists %}{{messages[m['quotes']]['username']}}{% endif %}</span></span>:
+										<em class="QuotedMessage">{% if quote_exists %}{{messages[m['quotes']]['text']}}{% endif %}</em>
+									</a>
+								</div>
+								<span class="chat-message text-black text-break col">
+									{% if m %}
+										{% if m.get('removed_by') %}
+											<em class="chat-removal-notice">This message was removed by <a href="/@{{m['removed_by']}}">@{{m['removed_by']}}</a> (Admin).</em>
+										{% elif v.slurreplacer %}
+											{{m['text_censored'] | safe}}
+										{% else %}
+											{{m['text_html'] | safe}}
+										{% endif %}
 									{% endif %}
+								</span>
+								<span class="text d-none">{% if m %}{{m['text']}}{% endif %}</span>
+								{% if v.admin_level > 1 %}
+									<i class="btn del fas fa-trash-alt" title="Remove message" aria-label="Remove message"></i>
+									<i class="btn d-none del delmsg fas fa-trash-alt text-danger" title="Confirm remove" aria-label="Confirm remove"></i>
 								{% endif %}
-							</span>
-							<span class="text d-none">{% if m %}{{m['text']}}{% endif %}</span>
-							{% if v.admin_level > 1 %}
-								<i class="btn del fas fa-trash-alt"></i>
-								<i class="btn d-none del delmsg fas fa-trash-alt text-danger" data-nonce="{{g.nonce}}" data-onclick="del(this)"></i>
-							{% endif %}
-							<i class="quote btn fas fa-reply" data-nonce="{{g.nonce}}" data-onclick="quote(this)"></i>
+								<i class="quote btn fas fa-reply" title="Quote message" aria-label="Quote message"></i>
+							</div>
 						</div>
 					</div>
-				</div>
-			{% endmacro %}
+				{% endmacro %}
 
+				<div id="chat-group-template" class="d-none">{{chat_group_template()}}</div>
+				<div id="chat-line-template" class="d-none">{{chat_line_template()}}</div>
 
-			<div id="chat-group-template" class="d-none">
-				{{chat_group_template()}}
-				</div>
-			</div>
-
-			<div id="chat-line-template" class="d-none">
-				{{chat_line_template()}}
-			</div>
-
-			<div id="shrink">
-				<div id="chat-window" class="container pl-0 py-0">
-					{% set messages_list = messages.items()|list %}
-					{% for id, m in messages_list %}
-						{% set same = loop.index > 1 and m['user_id'] == messages_list[loop.index-2][1]['user_id'] %}
-						{% if not same %}
-							{% if loop.index > 1 %}
-								</div>
-							{% endif %}
-							{{chat_group_template(id, m)}}
-						{% endif %}
-						{{chat_line_template(id, m)}}
-					{% endfor %}
-					</div>
+				<div id="shrink">
+					<button type="button" id="chat-load-more" class="btn btn-secondary d-none mb-2">Load more messages</button>
+<div id="chat-window" class="container pl-0 py-0" aria-live="polite"></div>
 				</div>
 
-				<div class="mt-3"></div>
 				<div id="quotes" class="mt-3 ml-3 mb-2 d-none" style="font-size:12px">
 					<a id="QuotedMessageLink">
 						<i class="fas fa-reply"></i> <span class="text-primary">@<span id="QuotedUser"></span></span>: <em id="QuotedMessage"></em>
@@ -101,39 +125,44 @@
 					</a>
 				</div>
 
-				<div id='message' class="d-none position-relative form-group d-flex">
-					<div class="position-absolute text-muted text-small ml-1" style="bottom: -1.5rem; line-height: 1;">
-						<span id="typing-indicator"></span>
-						<span id="loading-indicator" class="d-none"></span>
-					</div>
+				<div id="chat-mention-suggestions" class="chat-mention-suggestions d-none" role="listbox" aria-label="Mention suggestions"></div>
+<div id="chat-typing-row" class="text-muted text-small" aria-live="polite">
+	<span id="typing-indicator"></span>
+	<span id="loading-indicator" class="d-none"></span>
+</div>
+<span id="chat-status" class="d-none"></span>
+<div id="message" class="position-relative form-group d-flex">
 					<span class="my-auto">
-						<i class="btn btn-secondary fas fa-smile-beam" style="font-size:1.3rem!important" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-text')" data-bs-toggle="modal" data-bs-target="#emojiModal"></i>
+						<i class="btn btn-secondary fas fa-smile-beam" style="font-size:1.3rem!important" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-text')" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add emoji" aria-label="Add emoji"></i>
 					</span>
-					
 					<span class="my-auto ml-1">
-						<label class="btn btn-secondary format mb-0">
+						<label class="btn btn-secondary format mb-0" title="Attach image">
 							<div id="filename" class="mr-3" style="font-size:12px"><i class="fas fa-image" style="font-size:1.3rem!important"></i></div>
-							<input autocomplete="off" id="file" accept="image/*" type="file" multiple="multiple" name="file" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename','file')" hidden>
+							<input autocomplete="off" id="file" accept="image/*" type="file" multiple="multiple" name="file" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" hidden>
 						</label>
 					</span>
-
-					<textarea id="input-text" minlength="1" maxlength="{% if SITE == 'rdrama.net' %}200{% else %}1000{% endif %}" {% if g.browser == "apple" %}style="font-size:16px!important"{% endif %} class="form-control" placeholder="Message" autocomplete="off" autofocus rows="1"></textarea>
-
-					<i id="chatsend" data-nonce="{{g.nonce}}" data-onclick="send()" class="btn btn-secondary fas fa-reply ml-3 my-auto" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" style="transform:rotateY(180deg);font-size:1.3rem!important"></i>
+					{% if v.admin_level >= PERMS['POST_COMMENT_DISTINGUISH'] %}
+						<label class="chat-official-toggle my-auto ml-1" title="Send this message with the official Obsession admin treatment.">
+							<input id="chat-send-official" type="checkbox"><i class="fas fa-shield-alt" aria-hidden="true"></i><span>Send as admin</span>
+						</label>
+					{% endif %}
+					<textarea id="input-text" minlength="1" maxlength="{% if SITE == 'rdrama.net' %}200{% else %}1000{% endif %}" {% if g.browser == "apple" %}style="font-size:16px!important"{% endif %} class="form-control" placeholder="Message" autocomplete="off" autofocus rows="1" aria-label="Chat message"></textarea>
+					<button id="chatsend" class="btn btn-secondary fas fa-reply ml-3 my-auto" type="button" title="Send message" aria-label="Send message" style="transform:rotateY(180deg);font-size:1.3rem!important"></button>
 				</div>
 			</div>
-		</div>
 
-		<div class="col text-left d-none d-lg-block pt-3" style="max-width:300px">
+		<div class="col text-left d-none d-lg-block pt-3 chat-online-column" style="max-width:300px">
 			<h5>Users Online</h5>
 			<div id="online" class="mt-3"></div>
 		</div>
 	</div>
 
+	<script id="chat-initial-data" type="application/json">{{initial_messages | tojson}}</script>
 	<input id="vid" hidden value="{{v.id}}">
 	<input id="site_name" hidden value="{{SITE_NAME}}">
 	<input id="slurreplacer" hidden value="{{v.slurreplacer}}">
 	<input id="admin_level" hidden value="{{v.admin_level}}">
+	<input id="chat-has-more" hidden value="{{1 if initial_has_more else 0}}">
 	<script defer src="{{'js/vendor/socketio.js' | asset}}"></script>
 	<script defer src="{{'js/chat.js' | asset}}"></script>
 	<script defer src="{{'js/vendor/lozad.js' | asset}}"></script>

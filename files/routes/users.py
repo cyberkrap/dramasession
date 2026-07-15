@@ -26,6 +26,20 @@ from files.routes.wrappers import *
 from files.__main__ import app, cache, limiter
 
 
+@app.get("/api/users/suggest")
+@limiter.limit("30 per minute", key_func=get_ID)
+@auth_required
+def user_suggestions(v:User):
+	term = sanitize_username(request.args.get("q", ""))[:30]
+	if not term:
+		return {"data": []}
+	users = g.db.query(User).filter(
+		or_(User.username.ilike(f"{term}%"), User.original_username.ilike(f"{term}%")),
+		User.shadowbanned == None,
+	).order_by(User.username.asc()).limit(8).all()
+	return {"data": [{"id": user.id, "username": user.username} for user in users]}
+
+
 def upvoters_downvoters(v, username, uid, cls, vote_cls, vote_dir, template, standalone):
 	u = get_user(username, v=v, include_shadowbanned=False)
 	if not u.is_visible_to(v): abort(403)
@@ -1402,10 +1416,13 @@ def settings_claim_rewards(v:User):
 @auth_required
 def users_list(v):
 
-	try: page = int(request.values.get("page", 1))
+	try: page = max(1, int(request.values.get("page", 1)))
 	except: page = 1
 
-	users = g.db.query(User).order_by(User.id.desc()).offset(PAGE_SIZE * (page - 1)).limit(PAGE_SIZE + 1).all()
+	total_users = g.db.query(User.id).count()
+	total_pages = max(1, (total_users + PAGE_SIZE - 1) // PAGE_SIZE)
+	page = min(page, total_pages)
+	users = g.db.query(User).order_by(User.created_utc.desc(), User.id.desc()).offset(PAGE_SIZE * (page - 1)).limit(PAGE_SIZE + 1).all()
 
 	next_exists = (len(users) > PAGE_SIZE)
 	users = users[:PAGE_SIZE]
@@ -1415,5 +1432,6 @@ def users_list(v):
 						users=users,
 						next_exists=next_exists,
 						page=page,
-						user_cards_title="Users Feed",
+						total_pages=total_pages,
+						user_cards_title="Registered Users",
 						)

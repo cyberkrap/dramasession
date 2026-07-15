@@ -25,23 +25,6 @@
 					</div>
 					<div class="d-lg-flex border-bottom">
 						<div class="title w-lg-25">
-							<label for="theme">Website Theme</label>
-						</div>
-						<div class="body w-lg-100">
-							<div class="input-group mb2">
-								<select autocomplete="off" id='theme' class="form-control setting_select" form="profile-settings" name="theme" data-nonce="{{g.nonce}}" data-reload="1">
-								{% for entry in THEMES %}
-									<option value="{{entry}}" {% if v.theme==entry %} selected {% endif %}>
-										{{entry}}
-									</option>
-								{% endfor %}
-							</select>
-							</div>
-						</div>
-					</div>
-					{{common.color_section('theme-color', '/settings/themecolor', 'themecolor', 'Theme Color', v.themecolor)}}
-					<div class="d-lg-flex border-bottom">
-						<div class="title w-lg-25">
 							<label for="background">Website Backgrounds</label>
 						</div>
 							<div class="body w-lg-100">
@@ -91,13 +74,13 @@
 							<div class="body w-lg-100">
 								{% if v.house %}
 									{% set cost = HOUSE_SWITCH_COST %}
-									<p>Change your house (cost: {{cost}} Wishcoins or Wishbux).</p>
+									<p>Change your house (cost: {{cost|number}} Wishcoins or Wishbux).</p>
 									{% if ' Founder' in v.house %}
 										<p>Warning: you'll lose your founder status if you join a different house</p>
 									{% endif %}
 								{% else %}
 									{% set cost = HOUSE_JOIN_COST %}
-									<p>Join a house (cost: {{cost}} Wishcoins or Wishbux).</p>
+									<p>Join a house (cost: {{cost|number}} Wishcoins or Wishbux).</p>
 								{% endif %}
 								<div class="input-group mb2">
 									<select {% if (not v.can_spend('coins', cost) and not v.can_spend('marseybux', cost)) or v.bite %}disabled{% endif %} autocomplete="off" id='house' class="form-control setting_select" form="profile-settings" name="house" data-nonce="{{g.nonce}}" data-reload="1">

@@ -1,5 +1,8 @@
+import json
 from os import path, rename
 from shutil import copyfile, move
+from flask import send_file
+from PIL import Image, UnidentifiedImageError
 
 from files.classes.marsey import Marsey
 from files.classes.hats import Hat, HatDef
@@ -8,6 +11,7 @@ from files.helpers.cloudflare import purge_files_in_cache
 from files.helpers.config.const import *
 from files.helpers.get import *
 from files.helpers.media import *
+from files.helpers.community_assets import COMMUNITY_ASSET_CONFIG, ensure_asset_directories, list_submissions, write_submission, queue_directory, read_submission
 from files.helpers.useractions import *
 from files.routes.wrappers import *
 from files.__main__ import app, cache, limiter
@@ -463,3 +467,87 @@ def update_hat(v):
 	)
 	g.db.add(ma)
 	return render_template("update_assets.html", v=v, msg=f"'{name}' updated successfully!", type="Hat")
+
+ART_SUBMISSIONS = COMMUNITY_ASSET_CONFIG
+
+
+def _art_submission_page(kind, v, error=None, msg=None):
+	config = ART_SUBMISSIONS[kind]
+	ensure_asset_directories(kind)
+	show_all = v.admin_level >= PERMS['SITE_SETTINGS']
+	submissions = list_submissions(kind, status=None if show_all else "pending", submitter=None if show_all else v.username)
+	return render_template("submit_art.html", v=v, kind=kind, label=config["label"], config=config, submissions=submissions, error=error, msg=msg)
+
+
+@app.get("/submit/banner")
+@app.get("/submit/sidebar-art")
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@auth_required
+def submit_community_art(v:User):
+	kind = "banner" if request.path.endswith("/banner") else "sidebar"
+	return _art_submission_page(kind, v)
+
+
+@app.post("/submit/banner")
+@app.post("/submit/sidebar-art")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@auth_required
+def submit_community_art_post(v:User):
+	kind = "banner" if request.path.endswith("/banner") else "sidebar"
+	config = ART_SUBMISSIONS[kind]
+	file = request.files.get("image")
+	if g.is_tor:
+		return _art_submission_page(kind, v, error="Image uploads are not allowed through TOR!"), 403
+	if not file or not file.filename or not file.content_type or not file.content_type.startswith("image/"):
+		return _art_submission_page(kind, v, error="Please choose an image file."), 400
+
+	ensure_asset_directories(kind)
+	folder = queue_directory(kind)
+	stamp = str(int(time.time() * 1000))
+	upload_path = f"{folder}/{stamp}.upload"
+	file.save(upload_path)
+	if os.stat(upload_path).st_size >= config["max_bytes"]:
+		os.remove(upload_path)
+		return _art_submission_page(kind, v, error="The image must be under 2 MB."), 413
+	try:
+		with Image.open(upload_path) as image:
+			if config["dimensions"] and image.size != config["dimensions"]:
+				os.remove(upload_path)
+				return _art_submission_page(kind, v, error="Banner images must be exactly 1920x192 px."), 400
+	except (UnidentifiedImageError, OSError):
+		os.remove(upload_path)
+		return _art_submission_page(kind, v, error="That image could not be read."), 415
+
+	image_path = f"{folder}/{stamp}.webp"
+	os.replace(upload_path, image_path)
+	if not process_image(image_path, v, resize=0) or os.stat(image_path).st_size >= config["max_bytes"]:
+		if os.path.exists(image_path):
+			os.remove(image_path)
+		return _art_submission_page(kind, v, error="That image could not be processed under the 2 MB limit."), 415
+
+	metadata = {
+		"filename": f"{stamp}.webp",
+		"title": request.values.get("title", "").strip()[:100],
+		"notes": request.values.get("notes", "").strip()[:1000],
+		"submitter": v.username,
+		"submitted_utc": int(time.time()),
+		"status": "pending",
+		"reviewed_by": None,
+		"reviewed_utc": None,
+	}
+	write_submission(kind, stamp, metadata)
+	return _art_submission_page(kind, v, msg=f"{config['label']} submitted for moderation.")
+
+
+@app.get("/community-assets/<kind>/<submission_id>")
+@auth_required
+def community_asset_preview(kind, submission_id, v:User):
+	if kind not in ART_SUBMISSIONS:
+		abort(404)
+	item = read_submission(kind, submission_id)
+	if not item or (item.get("submitter") != v.username and v.admin_level < PERMS['SITE_SETTINGS']):
+		abort(404)
+	image_path = os.path.join(queue_directory(kind), os.path.basename(item["filename"]))
+	if not os.path.isfile(image_path):
+		abort(404)
+	return send_file(image_path)

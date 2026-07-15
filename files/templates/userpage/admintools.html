@@ -75,12 +75,15 @@
 			{% endif %}
 
 			<div class="actionbtns mt-3">
-				{% if v.admin_level >= PERMS['ADMIN_ADD'] %}
-					<button type="button" id="add-admin-{{deviceType}}" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/make_admin','add-admin-{{deviceType}}','remove-admin-{{deviceType}}','d-none')">Make Admin</button>
+				{% if v.has_all_admin_permissions %}
+					<button type="button" id="add-admin-{{deviceType}}" class="{% if u.admin_level %}d-none {% endif %}btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/make_admin','add-admin-{{deviceType}}','remove-admin-{{deviceType}}','d-none')">Make Admin</button>
 				{% endif %}
-				{% if v.admin_level >= PERMS['ADMIN_REMOVE'] %}
-					<button type="button" id="remove-admin-{{deviceType}}" class="{% if u.admin_level < 1 %}d-none{% endif %} btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/remove_admin','add-admin-{{deviceType}}','remove-admin-{{deviceType}}','d-none')">Remove Admin</button>
+				{% if v.has_all_admin_permissions %}
+					<button type="button" id="remove-admin-{{deviceType}}" class="{% if not u.admin_level %}d-none {% endif %}btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/remove_admin','add-admin-{{deviceType}}','remove-admin-{{deviceType}}','d-none')">Remove Admin</button>
 				{% endif %}
+				{% if v.has_all_admin_permissions and u.admin_level and v.can_manage_admin(u) %}
+	<a class="btn btn-secondary mt-3" href="/admin/administrators#admin-{{u.username}}">Manage admin access</a>
+{% endif %}
 				{% if v.admin_level >= PERMS['ADMIN_ACTIONS_REVERT'] and u.admin_level %}
 					<button type="button" class="btn btn-danger" data-areyousure="postToastSwitch(this,'/@{{u.username}}/revert_actions')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">Revert Admin Actions</button>
 				{% endif %}
@@ -109,6 +112,15 @@
 				{% endif %}
 
 			</div>
+			{% if v.admin_level >= PERMS['USER_MODERATION_TOOLS_VISIBLE'] %}
+				<div class="moderation-asset-actions mt-3 pt-2 border-top">
+					<div class="text-muted text-small mb-2">Profile asset moderation</div>
+					<button type="button" class="btn btn-warning mr-1 mb-1" data-areyousure="postToastReload(this,'/admin/wipe_profile_picture/{{u.id}}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">Reset profile picture</button>
+					<button type="button" class="btn btn-warning mb-1" data-areyousure="postToastReload(this,'/admin/wipe_profile_banner/{{u.id}}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">Reset profile banner</button>
+					<button type="button" class="btn btn-warning mb-1" data-areyousure="postToastReload(this,'/admin/wipe_profile_background/{{u.id}}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">Reset profile background</button>
+				</div>
+			{% endif %}
 		</div>
 	{% endif %}
 {%- endmacro %}
+

@@ -1,4 +1,6 @@
 import time
+import json
+import os
 from urllib.parse import quote, urlencode
 from math import floor
 
@@ -11,6 +13,8 @@ from files.helpers.actions import *
 from files.helpers.alerts import *
 from files.helpers.cloudflare import *
 from files.helpers.config.const import *
+from files.helpers.default_assets import DEFAULT_ASSET_DIR, get_default_assets, set_default_asset
+from files.helpers.community_assets import list_submissions, approve_submission, reject_submission
 from files.helpers.get import *
 from files.helpers.media import *
 from files.helpers.sanitize import *
@@ -22,6 +26,205 @@ from files.routes.wrappers import *
 from files.routes.routehelpers import get_alt_graph, get_alt_graph_ids
 
 from .front import frontlist, comment_idlist
+ADMIN_PRESETS = {
+    'moderator': {
+        'label': 'Moderator',
+        'level': 1,
+        'description': 'Chat, reports, basic post and user moderation.',
+    },
+    'administrator': {
+        'label': 'Administrator',
+        'level': 3,
+        'description': 'Moderator tools plus admin actions, settings, and content review.',
+    },
+    'senior': {
+        'label': 'Senior Administrator',
+        'level': 4,
+        'description': 'Administrator tools plus submitted-asset moderation.',
+    },
+    'head': {
+        'label': 'Head Administrator',
+        'level': HEAD_ADMIN_LEVEL,
+        'description': 'Every non-currency admin permission. Economy access stays separate.',
+    },
+    'head_economy': {
+        'label': 'Head Administrator + Economy',
+        'level': HEAD_ADMIN_LEVEL,
+        'description': 'Head administrator access plus explicitly granted currency tools.',
+    },
+}
+
+
+def _preset_permissions(preset):
+    config = ADMIN_PRESETS[preset]
+    permissions = [
+        name for name, requirement in PERMS.items()
+        if int(requirement) <= config['level'] and name not in CURRENCY_ADMIN_PERMISSIONS
+    ]
+    if preset == 'head_economy':
+        permissions.extend(sorted(CURRENCY_ADMIN_PERMISSIONS))
+    return sorted(set(permissions))
+
+
+def _permission_groups():
+    groups = []
+    for level in sorted({int(requirement) for requirement in PERMS.values()}):
+        groups.append({
+            'level': level,
+            'permissions': sorted(
+                name for name, requirement in PERMS.items()
+                if int(requirement) == level
+            ),
+        })
+    return groups
+
+
+def _require_head_administrator(actor):
+    if not actor.has_all_admin_permissions:
+        abort(403)
+
+def _require_head_economy_administrator(actor):
+	_require_head_administrator(actor)
+	if not all(actor.has_permission(permission) for permission in CURRENCY_ADMIN_PERMISSIONS):
+		abort(403, 'Patron management requires Head Administrator + Economy access.')
+
+def _save_admin_permissions(actor, user, permissions):
+    _require_head_administrator(actor)
+    if user.id == actor.id or not actor.can_manage_admin(user):
+        abort(403)
+    permissions = sorted({name for name in permissions if name in PERMS})
+    if (not actor.has_admin_economy_permissions) and (int(user.admin_level) >= HEAD_ADMIN_LEVEL or any(int(PERMS[name]) >= HEAD_ADMIN_LEVEL for name in permissions)):
+        abort(403, 'Head Administrator roles are protected from ordinary Head Admin accounts.')
+    if any(name in CURRENCY_ADMIN_PERMISSIONS for name in permissions):
+        abort(403, 'Economy permissions are reserved for the Head Administrator + Economy account.')
+    for permission in permissions:
+        if permission in CURRENCY_ADMIN_PERMISSIONS:
+            if not actor.has_permission(permission):
+                abort(403, 'Only the head administrator can grant economy permissions.')
+        elif not actor.has_permission(permission):
+            abort(403, 'You cannot grant a permission you do not have.')
+
+    user.admin_permissions = json.dumps(permissions)
+    user.admin_level = max((int(PERMS[name]) for name in permissions), default=1)
+    g.db.add(user)
+    g.db.add(ModAction(
+        kind='admin_permissions',
+        user_id=actor.id,
+        target_user_id=user.id
+    ))
+
+
+@app.post('/admin/patrons/manage')
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_ADD'])
+def manage_patron_from_admin_page(v: User):
+    _require_head_economy_administrator(v)
+    username = (request.form.get('username') or '').strip()
+    user = get_user(username, graceful=True)
+    if not user:
+        return redirect(f'/admin/administrators?error={quote("User not found.")}')
+
+    action = request.form.get('action', 'set')
+    if action == 'end':
+        user.patron = 0
+        user.patron_utc = 0
+        message = f'Patron status ended for @{user.username}.'
+    else:
+        try:
+            level = max(1, min(6, int(request.form.get('level', 1))))
+        except (TypeError, ValueError):
+            return redirect(f'/admin/administrators?error={quote("Choose a valid patron level.")}')
+        user.patron = level
+        if request.form.get('permanent') == 'on':
+            user.patron_utc = 0
+        else:
+            try:
+                days = max(1, min(3650, int(request.form.get('duration_days', 30))))
+            except (TypeError, ValueError):
+                return redirect(f'/admin/administrators?error={quote("Choose a valid patron duration.")}')
+            user.patron_utc = int(time.time()) + days * 86400
+        message = f'Patron level {level} applied to @{user.username}.'
+
+    g.db.add(user)
+    return redirect(f'/admin/administrators?msg={quote(message)}')
+@app.get('/admin/administrators')
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_ADD'])
+def admin_administrators(v: User):
+    _require_head_administrator(v)
+    admins = g.db.query(User).filter(User._admin_level > 0).all()
+    admins.sort(key=lambda user: (user.has_all_admin_permissions, user.admin_permission_count or 0, int(user.admin_level)), reverse=True)
+    return render_template(
+        'admin/administrators.html',
+        v=v,
+        admins=admins,
+        admin_presets=ADMIN_PRESETS,
+        permission_groups=_permission_groups(),
+        currency_permissions=sorted(CURRENCY_ADMIN_PERMISSIONS),
+        patron_tiers=range(1, 7),
+        error=request.values.get('error'),
+        msg=request.values.get('msg'),
+    )
+
+
+@app.post('/admin/administrators/<username>/preset')
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_ADD'])
+def set_admin_preset(v: User, username):
+    _require_head_administrator(v)
+    user = get_user(username)
+    preset = request.form.get('preset')
+    if preset not in ADMIN_PRESETS:
+        abort(400, 'Choose a valid administrator preset.')
+    _save_admin_permissions(v, user, _preset_permissions(preset))
+    message = quote(f"{ADMIN_PRESETS[preset]['label']} applied to @{user.username}.")
+    return redirect(f'/admin/administrators?msg={message}')
+
+
+@app.post('/admin/administrators/<username>/permissions')
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_ADD'])
+def set_admin_permissions_from_admin_page(v: User, username):
+	_require_head_administrator(v)
+	user = get_user(username)
+	_save_admin_permissions(v, user, request.form.getlist('permissions'))
+	return redirect(f'/admin/administrators?msg={quote(f"Permissions updated for @{user.username}.")}')
+
+@app.post('/admin/administrators/add')
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_ADD'])
+def add_administrator_from_admin_page(v: User):
+	_require_head_administrator(v)
+	user = get_user(request.form.get('username'), graceful=True)
+	preset = request.form.get('preset')
+	if not user:
+		return redirect('/admin/administrators?error=User not found.')
+	if user.admin_level:
+		return redirect(f'/admin/administrators?error=@{user.username} is already an administrator.')
+	if preset not in ADMIN_PRESETS:
+		return redirect('/admin/administrators?error=Choose a valid administrator preset.')
+	_save_admin_permissions(v, user, _preset_permissions(preset))
+	send_repeatable_notification(user.id, f'@{v.username} added you as an administrator.')
+	label = ADMIN_PRESETS[preset]['label']
+	message = quote(f"{label} applied to @{user.username}.")
+	return redirect(f'/admin/administrators?msg={message}')
+
+
+@app.post('/admin/administrators/<username>/remove')
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_REMOVE'])
+def remove_administrator_from_admin_page(v: User, username):
+	_require_head_administrator(v)
+	user = get_user(username)
+	if user.id == v.id or not v.can_manage_admin(user):
+		abort(403)
+	user.admin_level = 0
+	user.admin_permissions = ''
+	user.unlimited_spending = False
+	g.db.add(user)
+	g.db.add(ModAction(kind='remove_admin', user_id=v.id, target_user_id=user.id))
+	send_repeatable_notification(user.id, f'@{v.username} removed your administrator access.')
+	return redirect(f'/admin/administrators?msg={quote(f"Administrator access removed from @{user.username}.")}')
 
 @app.get('/admin/loggedin')
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
@@ -83,9 +286,14 @@ def edit_rules_post(v):
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
 @admin_level_required(PERMS['ADMIN_ADD'])
 def make_admin(v:User, username):
+	_require_head_administrator(v)
 	user = get_user(username)
+	if not v.can_manage_admin(user):
+		abort(403)
 
 	user.admin_level = 1
+
+	user.admin_permissions = ""
 	g.db.add(user)
 
 	ma = ModAction(
@@ -100,20 +308,54 @@ def make_admin(v:User, username):
 	return {"message": f"@{user.username} has been made admin!"}
 
 
+
+@app.post("/@<username>/admin_permissions")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_ADD'])
+def set_admin_permissions(v:User, username):
+	_require_head_administrator(v)
+	user = get_user(username)
+	if user.id == v.id or not v.can_manage_admin(user):
+		abort(403)
+
+	permissions = sorted({name for name in request.form.getlist('permissions') if name in PERMS})
+	if (not v.has_admin_economy_permissions) and (int(user.admin_level) >= HEAD_ADMIN_LEVEL or any(int(PERMS[name]) >= HEAD_ADMIN_LEVEL for name in permissions)):
+		abort(403, 'Head Administrator roles are protected from ordinary Head Admin accounts.')
+	if any(name in CURRENCY_ADMIN_PERMISSIONS for name in permissions):
+		abort(403, 'Economy permissions are reserved for the Head Administrator + Economy account.')
+	max_level = max((int(PERMS[name]) for name in permissions), default=1)
+	for permission in permissions:
+		if permission in CURRENCY_ADMIN_PERMISSIONS:
+			if not v.has_permission(permission):
+				abort(403, "Only the head administrator can grant economy permissions.")
+		elif not v.has_permission(permission):
+			abort(403, "You cannot grant a permission you do not have.")
+
+	user.admin_permissions = json.dumps(permissions)
+	user.admin_level = max_level
+	g.db.add(user)
+	g.db.add(ModAction(
+		kind="admin_permissions",
+		user_id=v.id,
+		target_user_id=user.id
+	))
+	return {"message": f"Admin permissions updated for @{user.username}."}
 @app.post("/@<username>/remove_admin")
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
 @admin_level_required(PERMS['ADMIN_REMOVE'])
 def remove_admin(v:User, username):
+	_require_head_administrator(v)
 	if SITE == 'devrama.net':
 		abort(403, "You can't remove admins on devrama!")
 
 	user = get_user(username)
 
-	if user.admin_level > v.admin_level:
+	if not v.can_manage_admin(user):
 		abort(403)
 
 	if user.admin_level:
 		user.admin_level = 0
+		user.admin_permissions = ""
 		g.db.add(user)
 
 		ma = ModAction(
@@ -332,11 +574,174 @@ def admin_home(v):
 		under_attack = (get_security_level() or 'high') == 'under_attack'
 
 	return render_template("admin/admin_home.html", v=v,
-		under_attack=under_attack)
+		under_attack=under_attack, default_assets=get_default_assets(), error=request.values.get("error"), msg=request.values.get("msg"))
 
+@app.post("/admin/default_profile_assets")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['SITE_SETTINGS'])
+def update_default_profile_assets(v:User):
+	if g.is_tor:
+		abort(403, "Image uploads are not allowed through TOR!")
+
+	for kind, field, resize in (("profile", "profile_picture", 300), ("banner", "profile_banner", 1200)):
+		file = request.files.get(field)
+		if not file or not file.filename:
+			continue
+		if not file.content_type or not file.content_type.startswith("image/"):
+			abort(415, "Please upload an image file.")
+		os.makedirs(DEFAULT_ASSET_DIR, exist_ok=True)
+		filename = os.path.join(DEFAULT_ASSET_DIR, f"{kind}.webp")
+		file.save(filename)
+		if not process_image(filename, v, resize=resize):
+			abort(415, "That image could not be processed.")
+		set_default_asset(kind, f"/assets/images/{SITE_NAME}/defaults/{kind}.webp")
+
+	g.db.add(ModAction(kind="update_default_profile_assets", user_id=v.id))
+	return redirect("/admin?msg=Default signup profile assets updated.")
+
+
+@app.get("/admin/community-assets")
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@admin_level_required(PERMS['SITE_SETTINGS'])
+def community_assets(v):
+	pending = list_submissions("banner", status="pending") + list_submissions("sidebar", status="pending")
+	pending.sort(key=lambda item: item.get("submitted_utc", 0), reverse=True)
+	reviewed = list_submissions("banner", status="approved") + list_submissions("sidebar", status="approved")
+	reviewed += list_submissions("banner", status="rejected") + list_submissions("sidebar", status="rejected")
+	reviewed.sort(key=lambda item: item.get("reviewed_utc", 0), reverse=True)
+	return render_template("admin/community_assets.html", v=v, pending=pending, reviewed=reviewed, error=request.values.get("error"), msg=request.values.get("msg"))
+
+
+@app.post("/admin/community-assets/<kind>/<submission_id>/<action>")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['SITE_SETTINGS'])
+def moderate_community_asset(kind, submission_id, action, v):
+	if kind not in {"banner", "sidebar"} or action not in {"approve", "reject"}:
+		abort(404)
+	try:
+		item = approve_submission(kind, submission_id, v.username) if action == "approve" else reject_submission(kind, submission_id, v.username)
+	except FileNotFoundError:
+		abort(404)
+	g.db.add(ModAction(kind=f"{action}_community_asset", user_id=v.id, _note=f"{kind}:{item['id']}"))
+	return redirect("/admin/community-assets?msg=Community asset updated.")
+
+@app.post("/admin/grant_currency")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER)
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_GRANT_CURRENCY'])
+def grant_currency(v:User):
+	user = get_user(request.values.get("username"), graceful=True)
+	if not user:
+		return redirect("/admin?error=User not found.")
+
+	currency = request.values.get("currency", "coins")
+	if currency not in {'coins', 'marseybux'}:
+		return redirect("/admin?error=That currency is not available.")
+
+	try:
+		amount = int(request.values.get("amount", ""))
+	except (TypeError, ValueError):
+		return redirect("/admin?error=Enter a whole number greater than zero.")
+	if amount <= 0 or amount > 10**12:
+		return redirect("/admin?error=Enter an amount between 1 and 1,000,000,000,000.")
+
+	user.pay_account(currency, amount)
+	g.db.add(user)
+	ma = ModAction(
+		kind="grant_currency",
+		user_id=v.id,
+		target_user_id=user.id,
+		_note=f"{amount:,} {currency}"
+	)
+	g.db.add(ma)
+	label = "Wishcoins" if currency == "coins" else "Wishbux"
+	return redirect(f"/admin?msg={quote(f'{amount:,} {label} granted to @{user.username}.')}")
+@app.post("/admin/remove_currency")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER)
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['ADMIN_REMOVE_CURRENCY'])
+def remove_currency(v:User):
+	user = get_user(request.values.get("username"), graceful=True)
+	if not user:
+		return redirect("/admin?error=User not found.")
+	if user.admin_level > v.admin_level:
+		abort(403, "You cannot change the currency balance of a higher-level admin.")
+
+	currency = request.values.get("currency", "coins")
+	if currency not in {'coins', 'marseybux'}:
+		return redirect("/admin?error=That currency is not available.")
+	try:
+		amount = int(request.values.get("amount", ""))
+	except (TypeError, ValueError):
+		return redirect("/admin?error=Enter a whole number greater than zero.")
+	if amount <= 0 or amount > 10**12:
+		return redirect("/admin?error=Enter an amount between 1 and 1,000,000,000,000.")
+
+	old_balance = user.coins if currency == 'coins' else user.marseybux
+	removed = min(old_balance, amount)
+	if currency == 'coins':
+		user.coins = old_balance - removed
+	else:
+		user.marseybux = old_balance - removed
+	g.db.add(user)
+	g.db.add(ModAction(
+		kind="remove_currency",
+		user_id=v.id,
+		target_user_id=user.id,
+		_note=f"{removed:,} {currency} (requested {amount:,})"
+	))
+	label = "Wishcoins" if currency == "coins" else "Wishbux"
+	return redirect(f"/admin?msg={quote(f'{removed:,} {label} removed from @{user.username}.')}")
+
+def _remove_managed_image(filename):
+	if filename and filename.startswith('/images/') and os.path.isfile(filename):
+		os.remove(filename)
+
+@app.post("/admin/wipe_profile_picture/<int:user_id>")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['USER_MODERATION_TOOLS_VISIBLE'])
+def wipe_profile_picture(user_id, v:User):
+	user = g.db.query(User).filter_by(id=user_id).one_or_none()
+	if not user: abort(404)
+	if user.admin_level > v.admin_level: abort(403)
+	_remove_managed_image(user.profileurl)
+	if user.highres != user.profileurl:
+		_remove_managed_image(user.highres)
+	user.profileurl = None
+	user.highres = None
+	g.db.add(user)
+	for identifier in (user.id, user.username, user.original_username):
+		cache.delete_memoized(get_profile_picture, identifier)
+	g.db.add(ModAction(kind="wipe_profile_picture", user_id=v.id, target_user_id=user.id))
+	return {"message": f"@{user.username}'s profile picture was reset to the default."}
+
+@app.post("/admin/wipe_profile_banner/<int:user_id>")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['USER_MODERATION_TOOLS_VISIBLE'])
+def wipe_profile_banner(user_id, v:User):
+	user = g.db.query(User).filter_by(id=user_id).one_or_none()
+	if not user: abort(404)
+	if user.admin_level > v.admin_level: abort(403)
+	_remove_managed_image(user.bannerurl)
+	user.bannerurl = None
+	g.db.add(user)
+	g.db.add(ModAction(kind="wipe_profile_banner", user_id=v.id, target_user_id=user.id))
+	return {"message": f"@{user.username}'s profile banner was reset."}
+@app.post("/admin/wipe_profile_background/<int:user_id>")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['USER_MODERATION_TOOLS_VISIBLE'])
+def wipe_profile_background(user_id, v:User):
+	user = g.db.query(User).filter_by(id=user_id).one_or_none()
+	if not user: abort(404)
+	if user.admin_level > v.admin_level: abort(403)
+	_remove_managed_image(user.profile_background)
+	user.profile_background = None
+	g.db.add(user)
+	g.db.add(ModAction(kind="wipe_profile_background", user_id=v.id, target_user_id=user.id))
+	return {"message": f"@{user.username}'s profile background was reset."}
 @app.post("/admin/unlimited_spending")
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
-@admin_level_required(PERMS['ADMIN_HOME_VISIBLE'])
+@admin_level_required(PERMS['ADMIN_UNLIMITED_SPENDING'])
 def toggle_unlimited_spending(v:User):
 	v.unlimited_spending = not v.unlimited_spending
 	g.db.add(v)

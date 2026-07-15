@@ -7,6 +7,7 @@ from files.__main__ import app, cache, get_CF, limiter
 from files.classes.follows import Follow
 from files.helpers.actions import *
 from files.helpers.config.const import *
+from files.helpers.default_assets import get_default_asset
 from files.helpers.settings import get_setting
 from files.helpers.get import *
 from files.helpers.mail import send_mail, send_verification_email
@@ -302,8 +303,8 @@ def sign_up_post(v:Optional[User]):
 
 	users_count = g.db.query(User).count()
 
-	profileurl = None
-	if PFP_DEFAULT_MARSEY:
+	profileurl = get_default_asset("profile")
+	if not profileurl and PFP_DEFAULT_MARSEY:
 		profileurl = '/e/' + random.choice(marseys_const) + '.webp'
 
 	new_user = User(

@@ -8,23 +8,19 @@
 </div>
 {% endblock %}
 {% block pagenav %}
-<nav>
-	<ul class="pagination pagination-sm mb-0">
-		{% if page>1 %}
-		<li class="page-item">
-			<small><a class="page-link" href="?kind={{kind}}&page={{page-1}}" tabindex="-1">Prev</a></small>
-		</li>
-		{% else %}
-		<li class="page-item disabled"><span class="page-link">Prev</span></li>
-		{% endif %}
-		{% if next_exists %}
-		<li class="page-item">
-			<small><a class="page-link" href="?kind={{kind}}&page={{page+1}}">Next</a></small>
-		</li>
-		{% else %}
-		<li class="page-item disabled"><span class="page-link">Next</span></li>
-		{% endif %}
+{% set page_count = total_pages if total_pages is defined else page + (1 if next_exists else 0) %}
+{% if page_count > 1 %}
+<nav aria-label="Pages">
+	<ul class="pagination pagination-sm mb-0 justify-content-center">
+		{% for page_number in range(1, page_count + 1) %}
+			{% if page_number == 1 or page_number == page_count or (page_number >= page - 2 and page_number <= page + 2) %}
+				<li class="page-item{% if page_number == page %} active{% endif %}"><a class="page-link" href="?page={{page_number}}"{% if page_number == page %} aria-current="page"{% endif %}>{{page_number}}</a></li>
+			{% elif page_number == 2 or page_number == page_count - 1 %}
+				<li class="page-item disabled"><span class="page-link">...</span></li>
+			{% endif %}
+		{% endfor %}
 	</ul>
 </nav>
+{% endif %}
 {% endblock %}
 {% block navbar %}{% endblock %}

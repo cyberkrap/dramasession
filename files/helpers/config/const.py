@@ -17,7 +17,7 @@ def IS_HOMOWEEN():
 	return homoween_begin < datetime.datetime.now() < homoween_end
 
 DEFAULT_TIME_FILTER = "all"
-TAGLINES = ("A dark community forum",)
+TAGLINES = ("Behind you", "Are your doors locked?", "What was that noise?", "The lights are still on.", "Someone is watching the feed.", "You heard that too, right?")
 DEFAULT_THEME = "midnight"
 DEFAULT_COLOR = "991b1b"
 SPAM_SIMILARITY_THRESHOLD = 0.5
@@ -26,13 +26,15 @@ SPAM_SIMILAR_COUNT_THRESHOLD = 10
 COMMENT_SPAM_SIMILAR_THRESHOLD = 0.5
 COMMENT_SPAM_COUNT_THRESHOLD = 10
 DISABLE_DOWNVOTES = False
-DESCRIPTION = "A dark, community-focused forum for conversations, shared interests, and community life."
+DESCRIPTION = "An Obsession movie-related website for fans, discussion, and shared discoveries."
 EMAIL = "contact@obsession.local"
 TELEGRAM_ID = ""
 
 DEFAULT_CONFIG_VALUE = "blahblahblah"
 SITE = environ.get("SITE").strip()
 SITE_NAME = environ.get("SITE_NAME").strip()
+IS_LOCALHOST = SITE == "localhost" or SITE == "127.0.0.1" or SITE.startswith("192.168.") or SITE.endswith(".local")
+
 SECRET_KEY = environ.get("SECRET_KEY").strip()
 PROXY_URL = environ.get("PROXY_URL").strip()
 LOG_DIRECTORY = environ.get("LOG_DIRECTORY")
@@ -66,7 +68,6 @@ DEFAULT_RATELIMIT_SLOWER = "1/second;30/minute;200/hour;1000/day"
 
 PUSH_NOTIF_LIMIT = 1000
 
-IS_LOCALHOST = SITE == "localhost" or SITE == "127.0.0.1" or SITE.startswith("192.168.") or SITE.endswith(".local")
 
 if IS_LOCALHOST: SITE_FULL = 'http://' + SITE
 else: SITE_FULL = 'https://' + SITE
@@ -406,6 +407,15 @@ SUB_MARSEY_URL_LENGTH = 60
 ### SITE SPECIFIC CONSTANTS
 ################################################################################
 
+class PermissionRequirement(int):
+    # An admin threshold that also retains the permission it represents.
+
+    def __new__(cls, name, value):
+        obj = int.__new__(cls, value)
+        obj.name = name
+        return obj
+
+
 PERMS = { # Minimum admin_level to perform action.
 	'CHAT': 0,
  	'HOLE_CREATE': 0,
@@ -469,9 +479,12 @@ PERMS = { # Minimum admin_level to perform action.
  	'SITE_SETTINGS_UNDER_ATTACK': 3,
  	'SITE_CACHE_PURGE_CDN': 3,
  	'NOTIFICATIONS_FROM_SHADOWBANNED_USERS': 3,
- 	'APPS_MODERATION': 3,
+	'APPS_MODERATION': 3,
+	'ADMIN_UNLIMITED_SPENDING': 5,
+	'ADMIN_GRANT_CURRENCY': 5,
+	'ADMIN_REMOVE_CURRENCY': 5,
 
- 	'MODERATE_PENDING_SUBMITTED_ASSETS': 4,
+	'MODERATE_PENDING_SUBMITTED_ASSETS': 4,
 
 	'PROGSTACK': 5,
 
@@ -486,6 +499,14 @@ PERMS = { # Minimum admin_level to perform action.
  	'MODS_EVERY_HOLE': 6,
  	'VIEW_DM_IMAGES': 6,
 }
+
+PERMS = {name: PermissionRequirement(name, value) for name, value in PERMS.items()}
+CURRENCY_ADMIN_PERMISSIONS = frozenset({
+	'ADMIN_UNLIMITED_SPENDING',
+	'ADMIN_GRANT_CURRENCY',
+	'ADMIN_REMOVE_CURRENCY',
+})
+HEAD_ADMIN_LEVEL = 5
 
 FEATURES = {
 	'MARSEYS': True,
@@ -866,6 +887,38 @@ elif SITE == 'watchpeopledie.tv':
 	}
 
 else: # localhost or testing environment implied
+	if SITE_NAME == 'Obsession':
+		HOLE_COST = 67000
+		ERROR_TITLES.update({
+			400: 'Bad Request',
+			401: 'Sign In Required',
+			403: 'Access Denied',
+			404: 'Page Not Found',
+			405: 'Method Not Allowed',
+			406: 'Request Not Accepted',
+			409: 'Request Conflict',
+			410: 'Page No Longer Available',
+			413: 'Upload Too Large',
+			415: 'Unsupported File Type',
+			418: 'Unexpected Detour',
+			429: 'Too Many Requests',
+			500: 'Temporary Server Error',
+		})
+		ERROR_MSGS.update({
+			400: 'Obsession could not process that request. Check the details and try again.',
+			401: 'You need to sign in or create an account to continue.',
+			403: 'This area is restricted to members with the required access.',
+			404: 'That page slipped out of the feed. Check the address or return to the front page.',
+			405: 'That action is not available here. If it keeps happening, please report it to the moderators.',
+			406: 'This request could not be accepted in its current form. Please review it and try again.',
+			409: 'The request conflicts with the current state of the community. Refresh and try again.',
+			410: 'This link has expired or been retired.',
+			413: 'That upload is too large. Please choose a smaller file.',
+			415: 'Please upload a supported image, video, or audio file.',
+			418: 'The request took an unexpected detour. Please return to the front page and try again.',
+			429: 'The site is pacing requests right now. Wait a moment and try again.',
+			500: 'The community is still online, but this page hit a temporary server issue. Please try again in a moment.',
+		})
 	FEATURES['ASSET_SUBMISSIONS'] = True
 	FEATURES['PRONOUNS'] = True
 	FEATURES['HOUSES'] = True
@@ -1010,7 +1063,7 @@ tiers={
 	}
 
 has_sidebar = path.exists(f'files/templates/sidebar_{SITE_NAME}.html')
-has_logo = path.exists(f'files/assets/images/{SITE_NAME}/logo.webp')
+has_logo = path.exists(f'files/assets/images/{SITE_NAME}/logo.png') or path.exists(f'files/assets/images/{SITE_NAME}/logo.webp')
 
 forced_hats = {
 	"rehab": ("Roulette", "Taking a mindful break."),

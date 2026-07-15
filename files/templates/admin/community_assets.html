@@ -1,0 +1,57 @@
+{% extends "default.html" %}
+{% block pagetitle %}Community Asset Review{% endblock %}
+{% block customPadding %}px-3{% endblock %}
+{% block content %}
+<div class="community-review-page">
+	{% if error %}{{macros.alert(error, true)}}{% endif %}
+	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+	<div class="community-review-header">
+		<div>
+			<span class="text-muted text-uppercase small font-weight-bold">Admin workspace</span>
+			<h1>Community Asset Review</h1>
+			<p>Approve artwork to add it to the rotating site banner or the community sidebar.</p>
+		</div>
+		<a class="btn btn-secondary" href="/admin">Back to Admin</a>
+	</div>
+
+	<section class="community-review-section">
+		<div class="community-review-section-heading">
+			<h2>Needs review</h2>
+			<span class="community-review-count">{{pending|length}}</span>
+		</div>
+		<div class="community-review-grid">
+		{% for item in pending %}
+			<article class="community-review-card">
+				<div class="community-review-preview community-review-preview--{{item.kind}}">
+					<img src="{{item.image_url}}" alt="{{item.title or 'Submitted community artwork'}}" onerror="this.closest('.community-review-preview').classList.add('community-review-preview--missing'); this.remove();">
+					{% if item.kind == 'sidebar' %}<span class="community-review-preview-label">Sidebar preview</span>{% endif %}
+				</div>
+				<div class="community-review-card-body">
+					<div class="d-flex justify-content-between align-items-start gap-2">
+						<div><span class="community-review-type">{{item.kind|capitalize}} art</span><h3>{{item.title or 'Untitled submission'}}</h3></div>
+						<span class="community-review-status">Pending</span>
+					</div>
+					<p class="text-muted mb-2">Submitted by <strong>@{{item.submitter}}</strong></p>
+					{% if item.notes %}<p class="community-review-notes">{{item.notes}}</p>{% endif %}
+					<div class="community-review-actions">
+						<form method="post" action="/admin/community-assets/{{item.kind}}/{{item.id}}/approve"><input type="hidden" name="formkey" value="{{v|formkey}}"><button class="btn btn-primary" type="submit"><i class="fas fa-check mr-1"></i>Approve</button></form>
+						<form method="post" action="/admin/community-assets/{{item.kind}}/{{item.id}}/reject"><input type="hidden" name="formkey" value="{{v|formkey}}"><button class="btn btn-danger" type="submit"><i class="fas fa-times mr-1"></i>Reject</button></form>
+					</div>
+				</div>
+			</article>
+		{% else %}
+			<div class="community-review-empty"><i class="fas fa-check-circle"></i><span>No community assets are waiting for review.</span></div>
+		{% endfor %}
+		</div>
+	</section>
+
+	<section class="community-review-section">
+		<div class="community-review-section-heading"><h2>Review history</h2><span class="text-muted small">{{reviewed|length}} reviewed</span></div>
+		<div class="community-review-history">
+		{% for item in reviewed[:12] %}
+			<div class="community-review-history-row"><span class="community-review-type">{{item.kind|capitalize}} art</span><strong>{{item.title or 'Untitled submission'}}</strong><span class="text-muted">{{item.status|capitalize}} by @{{item.reviewed_by}}</span></div>
+		{% else %}<p class="text-muted">Approved and rejected submissions will appear here.</p>{% endfor %}
+		</div>
+	</section>
+</div>
+{% endblock %}

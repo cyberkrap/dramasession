@@ -14,7 +14,7 @@
 	{% set path = "files/assets/images/" ~ SITE_NAME %}
 	{%- if not v and os_path.exists(path ~ "/cached.webp") -%}
 		{{ 'cached.webp' | asset_siteimg -}}
-	{% elif os_path.exists(path ~ "/banners") -%}
+	{% elif os_path.exists(path ~ "/banners") and listdir(path ~ "/banners") -%}
 		{{ random_image("assets/images/" ~ SITE_NAME ~ "/banners") -}}
 	{% else -%}
 		{{ 'banner.webp' | asset_siteimg -}}
@@ -55,16 +55,16 @@
 	{% endif %}
 
 	{% if p.stickied %}
-		<i id='pinned-{{p.id}}' class="fas fa-thumbtack fa-rotate--45 pr-1 ml-1 mt-3 text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pinned by @{{p.stickied}}" {% if p.stickied_utc %}data-onmouseover="pinned_timestamp('pinned-{{p.id}}')" data-timestamp={{p.stickied_utc}} data-nonce="{{g.nonce}}"{% endif %}></i>
+		<i id='pinned-{{p.id}}' class="fas fa-thumbtack fa-rotate--45 pr-1 ml-1 mt-3 text-admin" data-bs-toggle="tooltip" data-bs-container="body" data-bs-placement="bottom" title="Pinned by @{{p.stickied}}" {% if p.stickied_utc %}data-onmouseover="pinned_timestamp('pinned-{{p.id}}')" data-timestamp={{p.stickied_utc}} data-nonce="{{g.nonce}}"{% endif %}></i>
 	{% endif %}
 
 	{% if p.hole_pinned %}
-		<i id='hole-pinned-{{p.id}}' class="fas fa-thumbtack fa-rotate--45 pr-1 ml-1 mt-3 text-blue" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pinned to /h/{{p.sub}} by @{{p.hole_pinned}}"></i>
+		<i id='hole-pinned-{{p.id}}' class="fas fa-thumbtack fa-rotate--45 pr-1 ml-1 mt-3 text-blue" data-bs-toggle="tooltip" data-bs-container="body" data-bs-placement="bottom" title="Pinned to /h/{{p.sub}} by @{{p.hole_pinned}}"></i>
 	{% endif %}
 
 	{% if p.distinguish_level %}<i class="fas fa-broom text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{SITE_NAME}} Admin, speaking officially"></i>{% endif %}
 	{% if p.is_pinned and request.path != '/' %}
-		<i class="fas fa-thumbtack fa-rotate--45 pr-1 ml-1 mt-3 text-admin" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pinned to profile"></i>
+		<i class="fas fa-thumbtack fa-rotate--45 pr-1 ml-1 mt-3 text-admin" data-bs-toggle="tooltip" data-bs-container="body" data-bs-placement="bottom" title="Pinned to profile"></i>
 	{% endif %}
 	{% if p.over_18 %}<span class="badge badge-danger text-small-extra mr-1">+18</span>{% endif %}
 	{% if p.is_bot %} <i class="fas fa-robot text-info" data-bs-toggle="tooltip" data-bs-placement="bottom"	title="Bot"></i>{% endif %}

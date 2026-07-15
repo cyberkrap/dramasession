@@ -1,5 +1,6 @@
+import time
 
-from sqlalchemy import or_, not_
+from sqlalchemy import func, or_, not_
 
 from files.classes.submission import Submission
 from files.classes.votes import Vote
@@ -70,7 +71,44 @@ def front_all(v, sub=None, subdomain=None):
 		award_timers(v)
 
 	if v and v.client: return {"data": [x.json(g.db) for x in posts], "next_exists": next_exists}
-	return render_template("home.html", v=v, listing=posts, next_exists=next_exists, sort=sort, t=t, page=page, sub=sub, home=True, pins=pins, holes=holes)
+	return render_template("home.html", v=v, listing=posts, next_exists=next_exists, sort=sort, t=t, page=page, sub=sub, home=True, pins=pins, holes=holes, sidebar_data=get_sidebar_data())
+
+
+def get_sidebar_data():
+	now = int(time.time())
+	top_poster_row = g.db.query(
+		Submission.author_id,
+		func.count(Submission.id).label("posts_today"),
+	).filter(
+		Submission.created_utc > now - 86400,
+		Submission.is_banned == False,
+		Submission.deleted_utc == 0,
+	).group_by(
+		Submission.author_id,
+	).order_by(
+		func.count(Submission.id).desc(),
+		Submission.author_id.asc(),
+	).first()
+	top_poster = (g.db.get(User, top_poster_row[0]), top_poster_row[1]) if top_poster_row else None
+
+	poll = g.db.query(Submission).filter(
+		Submission.is_banned == False,
+		Submission.deleted_utc == 0,
+		Submission.private == False,
+		Submission.options.any(),
+	).order_by(Submission.created_utc.desc()).first()
+
+	return {
+		"registered_users": g.db.query(User).count(),
+		"top_poster": top_poster,
+		"level_leaderboard": g.db.query(User).filter(
+			User.shadowbanned == None,
+		).order_by(
+			User.xp.desc(),
+			User.id.asc(),
+		).limit(5).all(),
+		"poll": poll,
+	}
 
 
 LIMITED_WPD_HOLES = ('gore', 'aftermath', 'selfharm', 'meta', 'discussion', 'social', 'music', 'request')

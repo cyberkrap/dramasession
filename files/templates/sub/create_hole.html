@@ -19,9 +19,9 @@
 								<span class="text-danger text-small" style="vertical-align: sub;">{{error}}</span>
 							</p>
 							{% endif %}
-							<button type="submit" class="btn btn-primary ml-auto" id="create_button" {% if cost > v.coins %}disabled{% endif %}>Create {{HOLE_NAME|capitalize}}</button>
+							<button type="submit" class="btn btn-primary ml-auto" id="create_button" {% if not v.can_spend('coins', cost) and not v.can_spend('marseybux', cost) %}disabled{% endif %}>Create {{HOLE_NAME|capitalize}}</button>
 						</div>
-						<p class="mt-2 mr-1" style="float: right"><b>Cost</b>: {{cost}} Wishcoins</p>
+						<p class="mt-2 mr-1" style="float: right"><b>Cost</b>: {{ "{:,}".format(cost) }} Wishcoins or Wishbux</p>
 					</div>
 				</div>
 			</div>

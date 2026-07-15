@@ -46,7 +46,7 @@
 						</a>
 				</button>
 {% if v %}
-				{% if FEATURES['CHAT'] and v.admin_level >= PERMS['CHAT'] -%}
+				{% if FEATURES['CHAT'] -%}
 				<button type="button" class="col px-0 btn btn-dead m-0 pt-0" style="background: None !important; border: None;">
 						<a href="/chat" class="text-decoration-none">
 								<div class="text-center {% if request.path=='/chat' %}text-primary{% else %}text-muted{% endif %}">

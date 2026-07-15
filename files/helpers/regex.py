@@ -16,7 +16,7 @@ marseyaward_body_regex = re.compile(">[^<\s+]|[^>\s+]<", flags=re.A)
 marseyaward_title_regex = re.compile("( *<img[^>]+>)+", flags=re.A)
 
 
-marsey_regex = re.compile("marsey[a-z0-9]{1,24}", flags=re.A)
+marsey_regex = re.compile("[a-zA-Z0-9][a-zA-Z0-9_\\-]{1,29}", flags=re.A)
 tags_regex = re.compile("[a-z0-9: ]{1,200}", flags=re.A)
 hat_regex = re.compile("[a-zA-Z0-9\-() ,_]{1,50}", flags=re.A)
 description_regex = re.compile("[^<>&\n\t]{1,300}", flags=re.A)

@@ -1,9 +1,12 @@
 import random
 from operator import *
+import json
+import re
 from typing import Union
 
 import pyotp
 from sqlalchemy import Column, ForeignKey
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import aliased, deferred, Query
 from sqlalchemy.sql import case, func, literal
 from sqlalchemy.sql.expression import not_, and_, or_
@@ -13,6 +16,7 @@ from files.classes import Base
 from files.classes.casino_game import CasinoGame
 from files.classes.sub import Sub
 from files.helpers.config.const import *
+from files.helpers.default_assets import get_default_asset
 from files.helpers.config.modaction_types import *
 from files.helpers.config.awards import AWARDS_ENABLED, HOUSE_AWARDS
 from files.helpers.media import *
@@ -43,6 +47,26 @@ else:
 	DEFAULT_ADMIN_LEVEL = 0
 	DEFAULT_COINS = 0
 	DEFAULT_MARSEYBUX = 0
+
+class AdminLevel(int):
+    def __new__(cls, user, value):
+        obj = int.__new__(cls, value)
+        obj.user = user
+        return obj
+
+    def _compare(self, other, operator):
+        if isinstance(other, PermissionRequirement):
+            allowed = self.user.has_permission(other.name)
+            if operator in (ge, gt):
+                return allowed
+            return not allowed
+        return operator(int(self), int(other))
+
+    def __ge__(self, other): return self._compare(other, ge)
+    def __gt__(self, other): return self._compare(other, gt)
+    def __le__(self, other): return self._compare(other, le)
+    def __lt__(self, other): return self._compare(other, lt)
+
 
 if IS_FISTMAS():
 	if SITE_NAME == 'rDrama':
@@ -96,7 +120,8 @@ class User(Base):
 	comment_count = Column(Integer, default=0)
 	received_award_count = Column(Integer, default=0)
 	created_utc = Column(Integer)
-	admin_level = Column(Integer, default=DEFAULT_ADMIN_LEVEL)
+	_admin_level = Column('admin_level', Integer, default=DEFAULT_ADMIN_LEVEL)
+	admin_permissions = Column(Text, default='', nullable=False)
 	last_active = Column(Integer, default=0, nullable=False)
 	coins_spent = Column(Integer, default=0)
 	coins_spent_on_hats = Column(Integer, default=0)
@@ -136,6 +161,7 @@ class User(Base):
 	login_nonce = Column(Integer, default=0)
 	coins = Column(Integer, default=DEFAULT_COINS)
 	truescore = Column(Integer, default=0)
+	xp = Column(Integer, default=0, nullable=False)
 	marseybux = Column(Integer, default=DEFAULT_MARSEYBUX)
 	unlimited_spending = Column(Boolean, default=False, nullable=False)
 	mfa_secret = deferred(Column(String))
@@ -194,10 +220,78 @@ class User(Base):
 			kwargs["last_viewed_log_notifs"] = kwargs["created_utc"]
 
 		super().__init__(**kwargs)
+	@hybrid_property
+	def admin_level(self):
+		return AdminLevel(self, self._admin_level or 0)
+
+	@admin_level.setter
+	def admin_level(self, value):
+		self._admin_level = int(value or 0)
+
+	@admin_level.expression
+	def admin_level(cls):
+		return cls._admin_level
+
+	@property
+	def admin_permission_names(self):
+		try:
+			permissions = json.loads(self.admin_permissions or '[]')
+		except (TypeError, ValueError):
+			return set()
+		return {name for name in permissions if name in PERMS} if isinstance(permissions, list) else set()
+
+	@property
+	def has_all_admin_permissions(self):
+		# Head administrators retain every permission even if an older permissions
+		# record was saved for the account.
+		return bool(int(self.admin_level)) and int(self.admin_level) >= HEAD_ADMIN_LEVEL
+
+
+	@property
+	def has_admin_economy_permissions(self):
+		return self.has_all_admin_permissions and all(self.has_permission(permission) for permission in CURRENCY_ADMIN_PERMISSIONS)
+
+	@property
+	def admin_permission_count(self):
+		if self.has_all_admin_permissions:
+			return None
+		if self.admin_permission_names:
+			return len(self.admin_permission_names)
+		return sum(1 for level in PERMS.values() if int(level) <= int(self.admin_level))
+	def can_manage_admin(self, target):
+		if not target:
+			return False
+		if self.has_admin_economy_permissions:
+			return True
+		return int(target.admin_level) < HEAD_ADMIN_LEVEL
+
+	def has_permission(self, permission):
+		if not int(self.admin_level) or permission not in PERMS:
+			return False
+		if permission == 'ADMIN_HOME_VISIBLE':
+			return True
+		if self.has_all_admin_permissions and permission not in CURRENCY_ADMIN_PERMISSIONS:
+			return True
+		permissions = self.admin_permission_names
+		if permissions:
+			return permission in permissions
+		return int(self.admin_level) >= int(PERMS[permission])
 
 
 	def __repr__(self):
 		return f"<{self.__class__.__name__}(id={self.id}, username={self.username})>"
+
+	@property
+	def level(self):
+		return max(1, self.xp // 100 + 1)
+
+	@property
+	def xp_into_level(self):
+		return self.xp % 100
+
+	@property
+	def xp_to_next_level(self):
+		return 100 - self.xp_into_level
 
 	@property
 	def has_unlimited_spending(self):
@@ -314,7 +408,7 @@ class User(Base):
 					return (f'/i/hats/{hat}.webp', 'Merry Christmas!')
 
 			if self.is_cakeday:
-				return ('/i/hats/Cakeday.webp', "I've spent another year rotting my brain with dramaposting, please ridicule me 🤓")
+				return ('/i/hats/Cakeday.webp', "I've spent another year rotting my brain with dramaposting, please ridicule me ðŸ¤“")
 
 			if self.age < NEW_USER_HAT_AGE:
 				return ('/i/new-user.webp', "Hi, I'm new here! Please be gentle :)")
@@ -623,6 +717,32 @@ class User(Base):
 
 	@property
 	@lazy
+	def chat_mention_count(self):
+		return g.db.query(Notification).join(Comment).filter(
+			Notification.user_id == self.id,
+			Notification.read == False,
+			Comment.author_id == AUTOJANNY_ID,
+			Comment.parent_submission == None,
+			Comment.body_html.like('%/chat#%'),
+		).count()
+
+	@property
+	@lazy
+	def chat_mention_target(self):
+		notification = g.db.query(Notification).join(Comment).filter(
+			Notification.user_id == self.id,
+			Notification.read == False,
+			Comment.author_id == AUTOJANNY_ID,
+			Comment.parent_submission == None,
+			Comment.body_html.like('%/chat#%'),
+		).order_by(Notification.created_utc.asc(), Notification.comment_id.asc()).first()
+		if not notification or not notification.comment or not notification.comment.body_html:
+			return None
+		match = re.search(r'/chat#(\d+)', notification.comment.body_html)
+		return match.group(1) if match else None
+
+	@property
+	@lazy
 	def normal_notifications_count(self):
 		return self.notifications_count \
 			- self.message_notifications_count \
@@ -772,30 +892,34 @@ class User(Base):
 	def banner_url(self):
 		if FEATURES['USERS_PROFILE_BANNER'] and self.bannerurl:
 			return root_relative_url(self.bannerurl)
-		return f"/i/{SITE_NAME}/site_preview.webp?v=3009"
+		return get_default_asset("banner") or f"/i/{SITE_NAME}/site_preview.webp?v=3009"
 
 	@property
 	@lazy
 	def profile_url(self):
 		if self.agendaposter:
-			return "/e/chudsey.webp"
+			return '/e/chudsey.webp'
 		if self.rainbow:
-			return "/e/marseysalutepride.webp"
+			return '/e/marseysalutepride.webp'
 		if self.profileurl:
 			if self.profileurl.startswith('/'): return root_relative_url(self.profileurl)
 			return self.profileurl
-		return "/i/default-profile-pic.webp?v=1008"
+		default_profile = get_default_asset("profile") or "/i/default-profile-pic.webp?v=1008"
+		if default_profile.startswith("/"): return root_relative_url(default_profile)
+		return default_profile
 
 	@lazy
 	def json_popover(self, v):
 		data = {'username': self.username,
 				'url': self.url,
 				'id': self.id,
+				'truescore': self.truescore,
 				'profile_url': self.profile_url,
 				'hat': self.hat_active(v)[0],
 				'bannerurl': self.banner_url,
 				'bio_html': self.bio_html_eager,
 				'coins': self.coins,
+				'bux': self.marseybux,
 				'post_count': 0 if self.shadowbanned and not (v and v.can_see_shadowbanned) else self.post_count,
 				'comment_count': 0 if self.shadowbanned and not (v and v.can_see_shadowbanned) else self.comment_count,
 				'badges': [x.path for x in self.badges],
@@ -833,6 +957,7 @@ class User(Base):
 				'flair': self.customtitle,
 				'badges': [x.json for x in self.badges],
 				'coins': self.coins,
+				'bux': self.marseybux,
 				'post_count': self.post_count,
 				'comment_count': self.comment_count
 				}
