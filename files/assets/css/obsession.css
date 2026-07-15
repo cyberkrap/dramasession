@@ -2095,6 +2095,17 @@ body {
 }
 
 
-/* Keep icon tooltips centered and above page overlays. */
-.tooltip { z-index: 3000 !important; }
-.tooltip-inner { max-width: 240px; text-align: center; white-space: normal; }
+/* Keep every tooltip centered, readable, and independent of page overflow. */
+.tooltip {
+	position: absolute !important;
+	z-index: 3000 !important;
+	margin: 0 !important;
+	pointer-events: none !important;
+}
+.tooltip-inner {
+	max-width: min(240px, calc(100vw - 16px)) !important;
+	padding: .35rem .6rem !important;
+	text-align: center !important;
+	white-space: normal !important;
+	word-break: normal !important;
+}
