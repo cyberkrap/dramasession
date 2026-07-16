@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import time
 import requests
@@ -19,6 +20,22 @@ from files.helpers.cloudflare import purge_files_in_cache
 from files.helpers.settings import get_setting
 
 from .config.const import *
+
+
+IMAGE_CONVERTER = shutil.which("magick") or shutil.which("convert")
+
+
+def _remove_failed_image(filename):
+	try:
+		if os.path.exists(filename):
+			os.remove(filename)
+	except OSError:
+		pass
+
+
+def _log_image_conversion_failure(error):
+	print(f"Image conversion failed ({type(error).__name__})")
+
 
 def media_ratelimit(v):
 	t = time.time() - 86400
@@ -44,7 +61,7 @@ def process_files(files, v):
 		elif file.content_type.startswith('audio/'):
 			body += f"\n\n{process_audio(file, v)}"
 		else:
-			abort(415)
+			abort(415, "The uploaded file is not a valid image.")
 	return body
 
 
@@ -136,9 +153,8 @@ def process_video(file, v):
 	return new
 
 def process_image(filename:str, v, resize=0, trim=False, uploader_id:Optional[int]=None, db=None):
-	# thumbnails are processed in a thread and not in the request context
-	# if an image is too large or webp conversion fails, it'll crash
-	# to avoid this, we'll simply return None instead
+	# Thumbnail processing can run without a request context, so failures must
+	# be cleaned up and returned to the caller instead of crashing a worker.
 	has_request = has_request_context()
 	size = os.stat(filename).st_size
 	patron = bool(v.patron)
@@ -151,7 +167,12 @@ def process_image(filename:str, v, resize=0, trim=False, uploader_id:Optional[in
 
 	try:
 		with Image.open(filename) as i:
-			params = ["magick"]
+			if not IMAGE_CONVERTER:
+				_remove_failed_image(filename)
+				if has_request:
+					abort(422, "Image conversion is temporarily unavailable. Please try again later.")
+				return None
+			params = [IMAGE_CONVERTER]
 			if resize == 99: params.append(f"{filename}[0]")
 			else: params.append(filename)
 			params.extend(["-coalesce", "-quality", "88", "-strip", "-auto-orient"])
@@ -159,22 +180,34 @@ def process_image(filename:str, v, resize=0, trim=False, uploader_id:Optional[in
 				params.append("-trim")
 			if resize and i.width > resize:
 				params.extend(["-resize", f"{resize}>"])
-	except UnidentifiedImageError as e:
+	except (UnidentifiedImageError, OSError) as e:
 		print(f"Couldn't identify an image for {filename}; deleting... (user {v.id if v else '-no user-'})")
 		try:
 			os.remove(filename)
 		except: pass
 		if has_request:
-			abort(415)
+			abort(415, "The uploaded file is not a valid image.")
 		return None
 
 	params.append(filename)
 	try:
-		subprocess.run(params, timeout=MAX_IMAGE_CONVERSION_TIMEOUT)
-	except subprocess.TimeoutExpired:
-		if has_request:
-			abort(413, ("An uploaded image took too long to convert to WEBP. "
+		subprocess.run(
+			params,
+			timeout=MAX_IMAGE_CONVERSION_TIMEOUT,
+			check=True,
+			stdout=subprocess.PIPE,
+			stderr=subprocess.PIPE,
+		)
+	except (subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError) as error:
+		_log_image_conversion_failure(error)
+		_remove_failed_image(filename)
+		if isinstance(error, subprocess.TimeoutExpired):
+			if has_request:
+				abort(413, ("An uploaded image took too long to convert to WEBP. "
 						"Please convert it to WEBP elsewhere then upload it again."))
+			return None
+		if has_request:
+			abort(422, "That image could not be converted. Please try another image.")
 		return None
 
 	if resize:

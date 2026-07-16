@@ -52,7 +52,18 @@ copy_and_link /app/files/assets/images/emojis /data/assets/images/emojis
 copy_and_link /app/files/assets/images/hats /data/assets/images/hats
 copy_and_link /app/files/assets/images/Obsession/banners "$COMMUNITY_ASSET_ROOT/banners"
 copy_and_link /app/files/assets/images/Obsession/sidebar "$COMMUNITY_ASSET_ROOT/sidebar"
-copy_and_link /app/files/assets/images/Obsession/defaults /data/default_assets
+mkdir -p /data/default_assets
+if [ -d /app/files/assets/images/Obsession/defaults ] && [ ! -L /app/files/assets/images/Obsession/defaults ]; then
+	for default_file in /app/files/assets/images/Obsession/defaults/*; do
+		[ -f "$default_file" ] || continue
+		default_name="${default_file##*/}"
+		if [ ! -e "/data/default_assets/$default_name" ]; then
+			cp -a "$default_file" "/data/default_assets/$default_name"
+		fi
+	done
+	rm -rf /app/files/assets/images/Obsession/defaults
+fi
+ln -sfn /data/default_assets /app/files/assets/images/Obsession/defaults
 copy_and_link /app/asset_submissions "$ASSET_SUBMISSIONS_ROOT"
 
 if [ ! -f "$DEFAULT_ASSETS_FILE" ]; then

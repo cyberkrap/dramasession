@@ -118,9 +118,30 @@ async function searchGifs(searchTerm) {
 
 	container.innerHTML = '';
 
-	let response = await fetch("/giphy?searchTerm=" + searchTerm + "&limit=48");
-	let data = await response.json()
-	data = data.data
+	let response;
+	let data;
+	try {
+		response = await fetch("/giphy?searchTerm=" + encodeURIComponent(searchTerm) + "&limit=48");
+		data = await response.json();
+	} catch (error) {
+		noGIFs.textContent = "GIF service is temporarily unavailable.";
+		noGIFs.classList.remove("d-none");
+		return;
+	}
+
+	if (data.error === "not_configured") {
+		noGIFs.textContent = "GIF integration is not configured.";
+		noGIFs.classList.remove("d-none");
+		return;
+	}
+	if (!response.ok || data.error === "unavailable") {
+		noGIFs.textContent = "GIF service is temporarily unavailable.";
+		noGIFs.classList.remove("d-none");
+		return;
+	}
+
+	data = Array.isArray(data.data) ? data.data : [];
+	noGIFs.textContent = "No matching GIFs found.";
 
 	if (data.length) {
 		for (const e of data) {

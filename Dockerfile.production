@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
-		build-essential curl ffmpeg gettext-base libjpeg62-turbo-dev libpq-dev \
+		build-essential curl ffmpeg gettext-base imagemagick libjpeg62-turbo-dev libpq-dev \
 		libwebp-dev nginx supervisor zlib1g-dev \
 	&& rm -rf /var/lib/apt/lists/*
 

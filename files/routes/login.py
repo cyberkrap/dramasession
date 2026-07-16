@@ -10,7 +10,7 @@ from files.helpers.config.const import *
 from files.helpers.default_assets import get_default_asset
 from files.helpers.settings import get_setting
 from files.helpers.get import *
-from files.helpers.mail import send_mail, send_verification_email
+from files.helpers.mail import EmailDeliveryError, send_mail, send_verification_email
 from files.helpers.logging import log_file
 from files.helpers.regex import *
 from files.helpers.security import *
@@ -333,8 +333,12 @@ def sign_up_post(v:Optional[User]):
 			if ref_user.referral_count >= 99:
 				badge_grant(user=ref_user, badge_id=12)
 
+	verification_delivery_unavailable = False
 	if email:
-		send_verification_email(new_user)
+		try:
+			send_verification_email(new_user)
+		except EmailDeliveryError:
+			verification_delivery_unavailable = True
 
 
 	session.permanent = True
@@ -354,8 +358,25 @@ def sign_up_post(v:Optional[User]):
 		send_notification(CARP_ID, f"A new user - @{new_user.username} - has signed up!")
 
 	if redir and is_site_url(redir) and redir not in NO_LOGIN_REDIRECT_URLS:
+		if verification_delivery_unavailable:
+			return redirect(redir + ("&" if "?" in redir else "?") + "email_delivery=unavailable")
 		return redirect(redir)
+	if verification_delivery_unavailable:
+		return redirect("/?email_delivery=unavailable")
 	return redirect('/')
+
+
+@app.post("/resend-verification")
+@limiter.limit("1/minute", key_func=get_ID)
+@auth_required
+def resend_verification(v):
+	if not v.email or v.is_activated:
+		abort(400, "This account does not need email verification.")
+	try:
+		send_verification_email(v)
+	except EmailDeliveryError:
+		return redirect("/settings/security?error=Verification delivery is temporarily unavailable. Please try again later.")
+	return redirect("/settings/security?msg=Verification email sent. Check your inbox.")
 
 
 @app.get("/forgot")
