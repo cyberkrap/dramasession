@@ -54,6 +54,18 @@ def number(value):
 	except (TypeError, ValueError):
 		return value
 
+@app.template_filter("house_icon")
+def house_icon(house):
+	if not house:
+		return "/i/default-profile-pic.webp"
+	filename = house.replace(" Founder", "")
+	if filename not in HOUSES or filename == "None":
+		return "/i/default-profile-pic.webp"
+	asset = path.join("files", "assets", "images", SITE_NAME, "houses", f"{filename}.webp")
+	if not path.isfile(asset):
+		return "/i/default-profile-pic.webp"
+	return f"/i/{SITE_NAME}/houses/{filename}.webp?v=2000"
+
 @app.context_processor
 def calc_users():
 	loggedin_counter = 0

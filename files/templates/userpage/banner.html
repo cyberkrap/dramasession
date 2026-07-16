@@ -34,7 +34,7 @@
 							<img loading="lazy" src="/i/{{SITE_NAME}}/badges/2{{u.patron}}.webp?v=1" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.patron_tooltip}}" alt="{{u.patron_tooltip}}">
 						{% endif %}
 						{% if FEATURES['HOUSES'] and u.house %}
-							<img loading="lazy" id="profile--house" src="/i/{{SITE_NAME}}/houses/{{u.house}}.webp?v=2000" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{u.house}}" alt="House {{u.house}}">
+							<img loading="lazy" id="profile--house" src="{{u.house | house_icon}}" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{u.house}}" alt="House {{u.house}}">
 						{% endif %}
 						{% if u.verified %}
 							<i id="profile--verified" class="fas fa-badge-check {% if u.verified=='Glowiefied' %}glow{% endif %}" style="color:{% if u.verifiedcolor %}#{{u.verifiedcolor}}{% else %}#1DA1F2{% endif %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.verified}}"></i>

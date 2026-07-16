@@ -3,7 +3,11 @@
 {% block pagetype %}message-success{% endblock %}
 {% block content %}
 <div class="text-center py-6 py-md-8">
-	<img class="mb-3" alt="Obsession celebration" loading="lazy" src="/i/Obsession/icon.webp">
+	<div class="mb-3 d-flex align-items-center justify-content-center" aria-hidden="true">
+		<span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:60px;height:60px;background:#111;color:#ef4444;border:2px solid #991b1b;box-shadow:0 0 0 6px rgba(153,27,27,.12);font-size:1.5rem;">
+			<i class="fas fa-check"></i>
+		</span>
+	</div>
 	<div class="font-weight-bold text-muted mb-4">{{title}}</div>
 	<p class="text-muted">{{message}}</p>
 </div>
