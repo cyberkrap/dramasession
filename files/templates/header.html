@@ -55,40 +55,42 @@
 			{% endif %}
 
 			{% if g.browser in ('webview','apple') %}
-				<button id="reload_page" type="button" class="mobile-nav-icon d-md-none"><i class="fas fa-arrow-rotate-right align-middle text-gray-500 black"></i></button>
+				<button id="reload_page" type="button" class="mobile-nav-icon mobile-secondary-action d-md-none" aria-label="Reload page"><i class="fas fa-arrow-rotate-right align-middle text-gray-500 black"></i></button>
 			{% endif %}
 
 			{% if v %}
 				{% if v.notifications_count %}
-					<a class="mobile-nav-icon d-md-none" href="/notifications{% if v.notifications_do %}/{{v.notifications_do}}{% endif %}"><i class="notif-{{v.notifications_do}}-bell fas fa-bell align-middle" style="color: {{v.notifications_color}}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"></i><span class="notif-count notif-{{v.notifications_do}} ml-1" style="padding-left: 4.5px;{% if v.notifications_do %}background:{{v.notifications_color}}{% endif %}">{{v.notifications_count}}</span></a>
+					<a class="mobile-nav-icon d-md-none" aria-label="Notifications" href="/notifications{% if v.notifications_do %}/{{v.notifications_do}}{% endif %}"><i class="notif-{{v.notifications_do}}-bell fas fa-bell align-middle" style="color: {{v.notifications_color}}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"></i><span class="notif-count notif-{{v.notifications_do}} ml-1" style="padding-left: 4.5px;{% if v.notifications_do %}background:{{v.notifications_color}}{% endif %}">{{v.notifications_count}}</span></a>
 				{% else %}
-					<a class="mobile-nav-icon d-md-none" href="/notifications"><i class="fas fa-bell align-middle text-gray-500 black" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"></i></a>
+					<a class="mobile-nav-icon d-md-none" aria-label="Notifications" href="/notifications"><i class="fas fa-bell align-middle text-gray-500 black" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"></i></a>
 				{% endif %}
 			{% endif %}
 
 		{% if not err %}
 			{% if v and v.admin_level >= PERMS['ADMIN_HOME_VISIBLE'] %}
-				<a class="mobile-nav-icon d-md-none" href="/admin"><i class="fas fa-crown align-middle text-gray-500 black"></i></a>
+				<a class="mobile-nav-icon mobile-secondary-action d-md-none" aria-label="Admin tools" href="/admin"><i class="fas fa-crown align-middle text-gray-500 black"></i></a>
 			{% endif %}
 
 			{% if v %}
-				<a class="mobile-nav-icon d-md-none" href="/submit"><i class="fas fa-feather-alt align-middle text-gray-500 black"></i></a>
+				<a class="mobile-nav-icon mobile-secondary-action d-md-none" aria-label="Create post" href="/submit"><i class="fas fa-feather-alt align-middle text-gray-500 black"></i></a>
 			{% else %}
-				<a class="mobile-nav-icon d-md-none" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-feather-alt align-middle text-gray-500 black"></i></a>
+				<a class="mobile-nav-icon mobile-secondary-action d-md-none" aria-label="Create post" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-feather-alt align-middle text-gray-500 black"></i></a>
 			{% endif %}
 
 			{% if v and FEATURES['GAMBLING'] %}
-				<a class="mobile-nav-icon d-md-none" href="/casino">
+				<a class="mobile-nav-icon mobile-secondary-action d-md-none" aria-label="Casino" href="/casino">
 					<i class="fas fa-cards align-middle text-gray-500 black"></i>
 				</a>
 			{% endif %}
 
-			<button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarResponsive">
+			<button type="button" class="navbar-toggler" id="mobile-menu-toggle" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Open navigation menu">
 			<span class="navbar-toggler-icon {% if v and v.notifications_count %}position-relative{% endif %}"><i class="fas fa-bars align-middle text-gray-500 black"></i>
 			</span>
 		</button>
 
-		<div class="collapse navbar-collapse" id="navbarResponsive">
+		<div id="mobile-drawer-backdrop" aria-hidden="true"></div>
+
+<div class="collapse navbar-collapse" id="navbarResponsive" aria-hidden="true">
 			<ul class="navbar-nav ml-auto d-none d-md-flex">
 
 			{% if v %}
@@ -219,68 +221,53 @@
 			{% endif %}
 		</ul>
 
-		<ul style="overflow:auto" class="navbar-nav ml-auto d-flex d-md-none mt-3">
-			<li class="nav-item pb-3">
-				<form id="searchform" class="form-inline search flex-nowrap mx-0 mx-lg-auto mb-0" action="/search/posts" method="get">
-					<input autocomplete="off" class="form-control form-control-sm w-100" type="search" placeholder="{{search_placeholder}}" name="q">
-					<span class="input-group-append">
-						<span class="input-group-text border-0 bg-transparent" style="margin-left: -2.5rem" data-nonce="{{g.nonce}}" onclick_submit>
-							<i class="fa fa-search"></i>
-						</span>
-					</span>
-				</form>
-			</li>
-			{% if v %}
-				<li class="nav-item">
-					<a class="nav-link" href="{{v.url}}"><i class="fas fa-user-circle fa-fw mr-3"></i>@{{v.username}}</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" href="/settings/personal"><i class="fas fa-cog fa-fw mr-3"></i>Settings</a>
-				</li>
-
-				{% if FEATURES['MARSEYBUX'] %}
-					<a class="nav-item nav-link" rel="nofollow noopener" href="/donate"><i class="fas fa-dollar-sign fa-fw mr-3"></i>Donate</a>
-				{% endif %}
-
-				<button type="button" class="nav-item nav-link copy-link" data-clipboard-text="/signup?ref={{v.username}}"><i class="fas fa-user-friends fa-fw mr-3"></i>Invite friends</button>
-
-				<a class="nav-item nav-link" href="/directory"><i class="fas fa-clipboard fa-fw mr-3"></i>Community Directory</a>
-			<a class="nav-item nav-link" href="/contact"><i class="fas fa-bug fa-fw mr-3"></i>Feedback</a>
-
-				{% if TELEGRAM_ID %}
-					<a rel="nofollow noopener" class="nav-item nav-link" href="https://t.me/s/{{TELEGRAM_ID}}"><i class="fab fa-telegram fa-fw mr-3"></i>Telegram Channel</a>
-				{% endif %}
-
-				{% if SITE_NAME == 'rDrama' %}
-					<a class="nav-item nav-link" href="/archives"><i class="fas fa-book fa-fw mr-3"></i>Archives</a>
-				{% endif %}
-
-				<a class="nav-item nav-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
-
-				<button type="button" class="nav-item border-top border-bottom mt-2 pt-2 nav-link" data-nonce="{{g.nonce}}" data-onclick="logout(this)"><i class="fas fa-sign-out fa-fw mr-3 text-danger"></i>Log out</button>
-			{% else %}
-				<li class="nav-item d-flex align-items-center justify-content-center pb-3">
-					<a class="btn btn-primary btn-block" href="/donate">Donate</a>
-				</li>
-				<li class="nav-item d-flex align-items-center justify-content-center pb-3">
-					<a class="btn btn-primary btn-block" href="/contact">Contact us</a>
-				</li>
-				<li class="nav-item d-flex align-items-center justify-content-center pb-3">
-					<a class="btn btn-primary btn-block" href="/login?redirect={{request.full_path | urlencode}}">Sign in</a>
-				</li>
-				<li class="nav-item d-flex align-items-center justify-content-center">
-					<a class="btn btn-primary btn-block" href="/signup?redirect={{request.full_path | urlencode}}">Sign up</a>
-				</li>
+		<div class="mobile-drawer-content">
+		<form class="mobile-drawer-search form-inline search flex-nowrap mb-3" action="/search/posts" method="get">
+			<input autocomplete="off" class="form-control w-100" type="search" placeholder="{{search_placeholder}}" name="q">
+			<span class="input-group-append">
+				<span class="input-group-text border-0 bg-transparent" style="margin-left:-2.5rem"><i class="fa fa-search" aria-hidden="true"></i></span>
+			</span>
+		</form>
+		<button type="button" id="mobile-drawer-close" class="mobile-drawer-close d-md-none" aria-label="Close navigation menu">
+			<i class="fas fa-xmark" aria-hidden="true"></i><span>Close</span>
+		</button>
+		<div class="mobile-drawer-section">
+			<div class="mobile-drawer-heading">Navigate</div>
+			<a class="nav-link mobile-drawer-link" href="/"><i class="fas fa-home-alt fa-fw mr-3"></i>Home</a>
+			<a class="nav-link mobile-drawer-link" href="/?sort=new&t=all"><i class="fas fa-sparkles fa-fw mr-3"></i>New</a>
+			{% if v %}<a class="nav-link mobile-drawer-link" href="/submit"><i class="fas fa-feather-alt fa-fw mr-3"></i>Create post</a>{% else %}<a class="nav-link mobile-drawer-link" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-feather-alt fa-fw mr-3"></i>Create post</a>{% endif %}
+			{% if FEATURES['CHAT'] %}<a class="nav-link mobile-drawer-link" href="/chat"><i class="fas fa-messages fa-fw mr-3"></i>Chat</a>{% endif %}
+			{% if FEATURES['GAMBLING'] %}<a class="nav-link mobile-drawer-link" href="/casino"><i class="fas fa-cards fa-fw mr-3"></i>Casino</a>{% endif %}
+			{% if FEATURES['AWARDS'] %}<a class="nav-link mobile-drawer-link" href="/shop"><i class="fas fa-store fa-fw mr-3"></i>Shop</a>{% endif %}
+			<a class="nav-link mobile-drawer-link" href="/directory"><i class="fas fa-compass fa-fw mr-3"></i>Community Directory</a>
+		</div>
+		{% if v %}
+		<div class="mobile-drawer-section">
+			<div class="mobile-drawer-heading">Account</div>
+			<a class="nav-link mobile-drawer-link" href="{{v.url}}"><i class="fas fa-user-circle fa-fw mr-3"></i>My profile</a>
+			<a class="nav-link mobile-drawer-link" href="/settings/personal"><i class="fas fa-cog fa-fw mr-3"></i>Settings</a>
+			<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-heart fa-fw mr-3"></i>Support</a>
+			<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
+			{% if v.admin_level >= PERMS['ADMIN_HOME_VISIBLE'] %}<a class="nav-link mobile-drawer-link" href="/admin"><i class="fas fa-crown fa-fw mr-3"></i>Admin tools</a>{% endif %}
+			<button type="button" class="nav-link mobile-drawer-link mobile-drawer-logout" data-nonce="{{g.nonce}}" data-onclick="logout(this)"><i class="fas fa-sign-out fa-fw mr-3 text-danger"></i>Log out</button>
+		</div>
+		{% else %}
+		<div class="mobile-drawer-section">
+			<div class="mobile-drawer-heading">Account</div>
+			<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-heart fa-fw mr-3"></i>Support</a>
+			<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
+			<a class="nav-link mobile-drawer-link" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-right-to-bracket fa-fw mr-3"></i>Sign in</a>
+			<a class="nav-link mobile-drawer-link" href="/signup?redirect={{request.full_path | urlencode}}"><i class="fas fa-user-plus fa-fw mr-3"></i>Sign up</a>
+		</div>
+		{% endif %}
+		<div class="mobile-drawer-context">
+			{% if request.path.endswith("/chat") %}
+				<h5>Users Online</h5>
+				<div id="online3" class="text-left d-lg-none"></div>
+			{% elif has_sidebar %}
+				{% include "sidebar_" ~ SITE_NAME ~ ".html" %}
 			{% endif %}
-			<li class="mt-3">
-				{% if request.path.endswith("/chat") %}
-					<h5 class="ml-3">Users Online</h5>
-					<div id="online3" class="col text-left d-lg-none bg-white mb-6 pb-6" style="max-width:300px"></div>
-				{% elif has_sidebar %}
-					{% include "sidebar_" ~ SITE_NAME ~ ".html" %}
-				{% endif %}
-			</li>
-		</ul>
+		</div></div>
 	</div>
 	{% endif %}
 	</div>
