@@ -53,6 +53,9 @@ copy_and_link /app/files/assets/images/hats /data/assets/images/hats
 copy_and_link /app/files/assets/images/Obsession/banners "$COMMUNITY_ASSET_ROOT/banners"
 copy_and_link /app/files/assets/images/Obsession/sidebar "$COMMUNITY_ASSET_ROOT/sidebar"
 mkdir -p /data/default_assets
+if [ ! -e /data/default_assets/profile.webp ] && [ -f /app/files/assets/images/Obsession/defaults/profile.webp ]; then
+	cp /app/files/assets/images/Obsession/defaults/profile.webp /data/default_assets/profile.webp
+fi
 if [ -d /app/files/assets/images/Obsession/defaults ] && [ ! -L /app/files/assets/images/Obsession/defaults ]; then
 	for default_file in /app/files/assets/images/Obsession/defaults/*; do
 		[ -f "$default_file" ] || continue

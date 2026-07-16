@@ -529,10 +529,10 @@ def settings_images_profile(v):
 
 	if not imageurl: abort(400)
 
-	if v.highres and '/images/' in v.highres:
+	if v.highres and v.highres.startswith('/images/') and os.path.isfile(v.highres):
 		os.remove(v.highres)
 
-	if v.profileurl and '/images/' in v.profileurl:
+	if v.profileurl and v.profileurl.startswith('/images/') and os.path.isfile(v.profileurl):
 		os.remove(v.profileurl)
 	v.highres = highres
 	v.profileurl = imageurl

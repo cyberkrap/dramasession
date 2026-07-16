@@ -20,11 +20,11 @@ def get_default_assets():
 def get_default_asset(kind):
 	asset = get_default_assets().get(kind)
 	if not asset:
-		return None
+		return "/i/default-profile-pic.webp" if kind == "profile" else None
 	if asset.startswith("/assets/images/Obsession/defaults/"):
 		filename = asset.rsplit("/", 1)[-1]
 		if not os.path.isfile(os.path.join(DEFAULT_ASSET_DIR, filename)):
-			return None
+			return "/i/default-profile-pic.webp" if kind == "profile" else None
 	return asset
 
 
