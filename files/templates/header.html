@@ -247,6 +247,8 @@
 			<a class="nav-link mobile-drawer-link" href="{{v.url}}"><i class="fas fa-user-circle fa-fw mr-3"></i>My profile</a>
 			<a class="nav-link mobile-drawer-link" href="/settings/personal"><i class="fas fa-cog fa-fw mr-3"></i>Settings</a>
 			<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-heart fa-fw mr-3"></i>Support</a>
+			<button type="button" class="nav-link mobile-drawer-link copy-link" data-clipboard-text="/signup?ref={{v.username}}"><i class="fas fa-user-friends fa-fw mr-3"></i>Invite friends</button>
+			{% if TELEGRAM_ID %}<a rel="nofollow noopener" class="nav-link mobile-drawer-link" href="https://t.me/s/{{TELEGRAM_ID}}"><i class="fab fa-telegram fa-fw mr-3"></i>Telegram Channel</a>{% endif %}
 			<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
 			{% if v.admin_level >= PERMS['ADMIN_HOME_VISIBLE'] %}<a class="nav-link mobile-drawer-link" href="/admin"><i class="fas fa-crown fa-fw mr-3"></i>Admin tools</a>{% endif %}
 			<button type="button" class="nav-link mobile-drawer-link mobile-drawer-logout" data-nonce="{{g.nonce}}" data-onclick="logout(this)"><i class="fas fa-sign-out fa-fw mr-3 text-danger"></i>Log out</button>
@@ -260,14 +262,7 @@
 			<a class="nav-link mobile-drawer-link" href="/signup?redirect={{request.full_path | urlencode}}"><i class="fas fa-user-plus fa-fw mr-3"></i>Sign up</a>
 		</div>
 		{% endif %}
-		<div class="mobile-drawer-context">
-			{% if request.path.endswith("/chat") %}
-				<h5>Users Online</h5>
-				<div id="online3" class="text-left d-lg-none"></div>
-			{% elif has_sidebar %}
-				{% include "sidebar_" ~ SITE_NAME ~ ".html" %}
-			{% endif %}
-		</div></div>
+		</div>
 	</div>
 	{% endif %}
 	</div>
