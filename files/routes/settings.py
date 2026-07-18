@@ -853,7 +853,10 @@ def settings_song_change(v):
         ydl_opts["js_runtimes"] = {"deno": {"path": deno_path}}
 
     runtime_names = [name for name in ("deno", "node", "bun", "qjs") if shutil.which(name)]
-    po_provider_detected = bool(importlib.util.find_spec("yt_dlp_plugins"))
+    try:
+        po_provider_detected = importlib.util.find_spec("yt_dlp_plugins") is not None
+    except (ModuleNotFoundError, ImportError, AttributeError):
+        po_provider_detected = False
     print(
         "yt-dlp runtime diagnostics: "
         f"version={YTDLP_VERSION} "
