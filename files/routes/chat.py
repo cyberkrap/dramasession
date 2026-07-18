@@ -30,6 +30,16 @@ online = []
 cache.set(CHAT_ONLINE_CACHE_KEY, len(online), timeout=0)
 muted = cache.get('muted') or {}
 
+def chat_access_required(f):
+	"""Require a logged-in account for public chat, without granting admin tools."""
+	def wrapper(*args, **kwargs):
+		v = get_logged_in_user()
+		if not v:
+			abort(401)
+		return make_response(f(*args, v=v, **kwargs))
+	wrapper.__name__ = f.__name__
+	return wrapper
+
 
 def _message_dict(message):
 	removed = bool(message.removed_by_username)
@@ -144,7 +154,7 @@ def _select_messages(filters=None, before_id=None, around_id=None, initial=False
 
 @app.get("/chat")
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
-@admin_level_required(PERMS['CHAT'])
+@chat_access_required
 def chat(v):
 	if not v.admin_level and TRUESCORE_CHAT_MINIMUM and v.truescore < TRUESCORE_CHAT_MINIMUM:
 		abort(403, f"Need at least {TRUESCORE_CHAT_MINIMUM} truescore for access to chat!")
@@ -171,7 +181,7 @@ def chat(v):
 
 
 @socketio.on('speak')
-@admin_level_required(PERMS['CHAT'])
+@chat_access_required
 def speak(data, v):
 	global typing
 	data = data or {}
@@ -326,7 +336,7 @@ def refresh_online():
 
 
 @socketio.on('connect')
-@admin_level_required(PERMS['CHAT'])
+@chat_access_required
 def connect(v):
 	entry = [v.username, v.id, v.name_color, bool(v.patron)]
 	if not any(item[:2] == entry[:2] for item in online):
@@ -337,7 +347,7 @@ def connect(v):
 
 
 @socketio.on('disconnect')
-@admin_level_required(PERMS['CHAT'])
+@chat_access_required
 def disconnect(v):
 	for item in online[:]:
 		if item[:2] == [v.username, v.id]:
@@ -350,7 +360,7 @@ def disconnect(v):
 
 
 @socketio.on('typing')
-@admin_level_required(PERMS['CHAT'])
+@chat_access_required
 def typing_indicator(data, v):
 	if data and v.username not in typing:
 		typing.append(v.username)
@@ -361,7 +371,7 @@ def typing_indicator(data, v):
 
 
 @socketio.on('history')
-@admin_level_required(PERMS['CHAT'])
+@chat_access_required
 def history(data, v):
 	data = data or {}
 	filters = data.get('filters') or {}

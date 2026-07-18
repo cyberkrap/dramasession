@@ -1134,3 +1134,10 @@ img[alt^="![]("] {
 		box-sizing: border-box;
 	}
 }
+
+/* Keep the desktop online column out of the mobile chat flow. */
+@media (max-width: 767.98px) {
+	body#chat #main-content-row > .chat-online-column {
+		display: none !important;
+	}
+}
