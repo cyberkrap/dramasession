@@ -1,11 +1,15 @@
 from __future__ import unicode_literals
 
 import os
+import glob
+import re
 from shutil import copyfile
+from urllib.parse import parse_qs, urlparse
+from uuid import uuid4
 
 import pyotp
 import requests
-import youtube_dl
+import yt_dlp
 
 from files.helpers.actions import *
 from files.helpers.alerts import *
@@ -742,78 +746,171 @@ def settings_song_change_mp3(v):
 @limiter.limit("3/second;10/day", key_func=get_ID)
 @auth_required
 def settings_song_change(v):
-	song=request.values.get("song").strip()
+    song = (request.values.get("song") or "").strip()
 
-	if song == "" and v.song:
-		if path.isfile(f"/songs/{v.song}.mp3") and g.db.query(User).filter_by(song=v.song).count() == 1:
-			os.remove(f"/songs/{v.song}.mp3")
-		v.song = None
-		g.db.add(v)
-		return redirect("/settings/personal?msg=Profile Anthem successfully removed!")
+    def render_song_error(message):
+        return render_template("settings/personal.html", v=v, error=message), 400
 
-	song = song.replace("https://music.youtube.com", "https://youtube.com")
-	if song.startswith(("https://www.youtube.com/watch?v=", "https://youtube.com/watch?v=", "https://m.youtube.com/watch?v=")):
-		id = song.split("v=")[1]
-	elif song.startswith("https://youtu.be/"):
-		id = song.split("https://youtu.be/")[1]
-	else:
-		return redirect("/settings/personal?error=Not a YouTube link!"), 400
+    if song == "" and v.song:
+        if path.isfile(f"/songs/{v.song}.mp3") and g.db.query(User).filter_by(song=v.song).count() == 1:
+            os.remove(f"/songs/{v.song}.mp3")
+        v.song = None
+        g.db.add(v)
+        return redirect("/settings/personal?msg=Profile Anthem successfully removed!")
 
-	if "?" in id: id = id.split("?")[0]
-	if "&" in id: id = id.split("&")[0]
+    try:
+        parsed = urlparse(song)
+        host = (parsed.hostname or "").lower().rstrip(".")
+    except ValueError:
+        return render_song_error("Not a valid YouTube video link.")
 
-	if not yt_id_regex.fullmatch(id):
-		return redirect("/settings/personal?error=Not a YouTube link!"), 400
-	if path.isfile(f'/songs/{id}.mp3'):
-		v.song = id
-		g.db.add(v)
-		return redirect("/settings/personal?msg=Profile Anthem successfully updated!")
+    video_id = None
+    if parsed.scheme == "https" and host == "youtu.be":
+        video_id = parsed.path.strip("/").split("/", 1)[0]
+    elif parsed.scheme == "https" and host in {
+        "www.youtube.com",
+        "youtube.com",
+        "m.youtube.com",
+        "music.youtube.com",
+    } and parsed.path == "/watch":
+        video_id = parse_qs(parsed.query).get("v", [None])[0]
 
+    if not video_id or not yt_id_regex.fullmatch(video_id):
+        return render_song_error("Not a valid YouTube video link.")
 
-	req = requests.get(f"https://www.googleapis.com/youtube/v3/videos?id={id}&key={YOUTUBE_KEY}&part=contentDetails", timeout=5).json()
-	duration = req['items'][0]['contentDetails']['duration']
-	if duration == 'P0D':
-		return redirect("/settings/personal?error=Can't use a live youtube video!"), 400
+    final_path = f"/songs/{video_id}.mp3"
+    if path.isfile(final_path) and path.getsize(final_path) > 0:
+        v.song = video_id
+        g.db.add(v)
+        return redirect("/settings/personal?msg=Profile Anthem successfully updated!")
 
-	if "H" in duration:
-		return redirect("/settings/personal?error=Duration of the video must not exceed 15 minutes!"), 400
+    try:
+        req_response = requests.get(
+            "https://www.googleapis.com/youtube/v3/videos",
+            params={"id": video_id, "key": YOUTUBE_KEY, "part": "contentDetails"},
+            timeout=5,
+        )
+        req_response.raise_for_status()
+        req = req_response.json()
+        duration = req["items"][0]["contentDetails"]["duration"]
+    except requests.exceptions.Timeout:
+        return render_song_error("YouTube took too long to respond. Please try again.")
+    except (requests.RequestException, KeyError, IndexError, TypeError, ValueError):
+        return render_song_error("This YouTube video is unavailable.")
 
-	if "M" in duration:
-		duration = int(duration.split("PT")[1].split("M")[0])
-		if duration > 15:
-			return redirect("/settings/personal?error=Duration of the video must not exceed 15 minutes!"), 400
+    if duration == "P0D":
+        return render_song_error("Can't use a live youtube video!")
 
+    duration_match = re.fullmatch(
+        r"PT(?:(?P<hours>\d+)H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?",
+        duration,
+    )
+    if not duration_match:
+        return render_song_error("The audio could not be retrieved from this YouTube video.")
 
-	if v.song and path.isfile(f"/songs/{v.song}.mp3") and g.db.query(User).filter_by(song=v.song).count() == 1:
-		os.remove(f"/songs/{v.song}.mp3")
+    duration_seconds = (
+        (int(duration_match.group("hours") or 0) * 3600)
+        + (int(duration_match.group("minutes") or 0) * 60)
+        + int(duration_match.group("seconds") or 0)
+    )
+    if duration_seconds > 15 * 60:
+        return render_song_error("Duration of the video must not exceed 15 minutes!")
 
-	ydl_opts = {
-		'cookiefile': '.cookies',
-		'outtmpl': '/songs/%(title)s.%(ext)s',
-		'format': 'bestaudio/best',
-		'postprocessors': [{
-			'key': 'FFmpegExtractAudio',
-			'preferredcodec': 'mp3',
-			'preferredquality': '192',
-		}],
-	}
+    temp_dir = "/songs/tmp"
+    temp_stem = f"{video_id}-{uuid4().hex}"
+    temp_template = os.path.join(temp_dir, f"{temp_stem}.%(ext)s")
+    temp_mp3 = os.path.join(temp_dir, f"{temp_stem}.mp3")
 
-	with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-		try: ydl.download([f"https://youtube.com/watch?v={id}"])
-		except Exception as e:
-			print(e, flush=True)
-			return render_template("settings/personal.html",
-						v=v,
-						error="Age-restricted videos aren't allowed."), 400
+    def cleanup_temp_files():
+        for temp_file in glob.glob(os.path.join(temp_dir, f"{temp_stem}.*")):
+            try:
+                if os.path.isfile(temp_file):
+                    os.remove(temp_file)
+            except OSError:
+                pass
 
-	files = os.listdir("/songs/")
-	paths = [path.join("/songs/", basename) for basename in files]
-	songfile = max(paths, key=path.getctime)
-	os.rename(songfile, f"/songs/{id}.mp3")
+    os.makedirs(temp_dir, exist_ok=True)
+    ydl_opts = {
+        "outtmpl": temp_template,
+        "format": "bestaudio/best",
+        "noplaylist": True,
+        "quiet": True,
+        "no_warnings": True,
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192",
+        }],
+    }
+    if YOUTUBE_COOKIES_FILE and os.path.isfile(YOUTUBE_COOKIES_FILE):
+        ydl_opts["cookiefile"] = YOUTUBE_COOKIES_FILE
 
-	v.song = id
-	g.db.add(v)
-	return redirect("/settings/personal?msg=Profile Anthem successfully updated!")
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
+
+        if not os.path.isfile(temp_mp3) or os.path.getsize(temp_mp3) == 0:
+            raise RuntimeError("yt-dlp completed without a non-empty MP3 file")
+
+        os.replace(temp_mp3, final_path)
+        if not os.path.isfile(final_path) or os.path.getsize(final_path) == 0:
+            if os.path.isfile(final_path):
+                os.remove(final_path)
+            raise RuntimeError("final MP3 file was empty after atomic move")
+    except Exception as e:
+        cleanup_temp_files()
+        safe_error = str(e)
+        if YOUTUBE_KEY:
+            safe_error = safe_error.replace(YOUTUBE_KEY, "[redacted]")
+        if YOUTUBE_COOKIES_FILE:
+            safe_error = safe_error.replace(YOUTUBE_COOKIES_FILE, "[redacted]")
+        print(
+            f"yt-dlp anthem download failed: {type(e).__name__}: {safe_error[:500]}",
+            flush=True,
+        )
+        error_text = safe_error.lower()
+        if any(term in error_text for term in (
+            "confirm you're not a bot",
+            "confirm you’re not a bot",
+            "automated queries",
+            "unusual traffic",
+            "verification required",
+            "login required",
+        )):
+            message = "YouTube blocked the server from accessing this video. Please try another video."
+        elif any(term in error_text for term in (
+            "age-restricted",
+            "age restricted",
+            "confirm your age",
+            "requires authentication",
+            "authentication required",
+        )):
+            message = "This video requires YouTube authentication and cannot currently be used."
+        elif any(term in error_text for term in (
+            "private video",
+            "video unavailable",
+            "video is unavailable",
+            "has been removed",
+            "does not exist",
+            "not available",
+        )):
+            message = "This YouTube video is unavailable."
+        elif "unsupported url" in error_text or "unsupported url" in type(e).__name__.lower():
+            message = "Not a valid YouTube video link."
+        elif any(term in error_text for term in ("timed out", "timeout", "time out")):
+            message = "YouTube took too long to respond. Please try again."
+        else:
+            message = "The audio could not be retrieved from this YouTube video."
+        return render_song_error(message)
+    finally:
+        cleanup_temp_files()
+
+    if v.song and v.song != video_id and path.isfile(f"/songs/{v.song}.mp3") and g.db.query(User).filter_by(song=v.song).count() == 1:
+        os.remove(f"/songs/{v.song}.mp3")
+
+    v.song = video_id
+    g.db.add(v)
+    return redirect("/settings/personal?msg=Profile Anthem successfully updated!")
 
 @app.post("/settings/title_change")
 @limiter.limit(DEFAULT_RATELIMIT_SLOWER)
