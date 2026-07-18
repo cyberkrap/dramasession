@@ -10,10 +10,17 @@
 		<div class="row justify-content-around" id="main-content-row">
 			<div class="col h-100 {% block customPadding %}{% if request.path.startswith('/@') %}user-gutters{% else %}custom-gutters{% endif %}{% endblock %}" id="main-content-col">
 				<div class="border-right pb-1 pt-2 px-3">
-					<span id="online2" data-bs-html="true" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Users Online" class="text-muted">
+					<button type="button" id="online2" data-bs-html="true" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Users Online" class="text-muted" aria-label="Show users online" aria-controls="mobile-online-panel" aria-expanded="false">
 						<i class="far fa-user fa-sm mr-1"></i>
 						<span class="board-chat-count">0</span>
-					</span>
+					</button>
+				</div>
+				<div id="mobile-online-panel" class="chat-mobile-online-panel d-none" role="dialog" aria-label="Users online" aria-hidden="true">
+					<div class="d-flex align-items-center justify-content-between mb-2">
+						<h5 class="mb-0">Users Online</h5>
+						<button type="button" class="btn btn-secondary chat-mobile-online-close" aria-label="Close users online">&times;</button>
+					</div>
+					<div id="online-mobile"></div>
 				</div>
 
 				{% if v.admin_level >= PERMS['POST_COMMENT_MODERATION'] %}

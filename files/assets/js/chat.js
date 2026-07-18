@@ -27,6 +27,8 @@ const initialMessages = initialData ? JSON.parse(initialData.textContent || '[]'
 const initialHasMore = document.getElementById('chat-has-more');
 const loadMoreButton = document.getElementById('chat-load-more');
 const mentionSuggestions = document.getElementById('chat-mention-suggestions');
+const mobileOnlinePanel = document.getElementById('mobile-online-panel');
+const onlineTrigger = document.getElementById('online2');
 
 chatState.hasMoreHistory = initialHasMore ? initialHasMore.value === '1' : true;
 for (const message of initialMessages) chatState.messages.set(String(message.id), message);
@@ -394,7 +396,27 @@ socket.on('online', data => {
 	}
 	const onlineElement = document.getElementById('online');
 	if (onlineElement) onlineElement.innerHTML = online;
+	const mobileOnlineElement = document.getElementById('online-mobile');
+	if (mobileOnlineElement) mobileOnlineElement.innerHTML = online;
 });
+
+function closeMobileOnline() {
+	if (!mobileOnlinePanel || !onlineTrigger) return;
+	mobileOnlinePanel.classList.remove('is-open');
+	mobileOnlinePanel.setAttribute('aria-hidden', 'true');
+	onlineTrigger.setAttribute('aria-expanded', 'false');
+}
+
+onlineTrigger?.addEventListener('click', event => {
+	if (!window.matchMedia('(max-width: 991.98px)').matches || !mobileOnlinePanel) return;
+	event.preventDefault();
+	const open = !mobileOnlinePanel.classList.contains('is-open');
+	mobileOnlinePanel.classList.toggle('is-open', open);
+	mobileOnlinePanel.setAttribute('aria-hidden', String(!open));
+	onlineTrigger.setAttribute('aria-expanded', String(open));
+});
+
+mobileOnlinePanel?.querySelector('.chat-mobile-online-close')?.addEventListener('click', closeMobileOnline);
 
 socket.on('typing', users => {
 	const typingIndicator = document.getElementById('typing-indicator');
@@ -409,6 +431,9 @@ socket.on('typing', users => {
 });
 
 document.addEventListener('click', event => {
+	if (mobileOnlinePanel?.classList.contains('is-open') && !event.target.closest('#mobile-online-panel, #online2')) {
+		closeMobileOnline();
+	}
 	const quoteButton = event.target.closest('.quote');
 	if (quoteButton) return quote(quoteButton);
 	const deleteButton = event.target.closest('.delmsg');
@@ -424,6 +449,10 @@ document.addEventListener('click', event => {
 		document.getElementById('quotes').classList.add('d-none');
 		document.getElementById('quotes_id').value = '';
 	}
+});
+
+document.addEventListener('keydown', event => {
+	if (event.key === 'Escape' && mobileOnlinePanel?.classList.contains('is-open')) closeMobileOnline();
 });
 
 textbox.addEventListener('keydown', event => {

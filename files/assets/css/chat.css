@@ -1156,3 +1156,80 @@ img[alt^="![]("] {
 	display: none !important;
 	}
 }
+
+/* Mobile chat: keep the online roster out of the page flow and open it from the count. */
+@media (max-width: 991.98px) {
+	body#chat > .container.pb-4 {
+		width: 100% !important;
+		max-width: none !important;
+		margin-left: 0 !important;
+		margin-right: 0 !important;
+		padding-left: var(--obs-mobile-gutter, 14px) !important;
+		padding-right: var(--obs-mobile-gutter, 14px) !important;
+	}
+	body#chat #main-content-row {
+		display: flex !important;
+		flex-direction: column !important;
+		grid-template-columns: none !important;
+		gap: 0 !important;
+		width: 100% !important;
+		margin-left: 0 !important;
+		margin-right: 0 !important;
+	}
+	body#chat #main-content-row > #main-content-col {
+		order: 1 !important;
+		grid-column: auto !important;
+		width: 100% !important;
+		max-width: none !important;
+		margin-left: 0 !important;
+		margin-right: 0 !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+	body#chat #main-content-row > .chat-online-column {
+		display: none !important;
+		position: static !important;
+		width: 0 !important;
+		max-width: 0 !important;
+		padding: 0 !important;
+		margin: 0 !important;
+	}
+	body#chat #online2 {
+		display: inline-flex !important;
+		align-items: center;
+		justify-content: center;
+		min-width: 44px;
+		min-height: 40px;
+		padding: 6px 10px;
+		border: 0;
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+	}
+	body#chat #mobile-online-panel {
+		position: fixed;
+		top: calc(var(--obs-header-total-height, 86px) + 8px);
+		left: max(12px, env(safe-area-inset-left));
+		right: max(12px, env(safe-area-inset-right));
+		z-index: 1200;
+		max-height: min(60dvh, 480px);
+		padding: 14px;
+		overflow-y: auto;
+		background: rgba(13, 13, 16, .98);
+		border: 1px solid var(--obs-border, rgba(255,255,255,.12));
+		border-radius: 8px;
+		box-shadow: 0 18px 48px rgba(0,0,0,.55);
+	}
+	body#chat #mobile-online-panel.is-open {
+		display: block !important;
+	}
+	body#chat #online-mobile {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px 14px;
+	}
+	body#chat #online-mobile > li {
+		min-width: 0;
+		margin: 0;
+	}
+}
