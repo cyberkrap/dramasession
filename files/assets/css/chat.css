@@ -1141,3 +1141,18 @@ img[alt^="![]("] {
 		display: none !important;
 	}
 }
+
+
+/* Collapse the legacy chat grid when the viewport is tablet-sized or narrower. */
+@media (max-width: 991.98px) {
+	body#chat #main-content-row {
+	grid-template-columns: minmax(0, 1fr);
+	}
+		body#chat #main-content-col {
+	grid-column: 1;
+	width: 100% !important;
+	}
+		body#chat #main-content-row > .chat-online-column {
+	display: none !important;
+	}
+}
