@@ -29,7 +29,7 @@ tinycss2
 tldextract
 user-agents
 psycopg2-binary
-yt-dlp
+yt-dlp[default]
 yattag
 webptools
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability

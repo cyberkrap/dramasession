@@ -1,14 +1,21 @@
 FROM python:3.10-slim-bookworm
 
+ARG DENO_VERSION=2.5.6
+
 ENV PYTHONUNBUFFERED=1 \
 	PYTHONDONTWRITEBYTECODE=1 \
 	PIP_NO_CACHE_DIR=1
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
-		build-essential curl ffmpeg gettext-base imagemagick libjpeg62-turbo-dev libpq-dev \
+		build-essential curl ffmpeg gettext-base imagemagick libjpeg62-turbo-dev libpq-dev unzip \
 		libwebp-dev nginx supervisor zlib1g-dev \
 	&& rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://deno.land/install.sh | sh -s v${DENO_VERSION} \
+	&& install -m 0755 /root/.deno/bin/deno /usr/local/bin/deno \
+	&& rm -rf /root/.deno \
+	&& deno --version
 
 WORKDIR /app
 COPY requirements.txt /app/requirements.txt

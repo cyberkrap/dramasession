@@ -2,7 +2,9 @@ from __future__ import unicode_literals
 
 import os
 import glob
+import importlib.util
 import re
+import shutil
 from shutil import copyfile
 from urllib.parse import parse_qs, urlparse
 from uuid import uuid4
@@ -10,6 +12,7 @@ from uuid import uuid4
 import pyotp
 import requests
 import yt_dlp
+from yt_dlp.version import __version__ as YTDLP_VERSION
 
 from files.helpers.actions import *
 from files.helpers.alerts import *
@@ -845,6 +848,20 @@ def settings_song_change(v):
     if YOUTUBE_COOKIES_FILE and os.path.isfile(YOUTUBE_COOKIES_FILE):
         ydl_opts["cookiefile"] = YOUTUBE_COOKIES_FILE
 
+    deno_path = shutil.which("deno")
+    if deno_path:
+        ydl_opts["js_runtimes"] = {"deno": {"path": deno_path}}
+
+    runtime_names = [name for name in ("deno", "node", "bun", "qjs") if shutil.which(name)]
+    po_provider_detected = bool(importlib.util.find_spec("yt_dlp_plugins"))
+    print(
+        "yt-dlp runtime diagnostics: "
+        f"version={YTDLP_VERSION} "
+        f"js_runtimes={','.join(runtime_names) or 'none'} "
+        f"po_token_provider={'detected' if po_provider_detected else 'not-detected'}",
+        flush=True,
+    )
+
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
@@ -875,7 +892,31 @@ def settings_song_change(v):
             "automated queries",
             "unusual traffic",
             "verification required",
+            "botguard",
+            "sign in to confirm",
+        )):
+            failure_category = "bot-challenge"
+        elif any(term in error_text for term in ("timed out", "timeout", "time out")):
+            failure_category = "timeout"
+        elif any(term in error_text for term in (
+            "private video",
+            "video unavailable",
+            "has been removed",
+            "does not exist",
+        )):
+            failure_category = "unavailable"
+        else:
+            failure_category = "extraction"
+        print(f"yt-dlp anthem failure category: {failure_category}", flush=True)
+        if any(term in error_text for term in (
+            "confirm you're not a bot",
+            "confirm you’re not a bot",
+            "automated queries",
+            "unusual traffic",
+            "verification required",
             "login required",
+            "botguard",
+            "sign in to confirm",
         )):
             message = "YouTube blocked the server from accessing this video. Please try another video."
         elif any(term in error_text for term in (
