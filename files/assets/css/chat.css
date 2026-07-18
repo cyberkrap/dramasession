@@ -570,3 +570,205 @@ img[alt^="![]("] {
 		margin-bottom: .25rem;
 	}
 }
+
+/* Mobile chat shell: the page stays in the viewport; only history scrolls. */
+@media (max-width: 767.98px) {
+	body#chat {
+		height: 100dvh;
+		min-height: 0;
+		padding-top: var(--obs-header-total-height, 86px) !important;
+		padding-bottom: var(--obs-mobile-bottom-height, 76px) !important;
+		overflow: hidden;
+	}
+	body#chat > .container.pb-4 {
+		width: 100%;
+		height: calc(100dvh - var(--obs-header-total-height, 86px) - var(--obs-mobile-bottom-height, 76px));
+		min-height: 0;
+		margin: 0;
+		padding: 0 var(--obs-mobile-gutter, 14px) !important;
+		overflow: hidden;
+	}
+	body#chat #main-content-row {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		min-height: 0;
+		margin: 0;
+		overflow: hidden;
+	}
+	body#chat .chat-online-column {
+		display: block !important;
+		order: 1;
+		flex: 0 0 auto;
+		width: 100% !important;
+		max-width: none !important;
+		max-height: 62px;
+		padding: 6px 0 !important;
+		overflow: hidden;
+		border: 0;
+	}
+	body#chat .chat-online-column h5 {
+		display: inline;
+		margin: 0 8px 0 0;
+		font-size: .95rem;
+	}
+	body#chat .chat-online-column #online {
+		display: inline-flex;
+		flex-wrap: nowrap;
+		gap: 8px;
+		max-width: 100%;
+		max-height: 34px;
+		padding: 0;
+		overflow-x: auto;
+		overflow-y: hidden;
+		vertical-align: middle;
+		white-space: nowrap;
+		background: transparent !important;
+		border: 0;
+	}
+	body#chat .chat-online-column #online > li {
+		flex: 0 0 auto;
+		margin: 0;
+	}
+	body#chat .chat-online-column #online img {
+		width: 22px;
+		height: 22px;
+		object-fit: cover;
+	}
+	body#chat #main-content-col {
+		order: 2;
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		width: 100%;
+		height: auto;
+		min-width: 0;
+		min-height: 0;
+		padding: 0 !important;
+		overflow: hidden;
+	}
+	body#chat #main-content-col > .border-right {
+		flex: 0 0 auto;
+		min-height: 34px;
+		padding: 4px 0 !important;
+		border: 0 !important;
+	}
+	body#chat .chat-filter-toolbar {
+		flex: 0 0 auto;
+		margin: 4px 0 !important;
+	}
+	body#chat .chat-filter-toolbar .btn {
+		min-height: 40px;
+	}
+	body#chat #shrink {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		min-height: 0;
+		padding: 0 !important;
+		overflow: hidden;
+	}
+	body#chat #chat-load-more {
+		flex: 0 0 auto;
+		margin: 4px auto;
+	}
+	body#chat #chat-window {
+		flex: 1 1 auto;
+		width: 100%;
+		min-height: 0;
+		max-height: none;
+		padding: 0 !important;
+		overflow-x: hidden;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+	body#chat #quotes,
+	body#chat #chat-mention-suggestions,
+	body#chat #chat-typing-row,
+	body#chat #chat-status {
+		flex: 0 0 auto;
+	}
+	body#chat #chat-typing-row {
+		min-height: 20px;
+		padding: 2px 4px;
+		font-size: .78rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	body#chat #main-content-col > #message {
+		position: relative;
+		bottom: auto;
+		display: flex !important;
+		flex: 0 0 auto;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+		width: 100%;
+		margin: 4px 0 calc(4px + env(safe-area-inset-bottom)) !important;
+		padding: 8px !important;
+		background: #0b0b0d;
+		border: 1px solid var(--obs-border);
+		border-radius: var(--obs-radius);
+		z-index: 5;
+	}
+	body#chat #message > span {
+		flex: 0 0 auto;
+	}
+	body#chat #input-text {
+		flex: 1 1 120px;
+		width: auto;
+		min-width: 0;
+		min-height: 44px;
+		max-height: 96px;
+		margin: 0;
+		font-size: 16px !important;
+		resize: none !important;
+	}
+	body#chat #chatsend {
+		flex: 0 0 44px;
+		width: 44px;
+		height: 44px;
+		margin: 0 !important;
+	}
+	body#chat .chat-official-toggle {
+		flex: 0 0 100%;
+		order: 5;
+		min-height: 36px;
+		margin: 0 !important;
+	}
+	body#chat .chat-group {
+		max-width: 100%;
+		padding: 8px 4px;
+	}
+	body#chat .chat-line {
+		max-width: 100%;
+		margin-left: 4px;
+		padding: 3px 6px;
+		overflow-wrap: anywhere;
+	}
+	body#chat .chat-line-content,
+	body#chat .chat-message,
+	body#chat .chat-message-id,
+	body#chat .chat-local-time {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+}
+
+/* Keep the mobile chat dense without shrinking it into unreadable metadata. */
+@media (max-width: 767.98px) {
+	body#chat #shrink * { font-size: inherit !important; }
+	body#chat #chat-window { font-size: .9rem; }
+	body#chat .time,
+	body#chat .chat-local-time,
+	body#chat .chat-message-id { font-size: .74rem !important; }
+	body#chat .chat-group { min-height: 0; margin-top: .35rem; }
+	body#chat .chat-line { margin-left: 8px; }
+	body#chat .chat-message { max-width: calc(100% - 6px); }
+	body#chat .chat-line .btn {
+		min-width: 36px;
+		min-height: 36px;
+		padding: .2rem .35rem !important;
+	}
+}

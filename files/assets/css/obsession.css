@@ -2343,3 +2343,116 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 	.mobile-form-row { grid-template-columns: minmax(0, 1fr); }
 	.mobile-sticky-offset { padding-bottom: calc(var(--obs-mobile-bottom-height) + env(safe-area-inset-bottom)); }
 }
+/* Shared mobile shell: keep the drawer readable and the account actions reachable. */
+@media (max-width: 767.98px) {
+	#navbarResponsive {
+		width: min(88vw, 380px);
+		background: #0b0b0d;
+	}
+	.mobile-drawer-content {
+		min-height: 100%;
+		padding-bottom: calc(18px + env(safe-area-inset-bottom));
+	}
+	.mobile-drawer-section {
+		padding-top: 10px;
+		padding-bottom: 12px;
+	}
+	.mobile-drawer-link {
+		min-height: 46px;
+		font-size: .98rem;
+	}
+	.mobile-drawer-logout {
+		position: sticky;
+		bottom: 0;
+		margin-top: 8px;
+		background: #0b0b0d;
+		border-top: 1px solid rgba(255,255,255,.1);
+	}
+}
+
+/* Mobile feed shell: keep metadata, body and media in one compact card. */
+@media (max-width: 767.98px) {
+	body:not(#chat) {
+		padding-bottom: calc(var(--obs-mobile-bottom-height) + env(safe-area-inset-bottom));
+		overflow-x: hidden;
+	}
+	body#frontpage .site-banner-link { height: 118px; }
+	body#frontpage .app-shell {
+		width: 100%;
+		padding-right: var(--obs-mobile-gutter);
+		padding-left: var(--obs-mobile-gutter);
+	}
+	body#frontpage #main-content-row { display: block; margin: 0; }
+	body#frontpage #main-content-col { width: 100%; padding: 0; }
+	body#frontpage .home-toolbar { margin-bottom: 8px; }
+	body#frontpage .create-post-button { width: 100%; height: var(--obs-control-height); }
+	body#frontpage .sorting {
+		justify-content: flex-start !important;
+		gap: 8px;
+		overflow-x: auto;
+		padding: 0 0 8px !important;
+	}
+	body#frontpage .actual-post {
+		width: 100%;
+		margin-bottom: 10px;
+		overflow: hidden;
+	}
+	body#frontpage .actual-post > .d-flex:first-child {
+		display: flex !important;
+		flex-direction: row !important;
+		align-items: flex-start;
+		min-width: 0;
+	}
+	body#frontpage .actual-post > .d-flex:first-child > .card-block {
+		order: 1;
+		flex: 1 1 auto;
+		width: auto !important;
+		min-width: 0;
+		padding: .65rem .5rem .5rem .75rem;
+	}
+	body#frontpage .actual-post > .d-flex:first-child > .card-header {
+		order: 2;
+		flex: 0 0 82px;
+		width: 82px;
+		min-width: 82px;
+		margin: 0 !important;
+		padding: .65rem .65rem .45rem 0 !important;
+	}
+	body#frontpage .actual-post .card-thumbnail,
+	body#frontpage .actual-post .post-img {
+		display: block;
+		width: 82px;
+		height: 82px;
+		object-fit: cover;
+		border-radius: 4px;
+	}
+	body#frontpage .actual-post .card-thumbnail { overflow: hidden; }
+	body#frontpage .actual-post .post-meta {
+		max-width: 100%;
+		overflow-x: auto;
+		white-space: nowrap;
+	}
+	body#frontpage .actual-post .post-title {
+		margin-top: 8px;
+		font-size: 1rem;
+	}
+	body#frontpage .actual-post .post-actions {
+		min-width: 0;
+		overflow-x: auto;
+		white-space: nowrap;
+	}
+	body#frontpage .actual-post .post-actions ul { min-width: max-content; }
+	body#frontpage .actual-post .d-md-none.mt-2 { margin-top: 0 !important; }
+	body#frontpage .actual-post .voting { display: none !important; }
+	body#frontpage .post-preview { max-width: 100%; overflow-wrap: anywhere; }
+}
+
+/* Bootstrap's collapse utility must not collapse the fixed mobile drawer. */
+@media (max-width: 767.98px) {
+	#navbarResponsive.is-open {
+		display: block !important;
+		height: calc(100dvh - var(--obs-header-total-height) - var(--obs-mobile-bottom-height) - env(safe-area-inset-bottom)) !important;
+		max-height: calc(100dvh - var(--obs-header-total-height) - var(--obs-mobile-bottom-height) - env(safe-area-inset-bottom));
+		overflow-y: auto !important;
+	}
+}
