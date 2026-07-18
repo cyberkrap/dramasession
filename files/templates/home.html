@@ -35,7 +35,7 @@
 {% block desktopBanner %}
 <div class="row home-toolbar">
 	<div class="col">
-		<form id="searchform" class="form-inline d-md-none search flex-nowrap mt-2" action="/search/posts" method="get">
+		<form id="searchform" class="form-inline d-md-none search flex-nowrap mt-2 home-search-form" action="/search/posts" method="get">
 			<input autocomplete="off" class="form-control form-control-sm w-100" type="search" placeholder="{{search_placeholder}}" name="q">
 			<span class="input-group-append">
 				<span class="input-group-text border-0 bg-transparent" style="margin-left: -2.5rem" data-nonce="{{g.nonce}}" onclick_submit>
@@ -134,7 +134,7 @@
 
 {% block content %}
 
-<div class="row no-gutters {% if listing %}mt-md-3{% elif not listing %}my-md-3{% endif %}">
+<div class="row no-gutters home-feed-row {% if listing %}mt-md-3{% elif not listing %}my-md-3{% endif %}">
 	<div class="col-12">
 		<div class="posts" id="posts">
 			{% include "submission_listing.html" %}
@@ -146,7 +146,7 @@
 
 {% block pagenav %}
 {% if listing %}
-<nav>
+<nav class="home-pagination">
 	<ul class="pagination pagination-sm mb-0">
 		{% if page>1 %}
 		<li class="page-item">

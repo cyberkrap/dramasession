@@ -9,18 +9,9 @@
 	</div>
 {% endmacro %}
 
-{% if p.award_count("wholesome", v) %}
-	{% set wholesome = '/i/Obsession/icon.webp' %}
-	{{ stackable_award('wholesome', wholesome, 'Obsession award') }}
-{% endif %}
 
-{% if p.award_count("train", v) %}
-	{{ stackable_award('train', '/i/Obsession/icon.webp', 'Obsession award') }}
-{% endif %}
+{# These legacy effects have no valid Obsession asset. Do not use the site icon as a fake overlay. #}
 
-{% if p.award_count("scooter", v) %}
-	{{ stackable_award('scooter', '/i/Obsession/icon.webp', 'Obsession award') }}
-{% endif %}
 
 {% if p.award_count("firework", v) %}
 	<script defer src="{{'js/fireworks.js' | asset}}"></script>

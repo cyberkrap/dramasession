@@ -150,64 +150,30 @@ function register_new_elements(e) {
 
 }
 
-register_new_elements(document);
-bs_trigger(document);
-
-function closeMobileModalSafely(control) {
-	const modal = control.closest('.modal');
-	if (!modal || typeof bootstrap === 'undefined') return;
-	const instance = bootstrap.Modal.getOrCreateInstance(modal);
-	const modalIsVisible = modal.classList.contains('show') || modal.getAttribute('aria-modal') === 'true' || modal.style.display === 'block' || instance._isShown;
-	if (!modalIsVisible) return;
-	if (instance._isTransitioning) {
-		modal.dataset.mobileDismissPending = 'true';
-		modal.classList.remove('fade', 'show', 'modal-static');
-		modal.style.display = 'none';
-		modal.setAttribute('aria-hidden', 'true');
-		modal.removeAttribute('aria-modal');
-		modal.removeAttribute('role');
-		instance._isTransitioning = false;
-		instance._isShown = false;
-		document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-		document.body.classList.remove('modal-open');
-		document.body.style.removeProperty('padding-right');
-		document.body.style.removeProperty('overflow');
-		return;
-	}
-	instance.hide();
+function moveMobileActionModalsToBody(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    const selector = '.modal.d-md-none[id^="actionsModal"], .modal.d-md-none[id^="adminModal-"], .modal.d-md-none[id^="commentActionsModal-"], .modal.d-md-none[id^="commentAdminModal-"]';
+    const modals = [];
+    if (scope.matches && scope.matches(selector)) modals.push(scope);
+    scope.querySelectorAll(selector).forEach(modal => modals.push(modal));
+    modals.forEach(modal => {
+        if (modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+    });
 }
 
-document.addEventListener('click', event => {
-	const dismissControl = event.target.closest('[data-bs-dismiss="modal"]');
-	if (!dismissControl) return;
-	const modal = dismissControl.closest('.modal');
-	if (!modal) return;
-	setTimeout(() => closeMobileModalSafely(dismissControl), 0);
-}, true);
+moveMobileActionModalsToBody(document);
+const mobileModalObserver = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                moveMobileActionModalsToBody(node);
+            }
+        });
+    });
+});
+mobileModalObserver.observe(document.body, { childList: true, subtree: true });
 
-
-document.addEventListener('shown.bs.modal', event => {
-	const modal = event.target;
-	if (modal.dataset.mobileDismissPending !== 'true') return;
-	delete modal.dataset.mobileDismissPending;
-	const instance = bootstrap.Modal.getOrCreateInstance(modal);
-	instance._isShown = false;
-	instance._isTransitioning = false;
-	modal.classList.remove('show', 'modal-static');
-	modal.style.display = 'none';
-	modal.setAttribute('aria-hidden', 'true');
-	modal.removeAttribute('aria-modal');
-	modal.removeAttribute('role');
-	document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-	document.body.classList.remove('modal-open');
-	document.body.style.removeProperty('padding-right');
-	document.body.style.removeProperty('overflow');
-}, true);
-
-document.addEventListener('hidden.bs.modal', event => {
-	if (document.querySelector('.modal.show')) return;
-	document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-	document.body.classList.remove('modal-open');
-	document.body.style.removeProperty('padding-right');
-	document.body.style.removeProperty('overflow');
-}, true);
+register_new_elements(document);
+bs_trigger(document);

@@ -1,4 +1,5 @@
 {% extends "default.html" %}
+{% block body_attributes %}id="casino-game-page"{% endblock %}
 {% block pagetitle %}{{game.capitalize()}}{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{('css/casino/game_screen.css') | asset}}">
@@ -62,7 +63,7 @@
 			</div>
 			{% block actions %} {% endblock %}
 		</div>
-		<div id="casinoGameFeed" data-feed="{{feed}}" class="col">
+		<div id="casinoGameFeed" data-feed="{{feed}}" class="col casino-game-feed">
 			<div class="game_screen-title">
 				<h5>Feed</h5>
 				<hr>
@@ -72,7 +73,7 @@
 				Reload Feed
 			</button>
 		</div>
-		<div class="col">
+		<div class="col casino-game-leaders">
 			<div class="game_screen-title">
 				<h5>Leaders</h5>
 				<hr>

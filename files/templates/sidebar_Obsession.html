@@ -1,4 +1,5 @@
-<div class="col sidebar community-sidebar text-left {% if '/sidebar' not in request.path %}d-none d-lg-block{% endif %} pt-3" {% if request.path != '/sidebar' %}id="sidebar-content"{% endif %}>
+{% set sidebar_is_mobile_drawer = mobile_drawer_sidebar|default(false) %}
+<div class="{% if not sidebar_is_mobile_drawer %}col {% endif %}sidebar community-sidebar text-left {% if not sidebar_is_mobile_drawer and '/sidebar' not in request.path %}d-none d-lg-block{% endif %} {% if sidebar_is_mobile_drawer %}mobile-drawer-sidebar{% endif %} pt-3" {% if request.path != '/sidebar' and not sidebar_is_mobile_drawer %}id="sidebar-content"{% endif %}>
 	{% if sub %}
 		{% set image = sub.sidebar_url %}
 	{% elif os_path.exists("files/assets/images/" ~ SITE_NAME ~ "/sidebar") and listdir("files/assets/images/" ~ SITE_NAME ~ "/sidebar") %}

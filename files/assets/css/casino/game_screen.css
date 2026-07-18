@@ -69,6 +69,7 @@
 	box-shadow: -5px 5px 5px 0px rgba(60, 60, 60, 0.56);
 	-webkit-box-shadow: -5px 5px 5px 0px rgba(60, 60, 60, 0.56);
 	-moz-box-shadow: -5px 5px 5px 0px rgba(60, 60, 60, 0.56);
+	transform: scale(0.7) rotateZ(var(--card-angle, 0deg));
 }
 
 .playing-card_red {

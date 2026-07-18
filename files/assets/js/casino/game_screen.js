@@ -155,7 +155,7 @@ function getRandomCardAngle() {
 function buildPlayingCard(rank, suit) {
 	return `
 		<div
-			style="transform: scale(0.7) rotateZ(${getRandomCardAngle()}deg)"
+			style="--card-angle: ${getRandomCardAngle()}deg"
 			class="playing-card playing-card_${["♥️", "♦️"].includes(suit) ? 'red' : 'black'}">
 			<div class="playing-card_small playing-card_topright">${rank}${suit}</div>
 			<div class="playing-card_large">${rank}${suit}</div>

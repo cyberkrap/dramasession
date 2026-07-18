@@ -222,46 +222,51 @@
 		</ul>
 
 		<div class="mobile-drawer-content">
-		<form class="mobile-drawer-search form-inline search flex-nowrap mb-3" action="/search/posts" method="get">
-			<input autocomplete="off" class="form-control w-100" type="search" placeholder="{{search_placeholder}}" name="q">
-			<span class="input-group-append">
-				<span class="input-group-text border-0 bg-transparent" style="margin-left:-2.5rem"><i class="fa fa-search" aria-hidden="true"></i></span>
-			</span>
-		</form>
-		<button type="button" id="mobile-drawer-close" class="mobile-drawer-close d-md-none" aria-label="Close navigation menu">
-			<i class="fas fa-xmark" aria-hidden="true"></i><span>Close</span>
-		</button>
-		<div class="mobile-drawer-section">
-			<div class="mobile-drawer-heading">Navigate</div>
-			<a class="nav-link mobile-drawer-link" href="/"><i class="fas fa-home-alt fa-fw mr-3"></i>Home</a>
-			<a class="nav-link mobile-drawer-link" href="/?sort=new&t=all"><i class="fas fa-sparkles fa-fw mr-3"></i>New</a>
-			{% if v %}<a class="nav-link mobile-drawer-link" href="/submit"><i class="fas fa-feather-alt fa-fw mr-3"></i>Create post</a>{% else %}<a class="nav-link mobile-drawer-link" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-feather-alt fa-fw mr-3"></i>Create post</a>{% endif %}
-			{% if FEATURES['CHAT'] %}<a class="nav-link mobile-drawer-link" href="/chat"><i class="fas fa-messages fa-fw mr-3"></i>Chat</a>{% endif %}
-			{% if FEATURES['GAMBLING'] %}<a class="nav-link mobile-drawer-link" href="/casino"><i class="fas fa-cards fa-fw mr-3"></i>Casino</a>{% endif %}
-			{% if FEATURES['AWARDS'] %}<a class="nav-link mobile-drawer-link" href="/shop"><i class="fas fa-store fa-fw mr-3"></i>Shop</a>{% endif %}
-			<a class="nav-link mobile-drawer-link" href="/directory"><i class="fas fa-compass fa-fw mr-3"></i>Community Directory</a>
-		</div>
-		{% if v %}
-		<div class="mobile-drawer-section">
-			<div class="mobile-drawer-heading">Account</div>
-			<a class="nav-link mobile-drawer-link" href="{{v.url}}"><i class="fas fa-user-circle fa-fw mr-3"></i>My profile</a>
-			<a class="nav-link mobile-drawer-link" href="/settings/personal"><i class="fas fa-cog fa-fw mr-3"></i>Settings</a>
-			<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-heart fa-fw mr-3"></i>Support</a>
-			<button type="button" class="nav-link mobile-drawer-link copy-link" data-clipboard-text="/signup?ref={{v.username}}"><i class="fas fa-user-friends fa-fw mr-3"></i>Invite friends</button>
-			{% if TELEGRAM_ID %}<a rel="nofollow noopener" class="nav-link mobile-drawer-link" href="https://t.me/s/{{TELEGRAM_ID}}"><i class="fab fa-telegram fa-fw mr-3"></i>Telegram Channel</a>{% endif %}
-			<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
-			{% if v.admin_level >= PERMS['ADMIN_HOME_VISIBLE'] %}<a class="nav-link mobile-drawer-link" href="/admin"><i class="fas fa-crown fa-fw mr-3"></i>Admin tools</a>{% endif %}
-			<button type="button" class="nav-link mobile-drawer-link mobile-drawer-logout" data-nonce="{{g.nonce}}" data-onclick="logout(this)"><i class="fas fa-sign-out fa-fw mr-3 text-danger"></i>Log out</button>
-		</div>
-		{% else %}
-		<div class="mobile-drawer-section">
-			<div class="mobile-drawer-heading">Account</div>
-			<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-heart fa-fw mr-3"></i>Support</a>
-			<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
-			<a class="nav-link mobile-drawer-link" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-right-to-bracket fa-fw mr-3"></i>Sign in</a>
-			<a class="nav-link mobile-drawer-link" href="/signup?redirect={{request.full_path | urlencode}}"><i class="fas fa-user-plus fa-fw mr-3"></i>Sign up</a>
-		</div>
-		{% endif %}
+			<form class="mobile-drawer-search form-inline search flex-nowrap mb-3" action="/search/posts" method="get">
+				<input autocomplete="off" class="form-control w-100" type="search" placeholder="{{search_placeholder}}" name="q">
+				<span class="input-group-append">
+					<span class="input-group-text border-0 bg-transparent" style="margin-left:-2.5rem"><i class="fa fa-search" aria-hidden="true"></i></span>
+				</span>
+			</form>
+			<button type="button" id="mobile-drawer-close" class="mobile-drawer-close d-md-none" aria-label="Close navigation menu">
+				<i class="fas fa-xmark" aria-hidden="true"></i><span>Close</span>
+			</button>
+
+			{% if v %}
+			<div class="mobile-drawer-section">
+				<div class="mobile-drawer-heading">Account</div>
+				<div class="mobile-drawer-balance" aria-label="Your balance">
+					<span><img loading="lazy" alt="Wishcoins" src="{{'coins.webp' | asset_siteimg}}">{{v.coins|number}}</span>
+					{% if FEATURES['MARSEYBUX'] %}<span><img loading="lazy" alt="Wishbux" src="/i/marseybux.webp?v=2000">{{v.marseybux|number}}</span>{% endif %}
+				</div>
+				<a class="nav-link mobile-drawer-link" href="{{v.url}}"><i class="fas fa-user-circle fa-fw mr-3"></i>My profile</a>
+				<a class="nav-link mobile-drawer-link" href="{{v.url}}/posts"><i class="fas fa-file fa-fw mr-3"></i>My posts</a>
+				<a class="nav-link mobile-drawer-link" href="{{v.url}}/comments"><i class="fas fa-comments fa-fw mr-3"></i>My comments</a>
+				<a class="nav-link mobile-drawer-link" href="/settings/personal"><i class="fas fa-cog fa-fw mr-3"></i>Settings</a>
+				<a class="nav-link mobile-drawer-link" href="/settings/personal#notifications"><i class="fas fa-bell fa-fw mr-3"></i>Push notifications</a>
+				<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-gift fa-fw mr-3"></i>Support</a>
+                <button type="button" class="nav-link mobile-drawer-link copy-link" data-clipboard-text="/signup?ref={{v.username}}"><i class="fas fa-user-friends fa-fw mr-3"></i>Invite friends</button>
+				<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-bug fa-fw mr-3"></i>Feedback</a>
+				{% if TELEGRAM_ID %}<a rel="nofollow noopener" class="nav-link mobile-drawer-link" href="https://t.me/s/{{TELEGRAM_ID}}"><i class="fab fa-telegram fa-fw mr-3"></i>Telegram Channel</a>{% endif %}
+				<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
+				{% if v.admin_level >= PERMS['ADMIN_HOME_VISIBLE'] %}<a class="nav-link mobile-drawer-link" href="/admin"><i class="fas fa-crown fa-fw mr-3"></i>Admin tools</a>{% endif %}
+				<button type="button" class="nav-link mobile-drawer-link mobile-drawer-logout" data-nonce="{{g.nonce}}" data-onclick="logout(this)"><i class="fas fa-sign-out fa-fw mr-3 text-danger"></i>Log out</button>
+			</div>
+			{% else %}
+			<div class="mobile-drawer-section">
+				<div class="mobile-drawer-heading">Account</div>
+				<a class="nav-link mobile-drawer-link" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-right-to-bracket fa-fw mr-3"></i>Sign in</a>
+				<a class="nav-link mobile-drawer-link" href="/signup?redirect={{request.full_path | urlencode}}"><i class="fas fa-user-plus fa-fw mr-3"></i>Sign up</a>
+				<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-gift fa-fw mr-3"></i>Support</a>
+				<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
+			</div>
+			{% endif %}
+
+			<div class="mobile-drawer-sidebar-section">
+				{% set mobile_drawer_sidebar = true %}
+				{% include "sidebar_Obsession.html" %}
+				{% set mobile_drawer_sidebar = false %}
+			</div>
 		</div>
 	</div>
 	{% endif %}
