@@ -1,19 +1,61 @@
 {% extends "default.html" %}
 {% block pagetitle %}Support Obsession{% endblock %}
 {% block content %}
-	<h1 class="py-3">Support Obsession Forum</h1>
-	<div class="overflow-x-auto">
-		<table class="table table-striped mb-5">
-			<tbody>
-				{% if v and v.truescore >= TRUESCORE_DONATE_MINIMUM and DONATE_LINK != DEFAULT_CONFIG_VALUE %}
-				<tr>
-					<td>{{DONATE_SERVICE}}</td>
-					<td><a rel="nofollow noopener" href="{{DONATE_LINK}}">{{DONATE_LINK}}</a></td>
-				</tr>
-				{% else %}
-				<tr><td>Support options will be available soon.</td></tr>
-				{% endif %}
-			</tbody>
-		</table>
-	</div>
+<main class="support-page" aria-labelledby="support-title">
+    <header class="support-hero">
+        <div class="support-kicker"><i class="fas fa-heart" aria-hidden="true"></i> Support Obsession</div>
+        <h1 id="support-title">Keep the story moving.</h1>
+        <p class="support-lede">Your support helps keep Obsession Fan Club online, welcoming and ready for the next chapter.</p>
+        <div class="support-intro-grid">
+            <div><i class="fas fa-server" aria-hidden="true"></i><span>Hosting, database and file storage</span></div>
+            <div><i class="fas fa-shield-halved" aria-hidden="true"></i><span>Security services and transactional email</span></div>
+            <div><i class="fas fa-wrench" aria-hidden="true"></i><span>Maintenance and future development</span></div>
+        </div>
+        <p class="support-note">Supporters receive site benefits based on their tier. Payment details are handled by the configured third-party provider; Obsession does not store full card information. Use the email associated with your Obsession account when required. Rewards may take a little time to appear after payment.</p>
+        {% if support_payment_configured %}
+            <div class="support-payment-status support-payment-status-ready" role="status"><i class="fas fa-heart" aria-hidden="true"></i><span>Support payments are available through our configured provider.</span></div>
+        {% else %}
+            <div class="support-payment-status" role="status"><i class="fas fa-heart" aria-hidden="true"></i><span><strong>Support payments are being prepared.</strong><small>Payment setup is in progress. No patron status or rewards are granted from this page yet.</small></span></div>
+        {% endif %}
+    </header>
+
+    <section class="support-tiers" aria-labelledby="support-tiers-title">
+        <div class="support-section-heading">
+            <div>
+                <div class="support-kicker">Choose your level</div>
+                <h2 id="support-tiers-title">Support tiers</h2>
+            </div>
+            <p>Every tier helps fund the same community. Higher tiers carry the verified patron benefits forward.</p>
+        </div>
+        <div class="support-tier-grid">
+            {% for tier in support_tiers %}
+            <article class="support-tier{% if tier.popular %} support-tier-popular{% endif %}">
+                {% if tier.popular %}<div class="support-popular-label">Most Popular</div>{% endif %}
+                <div class="support-tier-badge">
+                    <img loading="lazy" src="/i/Obsession/badges/{{tier.badge}}.webp?v=1" alt="{{tier.name}} support badge" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                    <span class="support-badge-fallback" hidden aria-hidden="true"><i class="fas fa-heart"></i></span>
+                </div>
+                <div class="support-tier-heading">
+                    <h3>{{tier.name}}</h3>
+                    <div class="support-price"><span>${{tier.price}}</span><small>/month</small></div>
+                </div>
+                <div class="support-grant"><i class="fas fa-coins" aria-hidden="true"></i><strong>{{tier.wishbux|number}}</strong> Wishbux monthly</div>
+                <ul class="support-perks">
+                    {% for perk in tier.perks %}<li>{{perk}}</li>{% endfor %}
+                </ul>
+                {% if support_payment_configured %}
+                    <a class="support-tier-action" href="{{support_payment_url}}" rel="nofollow noopener"><i class="fas fa-heart" aria-hidden="true"></i>Support {{tier.name}}</a>
+                {% else %}
+                    <button class="support-tier-action" type="button" disabled><i class="fas fa-heart" aria-hidden="true"></i>Payment setup in progress</button>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="support-footer-note" aria-label="Payment status">
+        <i class="fas fa-lock" aria-hidden="true"></i>
+        <div><h2>Support stays transparent</h2><p>Payment integration is kept separate from patron fulfillment. When payments are enabled, rewards will be granted only after server-side verification.</p></div>
+    </section>
+</main>
 {% endblock %}

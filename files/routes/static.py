@@ -13,6 +13,7 @@ from files.helpers.actions import *
 from files.helpers.alerts import *
 from files.helpers.config.const import *
 from files.helpers.config.modaction_types import *
+from files.helpers.support import SUPPORT_PAYMENT_CONFIGURED, SUPPORT_PAYMENT_URL, SUPPORT_TIERS
 from files.routes.wrappers import *
 from files.__main__ import app, cache, limiter
 
@@ -358,7 +359,13 @@ if not os.path.exists(f'files/templates/donate_{SITE_NAME}.html'):
 @app.get('/donate')
 @auth_desired_with_logingate
 def donate(v):
-	return render_template(f'donate_{SITE_NAME}.html', v=v)
+	return render_template(
+		f'donate_{SITE_NAME}.html',
+		v=v,
+		support_payment_configured=SUPPORT_PAYMENT_CONFIGURED,
+		support_payment_url=SUPPORT_PAYMENT_URL,
+		support_tiers=SUPPORT_TIERS,
+	)
 
 
 # @app.post('/csp_violations')

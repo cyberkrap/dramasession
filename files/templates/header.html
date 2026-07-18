@@ -151,7 +151,7 @@
 					</li>
 				{%- endif %}
 <li class="nav-item d-none d-lg-flex align-items-center justify-content-center mx-1">
-	<a class="btn btn-primary btn-sm" href="/donate">Donate</a>
+	<a class="btn btn-primary btn-sm" href="/donate"><i class="fas fa-heart mr-1" aria-hidden="true"></i>Support</a>
 </li>
 
 				<li id="sidebar-btn" class="nav-item d-flex align-items-center justify-content-center text-center mx-1">
@@ -185,7 +185,7 @@
 							<a class="dropdown-item" href="/settings/personal"><i class="fas fa-cog fa-fw mr-3"></i>Settings</a>
 
 							{% if FEATURES['MARSEYBUX'] %}
-								<a class="dropdown-item" rel="nofollow noopener" href="/donate"><i class="fas fa-dollar-sign fa-fw mr-3"></i>Donate</a>
+								<a class="dropdown-item" rel="nofollow noopener" href="/donate"><i class="fas fa-heart fa-fw mr-3"></i>Support</a>
 							{% endif %}
 
 							<button type="button" class="dropdown-item copy-link" data-clipboard-text="/signup?ref={{v.username}}"><i class="fas fa-user-friends fa-fw mr-3"></i>Invite friends</button>
@@ -207,7 +207,7 @@
 				</li>
 			{% else %}
 			<li class="nav-item d-flex align-items-center justify-content-center mx-1 mr-2">
-				<a class="btn btn-primary" href="/donate">Donate</a>
+				<a class="btn btn-primary" href="/donate"><i class="fas fa-heart mr-1" aria-hidden="true"></i>Support</a>
 			</li>
 			<li class="nav-item d-flex align-items-center justify-content-center mx-1 mr-2">
 				<a class="btn btn-primary" href="/contact">Contact us</a>
@@ -244,7 +244,7 @@
 				<a class="nav-link mobile-drawer-link" href="{{v.url}}/comments"><i class="fas fa-comments fa-fw mr-3"></i>My comments</a>
 				<a class="nav-link mobile-drawer-link" href="/settings/personal"><i class="fas fa-cog fa-fw mr-3"></i>Settings</a>
 				<a class="nav-link mobile-drawer-link" href="/settings/personal#notifications"><i class="fas fa-bell fa-fw mr-3"></i>Push notifications</a>
-				<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-gift fa-fw mr-3"></i>Support</a>
+				<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-heart fa-fw mr-3"></i>Support</a>
                 <button type="button" class="nav-link mobile-drawer-link copy-link" data-clipboard-text="/signup?ref={{v.username}}"><i class="fas fa-user-friends fa-fw mr-3"></i>Invite friends</button>
 				<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-bug fa-fw mr-3"></i>Feedback</a>
 				{% if TELEGRAM_ID %}<a rel="nofollow noopener" class="nav-link mobile-drawer-link" href="https://t.me/s/{{TELEGRAM_ID}}"><i class="fab fa-telegram fa-fw mr-3"></i>Telegram Channel</a>{% endif %}
@@ -257,7 +257,7 @@
 				<div class="mobile-drawer-heading">Account</div>
 				<a class="nav-link mobile-drawer-link" href="/login?redirect={{request.full_path | urlencode}}"><i class="fas fa-right-to-bracket fa-fw mr-3"></i>Sign in</a>
 				<a class="nav-link mobile-drawer-link" href="/signup?redirect={{request.full_path | urlencode}}"><i class="fas fa-user-plus fa-fw mr-3"></i>Sign up</a>
-				<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-gift fa-fw mr-3"></i>Support</a>
+				<a class="nav-link mobile-drawer-link" href="/donate"><i class="fas fa-heart fa-fw mr-3"></i>Support</a>
 				<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
 			</div>
 			{% endif %}
