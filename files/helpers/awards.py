@@ -93,7 +93,7 @@ def award_timers(v, bot=False):
 		badge = v.has_badge(179)
 		if badge: g.db.delete(badge)
 
-	g.db.add(v)
+	# The user is already session-managed; queued expiry deletes commit normally.
 
 
 def award_timers_bots_task():
