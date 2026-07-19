@@ -17,6 +17,7 @@ from files.helpers.owoify import owoify
 from files.helpers.regex import *
 from files.helpers.sanitize import filter_emojis_only
 from files.helpers.slots import *
+from files.helpers.support import patron_limit
 from files.helpers.treasure import *
 from files.routes.front import comment_idlist
 from files.routes.routehelpers import execute_shadowban_viewers_and_voters
@@ -152,7 +153,11 @@ def comment(v:User):
 	body, _, options, choices = sanitize_poll_options(v, body, False)
 
 	if request.files.get("file") and not g.is_tor:
-		files = request.files.getlist('file')[:4]
+		files = request.files.getlist('file')
+
+	max_files = patron_limit(v, "attachment_count")
+	if len(files) > max_files:
+		abort(413, f"You can upload up to {max_files} files at a time.")
 		
 		if files:
 			media_ratelimit(v)
@@ -208,7 +213,7 @@ def comment(v:User):
 			else:
 				abort(415)
 
-	body = body.strip()[:COMMENT_BODY_LENGTH_LIMIT]
+	body = body.strip()[:patron_limit(v, "comment_body_length")]
 
 	if v.admin_level >= PERMS['SITE_SETTINGS_SNAPPY_QUOTES'] and posting_to_submission and post_target.id == SNAPPY_THREAD and level == 1 and body not in SNAPPY_QUOTES:
 		with open(f"snappy_{SITE_NAME}.txt", "a", encoding="utf-8") as f:
@@ -238,7 +243,7 @@ def comment(v:User):
 	if v.marseyawarded and posting_to_submission and post_target.id not in ADMIGGER_THREADS and marseyaward_body_regex.search(body_html):
 		abort(403, "You can only type marseys!")
 
-	if len(body_html) > COMMENT_BODY_HTML_LENGTH_LIMIT: abort(400)
+	if len(body_html) > patron_limit(v, "comment_body_html_length"): abort(400)
 
 	is_bot = v.client is not None and v.id not in PRIVILEGED_USER_BOTS
 
@@ -402,7 +407,7 @@ def edit_comment(cid, v):
 		execute_antispam_comment_check(body, v)
 
 		body += process_files(request.files, v)
-		body = body.strip()[:COMMENT_BODY_LENGTH_LIMIT] # process_files potentially adds characters to the post
+		body = body.strip()[:patron_limit(v, "comment_body_length")] # process_files potentially adds characters to the post
 
 		body_for_sanitize = body
 		if v.owoify:
@@ -414,7 +419,7 @@ def edit_comment(cid, v):
 
 		body_html = sanitize(body_for_sanitize, golden=False, limit_pings=5, torture=torture)
 
-		if len(body_html) > COMMENT_BODY_HTML_LENGTH_LIMIT: abort(400)
+		if len(body_html) > patron_limit(v, "comment_body_html_length"): abort(400)
 
 		if v.marseyawarded and marseyaward_body_regex.search(body_html):
 			abort(403, "You can only type marseys!")

@@ -15,6 +15,7 @@ from files.helpers.owoify import owoify
 from files.helpers.regex import *
 from files.helpers.sanitize import filter_emojis_only
 from files.helpers.useractions import *
+from files.helpers.support import patron_has
 from files.routes.wrappers import *
 from files.__main__ import app, cache, limiter
 
@@ -50,6 +51,8 @@ def shop(v:User):
 @limiter.limit("100/minute;200/hour;1000/day", key_func=get_ID)
 @auth_required
 def buy(v:User, award):
+	if award == 'benefactor' and not patron_has(v, "benefactor"):
+		abort(403, "The Benefactor award is available to Insider supporters and above.")
 	if award == 'benefactor' and not request.values.get("mb"):
 		abort(403, "You can only buy the Benefactor award with marseybux!")
 
@@ -132,6 +135,8 @@ def buy(v:User, award):
 @is_not_permabanned
 def award_thing(v, thing_type, id):
 	kind = request.values.get("kind", "").strip()
+	if kind == "benefactor" and not patron_has(v, "benefactor"):
+		abort(403, "The Benefactor award is available to Insider supporters and above.")
 
 	if thing_type == 'post':
 		thing = get_post(id)

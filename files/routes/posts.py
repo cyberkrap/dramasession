@@ -21,6 +21,7 @@ from files.helpers.regex import *
 from files.helpers.sanitize import *
 from files.helpers.settings import get_setting
 from files.helpers.slots import *
+from files.helpers.support import patron_limit
 from files.helpers.sorting_and_time import *
 from files.routes.routehelpers import execute_shadowban_viewers_and_voters
 from files.routes.wrappers import *
@@ -291,7 +292,7 @@ def edit_post(pid, v):
 		p.title_html = title_html
 
 	body += process_files(request.files, v)
-	body = body.strip()[:POST_BODY_LENGTH_LIMIT] # process_files() may be adding stuff to the body
+	body = body.strip()[:patron_limit(v, "post_body_length")] # process_files() may be adding stuff to the body
 
 	if body != p.body:
 		body, bets, options, choices = sanitize_poll_options(v, body, False)
@@ -314,7 +315,7 @@ def edit_post(pid, v):
 		for text in [p.body, p.title, p.url]:
 			if not execute_blackjack(v, p, text, 'submission'): break
 
-		if len(body_html) > POST_BODY_HTML_LENGTH_LIMIT:
+		if len(body_html) > patron_limit(v, "post_body_html_length"):
 			abort(400, f"Submission body_html too long!")
 
 		p.body_html = body_html
@@ -660,7 +661,7 @@ def submit_post(v:User, sub=None):
 	body, bets, options, choices = sanitize_poll_options(v, body, True)
 
 	body += process_files(request.files, v)
-	body = body.strip()[:POST_BODY_LENGTH_LIMIT] # process_files() adds content to the body, so we need to re-strip
+	body = body.strip()[:patron_limit(v, "post_body_length")] # process_files() adds content to the body, so we need to re-strip
 
 	torture = (v.agendaposter and not v.marseyawarded and sub != 'chudrama')
 
@@ -669,7 +670,7 @@ def submit_post(v:User, sub=None):
 	if v.marseyawarded and marseyaward_body_regex.search(body_html):
 		return error("You can only use community emotes!")
 
-	if len(body_html) > POST_BODY_HTML_LENGTH_LIMIT:
+	if len(body_html) > patron_limit(v, "post_body_html_length"):
 		return error(f"Submission body_html too long!")
 
 	flag_notify = (request.values.get("notify", "on") == "on")

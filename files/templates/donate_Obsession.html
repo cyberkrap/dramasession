@@ -40,9 +40,23 @@
                     <div class="support-price"><span>${{tier.price}}</span><small>/month</small></div>
                 </div>
                 <div class="support-grant"><i class="fas fa-coins" aria-hidden="true"></i><strong>{{tier.wishbux|number}}</strong> Wishbux monthly</div>
-                <ul class="support-perks">
-                    {% for perk in tier.perks %}<li>{{perk}}</li>{% endfor %}
-                </ul>
+                <div class="support-tier-meta">
+                    <span>{{tier.discount}}% shop and award discount</span>
+                    <strong>{{tier.benefit_count}} included benefits</strong>
+                </div>
+                <div class="support-tier-new">
+                    <strong>New at this tier</strong>
+                    <ul class="support-perks">
+                        {% for perk in tier.new_perks %}<li>{{perk}}</li>{% endfor %}
+                    </ul>
+                </div>
+                {% if not loop.first %}<p class="support-tier-inherit">Includes all previous-tier benefits.</p>{% endif %}
+                <details class="support-tier-details">
+                    <summary>View all benefits</summary>
+                    <ul class="support-perks">
+                        {% for perk in tier.all_benefits %}<li>{{perk}}</li>{% endfor %}
+                    </ul>
+                </details>
                 {% if support_payment_configured %}
                     <a class="support-tier-action" href="{{support_payment_url}}" rel="nofollow noopener"><i class="fas fa-heart" aria-hidden="true"></i>Support {{tier.name}}</a>
                 {% else %}

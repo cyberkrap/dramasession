@@ -24,14 +24,14 @@
 				{{userpage_admintools.userBanBlock('desktop')}}
 				<div class="profile-name-row">
 					<h1 id="profile--name" style="color:#{{u.name_color}}">
-						<span {% if u.patron %}class="patron" style="background-color:#{{u.name_color}}"{% endif %}>{{u.user_name}}</span>
+						<span {% if u.active_patron %}class="patron" style="background-color:#{{u.name_color}}"{% endif %}>{{u.user_name}}</span>
 					</h1>
 					<div class="profile-identity-icons">
 						{% if u.username != u.original_username %}
 							<i id="profile--origname" class="fas fa-user-tag" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Original Username: @{{u.original_username}}"></i>
 						{% endif %}
-						{% if FEATURES['PATRON_ICONS'] and u.patron %}
-							<img loading="lazy" src="/i/{{SITE_NAME}}/badges/2{{u.patron}}.webp?v=1" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.patron_tooltip}}" alt="{{u.patron_tooltip}}">
+						{% if FEATURES['PATRON_ICONS'] and u.active_patron %}
+							<img loading="lazy" src="/i/{{SITE_NAME}}/badges/2{{u.active_patron}}.webp?v=1" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{u.patron_tooltip}}" alt="{{u.patron_tooltip}}">
 						{% endif %}
 						{% if FEATURES['HOUSES'] and u.house %}
 							<img loading="lazy" id="profile--house" src="{{u.house | house_icon}}" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{u.house}}" alt="House {{u.house}}">

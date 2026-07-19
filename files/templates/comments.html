@@ -155,8 +155,8 @@
 				{% if c.ghost %}
 					<span {% if c.distinguish_level %}class="mod {% if SITE_NAME == 'rDrama' %}mod-rdrama{% endif %}"{% endif %}>👻</span>
 				{% else %}
-					{% if FEATURES['PATRON_ICONS'] and c.author.patron %}
-						<img loading="lazy" src="/i/{{SITE_NAME}}/badges/2{{c.author.patron}}.webp?v=1" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{c.author.patron_tooltip}}" alt="{{c.author.patron_tooltip}}">
+					{% if FEATURES['PATRON_ICONS'] and c.author.active_patron %}
+						<img loading="lazy" src="/i/{{SITE_NAME}}/badges/2{{c.author.active_patron}}.webp?v=1" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{c.author.patron_tooltip}}" alt="{{c.author.patron_tooltip}}">
 					{% endif %}
 
 					{% if FEATURES['HOUSES'] and c.author.house %}
@@ -173,7 +173,7 @@
 								<img class="profile-pic-30-hat hat" loading="lazy" src="{{c.author.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{c.author.hat_active(v)[1]}}">
 							{%- endif %}
 						</div>
-						<span {% if c.author.patron and not c.distinguish_level %}class="patron" style="background-color:#{{c.author.name_color}};"{% elif c.distinguish_level %}class="mod {% if SITE_NAME == 'rDrama' %}mod-rdrama{% endif %}"{% endif %}>{{c.author_name}}</span>
+						<span {% if c.author.active_patron and not c.distinguish_level %}class="patron" style="background-color:#{{c.author.name_color}};"{% elif c.distinguish_level %}class="mod {% if SITE_NAME == 'rDrama' %}mod-rdrama{% endif %}"{% endif %}>{{c.author_name}}</span>
 					</a>
 					{% if FEATURES['PRONOUNS'] %}
 						<span class="pronouns" style="color:#{{c.author.titlecolor}};border-color:#{{c.author.titlecolor}}">{{c.author.pronouns}}</span>

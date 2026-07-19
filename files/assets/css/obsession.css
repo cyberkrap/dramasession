@@ -2991,6 +2991,14 @@ body#frontpage .home-pagination {
 .support-price small { color: #a7a2a3; font-size: .78rem; font-weight: 400; }
 .support-grant { display: flex; gap: 8px; align-items: center; padding: 0 18px 14px; color: #d5b0b3; font-size: .86rem; }
 .support-grant i { color: #d22b35; }
+.support-tier-meta { display: flex; justify-content: space-between; gap: 10px; padding: 0 18px 12px; color: #a7a2a3; font-size: .78rem; }
+.support-tier-meta strong { color: #f3f1f1; white-space: nowrap; }
+.support-tier-new { padding: 0 18px; }
+.support-tier-new > strong { color: #f3f1f1; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+.support-tier-inherit { margin: 0; padding: 10px 18px 0; color: #a7a2a3; font-size: .8rem; }
+.support-tier-details { margin: 0 18px 16px; border-top: 1px solid rgba(255,255,255,.08); }
+.support-tier-details summary { padding: 12px 0 0; color: #e8d7d8; cursor: pointer; font-size: .82rem; font-weight: 700; }
+.support-tier-details .support-perks { min-height: 0; padding-inline: 18px; border-top: 0; }
 .support-perks { min-height: 168px; margin: 0; padding: 12px 20px 16px 36px; border-top: 1px solid rgba(255,255,255,.08); color: #c7c2c2; font-size: .86rem; line-height: 1.55; }
 .support-perks li + li { margin-top: 8px; }
 .support-tier-action { display: flex; justify-content: center; align-items: center; gap: 8px; width: calc(100% - 36px); min-height: 42px; margin: 0 18px 18px; padding: 9px 12px; border: 1px solid #9e111b; border-radius: 6px; background: rgba(158,17,27,.18); color: #f3f1f1; font-size: .83rem; font-weight: 700; text-align: center; transition: background-color .18s ease, border-color .18s ease; }

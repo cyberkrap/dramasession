@@ -20,6 +20,7 @@ from files.helpers.config.const import *
 from files.helpers.get import *
 from files.helpers.mail import *
 from files.helpers.media import process_files, process_image
+from files.helpers.support import patron_has
 from files.helpers.regex import *
 from files.helpers.sanitize import *
 from files.helpers.sanitize import filter_emojis_only
@@ -62,7 +63,7 @@ def remove_background(v):
 def upload_custom_background(v):
 	if g.is_tor: abort(403, "Image uploads are not allowed through TOR!")
 
-	if not v.patron:
+	if not patron_has(v, "custom_background"):
 		abort(403, f"This feature is only available to {patron}s!")
 
 	file = request.files["file"]
@@ -235,7 +236,7 @@ def settings_personal_post(v):
 		g.db.add(v)
 		return render_template("settings/personal.html", v=v, msg="Your enemies list has been updated!")
 
-	elif not updated and v.patron and request.values.get("sig"):
+	elif not updated and patron_has(v, "signature") and request.values.get("sig"):
 		sig = request.values.get("sig")[:200].replace('\n','').replace('\r','')
 		sig_html = sanitize(sig)
 		if len(sig_html) > 1000:

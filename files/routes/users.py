@@ -20,6 +20,7 @@ from files.helpers.mail import *
 from files.helpers.sanitize import *
 from files.helpers.sorting_and_time import *
 from files.helpers.useractions import badge_grant
+from files.helpers.support import patron_has
 from files.routes.routehelpers import check_for_alts, add_alt
 from files.routes.wrappers import *
 
@@ -344,7 +345,7 @@ def transfer_currency(v:User, username:str, currency_name:Literal['coins', 'mars
 	if amount is None or amount <= 0: abort(400, f"Invalid number of {currency_label}")
 	if amount < MIN_CURRENCY_TRANSFER: abort(400, f"You have to gift at least {MIN_CURRENCY_TRANSFER} {currency_label}")
 	tax = 0
-	if apply_tax and not v.patron and not receiver.patron:
+	if apply_tax and not patron_has(v, "gifting_tax_exempt") and not patron_has(receiver, "gifting_tax_exempt"):
 		tax = math.ceil(amount*TAX_PCT)
 
 	reason = request.values.get("reason", "").strip()

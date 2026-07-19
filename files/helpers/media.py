@@ -18,6 +18,7 @@ from sqlalchemy.orm.session import Session
 from files.classes.media import *
 from files.helpers.cloudflare import purge_files_in_cache
 from files.helpers.settings import get_setting
+from files.helpers.support import patron_limit
 
 from .config.const import *
 
@@ -45,7 +46,10 @@ def media_ratelimit(v):
 def process_files(files, v):
 	body = ''
 	if g.is_tor or not files.get("file"): return body
-	files = files.getlist('file')[:4]
+	max_files = patron_limit(v, "attachment_count")
+	files = files.getlist('file')
+	if len(files) > max_files:
+		abort(413, f"You can upload up to {max_files} files at a time.")
 	
 	if files:
 		media_ratelimit(v)
@@ -74,7 +78,7 @@ def process_audio(file, v):
 	file.save(name)
 
 	size = os.stat(name).st_size
-	if size > MAX_IMAGE_AUDIO_SIZE_MB_PATRON * 1024 * 1024 or not v.patron and size > MAX_IMAGE_AUDIO_SIZE_MB * 1024 * 1024:
+	if size > patron_limit(v, "image_audio_mb") * 1024 * 1024:
 		os.remove(name)
 		abort(413, f"Max image/audio size is {MAX_IMAGE_AUDIO_SIZE_MB} MB ({MAX_IMAGE_AUDIO_SIZE_MB_PATRON} MB for {patron.lower()}s)")
 
@@ -120,9 +124,7 @@ def process_video(file, v):
 	file.save(old)
 
 	size = os.stat(old).st_size
-	if (SITE_NAME != 'WPD' and
-			(size > MAX_VIDEO_SIZE_MB_PATRON * 1024 * 1024
-				or not v.patron and size > MAX_VIDEO_SIZE_MB * 1024 * 1024)):
+	if size > patron_limit(v, "video_mb") * 1024 * 1024:
 		os.remove(old)
 		abort(413, f"Max video size is {MAX_VIDEO_SIZE_MB} MB ({MAX_VIDEO_SIZE_MB_PATRON} MB for paypigs)")
 
@@ -157,9 +159,7 @@ def process_image(filename:str, v, resize=0, trim=False, uploader_id:Optional[in
 	# be cleaned up and returned to the caller instead of crashing a worker.
 	has_request = has_request_context()
 	size = os.stat(filename).st_size
-	patron = bool(v.patron)
-
-	if size > MAX_IMAGE_AUDIO_SIZE_MB_PATRON * 1024 * 1024 or not patron and size > MAX_IMAGE_AUDIO_SIZE_MB * 1024 * 1024:
+	if size > patron_limit(v, "image_audio_mb") * 1024 * 1024:
 		os.remove(filename)
 		if has_request:
 			abort(413, f"Max image/audio size is {MAX_IMAGE_AUDIO_SIZE_MB} MB ({MAX_IMAGE_AUDIO_SIZE_MB_PATRON} MB for paypigs)")
@@ -267,16 +267,17 @@ def process_dm_images(v, user):
 		return ''
 
 	body = ''
-	files = request.files.getlist('file')[:4]
+	max_files = patron_limit(v, "attachment_count")
+	files = request.files.getlist('file')
+	if len(files) > max_files:
+		abort(413, f"You can upload up to {max_files} files at a time.")
 	for file in files:
 		if file.content_type.startswith('image/'):
 			filename = f'/dm_images/{time.time()}'.replace('.','') + '.webp'
 			file.save(filename)
 
 			size = os.stat(filename).st_size
-			patron = bool(v.patron)
-
-			if size > MAX_IMAGE_AUDIO_SIZE_MB_PATRON * 1024 * 1024 or not patron and size > MAX_IMAGE_AUDIO_SIZE_MB * 1024 * 1024:
+			if size > patron_limit(v, "image_audio_mb") * 1024 * 1024:
 				os.remove(filename)
 				abort(413, f"Max image/audio size is {MAX_IMAGE_AUDIO_SIZE_MB} MB ({MAX_IMAGE_AUDIO_SIZE_MB_PATRON} MB for paypigs)")
 

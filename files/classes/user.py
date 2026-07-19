@@ -20,6 +20,7 @@ from files.helpers.default_assets import get_default_asset
 from files.helpers.config.modaction_types import *
 from files.helpers.config.awards import AWARDS_ENABLED, HOUSE_AWARDS
 from files.helpers.media import *
+from files.helpers.support import patron_has, patron_level
 from files.helpers.security import *
 from files.helpers.sorting_and_time import *
 
@@ -520,14 +521,20 @@ class User(Base):
 
 	@property
 	@lazy
+	def active_patron(self):
+		return patron_level(self)
+
+	@property
+	@lazy
 	def discount(self):
-		if self.patron == 1: discount = 0.90
-		elif self.patron == 2: discount = 0.85
-		elif self.patron == 3: discount = 0.80
-		elif self.patron == 4: discount = 0.75
-		elif self.patron == 5: discount = 0.70
-		elif self.patron == 6: discount = 0.65
-		elif self.patron == 7: discount = 0.60
+		level = self.active_patron
+		if level == 1: discount = 0.90
+		elif level == 2: discount = 0.85
+		elif level == 3: discount = 0.80
+		elif level == 4: discount = 0.75
+		elif level == 5: discount = 0.70
+		elif level == 6: discount = 0.65
+		elif level == 7: discount = 0.60
 		else: discount = 1
 
 		owned_badges = [x.badge_id for x in self.badges]
@@ -1068,17 +1075,18 @@ class User(Base):
 	@property
 	@lazy
 	def patron_tooltip(self):
-		if self.patron == 1:
+		level = self.active_patron
+		if level == 1:
 			return 'Contributed at least $5'
-		if self.patron == 2:
+		if level == 2:
 			return 'Contributed at least $10'
-		if self.patron == 3:
+		if level == 3:
 			return 'Contributed at least $20'
-		if self.patron == 4:
+		if level == 4:
 			return 'Contributed at least $50'
-		if self.patron == 5:
+		if level == 5:
 			return 'Contributed at least $100'
-		if self.patron == 6:
+		if level == 6:
 			return 'Contributed at least $200'
 		return ''
 
@@ -1185,7 +1193,7 @@ class User(Base):
 		if not self.sig_html:
 			return False
 
-		if not self.patron and SITE_NAME != 'WPD':
+		if not patron_has(self, "signature") and SITE_NAME != 'WPD':
 			return False
 
 		if v and (v.sigs_disabled or v.poor):
