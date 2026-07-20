@@ -1,9 +1,10 @@
 {% extends "default.html" %}
-{% block body_attributes %}id="casino-game-page"{% endblock %}
+{% block body_attributes %}id="casino-game-page" class="casino-game-{{game}}"{% endblock %}
 {% block pagetitle %}{{game.capitalize()}}{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{('css/casino/game_screen.css') | asset}}">
 <link rel="stylesheet" href="{{('css/casino/mobile_compact.css') | asset}}">
+<link rel="stylesheet" href="{{('css/casino/mobile_scroll_fix.css') | asset}}">
 <script defer src="{{'js/casino/game_screen.js' | asset}}"></script>
 
 {% block script %}{% endblock %}
