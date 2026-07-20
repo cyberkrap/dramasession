@@ -1,0 +1,36 @@
+@media (max-width: 767.98px) {
+	#userpage .profile-badges,
+	#userpage .profile-awards {
+		justify-content: center;
+	}
+
+	body.award-modal-open .modal-dialog {
+		width: auto;
+		max-width: calc(100% - 1.5rem);
+		margin: .75rem auto;
+	}
+
+	body.award-modal-open .modal-content {
+		max-height: calc(100dvh - 1.5rem);
+		overflow: hidden;
+	}
+
+	body.award-modal-open .modal-body {
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+}
+
+body.award-modal-open #awards-container,
+body.award-modal-open .bug {
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+
+body.award-modal-open .modal-backdrop {
+	z-index: 19999990 !important;
+}
+
+body.award-modal-open .modal {
+	z-index: 20000000 !important;
+}
