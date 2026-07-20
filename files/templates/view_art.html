@@ -1,0 +1,64 @@
+{% extends "default.html" %}
+{% block pagetitle %}{{title}}{% endblock %}
+{% block customPadding %}px-3{% endblock %}
+{% block content %}
+<div class="community-gallery-page py-4">
+	{% if request.values.get('msg') %}{{macros.alert(request.values.get('msg'), false)}}{% endif %}
+	<header class="community-gallery-header">
+		<div>
+			<span class="text-muted text-uppercase small font-weight-bold">Community artwork</span>
+			<h1>{{title}}</h1>
+			<p class="text-muted mb-0">Approved artwork submitted by members of the Obsession community.</p>
+		</div>
+		<div class="community-gallery-header-actions">
+			<a class="btn btn-secondary" href="/directory"><i class="fas fa-arrow-left mr-1"></i>Directory</a>
+			<a class="btn btn-primary" href="{{submit_url}}"><i class="fas fa-upload mr-1"></i>Submit {{label}}</a>
+		</div>
+	</header>
+
+	<nav class="community-gallery-tabs" aria-label="Community artwork galleries">
+		<a class="{% if kind == 'banner' %}active{% endif %}" href="/banners"><i class="fas fa-image mr-1"></i>Banners</a>
+		<a class="{% if kind == 'sidebar' %}active{% endif %}" href="/sidebar_images"><i class="fas fa-columns mr-1"></i>Sidebar Images</a>
+		{% if v.admin_level >= PERMS['SITE_SETTINGS'] %}<a href="/admin/community-assets"><i class="fas fa-clipboard-check mr-1"></i>Review Queue</a>{% endif %}
+	</nav>
+
+	<div class="community-gallery-grid community-gallery-grid--{{kind}}">
+	{% for asset in assets %}
+		<article class="community-gallery-card">
+			<a class="community-gallery-image" href="{{asset.approved_url}}" target="_blank" rel="noopener">
+				<img src="{{asset.approved_url}}" loading="lazy" alt="{{asset.title or title}}">
+			</a>
+			<div class="community-gallery-card-body">
+				<div>
+					<h2>{{asset.title or ('Community ' ~ label)}}</h2>
+					{% if asset.submitter %}
+						<p>Made by <a href="/@{{asset.submitter}}">@{{asset.submitter}}</a></p>
+					{% else %}
+						<p class="text-muted">Legacy community artwork</p>
+					{% endif %}
+				</div>
+				{% if v.admin_level >= PERMS['SITE_SETTINGS'] %}
+				<form method="post" action="/admin/community-assets/{{kind}}/{{asset.id}}/remove-approved" data-confirm="Remove this approved {{kind}} from the site?">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<button class="btn btn-danger btn-sm" type="submit"><i class="fas fa-trash-alt mr-1"></i>Remove</button>
+				</form>
+				{% endif %}
+			</div>
+		</article>
+	{% else %}
+		<div class="community-gallery-empty">
+			<i class="fas fa-images"></i>
+			<strong>No approved {{title.lower()}} yet.</strong>
+			<a href="{{submit_url}}">Submit the first one</a>
+		</div>
+	{% endfor %}
+	</div>
+</div>
+<script>
+	document.querySelectorAll('.community-gallery-card form[data-confirm]').forEach((form) => {
+		form.addEventListener('submit', (event) => {
+			if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+		});
+	});
+</script>
+{% endblock %}
