@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Chat timeout</title>
+  <desc id="desc">A chat bubble combined with a clock and prohibition mark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d94a55"/>
+      <stop offset="1" stop-color="#8f111b"/>
+    </linearGradient>
+  </defs>
+  <rect x="3" y="3" width="58
