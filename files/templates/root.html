@@ -20,6 +20,12 @@
 		{{html_head.seo() if root_scope.include_seo}}
 		{{html_head.cf_2fa_verify() if root_scope.include_2fa_verify}}
 		{% block head_final %}{% endblock %}
+		<style>
+			#header--dropdown-menu a[href="/donate"] .fa-heart,
+			.mobile-drawer-link[href="/donate"] .fa-heart {
+				color: #d22b35 !important;
+			}
+		</style>
 		{% if v and v.background and not request.path.startswith('/@') %}
 		<style>
 			body.page-standard .app-shell {
