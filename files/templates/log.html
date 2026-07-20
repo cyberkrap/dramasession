@@ -23,7 +23,7 @@
 		<div class="dropdown dropdown-actions">
 			<button type="button" class="btn btn-secondary dropdown-toggle" id="modlogTypeFilter" data-bs-toggle="dropdown" aria-expanded="false">
 				{% if type == 'chat_timeout' %}
-					<i class="fas fa-hourglass-half fa-fw mr-2 text-muted" aria-hidden="true"></i>chat_timeout
+					<i class="fas fa-clock fa-fw mr-2 text-muted" aria-hidden="true"></i>chat_timeout
 				{% elif type == 'chat_untimeout' %}
 					<i class="fas fa-history fa-fw mr-2 text-muted" aria-hidden="true"></i>chat_untimeout
 				{% elif type %}
@@ -38,7 +38,7 @@
 					{% if t not in hidden_modlog_types %}
 						<a class="dropdown-item" href="?{% if admin %}{{single_user_url}}={{admin}}&{% endif %}kind={{t}}">
 							{% if t == 'chat_timeout' %}
-								<i class="fas fa-hourglass-half fa-fw mr-2 text-muted" aria-hidden="true"></i>
+								<i class="fas fa-clock fa-fw mr-2 text-muted" aria-hidden="true"></i>
 							{% elif t == 'chat_untimeout' %}
 								<i class="fas fa-history fa-fw mr-2 text-muted" aria-hidden="true"></i>
 							{% else %}
@@ -61,7 +61,7 @@
 					<div class="d-flex align-items-center">
 						<div class="mr-3 flex-shrink-0">
 							{% if ma.kind == 'chat_timeout' %}
-								<div class="d-flex align-items-center justify-content-center bg-secondary rounded-lg" style="width:32px;height:32px;"><i class="fas fa-hourglass-half text-muted fa-fw" aria-hidden="true"></i></div>
+								<div class="d-flex align-items-center justify-content-center bg-secondary rounded-lg" style="width:32px;height:32px;"><i class="fas fa-clock text-muted fa-fw" aria-hidden="true"></i></div>
 							{% elif ma.kind == 'chat_untimeout' %}
 								<div class="d-flex align-items-center justify-content-center bg-secondary rounded-lg" style="width:32px;height:32px;"><i class="fas fa-history text-muted fa-fw" aria-hidden="true"></i></div>
 							{% else %}
