@@ -1,233 +1,297 @@
-/* Mobile casino pages should stay compact without clipping controls below the fold. */
+/* Mobile casino: compact like devrama, but never wider than the phone viewport. */
 @media (max-width: 767.98px) {
+	html,
 	body#casino-game-page {
-		height: auto !important;
-		min-height: 100dvh;
+		max-width: 100%;
 		overflow-x: hidden !important;
-		overflow-y: auto !important;
+	}
+
+	body#casino-game-page {
+		min-height: 100dvh;
 		padding-bottom: calc(var(--obs-mobile-bottom-height, 76px) + env(safe-area-inset-bottom)) !important;
 	}
 
-	body#casino-game-page .site-banner-link {
-		display: none;
-	}
+	body#casino-game-page .site-banner-link { display: none; }
 
 	body#casino-game-page .app-shell,
 	body#casino-game-page #main-content-row,
-	body#casino-game-page #main-content-col {
+	body#casino-game-page #main-content-col,
+	body#casino-game-page #casino-game-wrapper {
+		width: 100% !important;
+		max-width: 100% !important;
+		min-width: 0 !important;
 		height: auto !important;
 		min-height: 0 !important;
+		margin-right: 0 !important;
+		margin-left: 0 !important;
+		box-sizing: border-box;
 		overflow: visible !important;
 	}
 
 	body#casino-game-page .app-shell {
-		width: 100%;
-		max-width: 500px !important;
-		margin: 0 auto;
-		padding: 0 12px !important;
+		padding: 0 8px !important;
 	}
 
-	body#casino-game-page #main-content-row {
-		display: block !important;
+	body#casino-game-page #main-content-row,
+	body#casino-game-page #casino-game-wrapper > .row {
+		display: flex !important;
+		flex-direction: column;
+		flex-wrap: nowrap;
+		gap: 3px;
 		margin: 0 !important;
 	}
 
-	body#casino-game-page #main-content-col {
-		width: 100%;
-		padding: 0 !important;
+	body#casino-game-page #main-content-col,
+	body#casino-game-page #casino-game-wrapper,
+	body#casino-game-page #casino-game-wrapper > .row > .col {
+		padding-right: 0 !important;
+		padding-left: 0 !important;
 	}
 
 	body#casino-game-page #casino-game-wrapper {
-		width: 100%;
-		height: auto !important;
-		max-width: 500px !important;
-		margin: 0 auto;
-		padding: 10px 0 24px !important;
+		padding-top: 7px !important;
+		padding-bottom: 12px !important;
 		border: 0 !important;
 		border-radius: 0 !important;
 		box-shadow: none !important;
-		overflow: visible !important;
 	}
 
-	body#casino-game-page #casino-game-wrapper > .row {
-		display: flex;
-		flex-direction: column;
-		flex-wrap: nowrap;
-		gap: 4px;
-		height: auto !important;
-		min-height: 0;
-		overflow: visible !important;
-	}
-
-	body#casino-game-page #casino-game-wrapper > .row > .col {
-		flex: 0 0 auto !important;
-		min-height: 0;
-		padding-right: 0;
-		padding-left: 0;
-		overflow: visible;
+	body#casino-game-page #casino-game-wrapper *,
+	body#casino-game-page #casino-game-wrapper *::before,
+	body#casino-game-page #casino-game-wrapper *::after {
+		box-sizing: border-box;
 	}
 
 	body#casino-game-page .game_screen-title {
-		min-height: 25px;
+		min-height: 22px;
 		margin: 0;
 	}
 
 	body#casino-game-page .game_screen-title h3,
 	body#casino-game-page .game_screen-title h5 {
 		margin: 0;
-		font-size: .86rem;
-		line-height: 1.2;
+		font-size: .82rem;
+		line-height: 1.1;
+	}
+
+	body#casino-game-page .game_screen-title hr {
+		min-width: 0;
+		margin-top: 0;
+		margin-bottom: 0;
 	}
 
 	body#casino-game-page #casinoGameResult,
 	body#casino-game-page #casinoGameStats {
-		margin: 4px 0;
-		padding: 6px 8px;
-		font-size: .7rem;
-		line-height: 1.2;
+		min-height: 38px;
+		margin: 3px 0;
+		padding: 7px 6px;
+		border-radius: 4px;
+		font-size: .67rem;
+		line-height: 1.15;
 		letter-spacing: 2px;
 	}
 
-	body#casino-game-page #blackjack-table-deck {
-		display: none;
+	body#casino-game-page #blackjack-table-deck { display: none; }
+
+	body#casino-game-page #blackjack-table {
+		width: 100%;
+		min-width: 0;
 	}
 
 	body#casino-game-page .blackjack-cardset {
-		height: 90px !important;
-		max-width: 100%;
-		margin-bottom: 5px;
-		overflow: hidden;
+		display: flex;
+		align-items: center;
+		width: 100% !important;
+		max-width: 100% !important;
+		height: 96px !important;
+		margin: 0 0 4px !important;
+		padding: 0 10px;
+		overflow: hidden !important;
 	}
 
 	body#casino-game-page .blackjack-cardset .playing-card {
-		width: 60px !important;
-		min-width: 60px !important;
-		height: 90px !important;
-		margin-right: -1.55rem !important;
+		flex: 0 0 62px !important;
+		width: 62px !important;
+		min-width: 62px !important;
+		height: 92px !important;
+		margin-right: -24px !important;
 		transform: rotateZ(var(--card-angle, 0deg)) !important;
+		transform-origin: center;
+	}
+
+	body#casino-game-page .blackjack-cardset .playing-card:last-of-type {
+		margin-right: 0 !important;
 	}
 
 	body#casino-game-page .blackjack-cardset-value {
+		max-width: 46%;
 		padding: 4px 6px;
-		font-size: .58rem;
-		line-height: 1.15;
-		letter-spacing: 1.5px;
+		font-size: .56rem;
+		line-height: 1.1;
+		letter-spacing: 1.4px;
 	}
 
-	body#casino-game-page .playing-card_small {
-		font-size: 10px;
-	}
-
-	body#casino-game-page .playing-card_large {
-		font-size: 28px;
-	}
-
-	body#casino-game-page .twentyone-btn {
-		min-height: 34px;
-		margin: 0 6px 5px 0;
-		padding: 5px 9px;
-		font-size: .68rem;
-		letter-spacing: 1px;
-	}
+	body#casino-game-page .playing-card_small { font-size: 10px; }
+	body#casino-game-page .playing-card_large { font-size: 28px; }
 
 	body#casino-game-page #casino-game-wrapper .row.row-cols-2 {
-		margin-right: -4px;
-		margin-left: -4px;
+		display: grid !important;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: 10px;
+		width: 100%;
+		margin: 0 !important;
 	}
 
 	body#casino-game-page #casino-game-wrapper .row.row-cols-2 > .col {
-		padding-right: 4px;
-		padding-left: 4px;
+		width: auto !important;
+		max-width: none !important;
+		padding: 0 !important;
 	}
 
 	body#casino-game-page #casino-game-wrapper input.form-control {
-		height: 42px;
+		width: 100%;
+		height: 40px;
 		padding: 5px 9px;
 		font-size: 16px;
 	}
 
+	body#casino-game-page #casino-game-wrapper .btn-group {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 6px;
+		max-width: 100%;
+	}
+
 	body#casino-game-page #casino-game-wrapper .btn-group label.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		min-width: 48px;
-		padding: 5px 8px;
+		height: 40px;
+		padding: 4px 7px;
 	}
 
 	body#casino-game-page #casino-game-wrapper .btn-group label.btn img {
-		width: 28px;
-		height: 28px;
+		width: 27px;
+		height: 27px;
 		object-fit: contain;
 	}
 
+	body#casino-game-page .twentyone-btn {
+		min-height: 36px;
+		margin: 0 !important;
+		padding: 6px 11px;
+		font-size: .68rem;
+		letter-spacing: 1.2px;
+	}
+
 	body#casino-game-page .casino-game-feed {
-		flex: 0 0 auto !important;
 		min-height: 0;
 		overflow: visible !important;
 	}
 
 	body#casino-game-page #casinoGameFeedList {
-		max-height: 150px;
-		margin: 0 0 8px;
-		padding-left: 0;
+		max-height: 105px;
+		margin: 0 0 5px;
+		padding: 0;
 		overflow-y: auto;
-		font-size: .74rem;
-		line-height: 1.45;
+		font-size: .72rem;
+		line-height: 1.35;
 		-webkit-overflow-scrolling: touch;
 	}
 
 	body#casino-game-page #casinoGameFeed > .btn,
-	body#casino-game-page .casino-game-leaders {
-		display: none;
+	body#casino-game-page .casino-game-leaders { display: none; }
+
+	/* Roulette has 15 cells in its widest rows. Every cell must be allowed to shrink. */
+	body#casino-game-page #roulette-table {
+		display: block;
+		width: 100% !important;
+		max-width: 100% !important;
+		min-width: 0 !important;
+		margin: 0 !important;
+		overflow: hidden !important;
 	}
 
-	body#casino-game-page #roulette-table {
+	body#casino-game-page .roulette-table-row {
+		display: flex;
 		width: 100%;
 		max-width: 100%;
+		min-width: 0;
+		margin: 0;
+		overflow: hidden;
+	}
+
+	body#casino-game-page .roulette-table-number,
+	body#casino-game-page .roulette-table-column,
+	body#casino-game-page .roulette-table-line,
+	body#casino-game-page .roulette-table-1to1,
+	body#casino-game-page .roulette-table-row > div {
+		min-width: 0 !important;
+		padding: 0 !important;
+		font-size: clamp(.48rem, 2.25vw, .68rem) !important;
+		line-height: 1 !important;
+		white-space: nowrap;
 		overflow: hidden;
 	}
 
 	body#casino-game-page .roulette-table-number,
 	body#casino-game-page .roulette-table-column {
-		height: 38px;
-		min-width: 0;
-		font-size: clamp(.68rem, 3vw, .86rem);
-		line-height: 1;
+		flex: 1 1 0 !important;
+		height: 34px !important;
 	}
 
-	body#casino-game-page .roulette-table-line,
+	body#casino-game-page .roulette-table-line {
+		flex: 4 1 0 !important;
+		min-height: 29px;
+	}
+
 	body#casino-game-page .roulette-table-1to1 {
-		min-height: 31px;
-		font-size: clamp(.68rem, 3vw, .84rem);
-		line-height: 1;
+		flex: 2 1 0 !important;
+		min-height: 29px;
+	}
+
+	body#casino-game-page .roulette-table-column {
+		writing-mode: vertical-rl;
+		text-orientation: mixed;
 	}
 
 	body#casino-game-page #roulette-bets {
-		margin-top: 3px;
+		width: 100%;
+		min-width: 0;
+		margin-top: 2px;
+		overflow-wrap: anywhere;
+	}
+
+	body#casino-game-page .roulette-total-bets {
+		display: block;
+		width: 100%;
+		font-size: .7rem;
+		text-align: left;
 	}
 
 	body#casino-game-page .roulette-bet-summary {
-		margin-bottom: 8px;
-		padding: 8px;
+		margin-bottom: 6px;
+		padding: 7px;
 		border: 1px solid var(--obs-border, rgba(255,255,255,.08));
 		border-radius: 4px;
 	}
 
 	body#casino-game-page .roulette-bet-summary--heading p,
-	body#casino-game-page .roulette-bet-summary--list {
-		font-size: .74rem;
-	}
+	body#casino-game-page .roulette-bet-summary--list { font-size: .7rem; }
 
-	body#casino-game-page .roulette-how-to {
-		display: none !important;
-	}
+	body#casino-game-page .roulette-how-to { display: none !important; }
 
 	body#casino-game-page #casino-game-wrapper .slots_reels {
 		gap: 4px;
-		height: 92px;
+		height: 88px;
 	}
 
 	body#casino-game-page #casino-game-wrapper .slots_reel {
-		width: 76px;
-		height: 76px;
-		font-size: 42px;
+		width: 72px;
+		height: 72px;
+		font-size: 40px;
 	}
 
 	body#casino-game-page #casinoSlotsPull {
@@ -238,39 +302,19 @@
 }
 
 @media (max-width: 374px) {
-	body#casino-game-page .app-shell {
-		padding-right: 9px !important;
-		padding-left: 9px !important;
-	}
-
-	body#casino-game-page .blackjack-cardset {
-		height: 82px !important;
-	}
-
+	body#casino-game-page .app-shell { padding: 0 5px !important; }
+	body#casino-game-page .blackjack-cardset { height: 88px !important; padding-left: 7px; padding-right: 7px; }
 	body#casino-game-page .blackjack-cardset .playing-card {
-		width: 55px !important;
-		min-width: 55px !important;
-		height: 82px !important;
-		margin-right: -1.4rem !important;
+		flex-basis: 56px !important;
+		width: 56px !important;
+		min-width: 56px !important;
+		height: 84px !important;
+		margin-right: -22px !important;
 	}
-
-	body#casino-game-page .playing-card_small {
-		font-size: 9px;
-	}
-
-	body#casino-game-page .playing-card_large {
-		font-size: 25px;
-	}
-
+	body#casino-game-page .playing-card_small { font-size: 9px; }
+	body#casino-game-page .playing-card_large { font-size: 25px; }
 	body#casino-game-page .roulette-table-number,
-	body#casino-game-page .roulette-table-column {
-		height: 34px;
-		font-size: .64rem;
-	}
-
+	body#casino-game-page .roulette-table-column { height: 31px !important; }
 	body#casino-game-page .roulette-table-line,
-	body#casino-game-page .roulette-table-1to1 {
-		min-height: 29px;
-		font-size: .64rem;
-	}
+	body#casino-game-page .roulette-table-1to1 { min-height: 27px; }
 }
