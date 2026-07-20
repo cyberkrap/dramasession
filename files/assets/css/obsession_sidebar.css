@@ -1,0 +1,19 @@
+.community-sidebar .sidebar--rules {
+	padding: 1rem 0 0;
+	color: #d2ced0;
+}
+
+.community-sidebar .obs-sidebar-intro,
+.community-sidebar .obs-sidebar-section,
+.community-sidebar .obs-sidebar-footer {
+	padding: 1rem 0;
+	border-top: 1px solid rgba(255,255,255,.12);
+}
+
+.community-sidebar .obs-sidebar-intro {
+	padding-top: .3rem;
+	border-top: 0;
+}
+
+.community-sidebar .obs-sidebar-intro h3,
+.community-sidebar .obs-sidebar-section h
