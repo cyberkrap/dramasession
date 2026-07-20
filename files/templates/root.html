@@ -21,25 +21,42 @@
 		{{html_head.cf_2fa_verify() if root_scope.include_2fa_verify}}
 		{% block head_final %}{% endblock %}
 		<style>
+			#header--dropdown-menu a[href="/donate"]::before,
+			.mobile-drawer-link[href="/donate"]::before {
+				content: "\2665";
+				display: inline-block;
+				width: 1.25rem;
+				margin-right: .75rem;
+				color: #d22b35;
+				font-size: 1rem;
+				line-height: 1;
+				text-align: center;
+			}
 			#header--dropdown-menu a[href="/donate"] .fa-heart,
 			.mobile-drawer-link[href="/donate"] .fa-heart {
-				color: #d22b35 !important;
+				display: none !important;
 			}
 		</style>
 		{% if v and v.background and not request.path.startswith('/@') %}
 		<style>
 			body.page-standard .app-shell {
-				background: rgba(7, 7, 9, .72);
-				border: 1px solid rgba(255, 255, 255, .09);
-				box-shadow: 0 24px 70px rgba(0, 0, 0, .38);
-				backdrop-filter: blur(12px) saturate(115%);
-				-webkit-backdrop-filter: blur(12px) saturate(115%);
+				background-color: rgba(8, 8, 11, .42) !important;
+				border: 1px solid rgba(255, 255, 255, .12);
+				box-shadow: 0 24px 70px rgba(0, 0, 0, .34);
+				backdrop-filter: blur(14px) saturate(125%);
+				-webkit-backdrop-filter: blur(14px) saturate(125%);
+			}
+			body.page-standard #main-content-row,
+			body.page-standard #main-content-col,
+			body.page-standard #frontpage,
+			body.page-standard #posts {
+				background: transparent !important;
 			}
 			@media (max-width: 767.98px) {
 				body.page-standard .app-shell {
-					background: rgba(7, 7, 9, .78);
-					backdrop-filter: blur(8px) saturate(110%);
-					-webkit-backdrop-filter: blur(8px) saturate(110%);
+					background-color: rgba(8, 8, 11, .52) !important;
+					backdrop-filter: blur(10px) saturate(118%);
+					-webkit-backdrop-filter: blur(10px) saturate(118%);
 				}
 			}
 		</style>
