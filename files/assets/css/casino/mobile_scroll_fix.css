@@ -1,0 +1,66 @@
+/* Focused mobile scroll repair for blackjack and roulette only. Slots intentionally untouched. */
+@media (max-width: 767.98px) {
+	body#casino-game-page.casino-game-blackjack,
+	body#casino-game-page.casino-game-roulette {
+		height: auto !important;
+		min-height: 100dvh !important;
+		max-height: none !important;
+		overflow-x: hidden !important;
+		overflow-y: auto !important;
+		position: static !important;
+		touch-action: pan-y;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	body#casino-game-page.casino-game-blackjack .app-shell,
+	body#casino-game-page.casino-game-blackjack #main-content-row,
+	body#casino-game-page.casino-game-blackjack #main-content-col,
+	body#casino-game-page.casino-game-blackjack #casino-game-wrapper,
+	body#casino-game-page.casino-game-blackjack #casino-game-wrapper > .row,
+	body#casino-game-page.casino-game-roulette .app-shell,
+	body#casino-game-page.casino-game-roulette #main-content-row,
+	body#casino-game-page.casino-game-roulette #main-content-col,
+	body#casino-game-page.casino-game-roulette #casino-game-wrapper,
+	body#casino-game-page.casino-game-roulette #casino-game-wrapper > .row {
+		height: auto !important;
+		min-height: 0 !important;
+		max-height: none !important;
+		overflow: visible !important;
+	}
+
+	body#casino-game-page.casino-game-blackjack #casinoGameFeed {
+		display: block !important;
+		height: auto !important;
+		min-height: 0 !important;
+		max-height: none !important;
+		overflow: visible !important;
+	}
+
+	body#casino-game-page.casino-game-blackjack #casinoGameFeedList {
+		max-height: 180px !important;
+		overflow-y: auto !important;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	body#casino-game-page.casino-game-blackjack .blackjack-cardset-value {
+		font-size: clamp(.72rem, 3vw, .86rem) !important;
+		font-weight: 700;
+		line-height: 1.15;
+		letter-spacing: 1.2px;
+	}
+
+	body#casino-game-page.casino-game-roulette #roulette-bets,
+	body#casino-game-page.casino-game-roulette #roulette-bets + .game_screen-title,
+	body#casino-game-page.casino-game-roulette #roulette-bets + .game_screen-title + .table {
+		display: block;
+		height: auto !important;
+		max-height: none !important;
+		overflow: visible !important;
+	}
+
+	body#casino-game-page.casino-game-roulette #roulette-bets + .game_screen-title + .table {
+		display: table;
+		width: 100%;
+		margin-bottom: 16px;
+	}
+}
