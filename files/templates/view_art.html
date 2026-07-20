@@ -2,6 +2,7 @@
 {% block pagetitle %}{{title}}{% endblock %}
 {% block customPadding %}px-3{% endblock %}
 {% block content %}
+<link rel="stylesheet" href="{{'css/community_gallery.css' | asset}}">
 <div class="community-gallery-page py-4">
 	{% if request.values.get('msg') %}{{macros.alert(request.values.get('msg'), false)}}{% endif %}
 	<header class="community-gallery-header">
