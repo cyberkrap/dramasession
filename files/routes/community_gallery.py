@@ -11,6 +11,18 @@ from files.helpers.config.const import DEFAULT_RATELIMIT, DEFAULT_RATELIMIT_SLOW
 from files.routes.wrappers import admin_level_required, auth_desired
 
 
+@app.get("/terms")
+@auth_desired
+def terms_of_service(v):
+	return render_template("terms.html", v=v)
+
+
+@app.get("/privacy")
+@auth_desired
+def privacy_policy(v):
+	return render_template("privacy.html", v=v)
+
+
 @app.get("/banners")
 @app.get("/sidebar_images")
 @limiter.limit(DEFAULT_RATELIMIT)
