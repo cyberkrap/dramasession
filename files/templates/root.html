@@ -37,6 +37,7 @@
 				display: none !important;
 			}
 		</style>
+		<link rel="stylesheet" href="{{'css/mobile_fixes.css' | asset}}">
 		{% if v and v.background and not request.path.startswith('/@') %}
 		<style>
 			body.page-standard .app-shell {
@@ -78,7 +79,7 @@
 		{% block body required %}{% endblock %}
 		{{html_head.stylesheets_lower()}}
 		<script defer src="{{'js/bottom.js' | asset}}"></script>
-		<script defer src="{{'js/navbar_tooltips.js' | asset}}"></script>
+		<script defer src="{{'js/award_modal_guard.js' | asset}}"></script>
 		{% if request.path == '/settings/personal' and v %}
 		<script>
 			document.addEventListener('DOMContentLoaded', function () {
