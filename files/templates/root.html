@@ -78,5 +78,36 @@
 		{% block body required %}{% endblock %}
 		{{html_head.stylesheets_lower()}}
 		<script defer src="{{'js/bottom.js' | asset}}"></script>
+		{% if request.path == '/settings/personal' and v %}
+		<script>
+			document.addEventListener('DOMContentLoaded', function () {
+				const patronLevel = {{ v.active_patron|int }};
+				const tierNames = {
+					1: 'Supporter',
+					2: 'Insider',
+					3: 'Devoted',
+					4: 'Obsessed',
+					5: 'Inner Circle'
+				};
+				const statusLabel = document.querySelector('label[for="patron-status"]');
+				const statusBody = statusLabel && statusLabel.closest('.d-lg-flex')
+					? statusLabel.closest('.d-lg-flex').querySelector('.body')
+					: null;
+				if (statusLabel) statusLabel.textContent = 'Patron Status';
+				if (statusBody) {
+					if (tierNames[patronLevel]) {
+						statusBody.innerHTML = '<p><strong>' + tierNames[patronLevel] + '</strong></p><p class="text-muted mb-0">Thank you for supporting Obsession.</p>';
+					} else {
+						statusBody.innerHTML = '<p><strong>No active support tier</strong></p><p class="text-muted mb-0"><a href="/donate">Support Obsession</a> to unlock supporter benefits.</p>';
+					}
+				}
+				if (patronLevel < 3) {
+					const signatureForm = document.getElementById('profile-signature-form');
+					const signatureRow = signatureForm ? signatureForm.closest('.body.d-lg-flex.border-bottom') : null;
+					if (signatureRow) signatureRow.remove();
+				}
+			});
+		</script>
+		{% endif %}
 	</body>
 </html>
