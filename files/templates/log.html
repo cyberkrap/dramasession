@@ -1,6 +1,7 @@
 {% extends "settings2.html" %}
 {% block pagetitle %}Moderation Log{% endblock %}
 {% block content %}
+{% set hidden_modlog_types = ('bootstrap_admin', 'grant_currency', 'remove_currency', 'enable_unlimited_spending', 'disable_unlimited_spending') %}
 {% if v %}
 	<link rel="stylesheet" href="{{'css/main.css' | asset}}">
 	{% if v.theme == 'classic_dark' %}
@@ -47,13 +48,25 @@
 
 						<div class="dropdown dropdown-actions ml-3">
 							<button type="button" class="btn btn-secondary dropdown-toggle" id="dropdownMenuButton2" data-bs-toggle="dropdown">
-								{% if type %}<i class="fas {{types[type]['icon']}} mr-2"></i>{{type}}{% else %}<i class="fas fa-broom mr-2"></i>All{% endif %}
+								{% if type %}
+									{% if type == 'chat_timeout' %}<span class="mr-2" aria-hidden="true">⏱</span>
+									{% elif type == 'chat_untimeout' %}<span class="mr-2" aria-hidden="true">↩</span>
+									{% else %}<i class="fas {{types[type]['icon']}} mr-2"></i>{% endif %}
+									{{type}}
+								{% else %}<i class="fas fa-broom mr-2"></i>All{% endif %}
 							</button>
 							<div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 31px, 0px); max-height: 50vh;
 							overflow: auto;">
 								<a class="dropdown-item" href="/log{% if admin %}?{{single_user_url}}={{admin}}{% endif %}"><i class="fas fa-broom mr-2"></i>All</a>
 								{% for t, v in types.items() %}
-									<a class="dropdown-item" href="?{% if admin %}{{single_user_url}}={{admin}}&{% endif %}kind={{t}}"><i class="fas {{v['icon']}} mr-2"></i>{{t}}</a>
+									{% if t not in hidden_modlog_types %}
+										<a class="dropdown-item" href="?{% if admin %}{{single_user_url}}={{admin}}&{% endif %}kind={{t}}">
+											{% if t == 'chat_timeout' %}<span class="mr-2" aria-hidden="true">⏱</span>
+											{% elif t == 'chat_untimeout' %}<span class="mr-2" aria-hidden="true">↩</span>
+											{% else %}<i class="fas {{v['icon']}} mr-2"></i>{% endif %}
+											{{t}}
+										</a>
+									{% endif %}
 								{% endfor %}
 							</div>
 						</div>
@@ -65,32 +78,38 @@
 
 		<div class="rounded border bg-white mx-auto">
 			{% for ma in actions %}
+				{% if ma.kind not in hidden_modlog_types %}
 				<div id="action-{{ma.id}}" class="modlog-action{% if ma.unread %} unread{% endif %}">
-				<div class="d-flex flex-grow-1 align-items-center">
-					<div class="d-flex align-items-center justify-content-center {{ma.color}} mr-3 rounded-lg flex-shrink-0" style="width: 32px;height: 32px;"><i class="far text-center {{ma.icon}} text-lg text-white fa-fw"></i></div>
-					<div class="d-flex align-items-center">
-						<span class="rounded">
-							<div class="profile-pic-35-wrapper">
-								<img loading="lazy" src="{{ma.user.profile_url}}" alt="avatar" class="profile-pic-35">
-								{% if ma.user.hat_active(v)[0] -%}
-									<img id="profile-pic-35-hat" class="profile-pic-35-hat hat" loading="lazy" src="{{ma.user.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ma.user.hat_active(v)[1]}}">
-								{%- endif %}
-							</div>
-						</span>
-						<div class="text-muted pl-3">
-							<div>
-								<a href="{{ma.user.url}}" class="font-weight-bold text-black" target="_self">@{{ma.user.username}}</a>
-								<span>{{ma.string | safe}}</span>
-							</div>
-							<div class="text-gray-500">
-								<span class="log--item-age" id="{{ma.id}}-age" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{ma.created_utc}}')">{{ma.age_string}}</span>
-								<a href="{{ma.permalink}}"><i class="far fa-link ml-3 text-muted"></i></a>
-								<button type="button" class="copy-link ml-3" data-clipboard-text="{{ma.permalink}}"><i class="far fa-copy text-muted"></i></button>
+					<div class="d-flex flex-grow-1 align-items-center">
+						<div class="d-flex align-items-center justify-content-center {{ma.color}} mr-3 rounded-lg flex-shrink-0" style="width: 32px;height: 32px;">
+							{% if ma.kind == 'chat_timeout' %}<span class="text-white" aria-hidden="true">⏱</span>
+							{% elif ma.kind == 'chat_untimeout' %}<span class="text-white" aria-hidden="true">↩</span>
+							{% else %}<i class="far text-center {{ma.icon}} text-lg text-white fa-fw"></i>{% endif %}
+						</div>
+						<div class="d-flex align-items-center">
+							<span class="rounded">
+								<div class="profile-pic-35-wrapper">
+									<img loading="lazy" src="{{ma.user.profile_url}}" alt="avatar" class="profile-pic-35">
+									{% if ma.user.hat_active(v)[0] -%}
+										<img id="profile-pic-35-hat" class="profile-pic-35-hat hat" loading="lazy" src="{{ma.user.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ma.user.hat_active(v)[1]}}">
+									{%- endif %}
+								</div>
+							</span>
+							<div class="text-muted pl-3">
+								<div>
+									<a href="{{ma.user.url}}" class="font-weight-bold text-black" target="_self">@{{ma.user.username}}</a>
+									<span>{{ma.string | safe}}</span>
+								</div>
+								<div class="text-gray-500">
+									<span class="log--item-age" id="{{ma.id}}-age" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{ma.created_utc}}')">{{ma.age_string}}</span>
+									<a href="{{ma.permalink}}"><i class="far fa-link ml-3 text-muted"></i></a>
+									<button type="button" class="copy-link ml-3" data-clipboard-text="{{ma.permalink}}"><i class="far fa-copy text-muted"></i></button>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+				{% endif %}
 			{% else %}
 				<div class="p-3">There's nothing here right now.</div>
 			{% endfor %}
