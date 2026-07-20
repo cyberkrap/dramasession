@@ -1,4 +1,4 @@
-from flask import redirect
+from flask import abort, redirect
 
 from files.__main__ import app, limiter
 from files.helpers.community_assets import remove_approved_asset
