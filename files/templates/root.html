@@ -22,8 +22,12 @@
 		{% block head_final %}{% endblock %}
 	{% endblock %}
 	</head>
-	<body class="{% if request.path.startswith('/@') %}page-profile{% else %}page-standard{% endif %}" {% block body_attributes %}id="{%block pagetype %}{% endblock %}"{% endblock %}>
-		{% if SITE_NAME == 'Obsession' and not request.path.startswith('/@') %}
+	<body class="{% if request.path.startswith('/@') %}page-profile{% else %}page-standard{% endif %}"
+		{% if v and v.background and not request.path.startswith('/@') %}
+		style="background-image: linear-gradient(rgba(5,5,6,.58), rgba(5,5,6,.72)), url('{{ v.background|e }}') !important; background-size: cover !important; background-position: center top !important; background-repeat: no-repeat !important; background-attachment: fixed !important;"
+		{% endif %}
+		{% block body_attributes %}id="{%block pagetype %}{% endblock %}"{% endblock %}>
+		{% if SITE_NAME == 'Obsession' and not request.path.startswith('/@') and not (v and v.background) %}
 			<div id="obsession-aurora" class="obsession-aurora" aria-hidden="true"></div>
 			<script defer src="{{'js/aurora.js' | asset}}"></script>
 		{% endif %}
