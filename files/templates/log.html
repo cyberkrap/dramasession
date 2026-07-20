@@ -2,143 +2,113 @@
 {% block pagetitle %}Moderation Log{% endblock %}
 {% block content %}
 {% set hidden_modlog_types = ('bootstrap_admin', 'grant_currency', 'remove_currency', 'enable_unlimited_spending', 'disable_unlimited_spending') %}
-{% if v %}
-	<link rel="stylesheet" href="{{'css/main.css' | asset}}">
-	{% if v.theme == 'classic_dark' %}
-		<link rel="stylesheet" href="{{('css/classic.css') | asset}}">
-	{% endif %}
-	<link rel="stylesheet" href="{{('css/'~v.theme~'.css') | asset}}">
-	{% if v.agendaposter %}
-		<link rel="stylesheet" href="{{('css/agendaposter.css') | asset}}">
-	{% elif v.css or v.background %}
-		<link rel="stylesheet" href="/{{v.id}}/css">
-	{% endif %}
-{% else %}
-	<link rel="stylesheet" href="{{'css/main.css' | asset}}">
-	<link rel="stylesheet" href="{{('css/'~DEFAULT_THEME~'.css') | asset}}">
-{% endif %}
+<link rel="stylesheet" href="{{'css/modlog.css' | asset}}">
 
-<div class="row justify-content-around">
-	<div class="col h-100">
-		<div class="justify-content-between">
-			<div>
-				<h5 class="font-weight-bolder text-center pt-2 pb-3">{% if sub %}<a href="/h/{{sub.name}}">/h/{{sub.name}}</a> {% endif %}<span>Moderation Log</span></h5>
+<div class="modlog-page">
+	<h5 class="font-weight-bolder text-center pt-2 pb-3"><span>Moderation Log</span></h5>
+
+	<div class="modlog-toolbar">
+		<div class="dropdown dropdown-actions">
+			<button type="button" class="btn btn-secondary dropdown-toggle" id="modlogAdminFilter" data-bs-toggle="dropdown" aria-expanded="false">
+				{% if admin %}<img loading="lazy" src="/@{{admin}}/pic" alt="" class="profile-pic-20 mr-2">{{admin}}{% else %}<img loading="lazy" src="/i/default-profile-pic.webp" alt="" class="profile-pic-20 mr-2">All{% endif %}
+			</button>
+			<div class="dropdown-menu dropdown-menu-right" aria-labelledby="modlogAdminFilter" style="max-height:50vh;overflow:auto;">
+				<a class="dropdown-item" href="/log{% if type %}?kind={{type}}{% endif %}"><img loading="lazy" src="/i/default-profile-pic.webp" alt="" class="profile-pic-20 mr-2">All</a>
+				{% for a in admins %}
+					<a class="dropdown-item" href="?{{single_user_url}}={{a}}{% if type %}&kind={{type}}{% endif %}"><img loading="lazy" src="/@{{a}}/pic" alt="" class="profile-pic-20 mr-2">{{a}}</a>
+				{% endfor %}
 			</div>
 		</div>
 
-		<div class="row" style="overflow: visible;padding-top:5px;">
-			<div class="col">
-				<div class="d-flex justify-content-between align-items-center">
-
-					{% block navbar %}
-					<div class="d-flex align-items-center mb-3 ml-auto">
-						<div class="dropdown dropdown-actions">
-
-							<button type="button" class="btn btn-secondary dropdown-toggle" id="dropdownMenuButton" data-bs-toggle="dropdown">
-								{% if admin %}<img loading="lazy" src="/@{{admin}}/pic" alt="avatar" class="profile-pic-20 mr-2">{{admin}}{% else %}<img loading="lazy" src="/i/default-profile-pic.webp" alt="avatar" class="profile-pic-20 mr-2">All{% endif %}
-							</button>
-							<div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 31px, 0px); max-height: 50vh;
-							overflow: auto;">
-								<a class="dropdown-item" href="/log{% if type %}?kind={{type}}{% endif %}"><img loading="lazy" src="/i/default-profile-pic.webp" alt="avatar" class="profile-pic-20 mr-2">All</a>
-								{% for a in admins %}
-									<a class="dropdown-item" href="?{{single_user_url}}={{a}}{% if type %}&kind={{type}}{% endif %}"><img loading="lazy" src="/@{{a}}/pic" alt="avatar" class="profile-pic-20 mr-2">{{a}}</a>
-								{% endfor %}
-							</div>
-						</div>
-
-						<div class="dropdown dropdown-actions ml-3">
-							<button type="button" class="btn btn-secondary dropdown-toggle" id="dropdownMenuButton2" data-bs-toggle="dropdown">
-								{% if type %}
-									{% if type == 'chat_timeout' %}<span class="mr-2" aria-hidden="true">⏱</span>
-									{% elif type == 'chat_untimeout' %}<span class="mr-2" aria-hidden="true">↩</span>
-									{% else %}<i class="fas {{types[type]['icon']}} mr-2"></i>{% endif %}
-									{{type}}
-								{% else %}<i class="fas fa-broom mr-2"></i>All{% endif %}
-							</button>
-							<div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 31px, 0px); max-height: 50vh;
-							overflow: auto;">
-								<a class="dropdown-item" href="/log{% if admin %}?{{single_user_url}}={{admin}}{% endif %}"><i class="fas fa-broom mr-2"></i>All</a>
-								{% for t, v in types.items() %}
-									{% if t not in hidden_modlog_types %}
-										<a class="dropdown-item" href="?{% if admin %}{{single_user_url}}={{admin}}&{% endif %}kind={{t}}">
-											{% if t == 'chat_timeout' %}<span class="mr-2" aria-hidden="true">⏱</span>
-											{% elif t == 'chat_untimeout' %}<span class="mr-2" aria-hidden="true">↩</span>
-											{% else %}<i class="fas {{v['icon']}} mr-2"></i>{% endif %}
-											{{t}}
-										</a>
-									{% endif %}
-								{% endfor %}
-							</div>
-						</div>
-					</div>
-					{% endblock %}
-				</div>
+		<div class="dropdown dropdown-actions">
+			<button type="button" class="btn btn-secondary dropdown-toggle" id="modlogTypeFilter" data-bs-toggle="dropdown" aria-expanded="false">
+				{% if type == 'chat_timeout' %}
+					<img class="modlog-type-icon mr-2" src="{{'images/modlog-chat-timeout.svg' | asset}}" alt="">chat_timeout
+				{% elif type == 'chat_untimeout' %}
+					<img class="modlog-type-icon mr-2" src="{{'images/modlog-chat-untimeout.svg' | asset}}" alt="">chat_untimeout
+				{% elif type %}
+					<i class="fas {{types[type]['icon']}} mr-2"></i>{{type}}
+				{% else %}
+					<i class="fas fa-broom mr-2"></i>All
+				{% endif %}
+			</button>
+			<div class="dropdown-menu dropdown-menu-right" aria-labelledby="modlogTypeFilter" style="max-height:50vh;overflow:auto;">
+				<a class="dropdown-item" href="/log{% if admin %}?{{single_user_url}}={{admin}}{% endif %}"><i class="fas fa-broom fa-fw mr-2"></i>All</a>
+				{% for t, type_config in types.items() %}
+					{% if t not in hidden_modlog_types %}
+						<a class="dropdown-item" href="?{% if admin %}{{single_user_url}}={{admin}}&{% endif %}kind={{t}}">
+							{% if t == 'chat_timeout' %}
+								<img class="modlog-type-icon mr-2" src="{{'images/modlog-chat-timeout.svg' | asset}}" alt="">
+							{% elif t == 'chat_untimeout' %}
+								<img class="modlog-type-icon mr-2" src="{{'images/modlog-chat-untimeout.svg' | asset}}" alt="">
+							{% else %}
+								<i class="fas {{type_config['icon']}} fa-fw mr-2"></i>
+							{% endif %}
+							{{t}}
+						</a>
+					{% endif %}
+				{% endfor %}
 			</div>
 		</div>
+	</div>
 
-		<div class="rounded border bg-white mx-auto">
-			{% for ma in actions %}
-				{% if ma.kind not in hidden_modlog_types %}
+	<div class="modlog-list">
+		{% set visible = namespace(count=0) %}
+		{% for ma in actions %}
+			{% if ma.kind not in hidden_modlog_types %}
+				{% set visible.count = visible.count + 1 %}
 				<div id="action-{{ma.id}}" class="modlog-action{% if ma.unread %} unread{% endif %}">
-					<div class="d-flex flex-grow-1 align-items-center">
-						<div class="d-flex align-items-center justify-content-center {{ma.color}} mr-3 rounded-lg flex-shrink-0" style="width: 32px;height: 32px;">
-							{% if ma.kind == 'chat_timeout' %}<span class="text-white" aria-hidden="true">⏱</span>
-							{% elif ma.kind == 'chat_untimeout' %}<span class="text-white" aria-hidden="true">↩</span>
-							{% else %}<i class="far text-center {{ma.icon}} text-lg text-white fa-fw"></i>{% endif %}
+					<div class="d-flex align-items-center">
+						<div class="mr-3 flex-shrink-0">
+							{% if ma.kind == 'chat_timeout' %}
+								<img class="modlog-action-icon" src="{{'images/modlog-chat-timeout.svg' | asset}}" alt="Chat timeout">
+							{% elif ma.kind == 'chat_untimeout' %}
+								<img class="modlog-action-icon" src="{{'images/modlog-chat-untimeout.svg' | asset}}" alt="Chat timeout removed">
+							{% else %}
+								<div class="d-flex align-items-center justify-content-center {{ma.color}} rounded-lg" style="width:32px;height:32px;"><i class="far text-center {{ma.icon}} text-lg text-white fa-fw"></i></div>
+							{% endif %}
 						</div>
-						<div class="d-flex align-items-center">
-							<span class="rounded">
-								<div class="profile-pic-35-wrapper">
-									<img loading="lazy" src="{{ma.user.profile_url}}" alt="avatar" class="profile-pic-35">
-									{% if ma.user.hat_active(v)[0] -%}
-										<img id="profile-pic-35-hat" class="profile-pic-35-hat hat" loading="lazy" src="{{ma.user.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ma.user.hat_active(v)[1]}}">
-									{%- endif %}
-								</div>
-							</span>
-							<div class="text-muted pl-3">
-								<div>
-									<a href="{{ma.user.url}}" class="font-weight-bold text-black" target="_self">@{{ma.user.username}}</a>
-									<span>{{ma.string | safe}}</span>
-								</div>
-								<div class="text-gray-500">
-									<span class="log--item-age" id="{{ma.id}}-age" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{ma.created_utc}}')">{{ma.age_string}}</span>
-									<a href="{{ma.permalink}}"><i class="far fa-link ml-3 text-muted"></i></a>
-									<button type="button" class="copy-link ml-3" data-clipboard-text="{{ma.permalink}}"><i class="far fa-copy text-muted"></i></button>
-								</div>
+
+						<div class="profile-pic-35-wrapper flex-shrink-0">
+							<img loading="lazy" src="{{ma.user.profile_url}}" alt="{{ma.user.username}}" class="profile-pic-35">
+							{% if ma.user.hat_active(v)[0] -%}
+								<img class="profile-pic-35-hat hat" loading="lazy" src="{{ma.user.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ma.user.hat_active(v)[1]}}" alt="">
+							{%- endif %}
+						</div>
+
+						<div class="modlog-content pl-3">
+							<div class="modlog-copy">
+								<a href="{{ma.user.url}}" class="font-weight-bold" target="_self">@{{ma.user.username}}</a>
+								<span>{{ma.string | safe}}</span>
+							</div>
+							<div class="modlog-meta text-gray-500">
+								<span class="log--item-age" id="{{ma.id}}-age" data-bs-toggle="tooltip" data-bs-placement="bottom" data-nonce="{{g.nonce}}" data-onmouseover="timestamp(this, '{{ma.created_utc}}')">{{ma.age_string}}</span>
+								<a href="{{ma.permalink}}" aria-label="Open permanent link"><i class="far fa-link text-muted"></i></a>
+								<button type="button" class="copy-link" data-clipboard-text="{{ma.permalink}}" aria-label="Copy permanent link"><i class="far fa-copy text-muted"></i></button>
 							</div>
 						</div>
 					</div>
 				</div>
-				{% endif %}
-			{% else %}
-				<div class="p-3">There's nothing here right now.</div>
-			{% endfor %}
-		</div>
-		<nav class="mb-5">
-			<ul class="pagination pagination-sm mb-0">
-				{% if page>1 %}
-					<li class="page-item">
-						<small><a class="page-link" href="{% if sub %}/h/{{sub}}{% endif %}/log?page={{page-1}}{% if admin %}&{{single_user_url}}={{admin}}{% endif %}{% if type %}&kind={{type}}{% endif %}" tabindex="-1">Prev</a></small>
-					</li>
-				{% else %}
-					<li class="page-item disabled"><span class="page-link">Prev</span></li>
-				{% endif %}
-				{% if next_exists %}
-				<li class="page-item">
-					<small><a class="page-link" href="{% if sub %}/h/{{sub}}{% endif %}/log?page={{page+1}}{% if admin %}&{{single_user_url}}={{admin}}{% endif %}{% if type %}&kind={{type}}{% endif %}">Next</a></small>
-				</li>
-				{% else %}
-					<li class="page-item disabled"><span class="page-link">Next</span></li>
-				{% endif %}
-			</ul>
-		</nav>
+			{% endif %}
+		{% endfor %}
+		{% if visible.count == 0 %}<div class="p-3">There's nothing here right now.</div>{% endif %}
 	</div>
+
+	<nav class="mt-3 mb-5" aria-label="Moderation log pages">
+		<ul class="pagination pagination-sm mb-0">
+			{% if page > 1 %}
+				<li class="page-item"><a class="page-link" href="/log?page={{page-1}}{% if admin %}&{{single_user_url}}={{admin}}{% endif %}{% if type %}&kind={{type}}{% endif %}">Prev</a></li>
+			{% else %}
+				<li class="page-item disabled"><span class="page-link">Prev</span></li>
+			{% endif %}
+			{% if next_exists %}
+				<li class="page-item"><a class="page-link" href="/log?page={{page+1}}{% if admin %}&{{single_user_url}}={{admin}}{% endif %}{% if type %}&kind={{type}}{% endif %}">Next</a></li>
+			{% else %}
+				<li class="page-item disabled"><span class="page-link">Next</span></li>
+			{% endif %}
+		</ul>
+	</nav>
 </div>
 
-<div class="toast clipboard" id="toast-success" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
-	<div class="toast-body text-center">
-		<i class="fas fa-check-circle text-success mr-2"></i>Link copied to clipboard
-	</div>
-</div>
 <script defer src="{{'js/vendor/clipboard.js' | asset}}"></script>
 {% endblock %}
