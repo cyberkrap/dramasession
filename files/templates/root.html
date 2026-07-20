@@ -78,6 +78,7 @@
 		{% block body required %}{% endblock %}
 		{{html_head.stylesheets_lower()}}
 		<script defer src="{{'js/bottom.js' | asset}}"></script>
+		<script defer src="{{'js/navbar_tooltips.js' | asset}}"></script>
 		{% if request.path == '/settings/personal' and v %}
 		<script>
 			document.addEventListener('DOMContentLoaded', function () {
