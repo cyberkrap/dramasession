@@ -10,4 +10,50 @@
 
 <!DOCTYPE html>
 <html lang="en" {% if not IS_FISTMAS() %}style="--primary:#{{v.themecolor if v else DEFAULT_COLOR}}"{% endif %}>
-	
+	<head>
+	{% block head %}
+		<meta charset="utf-8">
+		{% block title %}<title>{% block pagetitle %}if you see this pls report it as a bug &lt;3{% endblock %} - {{SITE_NAME}}</title>{% endblock %}
+		{{html_head.page_meta(self.pagetitle() or none)}}
+		{{html_head.javascript() if root_scope.js}}
+		{{html_head.stylesheets(root_scope.include_user_css)}}
+		{{html_head.seo() if root_scope.include_seo}}
+		{{html_head.cf_2fa_verify() if root_scope.include_2fa_verify}}
+		{% block head_final %}{% endblock %}
+		{% if v and v.background and not request.path.startswith('/@') %}
+		<style>
+			body.page-standard .app-shell {
+				background: rgba(7, 7, 9, .72);
+				border: 1px solid rgba(255, 255, 255, .09);
+				box-shadow: 0 24px 70px rgba(0, 0, 0, .38);
+				backdrop-filter: blur(12px) saturate(115%);
+				-webkit-backdrop-filter: blur(12px) saturate(115%);
+			}
+			@media (max-width: 767.98px) {
+				body.page-standard .app-shell {
+					background: rgba(7, 7, 9, .78);
+					backdrop-filter: blur(8px) saturate(110%);
+					-webkit-backdrop-filter: blur(8px) saturate(110%);
+				}
+			}
+		</style>
+		{% endif %}
+	{% endblock %}
+	</head>
+	<body class="{% if request.path.startswith('/@') %}page-profile{% else %}page-standard{% endif %}"
+		{% if v and v.background and not request.path.startswith('/@') %}
+		style="background-image: linear-gradient(rgba(5,5,6,.58), rgba(5,5,6,.72)), url('{{ v.background|e }}') !important; background-size: cover !important; background-position: center top !important; background-repeat: no-repeat !important; background-attachment: fixed !important;"
+		{% endif %}
+		{% block body_attributes %}id="{%block pagetype %}{% endblock %}"{% endblock %}>
+		{% if SITE_NAME == 'Obsession' and not request.path.startswith('/@') and not (v and v.background) %}
+			<div id="obsession-aurora" class="obsession-aurora" aria-hidden="true"></div>
+			<script defer src="{{'js/aurora.js' | asset}}"></script>
+		{% endif %}
+		<input hidden id="gnonce" value="{{g.nonce}}">
+		<input hidden id="gbrowser" value="{{g.browser}}">
+		<script src="{{'js/top.js' | asset}}"></script>	
+		{% block body required %}{% endblock %}
+		{{html_head.stylesheets_lower()}}
+		<script defer src="{{'js/bottom.js' | asset}}"></script>
+	</body>
+</html>
