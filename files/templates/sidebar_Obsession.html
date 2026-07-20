@@ -1,4 +1,5 @@
 {% set sidebar_is_mobile_drawer = mobile_drawer_sidebar|default(false) %}
+<link rel="stylesheet" href="{{'css/obsession_sidebar.css' | asset}}">
 <div class="{% if not sidebar_is_mobile_drawer %}col {% endif %}sidebar community-sidebar text-left {% if not sidebar_is_mobile_drawer and '/sidebar' not in request.path %}d-none d-lg-block{% endif %} {% if sidebar_is_mobile_drawer %}mobile-drawer-sidebar{% endif %} pt-3" {% if request.path != '/sidebar' and not sidebar_is_mobile_drawer %}id="sidebar-content"{% endif %}>
 	{% if sub %}
 		{% set image = sub.sidebar_url %}
@@ -8,7 +9,7 @@
 
 	{% if request.path != '/sidebar' and image %}
 		<a href="{{image}}">
-			<img class="mb-4" alt="Obsession community artwork" data-nonce="{{g.nonce}}" data-onclick="expandImage()" loading="lazy" src="{{image}}" width=100%>
+			<img class="mb-4" alt="Obsession community artwork" data-nonce="{{g.nonce}}" data-onclick="expandImage()" loading="lazy" src="{{image}}" width="100%">
 		</a>
 	{% endif %}
 
@@ -28,7 +29,8 @@
 			</div>
 		</section>
 	{% endif %}
-	<p class="text-center text-md mb-4">
+
+	<p class="text-center text-md mb-4 sidebar-utility-links">
 		<a class="sidebar-link d-md-none" href="/random_user" data-bs-toggle="tooltip" data-bs-placement="top" title="Random User"><i class="fas fa-music"></i></a>
 		<a class="sidebar-link" href="/marseys" data-bs-toggle="tooltip" data-bs-placement="top" title="Obsession Emotes"><i class="fas fa-smile-beam" aria-hidden="true"></i></a>
 		<a class="sidebar-link" href="/badges" data-bs-toggle="tooltip" data-bs-placement="top" title="Badges"><i class="fas fa-hexagon"></i></a>
@@ -49,14 +51,16 @@
 		<a class="btn btn-secondary btn-block mb-3" href="/h/{{sub}}/mods">{{HOLE_NAME|upper}} MODS</a>
 		<a class="btn btn-secondary btn-block mb-3" href="/h/{{sub}}/exilees">{{HOLE_NAME|upper}} EXILEES</a>
 	{% else %}
-		<a id="sidebar--directory--btn" class="btn btn-primary btn-block mb-3" href="/directory">
-			<span id="sidebar--directory--head">DIRECTORY</span>
-			<span id="sidebar--directory--subhead">Submit Emotes & Art | Community Info</span>
-		</a>
-		<a class="btn btn-secondary btn-block mb-3" href="/holes">BROWSE BOARDS</a>
-		{% if v and v.can_create_hole %}<a class="btn btn-secondary btn-block mb-3" href="/create_hole">CREATE BOARD</a>{% endif %}
-		{% if sidebar_data %}
+		<div class="obs-sidebar-primary-links">
+			<a id="sidebar--directory--btn" class="btn btn-primary btn-block mb-3" href="/directory">
+				<span id="sidebar--directory--head">DIRECTORY</span>
+				<span id="sidebar--directory--subhead">Emotes, artwork, guides, and community information</span>
+			</a>
+			<a class="btn btn-secondary btn-block mb-3" href="/holes">BROWSE BOARDS</a>
+			{% if v and v.can_create_hole %}<a class="btn btn-secondary btn-block mb-3" href="/create_hole">CREATE BOARD</a>{% endif %}
+		</div>
 
+		{% if sidebar_data %}
 			{% if sidebar_data.poll %}
 				<section class="sidebar-widget sidebar-poll">
 					<div class="sidebar-widget__eyebrow">Community poll</div>
@@ -85,6 +89,7 @@
 				{% endfor %}
 			</section>
 		{% endif %}
+
 		<div class="sidebar--rules pt-2">{% include "rules_Obsession.html" %}</div>
 	{% endif %}
 </div>
