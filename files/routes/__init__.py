@@ -29,6 +29,7 @@ from .posts import *
 from .search import *
 from .settings import *
 from .static import *
+from .community_gallery import *
 from .users import *
 from .votes import *
 from .feeds import *
