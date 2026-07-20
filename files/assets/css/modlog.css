@@ -1,0 +1,95 @@
+#settings2 .modlog-page {
+  width: 100%;
+}
+
+#settings2 .modlog-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 8px 0 12px;
+}
+
+#settings2 .modlog-list {
+  overflow: hidden;
+  background: var(--obs-surface, #111115);
+  border: 1px solid var(--obs-border, rgba(255,255,255,.08));
+  border-radius: var(--obs-radius, 6px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.16);
+}
+
+#settings2 .modlog-action {
+  margin: 0;
+  padding: 14px 16px;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--obs-border, rgba(255,255,255,.08)) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+#settings2 .modlog-action:last-child {
+  border-bottom: 0 !important;
+}
+
+#settings2 .modlog-action:hover {
+  background: rgba(255,255,255,.025) !important;
+}
+
+.modlog-type-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.modlog-action-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+#settings2 .modlog-content {
+  min-width: 0;
+}
+
+#settings2 .modlog-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#settings2 .modlog-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 3px;
+}
+
+#settings2 .modlog-meta a,
+#settings2 .modlog-meta button {
+  margin: 0 !important;
+}
+
+@media (max-width: 767.98px) {
+  #settings2 .modlog-toolbar {
+    justify-content: stretch;
+    gap: 8px;
+  }
+
+  #settings2 .modlog-toolbar .dropdown {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  #settings2 .modlog-toolbar .btn {
+    width: 100%;
+  }
+
+  #settings2 .modlog-action {
+    padding: 12px;
+  }
+
+  #settings2 .modlog-action .profile-pic-35-wrapper {
+    flex: 0 0 auto;
+  }
+}
