@@ -38,3 +38,17 @@ CREATE TABLE IF NOT EXISTS public.paypal_webhook_events (
     received_utc integer NOT NULL,
     processed boolean NOT NULL DEFAULT false
 );
+
+-- Rebrand legacy contribution badges while preserving their IDs and artwork.
+UPDATE public.badge_defs SET name = 'Nikki''s Supporter', description = 'Contributed at least $5' WHERE id = 21;
+UPDATE public.badge_defs SET name = 'Nikki''s Insider', description = 'Contributed at least $10' WHERE id = 22;
+UPDATE public.badge_defs SET name = 'Nikki''s Devoted', description = 'Contributed at least $20' WHERE id = 23;
+UPDATE public.badge_defs SET name = 'Nikki''s Obsession', description = 'Contributed at least $50' WHERE id = 24;
+UPDATE public.badge_defs SET name = 'Nikki''s Sugar Daddy', description = 'Contributed at least $100' WHERE id = 25;
+UPDATE public.badge_defs SET name = 'Nikki''s Bankroller', description = 'Contributed at least $250' WHERE id = 26;
+UPDATE public.badge_defs SET name = 'Rich Bich', description = 'Contributed at least $500' WHERE id = 27;
+
+-- Remove the old rDrama currency name from every legacy badge description.
+UPDATE public.badge_defs
+SET description = replace(replace(description, 'dramacoin', 'Wishcoin'), 'Dramacoin', 'Wishcoin')
+WHERE description ILIKE '%dramacoin%';
