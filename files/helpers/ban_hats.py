@@ -3,6 +3,7 @@ import re
 import time
 
 from flask import g
+from markupsafe import Markup, escape
 
 from files.classes import AwardRelationship, Comment, ModAction, Submission, User
 from files.helpers.config.const import SITE_NAME
@@ -10,19 +11,39 @@ from files.helpers.lazy import lazy
 
 
 BAN_HAT_PATHS = {
-	"grass": "/i/Obsession/ban-hats/grass.webp",
-	"award": "/i/Obsession/ban-hats/award.webp",
-	"underage": "/i/Obsession/ban-hats/underage.webp",
-	"temporary": "/i/Obsession/ban-hats/temporary.webp",
-	"permanent": "/i/Obsession/ban-hats/permanent.webp",
+	"grass": "/i/Obsession/ban-hats/grass-v2.webp?v=2",
+	"award": "/i/Obsession/ban-hats/award.webp?v=2",
+	"underage": "/i/Obsession/ban-hats/underage.webp?v=2",
+	"temporary": "/i/Obsession/ban-hats/temporary-v2.webp?v=2",
+	"permanent": "/i/Obsession/ban-hats/permanent.webp?v=2",
 }
 
+_LINK_TOKEN = re.compile(r"(@[A-Za-z0-9_]{1,25}|/(?:comment|post)/\d+/?)")
 _INSTALLED = False
 
 
 def _plain_text(value):
 	text = re.sub(r"<[^>]+>", "", value or "")
 	return html.unescape(text).strip()
+
+
+def _linkify_text(value):
+	plain = _plain_text(value)
+	parts = []
+	position = 0
+	for match in _LINK_TOKEN.finditer(plain):
+		parts.append(escape(plain[position:match.start()]))
+		token = match.group(0)
+		if token.startswith("@"):
+			href = f"/@{token[1:]}"
+		else:
+			href = token.rstrip("/")
+			if href.startswith("/comment/"):
+				href += "#context"
+		parts.append(Markup('<a href="{}">{}</a>').format(escape(href), escape(token)))
+		position = match.end()
+	parts.append(escape(plain[position:]))
+	return Markup("").join(parts)
 
 
 def _ban_kind(user):
@@ -97,7 +118,6 @@ def _build_ban_display(user):
 	kind = _ban_kind(user)
 	actor = None
 	timestamp = None
-	reason = ""
 
 	if kind in {"grass", "award"}:
 		award_kind = "grass" if kind == "grass" else "ban"
@@ -129,10 +149,18 @@ def _build_ban_display(user):
 	else:
 		duration = " permanently"
 
+	message = f'{prefix} "{details}"{duration}'
+	message_html = Markup('{} "{}"{}').format(
+		_linkify_text(prefix),
+		_linkify_text(details),
+		escape(duration),
+	)
+
 	return {
 		"kind": kind,
 		"hat": BAN_HAT_PATHS[kind],
-		"message": f'{prefix} "{details}"{duration}',
+		"message": message,
+		"message_html": message_html,
 		"actor": actor,
 		"timestamp": timestamp,
 	}
@@ -156,6 +184,11 @@ def install_ban_hat_support():
 		return display["message"] if display else ""
 
 	@property
+	def ban_notice_html(self):
+		display = self.ban_display
+		return display["message_html"] if display else Markup("")
+
+	@property
 	def ban_display_actor(self):
 		display = self.ban_display
 		return display["actor"] if display else None
@@ -177,6 +210,7 @@ def install_ban_hat_support():
 
 	User.ban_display = property(ban_display)
 	User.ban_notice = ban_notice
+	User.ban_notice_html = ban_notice_html
 	User.ban_display_actor = ban_display_actor
 	User.hat_active = hat_active
 	User.ban = ban
