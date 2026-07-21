@@ -2,14 +2,20 @@
 
 from sqlalchemy import or_
 
-from files.classes import Badge, Comment, Notification, PaypalPayment, User
+from files.classes import Badge, BadgeDef, Comment, Notification, PaypalPayment, User
 from files.helpers.config.const import AUTOJANNY_ID
 from files.helpers.contribution_badges import CONTRIBUTION_BADGE_THRESHOLDS
 from files.helpers.sanitize import sanitize
 
 
+INNER_CIRCLE_BADGE_ID = 25
 SUPPORT_THANK_YOU = "Thank you for your support. Freaky Nikki must be obsessed with you!"
 LEGACY_INNER_CIRCLE_BADGE_NOTICE = "You earned the Inner Circle supporter badge."
+
+
+def ensure_inner_circle_badge_definition(db):
+    """Keep the existing PayPal route interface without mutating badge data."""
+    return db.get(BadgeDef, INNER_CIRCLE_BADGE_ID)
 
 
 def _find_notification_comment(db, user_id, bodies, body_html):
@@ -92,7 +98,7 @@ def _badge_notice(badge):
 
 
 def _legacy_badge_bodies(badge):
-    if badge.badge_id != 25:
+    if badge.badge_id != INNER_CIRCLE_BADGE_ID:
         return ()
     old_card = (
         "@AutoJanny has given you the following profile badge:\n\n"
