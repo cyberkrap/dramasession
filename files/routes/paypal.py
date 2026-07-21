@@ -7,6 +7,10 @@ from flask import abort, g, jsonify, redirect, request
 from files.__main__ import app, limiter
 from files.classes import PaypalSubscription, PaypalWebhookEvent
 from files.helpers.config.const import DEFAULT_RATELIMIT_SLOWER
+from files.helpers.patron_extras import (
+    ensure_inner_circle_badge_definition,
+    ensure_patron_extras,
+)
 from files.helpers.paypal import (
     PayPalError,
     cancel_paypal_subscription,
@@ -40,6 +44,10 @@ def paypal_support_template_context():
             PaypalSubscription.user_id == viewer.id,
             PaypalSubscription.status.in_(("ACTIVE", "APPROVAL_PENDING", "PAYMENT_FAILED")),
         ).order_by(PaypalSubscription.updated_utc.desc()).first()
+        if current_subscription:
+            ensure_inner_circle_badge_definition(g.db)
+            recalculate_paypal_patron(g.db, viewer.id)
+            ensure_patron_extras(g.db, viewer.id)
 
     return {
         "paypal_checkout_configured": PAYPAL_CHECKOUT_CONFIGURED,
@@ -67,6 +75,7 @@ _SUBSCRIPTION_EVENT_STATUS = {
 def confirm_paypal_subscription(v):
     subscription_id = request.values.get("subscription_id", "").strip()
     try:
+        ensure_inner_circle_badge_definition(g.db)
         details = get_paypal_subscription(subscription_id)
         subscription, tier = upsert_paypal_subscription(
             g.db,
@@ -74,6 +83,7 @@ def confirm_paypal_subscription(v):
             forced_user_id=v.id,
         )
         grants = sync_paypal_transactions(g.db, subscription)
+        ensure_patron_extras(g.db, v.id)
     except PayPalError as exc:
         return jsonify(ok=False, error=str(exc)), 502
 
@@ -131,6 +141,8 @@ def paypal_webhook():
     if not verified:
         abort(400)
 
+    ensure_inner_circle_badge_definition(g.db)
+
     event_id = str(event["id"])
     existing = g.db.get(PaypalWebhookEvent, event_id)
     if existing and existing.processed:
@@ -161,12 +173,14 @@ def paypal_webhook():
             )
             if event_type in {"BILLING.SUBSCRIPTION.ACTIVATED", "BILLING.SUBSCRIPTION.UPDATED"}:
                 sync_paypal_transactions(g.db, subscription)
+                ensure_patron_extras(g.db, subscription.user_id)
 
         elif event_type == "PAYMENT.SALE.COMPLETED":
             subscription_id = str(resource.get("billing_agreement_id") or "")
             details = get_paypal_subscription(subscription_id)
             subscription, _tier = upsert_paypal_subscription(g.db, details)
             sync_paypal_transactions(g.db, subscription)
+            ensure_patron_extras(g.db, subscription.user_id)
 
         elif event_type in {"PAYMENT.SALE.REFUNDED", "PAYMENT.SALE.REVERSED"}:
             reverse_paypal_payment(
