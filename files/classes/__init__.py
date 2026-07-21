@@ -27,6 +27,7 @@ from .casino_game import *
 from .hats import *
 from .marsey import *
 from .transactions import *
+from .paypal import *
 from .sub_logs import *
 from .media import *
 from .push_subscriptions import *

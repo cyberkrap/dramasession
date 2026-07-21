@@ -8,6 +8,7 @@ import psycopg2
 ROOT = Path(__file__).resolve().parent
 SCHEMA = ROOT / "schema.sql"
 SEED = ROOT / "seed-db.sql"
+PAYPAL_SCHEMA = ROOT / "paypal_schema.sql"
 
 
 def database_url():
@@ -28,6 +29,10 @@ def connect_with_retry():
 	raise RuntimeError("PostgreSQL was not ready after 120 seconds") from last_error
 
 
+def ensure_paypal_schema(cursor):
+	cursor.execute(PAYPAL_SCHEMA.read_text(encoding="utf-8"))
+
+
 def initialize():
 	with connect_with_retry() as connection:
 		with connection.cursor() as cursor:
@@ -41,7 +46,8 @@ def initialize():
 			)
 			cursor.execute("SELECT 1 FROM public.production_deployment WHERE deployment_key = 'schema-and-seed'")
 			if cursor.fetchone():
-				print("Production database initialization already completed.", flush=True)
+				ensure_paypal_schema(cursor)
+				print("Production database initialization already completed; PayPal schema verified.", flush=True)
 				return
 
 			cursor.execute("SELECT to_regclass('public.users')")
@@ -53,6 +59,7 @@ def initialize():
 
 			cursor.execute(SCHEMA.read_text(encoding="utf-8"))
 			cursor.execute(SEED.read_text(encoding="utf-8"))
+			ensure_paypal_schema(cursor)
 
 			for table in ("award_relationships", "badge_defs", "casino_games", "comment_options", "comments", "hat_defs", "lotteries", "modactions", "oauth_apps", "subactions", "submission_options", "submissions", "users"):
 				cursor.execute("SELECT pg_get_serial_sequence(%s, 'id')", (f"public.{table}",))
