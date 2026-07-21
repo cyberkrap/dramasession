@@ -38,9 +38,3 @@ CREATE TABLE IF NOT EXISTS public.paypal_webhook_events (
     received_utc integer NOT NULL,
     processed boolean NOT NULL DEFAULT false
 );
-
-INSERT INTO public.badge_defs (id, name, description, created_utc)
-VALUES (25, 'JIDF Bankroller', 'Contributed at least $100', NULL)
-ON CONFLICT (id) DO UPDATE SET
-    name = EXCLUDED.name,
-    description = EXCLUDED.description;
