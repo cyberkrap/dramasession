@@ -34,6 +34,7 @@ from .login import *
 from .mail import *
 from .oauth import *
 from .posts import *
+from .inline_images import *
 from .search import *
 from .settings import *
 from .static import *
