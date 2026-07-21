@@ -1,12 +1,15 @@
 """Idempotent patron badge and supporter notification fulfillment."""
 
+from sqlalchemy import or_
+
 from files.classes import Badge, BadgeDef, Comment, Notification, PaypalPayment, User
 from files.helpers.config.const import AUTOJANNY_ID
+from files.helpers.sanitize import sanitize
 
 
 INNER_CIRCLE_BADGE_ID = 25
 SUPPORT_THANK_YOU = "Thank you for your support. Freaky Nikki must be obsessed with you!"
-INNER_CIRCLE_BADGE_NOTICE = "You earned the Inner Circle supporter badge."
+LEGACY_INNER_CIRCLE_BADGE_NOTICE = "You earned the Inner Circle supporter badge."
 
 
 def ensure_inner_circle_badge_definition(db):
@@ -14,22 +17,48 @@ def ensure_inner_circle_badge_definition(db):
     return db.get(BadgeDef, INNER_CIRCLE_BADGE_ID)
 
 
-def _notification_exists(db, user_id, body):
-    return db.query(Notification.comment_id).join(
-        Comment,
+def _find_notification_comment(db, user_id, bodies, body_html):
+    return db.query(Comment).join(
+        Notification,
         Notification.comment_id == Comment.id,
     ).filter(
         Notification.user_id == user_id,
         Comment.author_id == AUTOJANNY_ID,
-        Comment.body == body,
         Comment.deleted_utc == 0,
-    ).first() is not None
+        or_(Comment.body.in_(tuple(bodies)), Comment.body_html == body_html),
+    ).order_by(Comment.id.desc()).first()
 
 
-def _create_root_notification(db, user_id, body):
-    """Create a root notification comment not tied to a submission."""
-    if _notification_exists(db, user_id, body):
-        return False
+def _ensure_root_notification(db, user_id, body, *, body_html=None, legacy_bodies=()):
+    """Create a root notification, or upgrade an older version in place."""
+    body_html = body_html or sanitize(body)
+    bodies = (body, *legacy_bodies)
+    comment = _find_notification_comment(db, user_id, bodies, body_html)
+
+    if comment is not None:
+        changed = False
+        if comment.body != body:
+            comment.body = body
+            changed = True
+        if comment.body_html != body_html:
+            comment.body_html = body_html
+            changed = True
+        if comment.parent_submission is not None:
+            comment.parent_submission = None
+            changed = True
+        if comment.parent_comment_id is not None:
+            comment.parent_comment_id = None
+            changed = True
+        if comment.wall_user_id is not None:
+            comment.wall_user_id = None
+            changed = True
+        if comment.sentto is not None:
+            comment.sentto = None
+            changed = True
+        if changed:
+            db.add(comment)
+            db.flush()
+        return changed
 
     comment = Comment(
         author_id=AUTOJANNY_ID,
@@ -40,7 +69,7 @@ def _create_root_notification(db, user_id, body):
         level=1,
         distinguish_level=6,
         body=body,
-        body_html=f"<p>{body}</p>",
+        body_html=body_html,
         is_bot=True,
         over_18=False,
         ghost=False,
@@ -55,6 +84,16 @@ def _create_root_notification(db, user_id, body):
     db.add(Notification(user_id=user_id, comment_id=comment.id))
     db.flush()
     return True
+
+
+def _inner_circle_badge_notice(badge):
+    description = badge.badge.description or ""
+    return (
+        "@AutoJanny has given you the following profile badge:\n\n"
+        f"![]({badge.path})\n\n"
+        f"**{badge.name}**\n\n"
+        f"{description}"
+    )
 
 
 def ensure_patron_extras(db, user_id):
@@ -73,12 +112,10 @@ def ensure_patron_extras(db, user_id):
                 return False
 
             badge_added = False
-            if (
-                badge_def is not None
-                and int(user.patron or 0) >= 5
-                and db.get(Badge, (user_id, INNER_CIRCLE_BADGE_ID)) is None
-            ):
-                db.add(Badge(user_id=user_id, badge_id=INNER_CIRCLE_BADGE_ID))
+            badge = db.get(Badge, (user_id, INNER_CIRCLE_BADGE_ID))
+            if badge_def is not None and int(user.patron or 0) >= 5 and badge is None:
+                badge = Badge(user_id=user_id, badge_id=INNER_CIRCLE_BADGE_ID)
+                db.add(badge)
                 db.flush()
                 badge_added = True
 
@@ -89,15 +126,16 @@ def ensure_patron_extras(db, user_id):
             if not has_completed_payment:
                 return badge_added
 
-            changed = _create_root_notification(db, user_id, SUPPORT_THANK_YOU)
+            changed = _ensure_root_notification(db, user_id, SUPPORT_THANK_YOU)
 
-            if int(user.patron or 0) >= 5 and (
-                badge_added or db.get(Badge, (user_id, INNER_CIRCLE_BADGE_ID)) is not None
-            ):
-                changed = _create_root_notification(
+            if int(user.patron or 0) >= 5 and badge is not None:
+                badge_notice = _inner_circle_badge_notice(badge)
+                changed = _ensure_root_notification(
                     db,
                     user_id,
-                    INNER_CIRCLE_BADGE_NOTICE,
+                    badge_notice,
+                    body_html=sanitize(badge_notice),
+                    legacy_bodies=(LEGACY_INNER_CIRCLE_BADGE_NOTICE,),
                 ) or changed
 
             return changed or badge_added
