@@ -74,4 +74,4 @@ SELECT totals.user_id, thresholds.badge_id, EXTRACT(EPOCH FROM NOW())::integer
 FROM verified_totals AS totals
 CROSS JOIN thresholds
 WHERE totals.total_cents >= thresholds.threshold_cents
-ON CONFLICT (user_id, badge_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
