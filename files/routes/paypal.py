@@ -7,7 +7,10 @@ from flask import abort, g, jsonify, redirect, request
 from files.__main__ import app, limiter
 from files.classes import PaypalSubscription, PaypalWebhookEvent
 from files.helpers.config.const import DEFAULT_RATELIMIT_SLOWER
-from files.helpers.patron_extras import ensure_patron_extras
+from files.helpers.patron_extras import (
+    ensure_inner_circle_badge_definition,
+    ensure_patron_extras,
+)
 from files.helpers.paypal import (
     PayPalError,
     cancel_paypal_subscription,
@@ -42,6 +45,7 @@ def paypal_support_template_context():
             PaypalSubscription.status.in_(("ACTIVE", "APPROVAL_PENDING", "PAYMENT_FAILED")),
         ).order_by(PaypalSubscription.updated_utc.desc()).first()
         if current_subscription:
+            ensure_inner_circle_badge_definition(g.db)
             recalculate_paypal_patron(g.db, viewer.id)
             ensure_patron_extras(g.db, viewer.id)
 
@@ -71,6 +75,7 @@ _SUBSCRIPTION_EVENT_STATUS = {
 def confirm_paypal_subscription(v):
     subscription_id = request.values.get("subscription_id", "").strip()
     try:
+        ensure_inner_circle_badge_definition(g.db)
         details = get_paypal_subscription(subscription_id)
         subscription, tier = upsert_paypal_subscription(
             g.db,
@@ -135,6 +140,8 @@ def paypal_webhook():
         abort(503)
     if not verified:
         abort(400)
+
+    ensure_inner_circle_badge_definition(g.db)
 
     event_id = str(event["id"])
     existing = g.db.get(PaypalWebhookEvent, event_id)
