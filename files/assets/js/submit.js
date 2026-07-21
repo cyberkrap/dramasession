@@ -87,6 +87,8 @@ async function uploadInlineImages({files=[], urls=[], cursorStart=null, cursorEn
 	if (!files.length && !urls.length) return false
 
 	const form = new FormData()
+	const formkey = document.querySelector('#submitform input[name="formkey"]')
+	if (formkey && formkey.value) form.append('formkey', formkey.value)
 	for (const file of files) form.append('file', file)
 	for (const url of urls) form.append('url', url)
 
