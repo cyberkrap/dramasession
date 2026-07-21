@@ -16,9 +16,13 @@ from files.routes.wrappers import *
 # import jinja2 then... (lmao this was in feeds.py before wtf)
 from files.routes.jinja2 import *
 
-# Repair the legacy comment attachment block before importing comments routes.
-from files.helpers.runtime_source_fixes import patch_comment_attachment_source
+# Repair legacy route source before the affected modules are imported.
+from files.helpers.runtime_source_fixes import (
+	patch_comment_attachment_source,
+	patch_youtube_anthem_source,
+)
 patch_comment_attachment_source()
+patch_youtube_anthem_source()
 
 # import routes :)
 from .admin import *
@@ -55,5 +59,7 @@ from .push_notifs import *
 
 from files.classes import User
 from files.helpers.ban_hats import install_ban_hat_support
+from files.helpers.default_user_background import install_default_user_background
 install_ban_hat_support()
+install_default_user_background()
 User.ban_notice = User.ban_notice_html
