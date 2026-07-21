@@ -11,7 +11,6 @@ from files.__main__ import app, limiter
 from files.helpers.config.const import *
 from files.helpers.media import media_ratelimit, process_image
 from files.helpers.support import patron_limit
-from files.routes.routehelpers import get_ID
 from files.routes.wrappers import auth_required
 
 
@@ -133,7 +132,6 @@ def _download_remote_image(url, max_bytes):
 
 @app.post("/api/images/inline")
 @limiter.limit(DEFAULT_RATELIMIT_SLOWER)
-@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
 @auth_required
 def upload_inline_images(v):
 	if g.is_tor:
