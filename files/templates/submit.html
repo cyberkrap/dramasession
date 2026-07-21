@@ -39,7 +39,6 @@
 												</div>
 												<div id="image-upload-block">
 													<div><label class="mt-3">Attachment Upload</label></div>
-
 													<img loading="lazy" id="image-preview" style="max-width:50%">
 													<label class="btn btn-secondary m-0" for="file-upload">
 														<div id="filename-show">Select File</div>
@@ -54,16 +53,17 @@
 												<div class="ghostdiv" style="display:none;"></div>
 												<div class="text-small font-weight-bold mt-1" id="character-count-submit-text-form" style="right: 1rem; bottom: 0.5rem; z-index: 3;"></div>
 												<p></p>
-												<div class="btn btn-secondary fl-r" data-nonce="{{g.nonce}}" data-toggleelement="preview" data-toggleattr="d-none">
-													Toggle preview
-												</div>
+												<div class="btn btn-secondary fl-r" data-nonce="{{g.nonce}}" data-toggleelement="preview" data-toggleattr="d-none">Toggle preview</div>
 												<small class="btn btn-secondary format d-inline-block m-0"><span class="font-weight-bolder text-uppercase" data-nonce="{{g.nonce}}" data-onclick="getGifs('post-text')" data-bs-toggle="modal" data-bs-target="#gifModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add GIF">GIF</span></small>
 												&nbsp;
 												<button type="button" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('post-text')" class="btn btn-secondary format d-inline-block m-0" id="emoji-reply-btn" data-bs-toggle="modal" data-bs-target="#emojiModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Add Emoji"><i class="fas fa-smile-beam"></i></button>
-												<label class="format btn btn-secondary m-0 ml-2 {% if v %}d-inline-block{% else %}d-none{% endif %}" for="file-upload-submit">
-													<div id="filename-show-submit"><i class="fas fa-file"></i></div>
-													<input autocomplete="off" id="file-upload-submit" multiple="multiple" accept="image/*, video/*, audio/*" type="file" name="file" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename-show-submit','file-upload-submit');checkForRequired()" hidden>
+												<label class="format btn btn-secondary m-0 ml-2 {% if v %}d-inline-block{% else %}d-none{% endif %}" for="file-upload-submit" title="Upload images at the cursor">
+													<div id="filename-show-submit"><i class="fas fa-images"></i></div>
+													<input autocomplete="off" id="file-upload-submit" multiple accept="image/*" type="file" {% if g.is_tor %}disabled{% endif %} hidden>
 												</label>
+												<button type="button" id="inline-image-url-btn" class="format btn btn-secondary m-0 ml-2 {% if v %}d-inline-block{% else %}d-none{% endif %}" {% if g.is_tor %}disabled{% endif %} title="Import an image URL at the cursor"><i class="fas fa-link"></i> Image URL</button>
+												<span id="inline-image-status" class="text-small ml-2" aria-live="polite"></span>
+												<div class="form-text text-small mt-1">Images upload immediately and are inserted where your cursor is. You can also paste or drop images into the text box.</div>
 												<div id="preview" class="preview my-3"></div>
 												<div class="form-text text-small mt-1 mb-3"><a href="/formatting" {% if v and v.newtab %}data-target="t" target="_blank"{% endif %}>Formatting help</a></div>
 												<div class="custom-control custom-checkbox">
@@ -94,12 +94,10 @@
 						</div>
 				<div class="container">
 						<div class="row fixed-bottom bg-white border-top p-3" style="z-index: 100; bottom: 0px; transition: bottom 220ms cubic-bezier(0, 0, 0.2, 1) 0s;">
-								<div class="col">
-										<a href="/" class="btn btn-secondary">Cancel</a>
-								</div>
+								<div class="col"><a href="/" class="btn btn-secondary">Cancel</a></div>
 								<div class="col text-right">
 										{% if error %}<span class="text-danger text-large mr-2">{{error | safe}}</span>{% endif %}
-										<button type="submit" class="btn btn-primary" id="create_button" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this);remove_dialog()">Post</button>
+										<button type="submit" class="btn btn-primary" id="create_button" data-nonce="{{g.nonce}}" data-onclick="disable(this);remove_dialog()">Post</button>
 								</div>
 						</div>
 				</div>
