@@ -8,22 +8,26 @@ INNER_CIRCLE_BADGE_ID = 25
 SUPPORT_THANK_YOU = "Thank you for your support. Freaky Nikki must be obsessed with you!"
 
 
+def ensure_inner_circle_badge_definition(db):
+    """Create or repair the badge definition required by patron tier 5."""
+    badge_def = db.get(BadgeDef, INNER_CIRCLE_BADGE_ID)
+    if badge_def is None:
+        badge_def = BadgeDef(id=INNER_CIRCLE_BADGE_ID)
+    badge_def.name = "JIDF Bankroller"
+    badge_def.description = "Contributed at least $100"
+    db.add(badge_def)
+    db.flush()
+    return badge_def
+
+
 def ensure_patron_extras(db, user_id):
-    """Backfill the Inner Circle badge definition and one thank-you notification."""
+    """Backfill the Inner Circle badge and one thank-you notification."""
+    ensure_inner_circle_badge_definition(db)
+
     user_id = int(user_id)
     user = db.get(User, user_id)
     if user is None:
         return False
-
-    badge_def = db.get(BadgeDef, INNER_CIRCLE_BADGE_ID)
-    if badge_def is None:
-        badge_def = BadgeDef(
-            id=INNER_CIRCLE_BADGE_ID,
-            name="JIDF Bankroller",
-            description="Contributed at least $100",
-        )
-        db.add(badge_def)
-        db.flush()
 
     if int(user.patron or 0) >= 5 and db.get(Badge, (user_id, INNER_CIRCLE_BADGE_ID)) is None:
         db.add(Badge(user_id=user_id, badge_id=INNER_CIRCLE_BADGE_ID))
