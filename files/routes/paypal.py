@@ -3,6 +3,7 @@
 import time
 
 from flask import abort, g, jsonify, redirect, request
+from sqlalchemy import text
 
 from files.__main__ import app, limiter
 from files.classes import PaypalSubscription, PaypalWebhookEvent
@@ -63,6 +64,17 @@ _SUBSCRIPTION_EVENT_STATUS = {
     "BILLING.SUBSCRIPTION.PAYMENT.FAILED": "PAYMENT_FAILED",
     "BILLING.SUBSCRIPTION.ACTIVATED": "ACTIVE",
 }
+
+
+def _try_subscription_lock(subscription_id):
+    """Acquire a transaction-scoped lock without waiting on another webhook."""
+    subscription_id = str(subscription_id or "").strip()
+    if not subscription_id:
+        return True
+    return bool(g.db.execute(
+        text("SELECT pg_try_advisory_xact_lock(hashtext(:lock_key))"),
+        {"lock_key": f"paypal-subscription:{subscription_id}"},
+    ).scalar())
 
 
 @app.post("/api/paypal/subscriptions/confirm")
@@ -137,8 +149,6 @@ def paypal_webhook():
     if not verified:
         abort(400)
 
-    ensure_inner_circle_badge_definition(g.db)
-
     event_id = str(event["id"])
     existing = g.db.get(PaypalWebhookEvent, event_id)
     if existing and existing.processed:
@@ -146,6 +156,21 @@ def paypal_webhook():
 
     event_type = str(event["event_type"])
     resource = event.get("resource") or {}
+    if event_type.startswith("BILLING.SUBSCRIPTION."):
+        subscription_id = str(resource.get("id") or "")
+    elif event_type.startswith("PAYMENT.SALE."):
+        subscription_id = str(resource.get("billing_agreement_id") or "")
+    else:
+        subscription_id = ""
+
+    # PayPal can deliver several events for the same subscription at once.
+    # Never wait on a row lock long enough for Gunicorn to kill the worker.
+    # A 503 tells PayPal to retry after the current transaction finishes.
+    if not _try_subscription_lock(subscription_id):
+        abort(503)
+
+    ensure_inner_circle_badge_definition(g.db)
+
     resource_id = str(resource.get("id") or resource.get("billing_agreement_id") or "")
     now = int(time.time())
     event_record = existing or PaypalWebhookEvent(event_id=event_id, received_utc=now)
@@ -157,7 +182,6 @@ def paypal_webhook():
 
     try:
         if event_type.startswith("BILLING.SUBSCRIPTION."):
-            subscription_id = str(resource.get("id") or "")
             try:
                 details = get_paypal_subscription(subscription_id)
             except PayPalError:
@@ -172,7 +196,6 @@ def paypal_webhook():
                 ensure_patron_extras(g.db, subscription.user_id)
 
         elif event_type == "PAYMENT.SALE.COMPLETED":
-            subscription_id = str(resource.get("billing_agreement_id") or "")
             details = get_paypal_subscription(subscription_id)
             subscription, _tier = upsert_paypal_subscription(g.db, details)
             sync_paypal_transactions(g.db, subscription)
