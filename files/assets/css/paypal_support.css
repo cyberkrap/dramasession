@@ -1,0 +1,58 @@
+.support-current-subscription {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding: 1rem;
+    border: 1px solid rgba(157, 184, 161, .35);
+    border-radius: 7px;
+    background: rgba(127, 155, 132, .08);
+}
+
+.support-current-subscription strong,
+.support-current-subscription span {
+    display: block;
+}
+
+.support-current-subscription span {
+    margin-top: .2rem;
+    color: #aaa4a5;
+    font-size: .84rem;
+}
+
+.support-cancel-form {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.support-paypal-button {
+    min-height: 42px;
+    margin: 0 18px 18px;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.support-checkout-message {
+    margin-top: 1rem;
+    padding: .85rem 1rem;
+    border-left: 3px solid #9db8a1;
+    background: rgba(127, 155, 132, .08);
+    color: #f3f1f1;
+}
+
+.support-checkout-message-error {
+    border-left-color: #d22b35;
+    background: rgba(210, 43, 53, .09);
+}
+
+@media (max-width: 600px) {
+    .support-current-subscription {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .support-cancel-form .btn {
+        width: 100%;
+    }
+}
