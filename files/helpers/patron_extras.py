@@ -9,12 +9,16 @@ SUPPORT_THANK_YOU = "Thank you for your support. Freaky Nikki must be obsessed w
 
 
 def ensure_inner_circle_badge_definition(db):
-    """Create or repair the badge definition required by patron tier 5."""
+    """Ensure badge ID 25 exists without renaming or colliding with legacy badges."""
     badge_def = db.get(BadgeDef, INNER_CIRCLE_BADGE_ID)
-    if badge_def is None:
-        badge_def = BadgeDef(id=INNER_CIRCLE_BADGE_ID)
-    badge_def.name = "JIDF Bankroller"
-    badge_def.description = "Contributed at least $100"
+    if badge_def is not None:
+        return badge_def
+
+    badge_def = BadgeDef(
+        id=INNER_CIRCLE_BADGE_ID,
+        name="Inner Circle Supporter",
+        description="Contributed at least $100",
+    )
     db.add(badge_def)
     db.flush()
     return badge_def

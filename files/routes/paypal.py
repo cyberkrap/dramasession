@@ -44,10 +44,6 @@ def paypal_support_template_context():
             PaypalSubscription.user_id == viewer.id,
             PaypalSubscription.status.in_(("ACTIVE", "APPROVAL_PENDING", "PAYMENT_FAILED")),
         ).order_by(PaypalSubscription.updated_utc.desc()).first()
-        if current_subscription:
-            ensure_inner_circle_badge_definition(g.db)
-            recalculate_paypal_patron(g.db, viewer.id)
-            ensure_patron_extras(g.db, viewer.id)
 
     return {
         "paypal_checkout_configured": PAYPAL_CHECKOUT_CONFIGURED,
