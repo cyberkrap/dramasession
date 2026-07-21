@@ -48,3 +48,6 @@ if FEATURES['ASSET_SUBMISSIONS']:
 	from .asset_submissions import *
 from .special import *
 from .push_notifs import *
+
+from files.helpers.ban_hats import install_ban_hat_support
+install_ban_hat_support()

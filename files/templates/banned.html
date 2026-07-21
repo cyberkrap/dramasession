@@ -12,7 +12,7 @@
 			<th>Last Active</th>
 		{%- endif %}
 		<th>Truescore</th>
-		<th>Ban reason</th>
+		<th>Ban details</th>
 		<th>Banned by</th>
 		<th>Unban in</th>
 	</tr>
@@ -25,8 +25,8 @@
 			<td {% if user.last_active %}data-time="{{user.last_active}}"{% endif %}></td>
 		{%- endif %}
 		<td>{{user.truescore}}</td>
-		<td>{% if user.ban_reason %}{{user.ban_reason | safe}}{% else %}<span class="text-muted" style="font-style:italic;">No reason</span>{% endif %}</td>
-		{% with user=user.banned_by %}
+		<td>{{user.ban_notice}}</td>
+		{% with user=user.ban_display_actor %}
 		<td data-sort-key="{{user.username.lower() if user else ''}}">
 			{% include "user_in_table.html" %}
 		</td>

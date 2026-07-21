@@ -1,14 +1,6 @@
 {% macro userBanBlock(deviceType) %}
 	{% if u.is_suspended %}
-		<h5 class="text-primary" id="profile-{{deviceType}}--banned">BANNED USER
-		{% if u.ban_reason %}:
-			{{u.ban_reason | safe}}
-		{% endif %}
-		(by <a href="{{u.banned_by.url}}">@{{u.banned_by.username}}</a>)
-		</h5>
-		{% if u.unban_utc %}
-			<h5 class="text-primary" id="profile--unban">{{u.unban_string}}</h5>
-		{% endif %}
+		<h5 class="text-primary" id="profile-{{deviceType}}--banned">{{u.ban_notice}}</h5>
 	{% endif %}
 	{% if v and v.admin_level >= PERMS['USER_SHADOWBAN'] and u.shadowbanned %}
 		<h5 class="text-primary" id="profile-{{deviceType}}--shadowbanned">SHADOWBANNED USER
@@ -123,4 +115,3 @@
 		</div>
 	{% endif %}
 {%- endmacro %}
-
