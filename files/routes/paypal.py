@@ -5,8 +5,8 @@ import time
 from flask import abort, g, jsonify, redirect, request
 
 from files.__main__ import app, limiter
-from files.classes import PaypalSubscription, PaypalWebhookEvent
-from files.helpers.config.const import DEFAULT_RATELIMIT_SLOWER
+from files.classes import Comment, Notification, PaypalPayment, PaypalSubscription, PaypalWebhookEvent
+from files.helpers.config.const import AUTOJANNY_ID, DEFAULT_RATELIMIT_SLOWER, NOTIFICATION_THREAD
 from files.helpers.paypal import (
     PayPalError,
     cancel_paypal_subscription,
@@ -60,6 +60,36 @@ _SUBSCRIPTION_EVENT_STATUS = {
     "BILLING.SUBSCRIPTION.ACTIVATED": "ACTIVE",
 }
 
+_SUPPORT_THANK_YOU = "Thank you for your support. Freaky Nikki must be obsessed with you!"
+
+
+def _notify_first_support_payment(user_id):
+    completed_count = g.db.query(PaypalPayment).filter(
+        PaypalPayment.user_id == int(user_id),
+        PaypalPayment.status == "COMPLETED",
+    ).count()
+    if completed_count != 1:
+        return
+
+    comment = Comment(
+        author_id=AUTOJANNY_ID,
+        parent_submission=NOTIFICATION_THREAD,
+        level=1,
+        body=_SUPPORT_THANK_YOU,
+        body_html=f"<p>{_SUPPORT_THANK_YOU}</p>",
+        is_bot=True,
+        over_18=False,
+        ghost=False,
+    )
+    comment.upvotes = 1
+    comment.downvotes = 0
+    comment.realupvotes = 1
+    g.db.add(comment)
+    g.db.flush()
+    comment.top_comment_id = comment.id
+    g.db.add(comment)
+    g.db.add(Notification(user_id=int(user_id), comment_id=comment.id))
+
 
 @app.post("/api/paypal/subscriptions/confirm")
 @limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
@@ -74,6 +104,8 @@ def confirm_paypal_subscription(v):
             forced_user_id=v.id,
         )
         grants = sync_paypal_transactions(g.db, subscription)
+        if grants:
+            _notify_first_support_payment(v.id)
     except PayPalError as exc:
         return jsonify(ok=False, error=str(exc)), 502
 
@@ -160,13 +192,17 @@ def paypal_webhook():
                 status_override=_SUBSCRIPTION_EVENT_STATUS.get(event_type),
             )
             if event_type in {"BILLING.SUBSCRIPTION.ACTIVATED", "BILLING.SUBSCRIPTION.UPDATED"}:
-                sync_paypal_transactions(g.db, subscription)
+                grants = sync_paypal_transactions(g.db, subscription)
+                if grants:
+                    _notify_first_support_payment(subscription.user_id)
 
         elif event_type == "PAYMENT.SALE.COMPLETED":
             subscription_id = str(resource.get("billing_agreement_id") or "")
             details = get_paypal_subscription(subscription_id)
             subscription, _tier = upsert_paypal_subscription(g.db, details)
-            sync_paypal_transactions(g.db, subscription)
+            grants = sync_paypal_transactions(g.db, subscription)
+            if grants:
+                _notify_first_support_payment(subscription.user_id)
 
         elif event_type in {"PAYMENT.SALE.REFUNDED", "PAYMENT.SALE.REVERSED"}:
             reverse_paypal_payment(
