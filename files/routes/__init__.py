@@ -16,6 +16,10 @@ from files.routes.wrappers import *
 # import jinja2 then... (lmao this was in feeds.py before wtf)
 from files.routes.jinja2 import *
 
+# Repair the legacy comment attachment block before importing comments routes.
+from files.helpers.runtime_source_fixes import patch_comment_attachment_source
+patch_comment_attachment_source()
+
 # import routes :)
 from .admin import *
 from .comments import *
@@ -49,5 +53,7 @@ if FEATURES['ASSET_SUBMISSIONS']:
 from .special import *
 from .push_notifs import *
 
+from files.classes import User
 from files.helpers.ban_hats import install_ban_hat_support
 install_ban_hat_support()
+User.ban_notice = User.ban_notice_html
