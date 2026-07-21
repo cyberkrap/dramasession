@@ -6,6 +6,7 @@ import fcntl
 
 _LOCK_PATH = "/tmp/obsession-runtime-source-fixes.lock"
 _COMMENTS_PATH = Path("files/routes/comments.py")
+_SETTINGS_PATH = Path("files/routes/settings.py")
 
 
 def _atomic_write(path, content):
@@ -46,3 +47,34 @@ def patch_comment_attachment_source():
 
 		if source != original:
 			_atomic_write(_COMMENTS_PATH, source)
+
+
+def patch_youtube_anthem_source():
+	"""Route profile anthem downloads through the resilient downloader helper."""
+	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
+		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+		source = _SETTINGS_PATH.read_text(encoding="utf-8")
+		original = source
+
+		import_line = "from files.helpers.youtube_anthem import download_youtube_audio\n"
+		if import_line not in source:
+			marker = "from files.helpers.useractions import *\n"
+			if marker not in source:
+				raise RuntimeError("Could not locate the settings helper import block")
+			source = source.replace(marker, marker + import_line, 1)
+
+		direct_download = (
+			"        with yt_dlp.YoutubeDL(ydl_opts) as ydl:\n"
+			"            ydl.download([f\"https://www.youtube.com/watch?v={video_id}\"])\n"
+		)
+		resilient_download = "        download_youtube_audio(video_id, ydl_opts)\n"
+		if resilient_download not in source:
+			if direct_download not in source:
+				raise RuntimeError("Could not locate the direct YouTube anthem download block")
+			source = source.replace(direct_download, resilient_download, 1)
+
+		if import_line not in source or resilient_download not in source:
+			raise RuntimeError("YouTube anthem source repair did not produce the expected structure")
+
+		if source != original:
+			_atomic_write(_SETTINGS_PATH, source)
