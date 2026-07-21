@@ -1,6 +1,7 @@
 {% extends "default.html" %}
 {% block pagetitle %}Support Obsession{% endblock %}
 {% block content %}
+<link rel="stylesheet" href="{{'css/paypal_support.css' | asset}}">
 <main class="support-page" aria-labelledby="support-title">
     <header class="support-hero">
         <div class="support-kicker"><i class="fas fa-heart" aria-hidden="true"></i> Support Obsession</div>
@@ -11,11 +12,35 @@
             <div><i class="fas fa-shield-halved" aria-hidden="true"></i><span>Security services and transactional email</span></div>
             <div><i class="fas fa-wrench" aria-hidden="true"></i><span>Maintenance and future development</span></div>
         </div>
-        <p class="support-note">Supporters receive site benefits based on their tier. Payment details are handled by the configured third-party provider; Obsession does not store full card information. Use the email associated with your Obsession account when required. Rewards may take a little time to appear after payment.</p>
-        {% if support_payment_configured %}
-            <div class="support-payment-status support-payment-status-ready" role="status"><i class="fas fa-heart" aria-hidden="true"></i><span>Support payments are available through our configured provider.</span></div>
+        <p class="support-note">PayPal handles the payment details. Obsession stores only the subscription status and transaction identifiers needed to activate benefits, prevent duplicate rewards and process cancellations.</p>
+
+        {% if request.values.get('payment') == 'success' %}
+            <div class="support-payment-status support-payment-status-ready" role="status"><i class="fas fa-check-circle" aria-hidden="true"></i><span><strong>PayPal approved your subscription.</strong><small>Your benefits activate as soon as the payment is confirmed.</small></span></div>
+        {% elif request.values.get('payment') == 'cancelled' %}
+            <div class="support-payment-status" role="status"><i class="fas fa-circle-info" aria-hidden="true"></i><span>Your PayPal subscription was cancelled.</span></div>
+        {% elif request.values.get('payment') == 'cancel_error' %}
+            <div class="support-payment-status" role="alert"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i><span>PayPal could not cancel the subscription. Try again in a moment.</span></div>
+        {% endif %}
+
+        {% if paypal_current_subscription %}
+            <div class="support-current-subscription">
+                <div>
+                    <strong>Current PayPal subscription</strong>
+                    <span>{{paypal_current_subscription.status|replace('_', ' ')|title}} · Tier {{paypal_current_subscription.tier}}</span>
+                </div>
+                {% if paypal_current_subscription.status == 'ACTIVE' %}
+                <form method="post" action="/api/paypal/subscriptions/cancel" class="support-cancel-form" onsubmit="return confirm('Cancel your recurring PayPal subscription?');">
+                    <input type="hidden" name="formkey" value="{{v|formkey}}">
+                    <button type="submit" class="btn btn-secondary btn-sm">Cancel subscription</button>
+                </form>
+                {% endif %}
+            </div>
+        {% elif paypal_ready and v %}
+            <div class="support-payment-status support-payment-status-ready" role="status"><i class="fab fa-paypal" aria-hidden="true"></i><span>Secure monthly checkout is ready through PayPal.</span></div>
+        {% elif paypal_checkout_configured and not paypal_webhook_configured %}
+            <div class="support-payment-status" role="status"><i class="fas fa-wrench" aria-hidden="true"></i><span><strong>Final payment connection is being completed.</strong><small>The PayPal plans are configured, but checkout remains disabled until signed payment notifications are connected.</small></span></div>
         {% else %}
-            <div class="support-payment-status" role="status"><i class="fas fa-heart" aria-hidden="true"></i><span><strong>Support payments are being prepared.</strong><small>Payment setup is in progress. No patron status or rewards are granted from this page yet.</small></span></div>
+            <div class="support-payment-status" role="status"><i class="fas fa-wrench" aria-hidden="true"></i><span><strong>Support payments are being prepared.</strong><small>No payment will be accepted until the PayPal configuration is complete.</small></span></div>
         {% endif %}
     </header>
 
@@ -25,7 +50,7 @@
                 <div class="support-kicker">Choose your level</div>
                 <h2 id="support-tiers-title">Support tiers</h2>
             </div>
-            <p>Every tier helps fund the same community. Higher tiers carry the verified patron benefits forward.</p>
+            <p>Every tier helps fund the same community. Higher tiers carry all previous benefits forward.</p>
         </div>
         <div class="support-tier-grid">
             {% for tier in support_tiers %}
@@ -57,19 +82,35 @@
                         {% for perk in tier.all_benefits %}<li>{{perk}}</li>{% endfor %}
                     </ul>
                 </details>
-                {% if support_payment_configured %}
-                    <a class="support-tier-action" href="{{support_payment_url}}" rel="nofollow noopener"><i class="fas fa-heart" aria-hidden="true"></i>Support {{tier.name}}</a>
+
+                {% if paypal_current_subscription %}
+                    <button class="support-tier-action" type="button" disabled><i class="fas fa-check" aria-hidden="true"></i>Subscription already linked</button>
+                {% elif paypal_ready and v %}
+                    <div id="paypal-button-{{tier.slug}}" class="support-paypal-button" data-plan-id="{{tier.plan_id}}" data-tier-name="{{tier.name}}"></div>
+                {% elif not v %}
+                    <a class="support-tier-action" href="/login?redirect=/donate"><i class="fas fa-sign-in-alt" aria-hidden="true"></i>Sign in to subscribe</a>
                 {% else %}
-                    <button class="support-tier-action" type="button" disabled><i class="fas fa-heart" aria-hidden="true"></i>Payment setup in progress</button>
+                    <button class="support-tier-action" type="button" disabled><i class="fas fa-lock" aria-hidden="true"></i>Payment setup in progress</button>
                 {% endif %}
             </article>
             {% endfor %}
         </div>
+        <div id="paypal-checkout-message" class="support-checkout-message" role="status" aria-live="polite" hidden></div>
     </section>
 
-    <section class="support-footer-note" aria-label="Payment status">
+    <section class="support-footer-note" aria-label="Payment information">
         <i class="fas fa-lock" aria-hidden="true"></i>
-        <div><h2>Support stays transparent</h2><p>Payment integration is kept separate from patron fulfillment. When payments are enabled, rewards will be granted only after server-side verification.</p></div>
+        <div><h2>Verified before rewards</h2><p>Patron status and monthly Wishbux are granted only after the server verifies the PayPal subscription and completed transaction. Duplicate webhook deliveries cannot grant rewards twice.</p></div>
     </section>
 </main>
+
+{% if paypal_ready and v and not paypal_current_subscription %}
+<script id="paypal-support-config" type="application/json">{{{
+    'confirmUrl': '/api/paypal/subscriptions/confirm',
+    'formkey': v|formkey,
+    'customId': paypal_custom_id
+}|tojson}}</script>
+<script src="https://www.paypal.com/sdk/js?client-id={{paypal_client_id|e}}&amp;components=buttons&amp;vault=true&amp;intent=subscription&amp;currency=USD"></script>
+<script defer src="{{'js/paypal_support.js' | asset}}"></script>
+{% endif %}
 {% endblock %}
