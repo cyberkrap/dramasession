@@ -1,9 +1,10 @@
-"""Idempotent patron badge and supporter notification fulfillment."""
+"""Idempotent patron contribution badge and notification fulfillment."""
 
 from sqlalchemy import or_
 
 from files.classes import Badge, BadgeDef, Comment, Notification, PaypalPayment, User
 from files.helpers.config.const import AUTOJANNY_ID
+from files.helpers.contribution_badges import CONTRIBUTION_BADGE_THRESHOLDS
 from files.helpers.sanitize import sanitize
 
 
@@ -13,7 +14,7 @@ LEGACY_INNER_CIRCLE_BADGE_NOTICE = "You earned the Inner Circle supporter badge.
 
 
 def ensure_inner_circle_badge_definition(db):
-    """Return the existing tier-5 badge definition without mutating legacy data."""
+    """Keep the existing PayPal route interface without mutating badge data."""
     return db.get(BadgeDef, INNER_CIRCLE_BADGE_ID)
 
 
@@ -86,7 +87,7 @@ def _ensure_root_notification(db, user_id, body, *, body_html=None, legacy_bodie
     return True
 
 
-def _inner_circle_badge_notice(badge):
+def _badge_notice(badge):
     description = badge.badge.description or ""
     return (
         "@AutoJanny has given you the following profile badge:\n\n"
@@ -96,48 +97,52 @@ def _inner_circle_badge_notice(badge):
     )
 
 
-def ensure_patron_extras(db, user_id):
-    """Best-effort badge and one-time supporter notifications.
+def _legacy_badge_bodies(badge):
+    if badge.badge_id != INNER_CIRCLE_BADGE_ID:
+        return ()
+    old_card = (
+        "@AutoJanny has given you the following profile badge:\n\n"
+        f"![]({badge.path})\n\n"
+        "**Marsey's Sugar Daddy**\n\n"
+        "Contributed at least $100"
+    )
+    return (LEGACY_INNER_CIRCLE_BADGE_NOTICE, old_card)
 
-    This runs inside a nested transaction so an optional badge or notification
-    failure cannot invalidate a verified PayPal payment.
-    """
+
+def ensure_patron_extras(db, user_id):
+    """Backfill all verified contribution badges and their one-time notices."""
     user_id = int(user_id)
 
     try:
         with db.begin_nested():
             user = db.get(User, user_id)
-            badge_def = ensure_inner_circle_badge_definition(db)
             if user is None:
                 return False
-
-            badge_added = False
-            badge = db.get(Badge, (user_id, INNER_CIRCLE_BADGE_ID))
-            if badge_def is not None and int(user.patron or 0) >= 5 and badge is None:
-                badge = Badge(user_id=user_id, badge_id=INNER_CIRCLE_BADGE_ID)
-                db.add(badge)
-                db.flush()
-                badge_added = True
 
             has_completed_payment = db.query(PaypalPayment.payment_id).filter(
                 PaypalPayment.user_id == user_id,
                 PaypalPayment.status == "COMPLETED",
             ).first()
             if not has_completed_payment:
-                return badge_added
+                return False
 
             changed = _ensure_root_notification(db, user_id, SUPPORT_THANK_YOU)
+            badge_ids = tuple(badge_id for _threshold, badge_id in CONTRIBUTION_BADGE_THRESHOLDS)
+            badges = db.query(Badge).filter(
+                Badge.user_id == user_id,
+                Badge.badge_id.in_(badge_ids),
+            ).order_by(Badge.badge_id).all()
 
-            if int(user.patron or 0) >= 5 and badge is not None:
-                badge_notice = _inner_circle_badge_notice(badge)
+            for badge in badges:
+                notice = _badge_notice(badge)
                 changed = _ensure_root_notification(
                     db,
                     user_id,
-                    badge_notice,
-                    body_html=sanitize(badge_notice),
-                    legacy_bodies=(LEGACY_INNER_CIRCLE_BADGE_NOTICE,),
+                    notice,
+                    body_html=sanitize(notice),
+                    legacy_bodies=_legacy_badge_bodies(badge),
                 ) or changed
 
-            return changed or badge_added
+            return changed
     except Exception:
         return False
