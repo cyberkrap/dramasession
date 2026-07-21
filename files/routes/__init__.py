@@ -41,6 +41,7 @@ from .static import *
 from .paypal import *
 from .community_gallery import *
 from .users import *
+from .profile_enhancements import *
 from .votes import *
 from .feeds import *
 if FEATURES['AWARDS']:
