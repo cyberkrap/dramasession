@@ -23,9 +23,15 @@ from files.helpers.runtime_source_fixes import (
 	patch_comment_attachment_source,
 	patch_youtube_anthem_source,
 )
+from files.helpers.final_ui_source_fixes import (
+	patch_badge_gift_note_source,
+	patch_live_banner_source,
+)
 try:
 	patch_award_currency_source()
 	patch_badge_gift_message_source()
+	patch_badge_gift_note_source()
+	patch_live_banner_source()
 except RuntimeError:
 	# Optional feature patches must never prevent the web workers from booting.
 	pass
@@ -46,6 +52,7 @@ from .inline_images import *
 from .search import *
 from .settings import *
 from .static import *
+from .site_banner import *
 from .paypal import *
 from .community_gallery import *
 from .users import *
