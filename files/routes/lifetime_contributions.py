@@ -1,6 +1,6 @@
 from urllib.parse import quote
 
-from flask import redirect, request
+from flask import g, redirect, request
 
 from files.__main__ import app, limiter
 from files.classes import ModAction, User
@@ -9,7 +9,6 @@ from files.helpers.contribution_badges import sync_cumulative_contribution_badge
 from files.helpers.get import get_user
 from files.helpers.lifetime_contributions import (
 	clear_contribution_override,
-	effective_contribution_cents,
 	set_contribution_override,
 )
 from files.routes.wrappers import admin_level_required, get_ID
