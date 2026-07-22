@@ -18,6 +18,8 @@
 							{% set price = (award.price*v.discount)|int %}
 							{% if award.kind == 'benefactor' %}
 								{% set currency = 'marseybux' %}
+							{% elif award.kind == 'grass' %}
+								{% set currency = 'coins' %}
 							{% elif v.can_spend('marseybux', price) %}
 								{% set currency = 'marseybux' %}
 							{% elif v.can_spend('coins', price) %}
