@@ -64,7 +64,9 @@ from files.classes import User
 from files.helpers.ban_hats import install_ban_hat_support
 from files.helpers.contribution_badges import install_cumulative_contribution_badges
 from files.helpers.default_user_background import install_default_user_background
+from files.helpers.persistent_site_content import install_persistent_site_content
 install_ban_hat_support()
 install_cumulative_contribution_badges()
 install_default_user_background()
+install_persistent_site_content()
 User.ban_notice = User.ban_notice_html

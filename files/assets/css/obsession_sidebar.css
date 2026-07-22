@@ -63,6 +63,22 @@
 	font-weight: 650;
 }
 
+.community-sidebar .obs-sidebar-content-warning {
+	display: inline-block;
+	margin-left: .3rem;
+	padding: .08rem .34rem;
+	color: #ffd9dc;
+	background: rgba(210,43,53,.22);
+	border: 1px solid rgba(210,43,53,.52);
+	border-radius: 999px;
+	font-size: .62rem;
+	font-weight: 800;
+	letter-spacing: .025em;
+	line-height: 1.35;
+	text-transform: uppercase;
+	vertical-align: middle;
+}
+
 .community-sidebar .obs-sidebar-social-columns {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -102,6 +118,26 @@
 	color: #fff !important;
 	background: rgba(158,17,27,.32);
 	border-color: rgba(210,43,53,.55);
+}
+
+.community-sidebar .obs-sidebar-unofficial-divider {
+	display: flex;
+	align-items: center;
+	gap: .45rem;
+	margin: .7rem 0 .45rem;
+	color: #8f898c;
+	font-size: .62rem;
+	font-weight: 800;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+}
+
+.community-sidebar .obs-sidebar-unofficial-divider::before,
+.community-sidebar .obs-sidebar-unofficial-divider::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background: rgba(255,255,255,.12);
 }
 
 .community-sidebar .obs-sidebar-legal-links {

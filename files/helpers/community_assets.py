@@ -5,6 +5,12 @@ from shutil import copyfile
 
 from flask import current_app
 
+from files.helpers.persistent_site_content import (
+	delete_site_content,
+	get_site_content_keys,
+	set_site_content,
+)
+
 
 COMMUNITY_ASSET_CONFIG = {
 	"banner": {
@@ -37,6 +43,15 @@ def _safe_submission_id(submission_id):
 	if not submission_id or submission_id in {".", ".."}:
 		raise FileNotFoundError
 	return submission_id
+
+
+def _removed_key(kind, submission_id):
+	return f"community_asset_removed:{kind}:{_safe_submission_id(submission_id)}"
+
+
+def _removed_ids(kind):
+	prefix = f"community_asset_removed:{kind}:"
+	return {key[len(prefix):] for key in get_site_content_keys(prefix)}
 
 
 def queue_directory(kind):
@@ -90,15 +105,28 @@ def list_submissions(kind, submitter=None, status=None):
 	return sorted(items, key=lambda item: item.get("submitted_utc", 0), reverse=True)
 
 
-def list_approved_assets(kind):
+def active_community_asset_filenames(kind):
 	ensure_asset_directories(kind)
-	metadata = {item["id"]: item for item in list_submissions(kind)}
-	items = []
+	removed = _removed_ids(kind)
+	filenames = []
 	for filename in os.listdir(approved_directory(kind)):
 		full_path = os.path.join(approved_directory(kind), filename)
 		stem, extension = os.path.splitext(filename)
-		if not os.path.isfile(full_path) or extension.lower() not in APPROVED_IMAGE_EXTENSIONS:
+		if not os.path.isfile(full_path):
 			continue
+		if extension.lower() not in APPROVED_IMAGE_EXTENSIONS:
+			continue
+		if stem in removed:
+			continue
+		filenames.append(filename)
+	return sorted(filenames)
+
+
+def list_approved_assets(kind):
+	metadata = {item["id"]: item for item in list_submissions(kind)}
+	items = []
+	for filename in active_community_asset_filenames(kind):
+		stem, _ = os.path.splitext(filename)
 		item = dict(metadata.get(stem) or {})
 		item.update({
 			"id": stem,
@@ -128,6 +156,7 @@ def approve_submission(kind, submission_id, reviewer):
 	target_name = f"{item['id']}.webp"
 	target = os.path.join(approved_directory(kind), target_name)
 	copyfile(source, target)
+	delete_site_content(_removed_key(kind, item["id"]))
 	item.update({
 		"status": "approved",
 		"reviewed_by": reviewer,
@@ -145,6 +174,7 @@ def reject_submission(kind, submission_id, reviewer):
 	approved_path = os.path.join(approved_directory(kind), item["id"] + ".webp")
 	if os.path.isfile(approved_path):
 		os.remove(approved_path)
+	set_site_content(_removed_key(kind, item["id"]), "1", reviewer)
 	item.update({"status": "rejected", "reviewed_by": reviewer, "reviewed_utc": int(time.time())})
 	write_submission(kind, item["id"], {key: value for key, value in item.items() if key not in {"id", "image_url", "approved_url"}})
 	return item
@@ -160,8 +190,11 @@ def remove_approved_asset(kind, submission_id, reviewer):
 		if os.path.isfile(full_path) and os.path.splitext(filename)[0] == submission_id:
 			removed_urls.append(approved_asset_url(kind, filename))
 			os.remove(full_path)
+	if not item and not removed_urls and submission_id in _removed_ids(kind):
+		return []
 	if not item and not removed_urls:
 		raise FileNotFoundError
+	set_site_content(_removed_key(kind, submission_id), "1", reviewer)
 	if item:
 		item.update({"status": "removed", "reviewed_by": reviewer, "reviewed_utc": int(time.time())})
 		write_submission(kind, item["id"], {key: value for key, value in item.items() if key not in {"id", "image_url", "approved_url"}})
