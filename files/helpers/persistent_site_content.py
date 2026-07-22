@@ -116,6 +116,17 @@ def install_persistent_site_content():
 	app.view_functions["edit_rules_get"] = persistent_edit_rules_get
 	app.view_functions["edit_rules_post"] = persistent_edit_rules_post
 
+	if SITE_NAME == "Obsession":
+		# The legacy logged-out banner path prefers cached.webp before consulting
+		# the persistent removal list. Delete that generated artifact on every
+		# worker start so removed repository banners cannot return after a deploy.
+		cached_banner = os.path.join(app.root_path, "assets", "images", "Obsession", "cached.webp")
+		try:
+			if os.path.isfile(cached_banner):
+				os.remove(cached_banner)
+		except OSError:
+			pass
+
 	original_listdir = app.jinja_env.globals.get("listdir", os.listdir)
 	if getattr(original_listdir, "_persistent_asset_filter", False):
 		return
