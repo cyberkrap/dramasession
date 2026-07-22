@@ -1,11 +1,13 @@
 from flask import abort, g, redirect, render_template, request
 
 from files.__main__ import app, cache, limiter
-from files.classes import Marsey, ModAction
+from files.classes.marsey import Marsey
+from files.classes.mod_logs import ModAction
 from files.helpers.config.const import DEFAULT_RATELIMIT, DEFAULT_RATELIMIT_SLOWER, EMOJIS_CACHE_KEY, MARSEYS_CACHE_KEY, PERMS
 from files.helpers.emote_management import (
-	approve_emote_files, category_for_emote, get_emote_categories,
-	remove_emote_files, rename_emote_files, save_emote_categories,
+	approve_emote_files, category_for_emote, custom_emote_exists,
+	delete_emote_category, get_emote_categories, remove_emote_files,
+	rename_emote_category, rename_emote_files, save_emote_categories,
 	set_emote_category,
 )
 from files.helpers.regex import marsey_regex, tags_regex
@@ -25,6 +27,7 @@ def admin_emotes(v):
 	active = g.db.query(Marsey).filter(Marsey.submitter_id == None).order_by(Marsey.name).all()
 	return render_template('admin/emotes.html', v=v, pending=pending, active=active,
 		categories=get_emote_categories(), category_for_emote=category_for_emote,
+		custom_emote_exists=custom_emote_exists,
 		msg=request.values.get('msg'), error=request.values.get('error'))
 
 
@@ -58,9 +61,10 @@ def admin_emote_update(name, v):
 	if new_name != marsey.name and g.db.get(Marsey, new_name): abort(409, 'That emote name already exists.')
 	old_name = marsey.name
 	if new_name != old_name:
+		author_id, count, submitter_id, created_utc = marsey.author_id, marsey.count, marsey.submitter_id, marsey.created_utc
 		rename_emote_files(old_name, new_name)
 		g.db.delete(marsey); g.db.flush()
-		marsey = Marsey(name=new_name, author_id=marsey.author_id, tags=tags, count=marsey.count, submitter_id=marsey.submitter_id, created_utc=marsey.created_utc)
+		marsey = Marsey(name=new_name, author_id=author_id, tags=tags, count=count, submitter_id=submitter_id, created_utc=created_utc)
 	else:
 		marsey.tags = tags
 	g.db.add(marsey)
@@ -89,5 +93,25 @@ def admin_emote_delete(name, v):
 def admin_emote_category_create(v):
 	category = (request.form.get('category') or '').strip()
 	try: save_emote_categories(get_emote_categories() + [category], v.username)
-	except ValueError: return redirect('/admin/emotes?error=Invalid category name.')
+	except ValueError as exc: return redirect(f'/admin/emotes?error={str(exc)}')
 	return redirect('/admin/emotes?msg=Category created.')
+
+
+@app.post('/admin/emotes/categories/rename')
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'])
+def admin_emote_category_rename(v):
+	try: rename_emote_category(request.form.get('old'), request.form.get('new'), v.username)
+	except ValueError as exc: return redirect(f'/admin/emotes?error={str(exc)}')
+	_clear()
+	return redirect('/admin/emotes?msg=Category renamed.')
+
+
+@app.post('/admin/emotes/categories/delete')
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@admin_level_required(PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'])
+def admin_emote_category_delete(v):
+	try: delete_emote_category(request.form.get('category'), v.username)
+	except ValueError as exc: return redirect(f'/admin/emotes?error={str(exc)}')
+	_clear()
+	return redirect('/admin/emotes?msg=Category deleted.')
