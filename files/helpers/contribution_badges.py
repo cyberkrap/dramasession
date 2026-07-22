@@ -1,11 +1,10 @@
-"""Cumulative contribution badge fulfillment for verified PayPal payments."""
+"""Cumulative contribution badge fulfillment for verified and admin-set totals."""
 
 import importlib
 import time
 
-from sqlalchemy import func
-
 from files.classes import Badge, PaypalPayment, PaypalSubscription, User
+from files.helpers.lifetime_contributions import effective_contribution_cents
 from files.helpers.support import SUPPORT_TIER_BY_LEVEL
 
 
@@ -20,23 +19,34 @@ CONTRIBUTION_BADGE_THRESHOLDS = (
 )
 
 
-def verified_contribution_cents(db, user_id):
-    return int(db.query(
-        func.coalesce(func.sum(PaypalPayment.gross_cents), 0)
-    ).filter(
-        PaypalPayment.user_id == int(user_id),
-        PaypalPayment.status == "COMPLETED",
-    ).scalar() or 0)
-
-
 def grant_cumulative_contribution_badges(db, user):
     """Grant every lifetime contribution milestone reached by the user."""
-    total_cents = verified_contribution_cents(db, user.id)
+    total_cents = effective_contribution_cents(db, user.id)
     for threshold_cents, badge_id in CONTRIBUTION_BADGE_THRESHOLDS:
         if total_cents < threshold_cents:
             continue
         if db.get(Badge, (user.id, badge_id)) is None:
             db.add(Badge(user_id=user.id, badge_id=badge_id))
+    return total_cents
+
+
+def sync_cumulative_contribution_badges(db, user):
+    """Make milestone badges exactly match the user's effective lifetime total."""
+    total_cents = effective_contribution_cents(db, user.id)
+    badge_ids = tuple(badge_id for _, badge_id in CONTRIBUTION_BADGE_THRESHOLDS)
+    existing = {
+        badge.badge_id: badge
+        for badge in db.query(Badge).filter(
+            Badge.user_id == user.id,
+            Badge.badge_id.in_(badge_ids),
+        ).all()
+    }
+    for threshold_cents, badge_id in CONTRIBUTION_BADGE_THRESHOLDS:
+        if total_cents >= threshold_cents:
+            if badge_id not in existing:
+                db.add(Badge(user_id=user.id, badge_id=badge_id))
+        elif badge_id in existing:
+            db.delete(existing[badge_id])
     return total_cents
 
 

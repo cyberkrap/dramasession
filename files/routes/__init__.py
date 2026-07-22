@@ -50,6 +50,7 @@ from .paypal import *
 from .community_gallery import *
 from .users import *
 from .profile_enhancements import *
+from .lifetime_contributions import *
 from .votes import *
 from .feeds import *
 if FEATURES['AWARDS']:

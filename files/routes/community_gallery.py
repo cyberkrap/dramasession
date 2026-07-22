@@ -1,6 +1,8 @@
+import os
+
 from flask import abort, redirect, render_template, request
 
-from files.__main__ import app, limiter
+from files.__main__ import app, cache, limiter
 from files.helpers.cloudflare import purge_files_in_cache
 from files.helpers.community_assets import (
 	COMMUNITY_ASSET_CONFIG,
@@ -57,7 +59,20 @@ def remove_approved_community_asset(kind, submission_id, v):
 	except FileNotFoundError:
 		abort(404)
 
-	if removed_urls:
-		purge_files_in_cache([f"{SITE_FULL}{url}" for url in removed_urls])
+	purge_urls = [f"{SITE_FULL}{url}" for url in removed_urls]
+	if kind == "banner":
+		# Logged-out pages historically preferred cached.webp before consulting
+		# the active-banner list. Remove that generated copy and purge it so a
+		# deleted banner cannot return from Redis, Cloudflare, or a redeploy.
+		cached_banner = os.path.join(app.root_path, "assets", "images", "Obsession", "cached.webp")
+		if os.path.isfile(cached_banner):
+			os.remove(cached_banner)
+		purge_urls.append(f"{SITE_FULL}/i/Obsession/cached.webp")
+
+	# Cached page HTML can still contain a previously selected asset URL.
+	# Clear it immediately so all renders use the persistent removal records.
+	cache.clear()
+	if purge_urls:
+		purge_files_in_cache(purge_urls)
 
 	return redirect(("/sidebar_images" if kind == "sidebar" else "/banners") + "?msg=Community+asset+removed")
