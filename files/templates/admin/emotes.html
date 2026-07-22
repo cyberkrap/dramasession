@@ -1,0 +1,47 @@
+{% extends "default.html" %}
+{% block pagetitle %}Manage Emotes{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+	<h3>Manage Emotes</h3>
+	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+	{% if error %}{{macros.alert(error, true)}}{% endif %}
+
+	<section class="card mb-4"><div class="card-body">
+		<h5>Create category</h5>
+		<form method="post" action="/admin/emotes/categories" class="d-flex gap-2">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<input class="form-control" name="category" maxlength="40" required placeholder="Category name">
+			<button class="btn btn-primary" type="submit">Create</button>
+		</form>
+	</div></section>
+
+	<h4>Pending</h4>
+	{% for emote in pending %}
+	<div class="card mb-3"><div class="card-body">
+		<div class="d-flex align-items-center gap-3 mb-2"><img src="/asset_submissions/marseys/{{emote.name}}.webp" width="80" alt="{{emote.name}}"><strong>:{{emote.name}}:</strong></div>
+		<form method="post" action="/admin/emotes/{{emote.name}}/approve" class="d-flex gap-2">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<select class="form-control" name="category">{% for category in categories %}<option>{{category}}</option>{% endfor %}</select>
+			<button class="btn btn-success" type="submit">Approve</button>
+		</form>
+	</div></div>
+	{% else %}<p class="text-muted">No pending emotes.</p>{% endfor %}
+
+	<h4>Active</h4>
+	{% for emote in active %}
+	<div class="card mb-3"><div class="card-body">
+		<div class="d-flex align-items-center gap-3 mb-3"><img src="{% if category_for_emote(emote.name) %}/community-emote/{{emote.name}}.webp{% else %}/e/{{emote.name}}.webp{% endif %}" width="80" alt="{{emote.name}}"><strong>:{{emote.name}}:</strong></div>
+		<form method="post" action="/admin/emotes/{{emote.name}}/update" class="row g-2 align-items-end">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<div class="col-md-3"><label>Name</label><input class="form-control" name="name" value="{{emote.name}}" required></div>
+			<div class="col-md-4"><label>Tags</label><input class="form-control" name="tags" value="{{emote.tags}}"></div>
+			<div class="col-md-3"><label>Category</label><select class="form-control" name="category">{% for category in categories %}<option {% if category == category_for_emote(emote.name) %}selected{% endif %}>{{category}}</option>{% endfor %}</select></div>
+			<div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Update</button></div>
+		</form>
+		<form method="post" action="/admin/emotes/{{emote.name}}/delete" class="mt-2" onsubmit="return confirm('Delete this emote?')">
+			<input type="hidden" name="formkey" value="{{v|formkey}}"><button class="btn btn-danger" type="submit">Delete</button>
+		</form>
+	</div></div>
+	{% else %}<p class="text-muted">No active custom emotes.</p>{% endfor %}
+</div>
+{% endblock %}
