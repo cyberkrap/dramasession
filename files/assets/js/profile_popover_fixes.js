@@ -6,17 +6,51 @@
 		const popoverId = trigger.getAttribute('data-content-id');
 		const content = popoverId ? document.getElementById(popoverId) : null;
 		if (!content) return;
+
 		const existing = bootstrap.Popover.getInstance(trigger);
 		if (existing) existing.dispose();
 		trigger.setAttribute('data-bs-trigger', 'click');
-		bootstrap.Popover.getOrCreateInstance(trigger, {content: content.innerHTML, html: true, trigger: 'click', container: 'body'});
+		bootstrap.Popover.getOrCreateInstance(trigger, {
+			content: content.innerHTML,
+			html: true,
+			trigger: 'click',
+			container: 'body',
+		});
 		trigger.dataset.obsPopoverReady = '1';
+	}
+
+	function visiblePopoverFor(trigger) {
+		const describedBy = trigger.getAttribute('aria-describedby');
+		if (describedBy) {
+			const described = document.getElementById(describedBy);
+			if (described) return described;
+		}
+		const visible = document.querySelectorAll('.popover.show');
+		return visible.length ? visible[visible.length - 1] : null;
+	}
+
+	function hydratePopover(trigger) {
+		const popover = visiblePopoverFor(trigger);
+		if (!popover) return;
+		const username = popover.querySelector('.pop-username');
+		if (username) {
+			const color = getComputedStyle(trigger).color;
+			username.style.setProperty('color', color, 'important');
+			username.style.setProperty('-webkit-text-fill-color', color, 'important');
+		}
+		popover.addEventListener('pointerdown', event => event.stopPropagation());
+		popover.addEventListener('click', event => event.stopPropagation());
 	}
 
 	function renameActivity() {
 		const activity = document.querySelector('.profile-history');
 		if (!activity) return;
-		const labels = {'/upvoters':'Upvoters','/downvoters':'Downvoters','/upvoting':'Upvoted','/downvoting':'Downvoted'};
+		const labels = {
+			'/upvoters': 'Upvoters',
+			'/downvoters': 'Downvoters',
+			'/upvoting': 'Upvoted',
+			'/downvoting': 'Downvoted',
+		};
 		activity.querySelectorAll('a').forEach(link => {
 			for (const [path, label] of Object.entries(labels)) {
 				if (link.pathname.endsWith(path)) link.textContent = label;
@@ -24,8 +58,43 @@
 		});
 	}
 
+	async function addSupportSummary() {
+		const details = document.getElementById('profile--info');
+		if (!details || details.querySelector('[data-profile-support-summary]')) return;
+		const match = location.pathname.match(/^\/@([^/]+)/);
+		if (!match) return;
+		try {
+			const response = await fetch(`/api/profile/${encodeURIComponent(match[1])}/support-summary`, {
+				credentials: 'same-origin',
+				headers: {'xhr': 'xhr'},
+			});
+			if (!response.ok) return;
+			const data = await response.json();
+			const lifetime = document.createElement('div');
+			lifetime.dataset.profileSupportSummary = '1';
+			lifetime.innerHTML = `<dt>Lifetime donated</dt><dd>${data.lifetime_donated}</dd>`;
+			const discount = document.createElement('div');
+			discount.dataset.profileSupportSummary = '1';
+			discount.innerHTML = `<dt>Total award discount</dt><dd>${data.award_discount}</dd>`;
+			details.append(lifetime, discount);
+		} catch (_) {}
+	}
+
+	document.addEventListener('shown.bs.popover', event => {
+		if (event.target.matches(triggerSelector)) hydratePopover(event.target);
+	});
+
+	document.addEventListener('click', event => {
+		if (event.target.closest('.popover') || event.target.closest(triggerSelector)) return;
+		document.querySelectorAll(triggerSelector).forEach(trigger => {
+			const instance = bootstrap.Popover.getInstance(trigger);
+			if (instance) instance.hide();
+		});
+	});
+
 	document.addEventListener('DOMContentLoaded', () => {
 		document.querySelectorAll(triggerSelector).forEach(initializePopover);
 		renameActivity();
+		addSupportSummary();
 	});
 })();
