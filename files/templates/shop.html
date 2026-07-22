@@ -26,16 +26,22 @@
 		{% set kind = a['kind'] %}
 		{% if kind == 'benefactor' %}
 			{% set currency = 'marseybux' %}
-		{% elif v.can_spend('marseybux', a['price']) %}
-			{% set currency = 'marseybux' %}
-		{% elif v.can_spend('coins', a['price']) %}
+			{% set can_buy = v.can_spend('marseybux', a['price']) %}
+		{% elif kind == 'grass' %}
 			{% set currency = 'coins' %}
-		{% elif v.marseybux > 0 %}
-			{% set currency = 'marseybux' %}
+			{% set can_buy = v.can_spend('coins', a['price']) %}
 		{% else %}
-			{% set currency = 'coins' %}
+			{% if v.can_spend('marseybux', a['price']) %}
+				{% set currency = 'marseybux' %}
+			{% elif v.can_spend('coins', a['price']) %}
+				{% set currency = 'coins' %}
+			{% elif v.marseybux > 0 %}
+				{% set currency = 'marseybux' %}
+			{% else %}
+				{% set currency = 'coins' %}
+			{% endif %}
+			{% set can_buy = v.can_spend('marseybux', a['price']) or v.can_spend('coins', a['price']) %}
 		{% endif %}
-		{% set can_buy = v.can_spend('marseybux', a['price']) or v.can_spend('coins', a['price']) %}
 		<article class="shop-card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{a['title']}} — {{a['description'] or 'A community effect from the Obsession collection.'}}">
 			<div class="shop-card-icon"><i class="{{a['icon']}} {{a['color']}}"></i></div>
 			<div class="shop-card-body">
