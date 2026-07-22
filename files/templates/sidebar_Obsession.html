@@ -90,6 +90,6 @@
 			</section>
 		{% endif %}
 
-		<div class="sidebar--rules pt-2">{% include "rules_Obsession.html" %}</div>
+		<div class="sidebar--rules pt-2">{{persistent_rules()|safe}}</div>
 	{% endif %}
 </div>
