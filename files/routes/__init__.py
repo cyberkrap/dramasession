@@ -26,6 +26,7 @@ from files.helpers.runtime_source_fixes import (
 from files.helpers.final_ui_source_fixes import (
 	patch_badge_gift_note_source,
 	patch_live_banner_source,
+	patch_marseys_source,
 )
 try:
 	patch_award_currency_source()
@@ -35,6 +36,7 @@ except RuntimeError:
 try:
 	patch_badge_gift_note_source()
 	patch_live_banner_source()
+	patch_marseys_source()
 except RuntimeError:
 	pass
 patch_comment_attachment_source()
