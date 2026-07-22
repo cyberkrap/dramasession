@@ -1,7 +1,19 @@
 {% extends "default.html" %}
-{% block pagetitle %}{{name2}}{% endblock %}
+{% set profile_username = request.path.split('/')[1] if request.path.startswith('/@') else '' %}
+{% if '/upvoters' in request.path %}
+	{% set activity_title = profile_username ~ "'s Upvoters" %}
+{% elif '/downvoters' in request.path %}
+	{% set activity_title = profile_username ~ "'s Downvoters" %}
+{% elif '/upvoting' in request.path %}
+	{% set activity_title = "Who " ~ profile_username ~ " Upvoted" %}
+{% elif '/downvoting' in request.path %}
+	{% set activity_title = "Who " ~ profile_username ~ " Downvoted" %}
+{% else %}
+	{% set activity_title = name2 %}
+{% endif %}
+{% block pagetitle %}{{activity_title}}{% endblock %}
 {% block content %}
-<h3 class="my-3" style="text-align: center">{{name2}}</h3>
+<h3 class="my-3" style="text-align: center">{{activity_title}}</h3>
 <h5 class="font-weight-bold text-center mt-3">Total: {{total}}</h5>
 <div class="mt-1 overflow-x-auto"><table class="table table-striped mb-5">
 <thead class="bg-primary text-white">
