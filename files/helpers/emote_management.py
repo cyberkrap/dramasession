@@ -112,3 +112,22 @@ def approve_emote_files(name):
 	for candidate in (pending_raw_path(name), pending_webp_path(name), legacy_raw_path(name), legacy_webp_path(name)):
 		try: candidate.unlink()
 		except FileNotFoundError: pass
+
+
+def install_custom_emote_rendering():
+	from files.helpers import sanitize as sanitize_module
+	original = sanitize_module.render_emoji
+	if getattr(original, '_persistent_custom_emotes', False): return
+	def wrapped(html, regexp, golden, marseys_used, b=False):
+		html = original(html, regexp, golden, marseys_used, b=b)
+		for match in list(regexp.finditer(html)):
+			old = match.group(1).lower()
+			name = old.replace('!', '').replace('#', '')
+			if name.endswith('pat') or not custom_emote_exists(name): continue
+			attrs = ' b' if b else ''
+			replacement = f'<img loading="lazy" data-bs-toggle="tooltip" alt=":{old}:" title=":{old}:" src="{custom_emote_url(name)}"{attrs}>'
+			html = re.sub(f'(?<!"){match.group(0)}(?![^<]*</(code|pre|a)>)', replacement, html)
+			marseys_used.add(name)
+		return html
+	wrapped._persistent_custom_emotes = True
+	sanitize_module.render_emoji = wrapped
