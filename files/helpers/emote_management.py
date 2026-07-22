@@ -63,6 +63,30 @@ def set_emote_category(name, category, actor=None):
 	save_emote_category_map(mapping, actor)
 
 
+def rename_emote_category(old, new, actor=None):
+	old = str(old or '').strip(); new = str(new or '').strip()
+	if old in DEFAULT_EMOTE_CATEGORIES: raise ValueError('Built-in categories cannot be renamed.')
+	if old not in get_emote_categories(): raise ValueError('Category not found.')
+	if not _SAFE_CATEGORY.fullmatch(new): raise ValueError('Invalid category name.')
+	custom = [new if category == old else category for category in get_emote_categories() if category not in DEFAULT_EMOTE_CATEGORIES]
+	save_emote_categories(custom, actor)
+	mapping = get_emote_category_map()
+	for name, category in list(mapping.items()):
+		if category == old: mapping[name] = new
+	save_emote_category_map(mapping, actor)
+
+
+def delete_emote_category(category, actor=None):
+	category = str(category or '').strip()
+	if category in DEFAULT_EMOTE_CATEGORIES: raise ValueError('Built-in categories cannot be deleted.')
+	custom = [item for item in get_emote_categories() if item not in DEFAULT_EMOTE_CATEGORIES and item != category]
+	save_emote_categories(custom, actor)
+	mapping = get_emote_category_map()
+	for name, value in list(mapping.items()):
+		if value == category: mapping[name] = 'Community Emotes'
+	save_emote_category_map(mapping, actor)
+
+
 def pending_raw_path(name): return EMOTE_PENDING_DIR / name
 def pending_webp_path(name): return EMOTE_PENDING_DIR / f'{name}.webp'
 def approved_webp_path(name): return EMOTE_APPROVED_DIR / f'{name}.webp'
@@ -92,6 +116,10 @@ def remove_emote_files(name):
 	for candidate in EMOTE_ORIGINAL_DIR.glob(f'{name}.*'):
 		try: candidate.unlink()
 		except FileNotFoundError: pass
+	mapping = get_emote_category_map()
+	if name in mapping:
+		mapping.pop(name, None)
+		save_emote_category_map(mapping)
 
 
 def rename_emote_files(old_name, new_name):
