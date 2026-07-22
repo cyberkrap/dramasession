@@ -8,6 +8,7 @@ _LOCK_PATH = "/tmp/obsession-final-ui-fixes.lock"
 _MACROS_PATH = Path("files/templates/util/macros.html")
 _ADMIN_PATH = Path("files/routes/admin.py")
 _STATIC_PATH = Path("files/routes/static.py")
+_ASSET_SUBMISSIONS_PATH = Path("files/routes/asset_submissions.py")
 
 
 def _atomic_write(path, content):
@@ -56,3 +57,28 @@ def patch_marseys_source():
 		elif new not in source:
 			raise RuntimeError("Could not locate the marseys original-file listing")
 		_atomic_write(_STATIC_PATH, source)
+
+
+def patch_asset_submission_directories_source():
+	"""Create persistent asset-submission directories before upload or approval."""
+	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
+		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+		source = _ASSET_SUBMISSIONS_PATH.read_text(encoding="utf-8")
+		original_source = source
+
+		marsey_save = "\thighquality = f'/asset_submissions/marseys/{name}'\n\tfile.save(highquality)\n"
+		marsey_save_fixed = "\tos.makedirs('/asset_submissions/marseys/original', exist_ok=True)\n\thighquality = f'/asset_submissions/marseys/{name}'\n\tfile.save(highquality)\n"
+		if marsey_save_fixed not in source:
+			if marsey_save not in source:
+				raise RuntimeError("Could not locate the marsey upload save block")
+			source = source.replace(marsey_save, marsey_save_fixed, 1)
+
+		hat_save = "\thighquality = f'/asset_submissions/hats/{name}'\n\tfile.save(highquality)\n"
+		hat_save_fixed = "\tos.makedirs('/asset_submissions/hats', exist_ok=True)\n\thighquality = f'/asset_submissions/hats/{name}'\n\tfile.save(highquality)\n"
+		if hat_save_fixed not in source:
+			if hat_save not in source:
+				raise RuntimeError("Could not locate the hat upload save block")
+			source = source.replace(hat_save, hat_save_fixed, 1)
+
+		if source != original_source:
+			_atomic_write(_ASSET_SUBMISSIONS_PATH, source)
