@@ -10,6 +10,7 @@ _STATIC_PATH = Path("files/routes/static.py")
 _ASSET_SUBMISSIONS_PATH = Path("files/routes/asset_submissions.py")
 _EMOJI_JS_PATH = Path("files/assets/js/emoji_modal.js")
 _SANITIZE_PATH = Path("files/helpers/sanitize.py")
+_ADMIN_HOME_PATH = Path("files/templates/admin/admin_home.html")
 
 
 def _atomic_write(path, content):
@@ -85,3 +86,15 @@ def patch_custom_emote_sources():
 		if old in source: source = source.replace(old, new, 1)
 		elif new not in source: raise RuntimeError('Could not locate server emoji renderer')
 		_atomic_write(_SANITIZE_PATH, source)
+
+
+def patch_admin_emote_link_source():
+	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
+		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+		source = _ADMIN_HOME_PATH.read_text(encoding='utf-8')
+		marker = '<h4>Community Assets</h4>'
+		block = '''{% if v.admin_level >= PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] %}\n<h4>Emotes</h4>\n<ul><li><a href="/admin/emotes">Manage emotes and categories</a></li></ul>\n{% endif %}\n\n<h4>Community Assets</h4>'''
+		if block not in source:
+			if marker not in source: raise RuntimeError('Could not locate admin community-assets section')
+			source = source.replace(marker, block, 1)
+		_atomic_write(_ADMIN_HOME_PATH, source)
