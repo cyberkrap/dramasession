@@ -24,6 +24,7 @@ from files.helpers.runtime_source_fixes import (
 	patch_youtube_anthem_source,
 )
 from files.helpers.final_ui_source_fixes import (
+	patch_asset_submission_directories_source,
 	patch_badge_gift_note_source,
 	patch_live_banner_source,
 	patch_marseys_source,
@@ -34,6 +35,7 @@ try:
 except RuntimeError:
 	pass
 try:
+	patch_asset_submission_directories_source()
 	patch_badge_gift_note_source()
 	patch_live_banner_source()
 	patch_marseys_source()
