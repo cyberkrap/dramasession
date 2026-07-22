@@ -9,8 +9,7 @@ from files.__main__ import app, engine, limiter
 from files.classes import ModAction
 from files.helpers.config.const import DEFAULT_RATELIMIT, PERMS, SITE_NAME
 from files.helpers.sanitize import sanitize
-from files.routes.routehelpers import get_ID
-from files.routes.wrappers import admin_level_required
+from files.routes.wrappers import admin_level_required, get_ID
 
 
 _TABLE_LOCK = threading.Lock()
