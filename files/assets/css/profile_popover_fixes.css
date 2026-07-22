@@ -1,6 +1,12 @@
+.user-name > span:not(.mod):not(.mod-rdrama) {
+	color: inherit !important;
+	-webkit-text-fill-color: currentColor !important;
+}
+
 .user-name > span.patron {
 	color: inherit !important;
 	background: none !important;
+	background-image: none !important;
 	-webkit-background-clip: border-box !important;
 	background-clip: border-box !important;
 	-webkit-text-fill-color: currentColor !important;

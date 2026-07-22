@@ -1,6 +1,33 @@
 (() => {
 	const triggerSelector = '.user-name[data-bs-toggle="popover"]';
 
+	function configuredNameColor(trigger) {
+		const inline = trigger.style.getPropertyValue('color').trim();
+		if (inline) return inline;
+		return getComputedStyle(trigger).color;
+	}
+
+	function applyConfiguredNameColor(root=document) {
+		const triggers = [];
+		if (root instanceof Element && root.matches('.user-name')) triggers.push(root);
+		if (root.querySelectorAll) triggers.push(...root.querySelectorAll('.user-name'));
+
+		triggers.forEach(trigger => {
+			const color = configuredNameColor(trigger);
+			if (!color) return;
+			trigger.style.setProperty('color', color, 'important');
+			trigger.querySelectorAll(':scope > span').forEach(username => {
+				if (username.classList.contains('mod') || username.classList.contains('mod-rdrama')) return;
+				username.style.setProperty('color', color, 'important');
+				username.style.setProperty('-webkit-text-fill-color', color, 'important');
+				username.style.setProperty('background', 'none', 'important');
+				username.style.setProperty('background-image', 'none', 'important');
+				username.style.setProperty('-webkit-background-clip', 'border-box', 'important');
+				username.style.setProperty('background-clip', 'border-box', 'important');
+			});
+		});
+	}
+
 	function initializePopover(trigger) {
 		if (!trigger || trigger.dataset.obsPopoverReady === '1' || typeof bootstrap === 'undefined') return;
 		const popoverId = trigger.getAttribute('data-content-id');
@@ -34,9 +61,11 @@
 		if (!popover) return;
 		const username = popover.querySelector('.pop-username');
 		if (username) {
-			const color = getComputedStyle(trigger).color;
+			const color = configuredNameColor(trigger);
 			username.style.setProperty('color', color, 'important');
 			username.style.setProperty('-webkit-text-fill-color', color, 'important');
+			username.style.setProperty('background', 'none', 'important');
+			username.style.setProperty('background-image', 'none', 'important');
 		}
 		popover.addEventListener('pointerdown', event => event.stopPropagation());
 		popover.addEventListener('click', event => event.stopPropagation());
@@ -93,8 +122,18 @@
 	});
 
 	document.addEventListener('DOMContentLoaded', () => {
+		applyConfiguredNameColor(document);
 		document.querySelectorAll(triggerSelector).forEach(initializePopover);
 		renameActivity();
 		addSupportSummary();
+
+		const observer = new MutationObserver(mutations => {
+			mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
+				if (!(node instanceof Element)) return;
+				applyConfiguredNameColor(node);
+				node.querySelectorAll(triggerSelector).forEach(initializePopover);
+			}));
+		});
+		observer.observe(document.body, {childList: true, subtree: true});
 	});
 })();
