@@ -33,15 +33,15 @@ def grant_cumulative_contribution_badges(db, user):
 def sync_cumulative_contribution_badges(db, user):
     """Make milestone badges exactly match the user's effective lifetime total."""
     total_cents = effective_contribution_cents(db, user.id)
-    thresholds = dict(CONTRIBUTION_BADGE_THRESHOLDS)
+    badge_ids = tuple(badge_id for _, badge_id in CONTRIBUTION_BADGE_THRESHOLDS)
     existing = {
         badge.badge_id: badge
         for badge in db.query(Badge).filter(
             Badge.user_id == user.id,
-            Badge.badge_id.in_(tuple(thresholds)),
+            Badge.badge_id.in_(badge_ids),
         ).all()
     }
-    for badge_id, threshold_cents in ((badge_id, threshold) for threshold, badge_id in CONTRIBUTION_BADGE_THRESHOLDS):
+    for threshold_cents, badge_id in CONTRIBUTION_BADGE_THRESHOLDS:
         if total_cents >= threshold_cents:
             if badge_id not in existing:
                 db.add(Badge(user_id=user.id, badge_id=badge_id))
