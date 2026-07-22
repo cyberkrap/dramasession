@@ -24,8 +24,10 @@ from files.helpers.runtime_source_fixes import (
 	patch_youtube_anthem_source,
 )
 from files.helpers.final_ui_source_fixes import (
+	patch_admin_emote_link_source,
 	patch_asset_submission_directories_source,
 	patch_badge_gift_note_source,
+	patch_custom_emote_sources,
 	patch_live_banner_source,
 	patch_marseys_source,
 )
@@ -35,8 +37,10 @@ try:
 except RuntimeError:
 	pass
 try:
+	patch_admin_emote_link_source()
 	patch_asset_submission_directories_source()
 	patch_badge_gift_note_source()
+	patch_custom_emote_sources()
 	patch_live_banner_source()
 	patch_marseys_source()
 except RuntimeError:
@@ -79,6 +83,9 @@ if FEATURES['HATS']:
 	from .hats import *
 if FEATURES['ASSET_SUBMISSIONS']:
 	from .asset_submissions import *
+	from .emote_admin import *
+	from .emote_admin_tools import *
+from .report_fixes import *
 from .special import *
 from .push_notifs import *
 
@@ -93,4 +100,10 @@ install_cumulative_contribution_badges()
 install_default_user_background()
 install_patron_branding()
 install_persistent_site_content()
+if FEATURES['ASSET_SUBMISSIONS']:
+	from files.helpers.emote_management import ensure_emote_directories, install_custom_emote_rendering
+	ensure_emote_directories()
+	install_custom_emote_rendering()
+	install_emote_management()
+install_report_fixes()
 User.ban_notice = User.ban_notice_html
