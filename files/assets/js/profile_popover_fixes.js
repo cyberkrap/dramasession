@@ -7,25 +7,44 @@
 		return getComputedStyle(trigger).color;
 	}
 
+	function patronNameplateColor(trigger) {
+		const patron = trigger.querySelector(':scope > span.patron');
+		if (!patron) return '';
+		return patron.style.getPropertyValue('background-color').trim() || configuredNameColor(trigger);
+	}
+
+	function styleUsernameTrigger(trigger) {
+		const color = configuredNameColor(trigger);
+		if (!color) return;
+		trigger.style.setProperty('color', color, 'important');
+
+		trigger.querySelectorAll(':scope > span').forEach(username => {
+			if (username.classList.contains('mod') || username.classList.contains('mod-rdrama')) return;
+			if (username.classList.contains('patron')) {
+				const plateColor = patronNameplateColor(trigger) || color;
+				username.style.setProperty('background-color', plateColor, 'important');
+				username.style.setProperty('color', '#fff', 'important');
+				username.style.setProperty('-webkit-text-fill-color', '#fff', 'important');
+				username.style.removeProperty('background');
+				username.style.setProperty('background-image', 'none', 'important');
+				username.style.setProperty('-webkit-background-clip', 'border-box', 'important');
+				username.style.setProperty('background-clip', 'border-box', 'important');
+				return;
+			}
+			username.style.setProperty('color', color, 'important');
+			username.style.setProperty('-webkit-text-fill-color', color, 'important');
+			username.style.setProperty('background', 'none', 'important');
+			username.style.setProperty('background-image', 'none', 'important');
+			username.style.setProperty('-webkit-background-clip', 'border-box', 'important');
+			username.style.setProperty('background-clip', 'border-box', 'important');
+		});
+	}
+
 	function applyConfiguredNameColor(root=document) {
 		const triggers = [];
 		if (root instanceof Element && root.matches('.user-name')) triggers.push(root);
 		if (root.querySelectorAll) triggers.push(...root.querySelectorAll('.user-name'));
-
-		triggers.forEach(trigger => {
-			const color = configuredNameColor(trigger);
-			if (!color) return;
-			trigger.style.setProperty('color', color, 'important');
-			trigger.querySelectorAll(':scope > span').forEach(username => {
-				if (username.classList.contains('mod') || username.classList.contains('mod-rdrama')) return;
-				username.style.setProperty('color', color, 'important');
-				username.style.setProperty('-webkit-text-fill-color', color, 'important');
-				username.style.setProperty('background', 'none', 'important');
-				username.style.setProperty('background-image', 'none', 'important');
-				username.style.setProperty('-webkit-background-clip', 'border-box', 'important');
-				username.style.setProperty('background-clip', 'border-box', 'important');
-			});
-		});
+		triggers.forEach(styleUsernameTrigger);
 	}
 
 	function initializePopover(trigger) {
@@ -61,11 +80,20 @@
 		if (!popover) return;
 		const username = popover.querySelector('.pop-username');
 		if (username) {
-			const color = configuredNameColor(trigger);
-			username.style.setProperty('color', color, 'important');
-			username.style.setProperty('-webkit-text-fill-color', color, 'important');
-			username.style.setProperty('background', 'none', 'important');
-			username.style.setProperty('background-image', 'none', 'important');
+			const plateColor = patronNameplateColor(trigger);
+			if (plateColor) {
+				username.classList.add('obs-patron-nameplate');
+				username.style.setProperty('background-color', plateColor, 'important');
+				username.style.setProperty('color', '#fff', 'important');
+				username.style.setProperty('-webkit-text-fill-color', '#fff', 'important');
+			} else {
+				const color = configuredNameColor(trigger);
+				username.classList.remove('obs-patron-nameplate');
+				username.style.setProperty('color', color, 'important');
+				username.style.setProperty('-webkit-text-fill-color', color, 'important');
+				username.style.setProperty('background', 'none', 'important');
+				username.style.setProperty('background-image', 'none', 'important');
+			}
 		}
 		popover.addEventListener('pointerdown', event => event.stopPropagation());
 		popover.addEventListener('click', event => event.stopPropagation());
