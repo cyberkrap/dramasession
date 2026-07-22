@@ -36,6 +36,37 @@ PATRON_LIMITS = {
 }
 
 
+SUPPORT_TIER_NAMES = {
+    1: "Nikki's Supporter",
+    2: "Bear's Insider",
+    3: "Sandy's Devoted",
+    4: "Curry's Obsession",
+    5: "Ian's Bankroller",
+}
+
+
+CONTRIBUTION_BADGE_NAMES = {
+    21: "Nikki's Supporter",
+    22: "Bear's Insider",
+    23: "Sandy's Devoted",
+    24: "Curry's Obsession",
+    25: "Ian's Bankroller",
+    26: "Nikki's Bankroller",
+    27: "Rich Bich",
+}
+
+
+CONTRIBUTION_BADGE_DESCRIPTIONS = {
+    21: "Contributed at least $5",
+    22: "Contributed at least $10",
+    23: "Contributed at least $20",
+    24: "Contributed at least $50",
+    25: "Contributed at least $100",
+    26: "Contributed at least $250",
+    27: "Contributed at least $500",
+}
+
+
 def patron_level(user):
     level = int(getattr(user, "patron", 0) or 0)
     expires = int(getattr(user, "patron_utc", 0) or 0)
@@ -55,7 +86,7 @@ def patron_limit(user, limit_name):
 
 
 SUPPORT_BASE_BENEFITS = (
-    "Supporter badge and nameplate",
+    "Nikki's Supporter badge and nameplate",
     "5,000 Wishbux monthly",
     "10% shop and award discount",
     "16 MB image and audio limit",
@@ -65,33 +96,33 @@ SUPPORT_BASE_BENEFITS = (
 
 SUPPORT_TIERS = (
     {
-        "level": 1, "slug": "supporter", "name": "Supporter", "price": 5,
+        "level": 1, "slug": "supporter", "name": SUPPORT_TIER_NAMES[1], "price": 5,
         "wishbux": 5000, "discount": 10, "badge": 21, "popular": False,
         "new_perks": SUPPORT_BASE_BENEFITS,
     },
     {
-        "level": 2, "slug": "insider", "name": "Insider", "price": 10,
+        "level": 2, "slug": "insider", "name": SUPPORT_TIER_NAMES[2], "price": 10,
         "wishbux": 11000, "discount": 15, "badge": 22, "popular": False,
-        "new_perks": ("Insider badge and nameplate", "11,000 Wishbux monthly",
+        "new_perks": ("Bear's Insider badge and nameplate", "11,000 Wishbux monthly",
                        "15% shop and award discount", "Custom site background",
                        "Benefactor award access"),
     },
     {
-        "level": 3, "slug": "devoted", "name": "Devoted", "price": 20,
+        "level": 3, "slug": "devoted", "name": SUPPORT_TIER_NAMES[3], "price": 20,
         "wishbux": 24000, "discount": 20, "badge": 23, "popular": True,
-        "new_perks": ("Devoted badge and nameplate", "24,000 Wishbux monthly",
+        "new_perks": ("Sandy's Devoted badge and nameplate", "24,000 Wishbux monthly",
                        "20% shop and award discount", "Profile signature"),
     },
     {
-        "level": 4, "slug": "obsessed", "name": "Obsessed", "price": 50,
+        "level": 4, "slug": "obsessed", "name": SUPPORT_TIER_NAMES[4], "price": 50,
         "wishbux": 65000, "discount": 25, "badge": 24, "popular": False,
-        "new_perks": ("Obsessed badge and nameplate", "65,000 Wishbux monthly",
+        "new_perks": ("Curry's Obsession badge and nameplate", "65,000 Wishbux monthly",
                        "25% shop and award discount"),
     },
     {
-        "level": 5, "slug": "inner_circle", "name": "Inner Circle", "price": 100,
+        "level": 5, "slug": "inner_circle", "name": SUPPORT_TIER_NAMES[5], "price": 100,
         "wishbux": 140000, "discount": 30, "badge": 25, "popular": False,
-        "new_perks": ("Inner Circle badge and nameplate", "140,000 Wishbux monthly",
+        "new_perks": ("Ian's Bankroller badge and nameplate", "140,000 Wishbux monthly",
                        "30% shop and award discount"),
     },
 )
