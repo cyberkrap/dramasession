@@ -2,11 +2,30 @@
 {% block pagetype %}userpage{% endblock %}
 {% block pagetitle %}@{{u.username}}'s profile{% endblock %}
 {% block head_final %}
+	{% if u %}
+		<style nonce="{{g.nonce}}">
+			/* The hero always uses the profile banner, matching the profile popup. */
+			body#userpage .profile-hero {
+				background-image: url("{{u.banner_url}}") !important;
+			}
+			{% if u.profile_background %}
+			/* The separately uploaded profile background belongs to the full page only. */
+			body#userpage {
+				background-color: #050506 !important;
+				background-image: url("{{u.profile_background}}") !important;
+				background-position: center center !important;
+				background-repeat: no-repeat !important;
+				background-attachment: fixed !important;
+				background-size: cover !important;
+			}
+			{% endif %}
+		</style>
+	{% endif %}
 	{% if u and u.profile_background %}
 		{% set displaying_bg = True %}
 		<link rel="stylesheet" href="{{('css/transparent.css') | asset}}">
 	{% endif %}
-	{% if u and (u.profilecss or u.profile_background) and not request.values.get('nocss') %}
+	{% if u and u.profilecss and not request.values.get('nocss') %}
 		<link rel="stylesheet" href="/{{u.id}}/profilecss">
 	{% endif %}
 {% endblock %}
