@@ -7,6 +7,7 @@ import fcntl
 _LOCK_PATH = "/tmp/obsession-final-ui-fixes.lock"
 _MACROS_PATH = Path("files/templates/util/macros.html")
 _ADMIN_PATH = Path("files/routes/admin.py")
+_STATIC_PATH = Path("files/routes/static.py")
 
 
 def _atomic_write(path, content):
@@ -41,3 +42,17 @@ def patch_badge_gift_note_source():
 		elif new not in source:
 			raise RuntimeError("Could not locate the badge gift-message notification")
 		_atomic_write(_ADMIN_PATH, source)
+
+
+def patch_marseys_source():
+	"""Let the emote directory page render when original uploads are unavailable."""
+	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
+		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+		source = _STATIC_PATH.read_text(encoding="utf-8")
+		old = '\toriginal = os.listdir("/asset_submissions/marseys/original")\n'
+		new = '''\toriginal_dir = "/asset_submissions/marseys/original"\n\ttry:\n\t\toriginal = set(os.listdir(original_dir))\n\texcept OSError:\n\t\t# Original submission files are optional and may not exist on a fresh\n\t\t# deployment or when the asset-submissions volume is not mounted.\n\t\toriginal = set()\n'''
+		if old in source:
+			source = source.replace(old, new, 1)
+		elif new not in source:
+			raise RuntimeError("Could not locate the marseys original-file listing")
+		_atomic_write(_STATIC_PATH, source)
