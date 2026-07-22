@@ -39,12 +39,14 @@ CREATE TABLE IF NOT EXISTS public.paypal_webhook_events (
     processed boolean NOT NULL DEFAULT false
 );
 
--- Rebrand legacy contribution badges while preserving their IDs and artwork.
+-- Canonical contribution badge branding. The application also synchronizes
+-- these records at runtime so existing installations do not depend on this
+-- schema file being re-run during every deployment.
 UPDATE public.badge_defs SET name = 'Nikki''s Supporter', description = 'Contributed at least $5' WHERE id = 21;
-UPDATE public.badge_defs SET name = 'Nikki''s Insider', description = 'Contributed at least $10' WHERE id = 22;
-UPDATE public.badge_defs SET name = 'Nikki''s Devoted', description = 'Contributed at least $20' WHERE id = 23;
-UPDATE public.badge_defs SET name = 'Nikki''s Obsession', description = 'Contributed at least $50' WHERE id = 24;
-UPDATE public.badge_defs SET name = 'Nikki''s Sugar Daddy', description = 'Contributed at least $100' WHERE id = 25;
+UPDATE public.badge_defs SET name = 'Bear''s Insider', description = 'Contributed at least $10' WHERE id = 22;
+UPDATE public.badge_defs SET name = 'Sandy''s Devoted', description = 'Contributed at least $20' WHERE id = 23;
+UPDATE public.badge_defs SET name = 'Curry''s Obsession', description = 'Contributed at least $50' WHERE id = 24;
+UPDATE public.badge_defs SET name = 'Ian''s Bankroller', description = 'Contributed at least $100' WHERE id = 25;
 UPDATE public.badge_defs SET name = 'Nikki''s Bankroller', description = 'Contributed at least $250' WHERE id = 26;
 UPDATE public.badge_defs SET name = 'Rich Bich', description = 'Contributed at least $500' WHERE id = 27;
 
