@@ -44,7 +44,7 @@ def manage_lifetime_contribution(v: User):
 		message = f'Lifetime donation set to ${total_cents / 100:,.2f} for @{user.username}.'
 
 	g.db.add(ModAction(
-		kind='lifetime_contribution_override',
+		kind='grant_currency',
 		user_id=v.id,
 		target_user_id=user.id,
 		_note=message,
