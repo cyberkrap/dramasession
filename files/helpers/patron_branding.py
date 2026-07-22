@@ -31,9 +31,9 @@ def _patron_tooltip(user):
 def _sync_contribution_badge_definitions():
 	"""Synchronize badge branding without depending on request-session setup.
 
-	This hook can run before the application's request-scoped ``g.db`` session is
-	created, so it uses the engine directly. Database availability or migration
-	timing must never turn an otherwise valid page request into a 500 response.
+	The hook can run before the request-scoped ``g.db`` session exists, so it
+	uses an independent engine transaction. Any database problem is treated as a
+	best-effort retry condition and can never fail the page request.
 	"""
 	global _SYNC_COMPLETE
 	if _SYNC_COMPLETE or SITE_NAME != "Obsession":
@@ -46,14 +46,16 @@ def _sync_contribution_badge_definitions():
 		badge_ids = tuple(CONTRIBUTION_BADGE_NAMES)
 		try:
 			with engine.begin() as connection:
-				existing_ids = set(connection.execute(
-					text("SELECT id FROM badge_defs WHERE id IN :badge_ids")
-					.bindparams(badge_ids=badge_ids),
-				).scalars().all())
+				existing_ids = {
+					badge_id
+					for badge_id in badge_ids
+					if connection.execute(
+						text("SELECT 1 FROM badge_defs WHERE id = :badge_id"),
+						{"badge_id": badge_id},
+					).scalar()
+				}
 
 				if existing_ids != set(badge_ids):
-					# Startup migrations may still be finishing. Leave the flag unset so a
-					# later request retries, but never fail the current request.
 					return
 
 				for badge_id in badge_ids:
@@ -67,7 +69,6 @@ def _sync_contribution_badge_definitions():
 						"description": CONTRIBUTION_BADGE_DESCRIPTIONS[badge_id],
 					})
 		except SQLAlchemyError:
-			# Branding synchronization is best-effort and must never break page loads.
 			return
 
 		_SYNC_COMPLETE = True
