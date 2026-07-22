@@ -7,12 +7,25 @@
 	{% if error %}{{macros.alert(error, true)}}{% endif %}
 
 	<section class="card mb-4"><div class="card-body">
-		<h5>Create category</h5>
-		<form method="post" action="/admin/emotes/categories" class="d-flex gap-2">
+		<h5>Categories</h5>
+		<form method="post" action="/admin/emotes/categories" class="d-flex gap-2 mb-3">
 			<input type="hidden" name="formkey" value="{{v|formkey}}">
-			<input class="form-control" name="category" maxlength="40" required placeholder="Category name">
+			<input class="form-control" name="category" maxlength="40" required placeholder="New category name">
 			<button class="btn btn-primary" type="submit">Create</button>
 		</form>
+		{% for category in categories if category not in ['Community Emotes', 'Community Classics', 'Misc'] %}
+		<div class="d-flex gap-2 mb-2">
+			<form method="post" action="/admin/emotes/categories/rename" class="d-flex gap-2 flex-grow-1">
+				<input type="hidden" name="formkey" value="{{v|formkey}}"><input type="hidden" name="old" value="{{category}}">
+				<input class="form-control" name="new" value="{{category}}" maxlength="40" required>
+				<button class="btn btn-secondary" type="submit">Rename</button>
+			</form>
+			<form method="post" action="/admin/emotes/categories/delete" onsubmit="return confirm('Delete this category? Emotes will move to Community Emotes.')">
+				<input type="hidden" name="formkey" value="{{v|formkey}}"><input type="hidden" name="category" value="{{category}}">
+				<button class="btn btn-danger" type="submit">Delete</button>
+			</form>
+		</div>
+		{% endfor %}
 	</div></section>
 
 	<h4>Pending</h4>
@@ -30,7 +43,7 @@
 	<h4>Active</h4>
 	{% for emote in active %}
 	<div class="card mb-3"><div class="card-body">
-		<div class="d-flex align-items-center gap-3 mb-3"><img src="{% if category_for_emote(emote.name) %}/community-emote/{{emote.name}}.webp{% else %}/e/{{emote.name}}.webp{% endif %}" width="80" alt="{{emote.name}}"><strong>:{{emote.name}}:</strong></div>
+		<div class="d-flex align-items-center gap-3 mb-3"><img src="{% if custom_emote_exists(emote.name) %}/community-emote/{{emote.name}}.webp{% else %}/e/{{emote.name}}.webp{% endif %}" width="80" alt="{{emote.name}}"><strong>:{{emote.name}}:</strong></div>
 		<form method="post" action="/admin/emotes/{{emote.name}}/update" class="row g-2 align-items-end">
 			<input type="hidden" name="formkey" value="{{v|formkey}}">
 			<div class="col-md-3"><label>Name</label><input class="form-control" name="name" value="{{emote.name}}" required></div>
