@@ -2,7 +2,9 @@ from flask import g, render_template, request
 from sqlalchemy import or_
 
 from files.__main__ import app, limiter
-from files.classes import Comment, CommentFlag, Flag, Submission
+from files.classes.comment import Comment
+from files.classes.flags import CommentFlag, Flag
+from files.classes.submission import Submission
 from files.helpers.alerts import send_repeatable_notification
 from files.helpers.config.const import DEFAULT_RATELIMIT, PAGE_SIZE, PERMS
 from files.helpers.get import get_comment, get_comments, get_post, get_posts
