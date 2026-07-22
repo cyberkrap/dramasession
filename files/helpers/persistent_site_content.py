@@ -116,3 +116,20 @@ def install_persistent_site_content():
 	app.jinja_env.globals["persistent_rules"] = persistent_rules
 	app.view_functions["edit_rules_get"] = persistent_edit_rules_get
 	app.view_functions["edit_rules_post"] = persistent_edit_rules_post
+
+	original_listdir = app.jinja_env.globals.get("listdir", os.listdir)
+	if getattr(original_listdir, "_persistent_asset_filter", False):
+		return
+
+	def persistent_asset_listdir(path):
+		normalized = str(path).replace("\\", "/").rstrip("/")
+		if normalized.endswith("files/assets/images/Obsession/banners"):
+			from files.helpers.community_assets import active_community_asset_filenames
+			return active_community_asset_filenames("banner")
+		if normalized.endswith("files/assets/images/Obsession/sidebar"):
+			from files.helpers.community_assets import active_community_asset_filenames
+			return active_community_asset_filenames("sidebar")
+		return original_listdir(path)
+
+	persistent_asset_listdir._persistent_asset_filter = True
+	app.jinja_env.globals["listdir"] = persistent_asset_listdir
