@@ -26,6 +26,7 @@ from files.helpers.runtime_source_fixes import (
 from files.helpers.final_ui_source_fixes import (
 	patch_asset_submission_directories_source,
 	patch_badge_gift_note_source,
+	patch_custom_emote_sources,
 	patch_live_banner_source,
 	patch_marseys_source,
 )
@@ -37,6 +38,7 @@ except RuntimeError:
 try:
 	patch_asset_submission_directories_source()
 	patch_badge_gift_note_source()
+	patch_custom_emote_sources()
 	patch_live_banner_source()
 	patch_marseys_source()
 except RuntimeError:
@@ -79,6 +81,9 @@ if FEATURES['HATS']:
 	from .hats import *
 if FEATURES['ASSET_SUBMISSIONS']:
 	from .asset_submissions import *
+	from .emote_admin import *
+	from .emote_admin_tools import *
+from .report_fixes import *
 from .special import *
 from .push_notifs import *
 
@@ -86,6 +91,7 @@ from files.classes import User
 from files.helpers.ban_hats import install_ban_hat_support
 from files.helpers.contribution_badges import install_cumulative_contribution_badges
 from files.helpers.default_user_background import install_default_user_background
+from files.helpers.emote_management import ensure_emote_directories, install_custom_emote_rendering
 from files.helpers.patron_branding import install_patron_branding
 from files.helpers.persistent_site_content import install_persistent_site_content
 install_ban_hat_support()
@@ -93,4 +99,8 @@ install_cumulative_contribution_badges()
 install_default_user_background()
 install_patron_branding()
 install_persistent_site_content()
+ensure_emote_directories()
+install_custom_emote_rendering()
+install_emote_management()
+install_report_fixes()
 User.ban_notice = User.ban_notice_html
