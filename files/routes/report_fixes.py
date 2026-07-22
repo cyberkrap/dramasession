@@ -1,24 +1,30 @@
 from flask import g, render_template, request
+from sqlalchemy import or_
 
-from files.__main__ import app
+from files.__main__ import app, limiter
 from files.classes import Comment, CommentFlag, Flag, Submission
 from files.helpers.alerts import send_repeatable_notification
-from files.helpers.config.const import PAGE_SIZE
+from files.helpers.config.const import DEFAULT_RATELIMIT, PAGE_SIZE, PERMS
 from files.helpers.get import get_comment, get_comments, get_post, get_posts
+from files.routes.wrappers import admin_level_required, get_ID
 
 
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@admin_level_required(PERMS['POST_COMMENT_MODERATION'])
 def fixed_reported_posts(v):
 	try: page = max(1, int(request.values.get('page', 1)))
 	except Exception: page = 1
-	ids = [row[0] for row in g.db.query(Flag.post_id).join(Submission, Submission.id == Flag.post_id).filter(Submission.is_banned == False, Submission.deleted_utc == 0).distinct().order_by(Flag.post_id.desc()).offset(PAGE_SIZE * (page - 1)).limit(PAGE_SIZE + 1).all()]
+	ids = [row[0] for row in g.db.query(Flag.post_id).join(Submission, Submission.id == Flag.post_id).filter(or_(Submission.is_banned == False, Submission.is_banned == None), or_(Submission.deleted_utc == 0, Submission.deleted_utc == None)).distinct().order_by(Flag.post_id.desc()).offset(PAGE_SIZE * (page - 1)).limit(PAGE_SIZE + 1).all()]
 	next_exists = len(ids) > PAGE_SIZE
 	return render_template('admin/reported_posts.html', next_exists=next_exists, listing=get_posts(ids[:PAGE_SIZE], v=v), page=page, v=v)
 
 
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@admin_level_required(PERMS['POST_COMMENT_MODERATION'])
 def fixed_reported_comments(v):
 	try: page = max(1, int(request.values.get('page', 1)))
 	except Exception: page = 1
-	ids = [row[0] for row in g.db.query(CommentFlag.comment_id).join(Comment, Comment.id == CommentFlag.comment_id).filter(Comment.is_banned == False, Comment.deleted_utc == 0).distinct().order_by(CommentFlag.comment_id.desc()).offset(PAGE_SIZE * (page - 1)).limit(PAGE_SIZE + 1).all()]
+	ids = [row[0] for row in g.db.query(CommentFlag.comment_id).join(Comment, Comment.id == CommentFlag.comment_id).filter(or_(Comment.is_banned == False, Comment.is_banned == None), or_(Comment.deleted_utc == 0, Comment.deleted_utc == None)).distinct().order_by(CommentFlag.comment_id.desc()).offset(PAGE_SIZE * (page - 1)).limit(PAGE_SIZE + 1).all()]
 	next_exists = len(ids) > PAGE_SIZE
 	return render_template('admin/reported_comments.html', next_exists=next_exists, listing=get_comments(ids[:PAGE_SIZE], v=v), page=page, v=v, standalone=True)
 
