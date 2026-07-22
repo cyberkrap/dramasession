@@ -22,11 +22,11 @@
 			if (username.classList.contains('mod') || username.classList.contains('mod-rdrama')) return;
 			if (username.classList.contains('patron')) {
 				const plateColor = patronNameplateColor(trigger) || color;
+				username.style.removeProperty('background');
+				username.style.setProperty('background-image', 'none', 'important');
 				username.style.setProperty('background-color', plateColor, 'important');
 				username.style.setProperty('color', '#fff', 'important');
 				username.style.setProperty('-webkit-text-fill-color', '#fff', 'important');
-				username.style.removeProperty('background');
-				username.style.setProperty('background-image', 'none', 'important');
 				username.style.setProperty('-webkit-background-clip', 'border-box', 'important');
 				username.style.setProperty('background-clip', 'border-box', 'important');
 				return;
