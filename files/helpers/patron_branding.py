@@ -2,10 +2,11 @@
 
 import threading
 
-from flask import g
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
-from files.__main__ import app
-from files.classes import BadgeDef, User
+from files.__main__ import app, engine
+from files.classes import User
 from files.helpers.config.const import SITE_NAME
 from files.helpers.support import (
 	CONTRIBUTION_BADGE_DESCRIPTIONS,
@@ -28,6 +29,12 @@ def _patron_tooltip(user):
 
 
 def _sync_contribution_badge_definitions():
+	"""Synchronize badge branding without depending on request-session setup.
+
+	This hook can run before the application's request-scoped ``g.db`` session is
+	created, so it uses the engine directly. Database availability or migration
+	timing must never turn an otherwise valid page request into a 500 response.
+	"""
 	global _SYNC_COMPLETE
 	if _SYNC_COMPLETE or SITE_NAME != "Obsession":
 		return
@@ -37,31 +44,32 @@ def _sync_contribution_badge_definitions():
 			return
 
 		badge_ids = tuple(CONTRIBUTION_BADGE_NAMES)
-		definitions = {
-			badge.id: badge
-			for badge in g.db.query(BadgeDef).filter(BadgeDef.id.in_(badge_ids)).all()
-		}
-		missing = [badge_id for badge_id in badge_ids if badge_id not in definitions]
-		if missing:
-			# Do not mark the synchronization complete until the expected definitions
-			# exist. A later request can retry after startup migrations finish.
+		try:
+			with engine.begin() as connection:
+				existing_ids = set(connection.execute(
+					text("SELECT id FROM badge_defs WHERE id IN :badge_ids")
+					.bindparams(badge_ids=badge_ids),
+				).scalars().all())
+
+				if existing_ids != set(badge_ids):
+					# Startup migrations may still be finishing. Leave the flag unset so a
+					# later request retries, but never fail the current request.
+					return
+
+				for badge_id in badge_ids:
+					connection.execute(text("""
+						UPDATE badge_defs
+						SET name = :name, description = :description
+						WHERE id = :badge_id
+					"""), {
+						"badge_id": badge_id,
+						"name": CONTRIBUTION_BADGE_NAMES[badge_id],
+						"description": CONTRIBUTION_BADGE_DESCRIPTIONS[badge_id],
+					})
+		except SQLAlchemyError:
+			# Branding synchronization is best-effort and must never break page loads.
 			return
 
-		changed = False
-		for badge_id, badge in definitions.items():
-			name = CONTRIBUTION_BADGE_NAMES[badge_id]
-			description = CONTRIBUTION_BADGE_DESCRIPTIONS[badge_id]
-			if badge.name != name:
-				badge.name = name
-				changed = True
-			if badge.description != description:
-				badge.description = description
-				changed = True
-			if changed:
-				g.db.add(badge)
-
-		if changed:
-			g.db.flush()
 		_SYNC_COMPLETE = True
 
 
