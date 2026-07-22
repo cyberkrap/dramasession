@@ -12,8 +12,8 @@
 		<h1>Obsession Shop</h1>
 		<p>Choose an effect and apply it directly to a post, comment, or member.</p>
 		<div class="shop-stats">
-			<span><strong>{{v.coins|number}}</strong> Wishcoins</span>
 			{% if FEATURES['MARSEYBUX'] %}<span><strong>{{v.marseybux|number}}</strong> Wishbux</span>{% endif %}
+			<span><strong>{{v.coins|number}}</strong> Wishcoins</span>
 			<span><strong>{{v.coins_spent|number}}</strong> spent</span>
 			<span><strong>{{v.lootboxes_bought|number}}</strong> lootboxes</span>
 		</div>
@@ -24,9 +24,25 @@
 <div class="shop-grid" id="effects">
 	{% for a in awards %}
 		{% set kind = a['kind'] %}
-		{% set currency = 'marseybux' if kind == 'benefactor' else 'coins' %}
-		{% set can_buy = v.can_spend(currency, a['price']) %}
-		<article class="shop-card">
+		{% if kind == 'benefactor' %}
+			{% set currency = 'marseybux' %}
+			{% set can_buy = v.can_spend('marseybux', a['price']) %}
+		{% elif kind == 'grass' %}
+			{% set currency = 'coins' %}
+			{% set can_buy = v.can_spend('coins', a['price']) %}
+		{% else %}
+			{% if v.can_spend('marseybux', a['price']) %}
+				{% set currency = 'marseybux' %}
+			{% elif v.can_spend('coins', a['price']) %}
+				{% set currency = 'coins' %}
+			{% elif v.marseybux > 0 %}
+				{% set currency = 'marseybux' %}
+			{% else %}
+				{% set currency = 'coins' %}
+			{% endif %}
+			{% set can_buy = v.can_spend('marseybux', a['price']) or v.can_spend('coins', a['price']) %}
+		{% endif %}
+		<article class="shop-card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{a['title']}} — {{a['description'] or 'A community effect from the Obsession collection.'}}">
 			<div class="shop-card-icon"><i class="{{a['icon']}} {{a['color']}}"></i></div>
 			<div class="shop-card-body">
 				<h2>{{a['title']}}</h2>
@@ -35,9 +51,8 @@
 			<div class="shop-card-footer">
 				<div>
 					{% if a['baseprice'] != a['price'] %}<span class="discounted-price">{{a['baseprice']|number}}</span> {% endif %}<strong>{{a['price']|number}}</strong> {{'Wishbux' if currency == 'marseybux' else 'Wishcoins'}}
-
 				</div>
-				<button type="button" class="btn btn-primary shop-buy-button" {% if not can_buy %}disabled{% endif %} data-areyousure="postToastSwitch(this,'/buy/{{kind}}{% if currency == 'marseybux' %}?mb=true{% endif %}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">{{a['price']|number}} {{'Wishbux' if currency == 'marseybux' else 'Wishcoins'}}</button>
+				<button type="button" class="btn btn-primary shop-buy-button" {% if not can_buy %}disabled{% endif %} data-areyousure="postToastSwitch(this,'/buy/{{kind}}?currency={{currency}}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">{{a['price']|number}} {{'Wishbux' if currency == 'marseybux' else 'Wishcoins'}}</button>
 			</div>
 		</article>
 	{% endfor %}

@@ -100,9 +100,9 @@ function vote(type, id, dir) {
 	xhr[0].send(xhr[1]);
 }
 
-let selectedAwardCurrency = "coins";
+let selectedAwardCurrency = "marseybux";
 
-function pick(kind, price, coins, marseybux, unlimitedSpending = false, currency = "coins") {
+function pick(kind, price, coins, marseybux, unlimitedSpending = false, currency = "marseybux") {
 	price = parseInt(price);
 	coins = parseInt(coins);
 	marseybux = parseInt(marseybux);
@@ -121,8 +121,8 @@ function pick(kind, price, coins, marseybux, unlimitedSpending = false, currency
 		document.getElementById('note').placeholder = "Insert new flair here, or leave empty to extend the current flair.";
 		document.getElementById('note').maxLength = 100;
 	} else {
-		document.getElementById('notelabel').textContent = "Note (optional):";
-		document.getElementById('note').placeholder = "Note to include in award notification...";
+		document.getElementById('notelabel').textContent = "Gift message (optional):";
+		document.getElementById('note').placeholder = "Add a message explaining why you're giving this award...";
 		document.getElementById('note').maxLength = 200;
 	}
 }
@@ -131,7 +131,8 @@ function giveaward(t) {
 	const kind = document.getElementById('kind').value;
 	postToast(t, t.dataset.action, {
 		kind: kind,
-		note: document.getElementById('note').value
+		note: document.getElementById('note').value,
+		currency: selectedAwardCurrency
 	}, () => {
 		document.getElementById('award-price-summary').textContent = 'Award applied';
 	});
@@ -153,3 +154,9 @@ document.querySelectorAll('[data-award-tab]').forEach(tab => {
 		document.querySelectorAll('[data-award-panel]').forEach(panel => panel.classList.toggle('d-none', panel.dataset.awardPanel !== tab.dataset.awardTab));
 	});
 });
+
+for (const element of document.querySelectorAll('.award-choice[data-bs-toggle="tooltip"]')) {
+	if (!bootstrap.Tooltip.getInstance(element)) {
+		new bootstrap.Tooltip(element, {container: 'body', trigger: 'hover focus'});
+	}
+}

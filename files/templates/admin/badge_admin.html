@@ -47,10 +47,11 @@
 </table>
 {% if grant %}
 <label class="mb-0 pb-0" for="input-url">URL</label>
-<input autocomplete="off" id="input-url" class="form-control" type="text" name="url" type="url" placeholder="Optional">
+<input autocomplete="off" id="input-url" class="form-control" type="url" name="url" placeholder="Optional badge link">
 
-<label class="mt-2 mb-0 pb-0" for="input-description">Custom description</label>
-<input autocomplete="off" id="input-description" class="form-control" type="text" name="description" placeholder="Leave blank for badge default">
+<label class="mt-2 mb-0 pb-0" for="input-message">Gift Message</label>
+<textarea autocomplete="off" id="input-message" class="form-control" name="message" maxlength="500" rows="3" placeholder="Optional note explaining why this badge is being awarded"></textarea>
+<small class="form-text text-muted">This note is sent with the badge notification. It does not replace the badge's default description.</small>
 {% endif %}
 <input autocomplete="off" class="btn btn-primary mt-3" type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)">
 

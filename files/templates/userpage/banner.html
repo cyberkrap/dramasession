@@ -68,10 +68,10 @@
 		</div>
 	</header>
 			<div class="profile-stats" aria-label="Profile statistics">
-				<div class="profile-stat"><strong id="profile-coins-amount">{{u.coins|number}}</strong><span>Wishcoins</span></div>
 				{% if FEATURES['MARSEYBUX'] %}
 					<div class="profile-stat"><strong id="profile-bux-amount">{{u.marseybux|number}}</strong><span>Wishbux</span></div>
 				{% endif %}
+				<div class="profile-stat"><strong id="profile-coins-amount">{{u.coins|number}}</strong><span>Wishcoins</span></div>
 				<div class="profile-stat"><strong>{{u.post_count|number}}</strong><span>Posts</span></div>
 				<div class="profile-stat"><strong>{{u.comment_count|number}}</strong><span>Comments</span></div>
 				{% if PERMS['USER_FOLLOWS_VISIBLE'] == 0 or (v and v.admin_level >= PERMS['USER_FOLLOWS_VISIBLE']) %}
@@ -138,8 +138,8 @@
 						<button type="button" id="button-sub" class="btn btn-primary {% if is_following or u.is_blocked %}d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/follow/{{u.username}}','button-unsub','button-sub','d-none')">Follow</button>
 						<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('message', 'input-message')">Message</button>
 						{% if FEATURES['USERS_SUICIDE'] %}<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/suicide')">Get Them Help</button>{% endif %}
-						<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('coin-transfer', 'coin-transfer-amount')">Gift Wishcoins</button>
 						{% if FEATURES['MARSEYBUX'] %}<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('bux-transfer', 'bux-transfer-amount')">Gift Wishbux</button>{% endif %}
+						<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="toggleElement('coin-transfer', 'coin-transfer-amount')">Gift Wishcoins</button>
 						<button type="button" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/block?username={{u.username}}')">Block</button>
 					</div>
 
@@ -153,18 +153,18 @@
 					</form>
 					<div id="message-preview" class="preview mt-2"></div>
 
-					<div class="d-none toggleable profile-action-form" id="coin-transfer">
-						<input autocomplete="off" id="coin-transfer-amount" class="form-control" name="amount" type="number" min="1" data-nonce="{{g.nonce}}" data-oninput="updateTax()">
-						<input autocomplete="off" id="coin-transfer-reason" maxlength="200" type="text" class="form-control" name="reason" placeholder="Gift message (optional)">
-						<p>{{u.username}} will receive <span id="coins-transfer-taxed">0</span> Wishcoins</p>
-						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="transferCoins(this)">Gift</button>
-					</div>
-
 					<div class="d-none toggleable profile-action-form" id="bux-transfer">
 						<input autocomplete="off" id="bux-transfer-amount" class="form-control" name="amount" type="number" min="1" data-nonce="{{g.nonce}}" data-oninput="updateBux()">
 						<input autocomplete="off" id="bux-transfer-reason" type="text" class="form-control" name="reason" placeholder="Gift message (optional)">
 						<p>{{u.username}} will receive <span id="bux-transfer-taxed">0</span> Wishbux</p>
 						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="transferBux(this)">Gift</button>
+					</div>
+
+					<div class="d-none toggleable profile-action-form" id="coin-transfer">
+						<input autocomplete="off" id="coin-transfer-amount" class="form-control" name="amount" type="number" min="1" data-nonce="{{g.nonce}}" data-oninput="updateTax()">
+						<input autocomplete="off" id="coin-transfer-reason" maxlength="200" type="text" class="form-control" name="reason" placeholder="Gift message (optional)">
+						<p>{{u.username}} will receive <span id="coins-transfer-taxed">0</span> Wishcoins</p>
+						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="transferCoins(this)">Gift</button>
 					</div>
 				{% else %}
 					<div class="profile-action-buttons">
