@@ -30,10 +30,12 @@ from files.helpers.final_ui_source_fixes import (
 try:
 	patch_award_currency_source()
 	patch_badge_gift_message_source()
+except RuntimeError:
+	pass
+try:
 	patch_badge_gift_note_source()
 	patch_live_banner_source()
 except RuntimeError:
-	# Optional feature patches must never prevent the web workers from booting.
 	pass
 patch_comment_attachment_source()
 patch_youtube_anthem_source()
