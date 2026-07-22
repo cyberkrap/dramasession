@@ -1,6 +1,7 @@
 {%- extends 'root.html' -%}
 {% block body_attributes %}id="{% if request.path != '/comments' %}{% block pagetype %}frontpage{% endblock %}{% endif %}"{% endblock %}
 {% block body %}
+<link rel="stylesheet" href="{{'css/profile_popover_fixes.css' | asset}}">
 {% block banner %}
 	{% include "modals/expanded_image.html" %}
 	{% if err or '@' not in request.path %}
@@ -61,6 +62,7 @@
 </div>
 <script defer src="{{'js/vendor/lozad.js' | asset}}"></script>
 <script defer src="{{'js/vendor/lite-youtube.js' | asset}}"></script>
+<script defer src="{{'js/profile_popover_fixes.js' | asset}}"></script>
 {% if not err and v and v.spider %}
 	<script defer src="{{'js/vendor/critters.js' | asset}}"></script>
 	<script defer src="{{'js/spider.js' | asset}}"></script>
