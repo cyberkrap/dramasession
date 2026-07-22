@@ -18,9 +18,13 @@ from files.routes.jinja2 import *
 
 # Repair legacy route source before the affected modules are imported.
 from files.helpers.runtime_source_fixes import (
+	patch_award_currency_source,
+	patch_badge_gift_message_source,
 	patch_comment_attachment_source,
 	patch_youtube_anthem_source,
 )
+patch_award_currency_source()
+patch_badge_gift_message_source()
 patch_comment_attachment_source()
 patch_youtube_anthem_source()
 
