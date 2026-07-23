@@ -104,10 +104,29 @@ class ModAction(Base):
 	@property
 	@lazy
 	def emoji_name_raw(self):
-		name = str(self._note or '').strip()
-		if ' -> ' in name:
-			name = name.rsplit(' -> ', 1)[-1].strip()
-		name = re.sub(r'[^a-zA-Z0-9_-]', '', name).lower()
+		note = str(self._note or '').strip()
+
+		# Older update logs stored an entire link, for example:
+		# <a href="/e/example.webp">example</a>. Extract the URL target before
+		# sanitizing so the HTML does not become a fake filename.
+		legacy_url = re.search(
+			r'/(?:e|community-emote|emote-preview)/([a-zA-Z0-9_-]+)(?:\.webp|/webp)',
+			note,
+			re.IGNORECASE,
+		)
+		if legacy_url:
+			return legacy_url.group(1).lower()
+
+		if ' -> ' in note:
+			note = note.rsplit(' -> ', 1)[-1].strip()
+
+		# Accept plain names and colon-wrapped emoji syntax while rejecting any
+		# leftover markup or punctuation.
+		colon_name = re.fullmatch(r':?([a-zA-Z0-9_-]+):?', note)
+		if colon_name:
+			return colon_name.group(1).lower()
+
+		name = re.sub(r'[^a-zA-Z0-9_-]', '', note).lower()
 		return name or 'unknown'
 
 	@property
