@@ -1,6 +1,11 @@
-/* Restore the profile-card badge strip to its pre-premium layout. */
+/* Restore the compact profile-card badge strip used before the premium UI pass. */
 .popover-user-profile .popover-badges-div {
-	display: block !important;
+	display: flex !important;
+	flex-flow: row wrap !important;
+	align-items: center !important;
+	align-content: flex-start !important;
+	justify-content: flex-start !important;
+	gap: 4px !important;
 	max-height: 96px !important;
 	margin: 0 !important;
 	padding: 0 4px !important;
@@ -14,28 +19,18 @@
 	content: none !important;
 }
 
-.popover-user-profile .popover-badges-div .row {
-	display: block !important;
-	margin: 0 !important;
-}
-
-.popover-user-profile .popover-badges-div > *,
+.popover-user-profile .popover-badges-div .row,
 .popover-user-profile .popover-badges-div [class*="col-"] {
-	display: inline !important;
-	width: auto !important;
-	max-width: none !important;
-	min-width: 0 !important;
-	min-height: 0 !important;
-	margin: 0 !important;
-	padding: 0 !important;
-	border: 0 !important;
-	background: transparent !important;
-	box-shadow: none !important;
+	display: contents !important;
 }
 
 .popover-user-profile .popover-badges-div a {
-	display: inline !important;
-	width: auto !important;
+	display: inline-flex !important;
+	flex: 0 0 auto !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 38px !important;
+	height: 42px !important;
 	margin: 0 !important;
 	padding: 0 !important;
 	border: 0 !important;
@@ -44,14 +39,14 @@
 }
 
 .popover-user-profile .popover-badges-div img {
-	display: inline-block !important;
-	width: auto !important;
-	height: auto !important;
-	max-width: none !important;
-	max-height: 60px !important;
-	margin: 0 2px 3px 0 !important;
+	display: block !important;
+	flex: 0 0 auto !important;
+	width: 38px !important;
+	height: 42px !important;
+	max-width: 38px !important;
+	max-height: 42px !important;
+	margin: 0 !important;
 	padding: 0 !important;
-	vertical-align: middle !important;
 	object-fit: contain !important;
 	border: 0 !important;
 	border-radius: 0 !important;
@@ -74,10 +69,18 @@
 a.btn-primary,
 a.btn-primary:link,
 a.btn-primary:visited,
+a.btn-primary:hover,
+a.btn-primary:focus,
+a.btn-primary:active,
+.nav-link.btn-primary,
+.btn-primary.text-primary,
 .btn-primary,
 .btn-primary > *,
+.btn-primary .text-primary,
 .btn-primary i,
-.btn-primary span {
+.btn-primary span,
+.btn-primary svg {
 	color: #fff !important;
 	-webkit-text-fill-color: #fff !important;
+	fill: currentColor !important;
 }
