@@ -1,4 +1,5 @@
 from flask import abort, g, redirect, render_template, request
+from sqlalchemy import or_
 
 from files.__main__ import app, cache, limiter
 from files.classes.marsey import Marsey
@@ -14,7 +15,7 @@ from files.helpers.regex import marsey_regex, tags_regex
 from files.routes.wrappers import admin_level_required, get_ID
 
 
-ADMIN_EMOTES_PAGE_SIZE = 100
+ADMIN_EMOTES_PAGE_SIZE = 48
 
 
 def _clear():
@@ -36,8 +37,9 @@ def admin_emotes(v):
 	active_query = g.db.query(Marsey).filter(Marsey.submitter_id == None)
 	if query:
 		pattern = f'%{query}%'
-		pending_query = pending_query.filter(Marsey.name.ilike(pattern))
-		active_query = active_query.filter(Marsey.name.ilike(pattern))
+		search_filter = or_(Marsey.name.ilike(pattern), Marsey.tags.ilike(pattern))
+		pending_query = pending_query.filter(search_filter)
+		active_query = active_query.filter(search_filter)
 
 	pending = pending_query.order_by(Marsey.created_utc.desc()).limit(ADMIN_EMOTES_PAGE_SIZE).all()
 	active_rows = (active_query.order_by(Marsey.name)
@@ -46,9 +48,6 @@ def admin_emotes(v):
 	next_exists = len(active_rows) > ADMIN_EMOTES_PAGE_SIZE
 	active = active_rows[:ADMIN_EMOTES_PAGE_SIZE]
 
-	# Read persistent category configuration once. The old template helper performed
-	# multiple database queries per emote, which blocked the worker until Gunicorn
-	# killed it on larger emote collections.
 	categories = get_emote_categories()
 	category_map = get_emote_category_map()
 	default_category = 'Community Emotes'
