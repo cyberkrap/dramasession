@@ -1,25 +1,22 @@
-/* Restore the compact profile-card badge strip used before the premium UI pass. */
+/* Restore the profile-card badge strip as one horizontal, left/right scrolling row. */
 .popover-user-profile .popover-badges-div {
-	display: grid !important;
-	grid-template-columns: repeat(auto-fill, 38px) !important;
-	grid-auto-flow: row !important;
-	grid-auto-rows: 42px !important;
+	display: flex !important;
+	flex-flow: row nowrap !important;
 	align-items: center !important;
-	align-content: start !important;
-	justify-content: start !important;
+	justify-content: flex-start !important;
 	gap: 4px !important;
 	width: 100% !important;
 	min-width: 0 !important;
 	max-width: 100% !important;
-	height: 96px !important;
-	max-height: 96px !important;
+	height: 58px !important;
+	max-height: 58px !important;
 	margin: 0 !important;
-	padding: 4px 10px 4px 4px !important;
-	overflow-x: hidden !important;
-	overflow-y: auto !important;
-	overscroll-behavior: contain;
+	padding: 4px 6px 8px !important;
+	overflow-x: auto !important;
+	overflow-y: hidden !important;
+	overscroll-behavior-x: contain;
 	scrollbar-gutter: stable;
-	white-space: normal !important;
+	white-space: nowrap !important;
 	background: transparent !important;
 	border: 0 !important;
 	box-sizing: border-box !important;
@@ -30,7 +27,7 @@
 	content: none !important;
 }
 
-/* Flatten every legacy layout wrapper so each badge becomes a grid item. */
+/* Flatten legacy rows and columns so every badge joins the same horizontal strip. */
 .popover-user-profile .popover-badges-div .row,
 .popover-user-profile .popover-badges-div [class*="col-"],
 .popover-user-profile .popover-badges-div > div,
@@ -43,7 +40,7 @@
 
 .popover-user-profile .popover-badges-div a {
 	display: inline-flex !important;
-	flex: none !important;
+	flex: 0 0 38px !important;
 	align-items: center !important;
 	justify-content: center !important;
 	width: 38px !important;
@@ -59,7 +56,7 @@
 
 .popover-user-profile .popover-badges-div img {
 	display: block !important;
-	flex: none !important;
+	flex: 0 0 38px !important;
 	width: 38px !important;
 	height: 42px !important;
 	min-width: 38px !important;
@@ -86,7 +83,7 @@
 }
 
 .popover-user-profile .popover-badges-div::-webkit-scrollbar {
-	width: 8px;
+	height: 7px;
 }
 
 .popover-user-profile .popover-badges-div::-webkit-scrollbar-track {
