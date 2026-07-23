@@ -115,6 +115,28 @@
 		});
 	}
 
+	function addHeaderActivityLinks() {
+		const menu = document.querySelector('#header--dropdown-menu > .px-2');
+		if (!menu || menu.querySelector('[data-account-activity-link]')) return;
+		const profile = menu.querySelector('a.dropdown-item[href^="/@"]');
+		if (!profile) return;
+
+		const base = profile.getAttribute('href').replace(/\/$/, '');
+		const posts = document.createElement('a');
+		posts.className = 'dropdown-item';
+		posts.href = `${base}/posts`;
+		posts.dataset.accountActivityLink = 'posts';
+		posts.innerHTML = '<i class="fas fa-file fa-fw mr-3"></i>My posts';
+
+		const comments = document.createElement('a');
+		comments.className = 'dropdown-item';
+		comments.href = `${base}/comments`;
+		comments.dataset.accountActivityLink = 'comments';
+		comments.innerHTML = '<i class="fas fa-comments fa-fw mr-3"></i>My comments';
+
+		profile.after(posts, comments);
+	}
+
 	async function addSupportSummary() {
 		const details = document.getElementById('profile--info');
 		if (!details || details.querySelector('[data-profile-support-summary]')) return;
@@ -153,6 +175,7 @@
 		applyConfiguredNameColor(document);
 		document.querySelectorAll(triggerSelector).forEach(initializePopover);
 		renameActivity();
+		addHeaderActivityLinks();
 		addSupportSummary();
 
 		const observer = new MutationObserver(mutations => {
