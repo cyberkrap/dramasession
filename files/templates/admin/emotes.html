@@ -6,6 +6,12 @@
 	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
 	{% if error %}{{macros.alert(error, true)}}{% endif %}
 
+	<form method="get" action="/admin/emotes" class="d-flex gap-2 mb-4">
+		<input class="form-control" name="q" value="{{q}}" maxlength="64" placeholder="Search emote names">
+		<button class="btn btn-secondary" type="submit">Search</button>
+		{% if q %}<a class="btn btn-outline-secondary" href="/admin/emotes">Clear</a>{% endif %}
+	</form>
+
 	<section class="card mb-4"><div class="card-body">
 		<h5>Categories</h5>
 		<form method="post" action="/admin/emotes/categories" class="d-flex gap-2 mb-3">
@@ -38,23 +44,29 @@
 			<button class="btn btn-success" type="submit">Approve</button>
 		</form>
 	</div></div>
-	{% else %}<p class="text-muted">No pending emotes.</p>{% endfor %}
+	{% else %}<p class="text-muted">No pending emotes{% if q %} matching “{{q}}”{% endif %}.</p>{% endfor %}
 
 	<h4>Active</h4>
 	{% for emote in active %}
 	<div class="card mb-3"><div class="card-body">
-		<div class="d-flex align-items-center gap-3 mb-3"><img src="{% if custom_emote_exists(emote.name) %}/community-emote/{{emote.name}}.webp{% else %}/e/{{emote.name}}.webp{% endif %}" width="80" alt="{{emote.name}}"><strong>:{{emote.name}}:</strong></div>
+		<div class="d-flex align-items-center gap-3 mb-3"><img src="{% if emote.name in custom_emotes %}/community-emote/{{emote.name}}.webp{% else %}/e/{{emote.name}}.webp{% endif %}" width="80" alt="{{emote.name}}"><strong>:{{emote.name}}:</strong></div>
 		<form method="post" action="/admin/emotes/{{emote.name}}/update" class="row g-2 align-items-end">
 			<input type="hidden" name="formkey" value="{{v|formkey}}">
 			<div class="col-md-3"><label>Name</label><input class="form-control" name="name" value="{{emote.name}}" required></div>
 			<div class="col-md-4"><label>Tags</label><input class="form-control" name="tags" value="{{emote.tags}}"></div>
-			<div class="col-md-3"><label>Category</label><select class="form-control" name="category">{% for category in categories %}<option {% if category == category_for_emote(emote.name) %}selected{% endif %}>{{category}}</option>{% endfor %}</select></div>
+			<div class="col-md-3"><label>Category</label><select class="form-control" name="category">{% for category in categories %}<option {% if category == emote_categories.get(emote.name, 'Community Emotes') %}selected{% endif %}>{{category}}</option>{% endfor %}</select></div>
 			<div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Update</button></div>
 		</form>
 		<form method="post" action="/admin/emotes/{{emote.name}}/delete" class="mt-2" onsubmit="return confirm('Delete this emote?')">
 			<input type="hidden" name="formkey" value="{{v|formkey}}"><button class="btn btn-danger" type="submit">Delete</button>
 		</form>
 	</div></div>
-	{% else %}<p class="text-muted">No active custom emotes.</p>{% endfor %}
+	{% else %}<p class="text-muted">No active emotes{% if q %} matching “{{q}}”{% endif %}.</p>{% endfor %}
+
+	<nav class="d-flex justify-content-between align-items-center mt-4">
+		{% if page > 1 %}<a class="btn btn-secondary" href="/admin/emotes?page={{page - 1}}{% if q %}&q={{q|urlencode}}{% endif %}">Previous</a>{% else %}<span></span>{% endif %}
+		<span class="text-muted">Page {{page}}</span>
+		{% if next_exists %}<a class="btn btn-secondary" href="/admin/emotes?page={{page + 1}}{% if q %}&q={{q|urlencode}}{% endif %}">Next</a>{% else %}<span></span>{% endif %}
+	</nav>
 </div>
 {% endblock %}
