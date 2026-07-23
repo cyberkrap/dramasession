@@ -1,0 +1,335 @@
+/* Premium profile popover layout. Loaded after legacy popover fixes. */
+.popover.show:has(.popover-user-profile) {
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, .16) !important;
+	border-radius: 16px !important;
+	background: rgba(8, 8, 12, .96) !important;
+	box-shadow: 0 28px 80px rgba(0, 0, 0, .62), 0 0 0 1px rgba(255, 51, 77, .09) !important;
+	backdrop-filter: blur(22px) saturate(135%);
+}
+
+.popover.show:has(.popover-user-profile) .popover-arrow::before,
+.popover.show:has(.popover-user-profile) .popover-arrow::after {
+	border-top-color: rgba(15, 15, 21, .98) !important;
+	border-bottom-color: rgba(15, 15, 21, .98) !important;
+}
+
+.obs-profile-popover-enhanced .popover-user-profile,
+.popover-user-profile {
+	position: relative;
+	isolation: isolate;
+	background:
+		radial-gradient(circle at 8% 16%, rgba(155, 114, 255, .09), transparent 31%),
+		linear-gradient(155deg, rgba(17, 17, 24, .98), rgba(7, 7, 10, .99)) !important;
+}
+
+.popover-user-profile .pop-banner {
+	position: relative;
+	height: 172px !important;
+	filter: saturate(1.08) contrast(1.03);
+}
+
+.popover-user-profile::after {
+	content: "";
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 174px;
+	pointer-events: none;
+	background:
+		linear-gradient(180deg, rgba(0, 0, 0, .06), rgba(8, 8, 12, .2) 48%, rgba(8, 8, 12, .98) 100%),
+		linear-gradient(105deg, rgba(255, 51, 77, .1), transparent 42%, rgba(45, 212, 231, .07));
+}
+
+.popover-user-profile .popover-profile-identity {
+	position: relative;
+	z-index: 3;
+	grid-template-columns: 92px minmax(0, 1fr) !important;
+	gap: 16px !important;
+	margin-top: -50px !important;
+	padding: 0 18px 17px !important;
+	border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.popover-user-profile .popover-profile-identity .profile-pic-75-wrapper {
+	width: 92px !important;
+	height: 92px !important;
+	border: 4px solid rgba(10, 10, 14, .96) !important;
+	background: #0a0a0e !important;
+	box-shadow: 0 14px 34px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .16) !important;
+	transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.popover-user-profile .popover-profile-identity .profile-pic-75-wrapper:hover {
+	transform: translateY(-2px) scale(1.025);
+	box-shadow: 0 18px 42px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 51, 77, .42) !important;
+}
+
+.popover-user-profile .popover-profile-identity .profile-pic-75,
+.popover-user-profile .popover-profile-identity .profile-pic-75-hat {
+	width: 84px !important;
+	height: 84px !important;
+}
+
+.popover-user-profile .popover-profile-identity > .text-truncate {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	min-width: 0;
+	padding-top: 54px !important;
+}
+
+.popover-user-profile .pop-username {
+	max-width: 100%;
+	margin: 0 0 7px !important;
+	font-size: 1.18rem !important;
+	font-weight: 850 !important;
+	letter-spacing: -.018em;
+	text-shadow: 0 2px 14px rgba(0, 0, 0, .48);
+}
+
+.popover-user-profile .popover-profile-meta {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 6px !important;
+	width: 100%;
+	margin: 0 !important;
+}
+
+.popover-user-profile .popover-profile-meta > * {
+	display: inline-flex;
+	align-items: center;
+	min-height: 25px;
+	padding: 4px 8px;
+	color: #d8d7df !important;
+	font-size: .72rem !important;
+	font-weight: 650;
+	line-height: 1.15;
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, .055);
+}
+
+.popover-user-profile .popover-profile-meta .obs-meta-joined {
+	order: 10;
+	flex-basis: auto;
+	margin-top: 3px;
+	color: #aaa8b2 !important;
+	border-color: transparent;
+	background: transparent;
+	padding-left: 0;
+}
+
+.popover-user-profile .popover-profile-meta .obs-meta-joined::before {
+	content: "\f073";
+	margin-right: 6px;
+	color: #ff7a65;
+	font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+	font-weight: 900;
+}
+
+.popover-user-profile .obs-popover-section {
+	position: relative;
+	margin: 0 !important;
+	padding: 38px 18px 16px !important;
+	border-bottom: 1px solid rgba(255, 255, 255, .09);
+	background: rgba(255, 255, 255, .018);
+}
+
+.popover-user-profile .obs-popover-section::before {
+	content: attr(data-obs-section-label);
+	position: absolute;
+	top: 14px;
+	left: 18px;
+	color: #aaa8b2;
+	font-size: .65rem;
+	font-weight: 850;
+	letter-spacing: .12em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.popover-user-profile .popover-bio-div {
+	max-height: 190px !important;
+	overflow: auto;
+	font-size: .86rem;
+	line-height: 1.52;
+}
+
+.popover-user-profile .popover-bio-div:empty {
+	display: none;
+}
+
+.popover-user-profile .popover-badges-div {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+	gap: 8px !important;
+	max-height: 142px !important;
+	overflow-y: auto;
+}
+
+.popover-user-profile .popover-badges-div > a,
+.popover-user-profile .popover-badges-div > img {
+	display: grid;
+	place-items: center;
+	min-width: 0;
+	min-height: 48px;
+	border: 1px solid rgba(255, 255, 255, .075);
+	border-radius: 10px;
+	background: linear-gradient(145deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .018));
+	transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.popover-user-profile .popover-badges-div > a:hover,
+.popover-user-profile .popover-badges-div > img:hover,
+.popover-user-profile .popover-badges-div > img:focus {
+	z-index: 2;
+	border-color: rgba(255, 51, 77, .42);
+	background: linear-gradient(145deg, rgba(255, 51, 77, .12), rgba(155, 114, 255, .06));
+	box-shadow: 0 8px 20px rgba(0, 0, 0, .28), 0 0 18px rgba(255, 51, 77, .09);
+	transform: translateY(-3px) scale(1.04);
+}
+
+.popover-user-profile .popover-badges-div img {
+	max-width: 48px;
+	max-height: 52px;
+	object-fit: contain;
+}
+
+.popover-user-profile .popover-profile-stats {
+	display: grid !important;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 8px !important;
+	padding: 13px 14px !important;
+	border-top: 0 !important;
+	background: linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(0, 0, 0, .12)) !important;
+}
+
+.popover-user-profile .pop-profile-stat {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	min-width: 0 !important;
+	min-height: 55px;
+	padding: 8px 6px;
+	text-align: center;
+	border: 1px solid rgba(255, 255, 255, .075);
+	border-radius: 9px;
+	background: rgba(255, 255, 255, .032);
+}
+
+.popover-user-profile .pop-profile-stat:hover {
+	color: #fff !important;
+	border-color: rgba(45, 212, 231, .3);
+	background: rgba(45, 212, 231, .07);
+	transform: translateY(-1px);
+}
+
+.popover-user-profile .pop-profile-stat > :first-child,
+.popover-user-profile .pop-profile-stat strong {
+	color: #fff;
+	font-size: .93rem;
+	font-weight: 850;
+	line-height: 1.15;
+}
+
+.popover-user-profile .pop-profile-stat span {
+	margin-top: 3px;
+	color: #96949e;
+	font-size: .57rem !important;
+	font-weight: 750;
+	letter-spacing: .035em;
+	line-height: 1.05;
+	text-transform: uppercase;
+}
+
+.popover-user-profile .pop-view_more {
+	grid-column: 1 / -1;
+	justify-content: center;
+	min-height: 40px !important;
+	margin: 1px 0 0 !important;
+	padding: 9px 12px !important;
+	color: #fff !important;
+	font-size: .76rem;
+	font-weight: 800;
+	border: 1px solid rgba(255, 51, 77, .28);
+	border-radius: 9px !important;
+	background: linear-gradient(135deg, rgba(255, 51, 77, .18), rgba(155, 114, 255, .08));
+}
+
+.popover-user-profile .pop-view_more:hover,
+.popover-user-profile .pop-view_more:focus {
+	border-color: rgba(255, 51, 77, .55);
+	background: linear-gradient(135deg, rgba(255, 51, 77, .32), rgba(155, 114, 255, .14)) !important;
+	box-shadow: 0 8px 22px rgba(255, 51, 77, .12);
+	transform: translateY(-1px);
+}
+
+.tooltip .tooltip-inner {
+	max-width: 270px;
+	padding: 8px 10px;
+	color: #f7f7fa;
+	font-size: .72rem;
+	font-weight: 600;
+	line-height: 1.35;
+	border: 1px solid rgba(255, 255, 255, .12);
+	border-radius: 8px;
+	background: rgba(13, 13, 18, .97);
+	box-shadow: 0 10px 32px rgba(0, 0, 0, .44);
+}
+
+@media (max-width: 575.98px) {
+	.popover.show:has(.popover-user-profile) {
+		width: min(94vw, 480px) !important;
+		max-width: min(94vw, 480px) !important;
+	}
+
+	.popover-user-profile .pop-banner {
+		height: 132px !important;
+	}
+
+	.popover-user-profile::after {
+		height: 134px;
+	}
+
+	.popover-user-profile .popover-profile-identity {
+		grid-template-columns: 74px minmax(0, 1fr) !important;
+		gap: 12px !important;
+		margin-top: -38px !important;
+		padding: 0 13px 13px !important;
+	}
+
+	.popover-user-profile .popover-profile-identity .profile-pic-75-wrapper {
+		width: 74px !important;
+		height: 74px !important;
+	}
+
+	.popover-user-profile .popover-profile-identity .profile-pic-75,
+	.popover-user-profile .popover-profile-identity .profile-pic-75-hat {
+		width: 66px !important;
+		height: 66px !important;
+	}
+
+	.popover-user-profile .popover-profile-identity > .text-truncate {
+		padding-top: 42px !important;
+	}
+
+	.popover-user-profile .pop-username {
+		font-size: 1rem !important;
+	}
+
+	.popover-user-profile .popover-profile-stats {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.popover-user-profile .obs-popover-section {
+		padding-left: 13px !important;
+		padding-right: 13px !important;
+	}
+
+	.popover-user-profile .obs-popover-section::before {
+		left: 13px;
+	}
+}
