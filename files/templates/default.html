@@ -2,6 +2,8 @@
 {% block body_attributes %}id="{% if request.path != '/comments' %}{% block pagetype %}frontpage{% endblock %}{% endif %}"{% endblock %}
 {% block body %}
 <link rel="stylesheet" href="{{'css/profile_popover_fixes.css' | asset}}">
+<link rel="stylesheet" href="{{'css/obsession_premium_ui.css' | asset}}">
+<link rel="stylesheet" href="{{'css/obsession_popover_premium.css' | asset}}">
 {% block banner %}
 	{% include "modals/expanded_image.html" %}
 	{% if err or '@' not in request.path %}
