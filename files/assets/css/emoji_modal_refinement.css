@@ -1,0 +1,110 @@
+#emojiModal #emoji-modal-tabs-container {
+	min-width: 0;
+	width: 100%;
+	overflow: hidden;
+}
+
+#emojiModal #emoji-modal-tabs {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: .25rem;
+	margin: 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: thin;
+}
+
+#emojiModal #emoji-modal-tabs .nav-link {
+	padding: .5rem .75rem;
+	border: 1px solid transparent;
+	border-radius: .45rem;
+	background: transparent !important;
+	color: rgba(255, 255, 255, .82) !important;
+	font-weight: 600;
+	line-height: 1.2;
+	white-space: nowrap;
+	opacity: 1;
+	box-shadow: none !important;
+}
+
+#emojiModal #emoji-modal-tabs .nav-link:hover,
+#emojiModal #emoji-modal-tabs .nav-link:focus-visible {
+	border-color: rgba(255, 255, 255, .14);
+	background: rgba(255, 255, 255, .07) !important;
+	color: #fff !important;
+}
+
+#emojiModal #emoji-modal-tabs .nav-link.active {
+	border-color: #ef4560;
+	background: #c91835 !important;
+	color: #fff !important;
+}
+
+#emojiModal #tab-content {
+	padding: .8rem 1rem !important;
+	text-align: left !important;
+}
+
+#emojiModal #tab-content > div {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .35rem;
+	width: 100%;
+}
+
+#emojiModal .emoji2 {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	min-width: 0 !important;
+	width: auto !important;
+	height: auto !important;
+	margin: 0 !important;
+	padding: .2rem !important;
+	border: 0 !important;
+	border-radius: .35rem !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	line-height: 0;
+	appearance: none;
+}
+
+#emojiModal .emoji2:hover,
+#emojiModal .emoji2:focus-visible {
+	background: rgba(255, 255, 255, .07) !important;
+	box-shadow: none !important;
+}
+
+#emojiModal .emoji2:focus-visible {
+	outline: 2px solid rgba(239, 69, 96, .9);
+	outline-offset: 1px;
+}
+
+#emojiModal .emoji2 img {
+	display: block;
+	width: 64px !important;
+	height: 64px !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	object-fit: contain;
+}
+
+@media (max-width: 575.98px) {
+	#emojiModal #emoji-modal-tabs .nav-link {
+		padding: .45rem .6rem;
+		font-size: .875rem;
+	}
+
+	#emojiModal #tab-content {
+		padding: .65rem .75rem !important;
+	}
+
+	#emojiModal .emoji2 img {
+		width: 56px !important;
+		height: 56px !important;
+	}
+}
