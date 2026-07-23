@@ -41,8 +41,11 @@ def admin_emotes(v):
 		pending_query = pending_query.filter(search_filter)
 		active_query = active_query.filter(search_filter)
 
-	pending = pending_query.order_by(Marsey.created_utc.desc()).limit(ADMIN_EMOTES_PAGE_SIZE).all()
-	active_rows = (active_query.order_by(Marsey.name)
+	pending = (pending_query
+		.order_by(Marsey.created_utc.desc(), Marsey.name.asc())
+		.limit(ADMIN_EMOTES_PAGE_SIZE).all())
+	active_rows = (active_query
+		.order_by(Marsey.created_utc.desc(), Marsey.name.asc())
 		.offset((page - 1) * ADMIN_EMOTES_PAGE_SIZE)
 		.limit(ADMIN_EMOTES_PAGE_SIZE + 1).all())
 	next_exists = len(active_rows) > ADMIN_EMOTES_PAGE_SIZE
