@@ -87,7 +87,12 @@ def admin_emote_approve(name, v):
 	marsey.submitter_id = None
 	g.db.add(marsey)
 	set_emote_category(marsey.name, request.form.get('category', 'Community Emotes'), v.username)
-	g.db.add(ModAction(kind='approve_marsey', user_id=v.id, _note=marsey.name))
+	g.db.add(ModAction(
+		kind='approve_marsey',
+		user_id=v.id,
+		target_user_id=marsey.author_id,
+		_note=marsey.name,
+	))
 	_clear()
 	return redirect('/admin/emotes?msg=Emote approved.')
 
@@ -114,7 +119,7 @@ def admin_emote_update(name, v):
 		marsey.tags = tags
 	g.db.add(marsey)
 	set_emote_category(new_name, category, v.username)
-	g.db.add(ModAction(kind='update_marsey', user_id=v.id, _note=f'{old_name} -> {new_name}'))
+	g.db.add(ModAction(kind='update_marsey', user_id=v.id, _note=new_name))
 	_clear()
 	return redirect('/admin/emotes?msg=Emote updated.')
 
@@ -125,11 +130,24 @@ def admin_emote_update(name, v):
 def admin_emote_delete(name, v):
 	marsey = g.db.get(Marsey, name.lower())
 	if not marsey: abort(404)
-	remove_emote_files(marsey.name)
+	was_pending = marsey.submitter_id is not None
+	emote_name = marsey.name
+	author_id = marsey.author_id
+	remove_emote_files(emote_name)
 	g.db.delete(marsey)
-	g.db.add(ModAction(kind='delete_marsey', user_id=v.id, _note=marsey.name))
+	if was_pending:
+		g.db.add(ModAction(
+			kind='reject_marsey',
+			user_id=v.id,
+			target_user_id=author_id,
+			_note=emote_name,
+		))
+		message = 'Emote rejected.'
+	else:
+		g.db.add(ModAction(kind='delete_marsey', user_id=v.id, _note=emote_name))
+		message = 'Emote deleted.'
 	_clear()
-	return redirect('/admin/emotes?msg=Emote deleted.')
+	return redirect(f'/admin/emotes?msg={message}')
 
 
 @app.post('/admin/emotes/categories')
