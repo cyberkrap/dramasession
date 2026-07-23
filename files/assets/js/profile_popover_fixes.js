@@ -75,6 +75,54 @@
 		return visible.length ? visible[visible.length - 1] : null;
 	}
 
+	function sectionize(element, label) {
+		if (!element) return;
+		element.classList.add('obs-popover-section');
+		element.dataset.obsSectionLabel = label;
+	}
+
+	function markProfileMeta(popover) {
+		const meta = popover.querySelector('.popover-profile-meta');
+		if (!meta) return;
+		Array.from(meta.children).forEach(item => {
+			const text = item.textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+			if (text.startsWith('joined') || text.includes('joined ')) {
+				item.classList.add('obs-meta-joined');
+			}
+		});
+	}
+
+	function initializeBadgeTooltips(popover) {
+		if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) return;
+		popover.querySelectorAll('.popover-badges-div img').forEach(badge => {
+			const title = (badge.getAttribute('title') || badge.getAttribute('alt') || '').trim();
+			if (!title) return;
+			badge.setAttribute('title', title);
+			badge.setAttribute('tabindex', '0');
+			badge.setAttribute('data-bs-toggle', 'tooltip');
+			badge.setAttribute('data-bs-placement', 'top');
+			bootstrap.Tooltip.getOrCreateInstance(badge, {
+				container: 'body',
+				trigger: 'hover focus',
+			});
+		});
+	}
+
+	function enhancePopoverLayout(popover) {
+		if (!popover || popover.dataset.obsPremiumReady === '1') return;
+		popover.dataset.obsPremiumReady = '1';
+		popover.classList.add('obs-profile-popover-enhanced');
+		markProfileMeta(popover);
+		sectionize(popover.querySelector('.popover-bio-div'), 'About');
+		sectionize(popover.querySelector('.popover-badges-div'), 'Badges');
+		initializeBadgeTooltips(popover);
+
+		const view = popover.querySelector('.pop-view_more');
+		if (view && !view.querySelector('.fa-arrow-right')) {
+			view.insertAdjacentHTML('beforeend', '<i class="fas fa-arrow-right ml-2" aria-hidden="true"></i>');
+		}
+	}
+
 	function hydratePopover(trigger) {
 		const popover = visiblePopoverFor(trigger);
 		if (!popover) return;
@@ -95,6 +143,7 @@
 				username.style.setProperty('background-image', 'none', 'important');
 			}
 		}
+		enhancePopoverLayout(popover);
 		popover.addEventListener('pointerdown', event => event.stopPropagation());
 		popover.addEventListener('click', event => event.stopPropagation());
 	}
