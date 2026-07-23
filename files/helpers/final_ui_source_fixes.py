@@ -70,6 +70,17 @@ def patch_asset_submission_directories_source():
 		if source != original_source: _atomic_write(_ASSET_SUBMISSIONS_PATH, source)
 
 
+def patch_asset_submission_removal_source():
+	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
+		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+		source = _ASSET_SUBMISSIONS_PATH.read_text(encoding="utf-8")
+		old = '''\tname = asset.name\n\tif v.id != asset.submitter_id:\n\t\tmsg = f"@{v.username} has rejected a {type_name} you submitted: `'{name}'`"\n\t\tsend_repeatable_notification(asset.submitter_id, msg)\n\tg.db.delete(asset)\n\tos.remove(f"/asset_submissions/{type_name}s/{name}.webp")\n\tos.remove(f"/asset_submissions/{type_name}s/{name}")\n\treturn {"message": f"'{name}' removed!"}\n'''
+		new = '''\tname = asset.name\n\tis_admin_rejection = cls == Marsey and v.id != asset.submitter_id\n\tif v.id != asset.submitter_id:\n\t\tmsg = f"@{v.username} has rejected a {type_name} you submitted: `'{name}'`"\n\t\tsend_repeatable_notification(asset.submitter_id, msg)\n\tif is_admin_rejection:\n\t\tg.db.add(ModAction(kind='reject_marsey', user_id=v.id, target_user_id=asset.author_id, _note=name))\n\tg.db.delete(asset)\n\tif cls == Marsey:\n\t\tfrom files.helpers.emote_management import remove_emote_files\n\t\tremove_emote_files(name)\n\telse:\n\t\tfor candidate in (f"/asset_submissions/{type_name}s/{name}.webp", f"/asset_submissions/{type_name}s/{name}"):\n\t\t\ttry: os.remove(candidate)\n\t\t\texcept FileNotFoundError: pass\n\treturn {"message": f"'{name}' removed!"}\n'''
+		if old in source: source = source.replace(old, new, 1)
+		elif new not in source: raise RuntimeError("Could not locate the asset-removal block")
+		_atomic_write(_ASSET_SUBMISSIONS_PATH, source)
+
+
 def patch_custom_emote_sources():
 	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
 		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
