@@ -1,3 +1,6 @@
+import time
+from functools import wraps
+
 from flask import abort, g, redirect, render_template, request
 from sqlalchemy import or_
 
@@ -23,6 +26,30 @@ def _clear():
 	cache.delete(MARSEYS_CACHE_KEY)
 
 
+def _active_emote_sort_times():
+	"""Return the best known approval time for each active emote.
+
+	New approval records are authoritative. Older approvals made through the
+	legacy submit page did not create approval records, so their latest update
+	action is used as a compatibility fallback before the original submission
+	timestamp.
+	"""
+	approval_times = {}
+	legacy_update_times = {}
+	actions = (g.db.query(ModAction)
+		.filter(ModAction.kind.in_(('approve_marsey', 'update_marsey')))
+		.order_by(ModAction.created_utc.desc()).all())
+	for action in actions:
+		name = action.emoji_name_raw
+		if not name or name == 'unknown':
+			continue
+		if action.kind == 'approve_marsey':
+			approval_times.setdefault(name, action.created_utc or 0)
+		else:
+			legacy_update_times.setdefault(name, action.created_utc or 0)
+	return approval_times, legacy_update_times
+
+
 @app.get('/admin/emotes')
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
 @admin_level_required(PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'])
@@ -44,12 +71,21 @@ def admin_emotes(v):
 	pending = (pending_query
 		.order_by(Marsey.created_utc.desc(), Marsey.name.asc())
 		.limit(ADMIN_EMOTES_PAGE_SIZE).all())
-	active_rows = (active_query
-		.order_by(Marsey.created_utc.desc(), Marsey.name.asc())
-		.offset((page - 1) * ADMIN_EMOTES_PAGE_SIZE)
-		.limit(ADMIN_EMOTES_PAGE_SIZE + 1).all())
-	next_exists = len(active_rows) > ADMIN_EMOTES_PAGE_SIZE
-	active = active_rows[:ADMIN_EMOTES_PAGE_SIZE]
+
+	approval_times, legacy_update_times = _active_emote_sort_times()
+	active_all = active_query.all()
+	active_all.sort(key=lambda emote: emote.name)
+	active_all.sort(
+		key=lambda emote: approval_times.get(
+			emote.name,
+			legacy_update_times.get(emote.name, emote.created_utc or 0),
+		),
+		reverse=True,
+	)
+	start = (page - 1) * ADMIN_EMOTES_PAGE_SIZE
+	end = start + ADMIN_EMOTES_PAGE_SIZE
+	active = active_all[start:end]
+	next_exists = len(active_all) > end
 
 	categories = get_emote_categories()
 	category_map = get_emote_category_map()
@@ -88,6 +124,7 @@ def admin_emote_approve(name, v):
 	try: approve_emote_files(marsey.name)
 	except FileNotFoundError: abort(409, 'Uploaded emote file is missing.')
 	marsey.submitter_id = None
+	marsey.created_utc = int(time.time())
 	g.db.add(marsey)
 	set_emote_category(marsey.name, request.form.get('category', 'Community Emotes'), v.username)
 	g.db.add(ModAction(
@@ -181,3 +218,43 @@ def admin_emote_category_delete(v):
 	except ValueError as exc: return redirect(f'/admin/emotes?error={str(exc)}')
 	_clear()
 	return redirect('/admin/emotes?msg=Category deleted.')
+
+
+def _install_legacy_approval_tracking():
+	"""Stamp approvals performed from the older /submit/marseys interface."""
+	original = app.view_functions.get('approve_marsey')
+	if not original or getattr(original, '_tracks_emote_approval', False):
+		return
+
+	@wraps(original)
+	def tracked(*args, **kwargs):
+		response = original(*args, **kwargs)
+		approved_name = (request.values.get('name') or kwargs.get('name') or '').lower().strip()
+		marsey = g.db.query(Marsey).filter_by(name=approved_name).one_or_none()
+		if marsey and marsey.submitter_id is None:
+			now = int(time.time())
+			marsey.created_utc = now
+			g.db.add(marsey)
+			actor = getattr(g, 'v', None)
+			if actor:
+				recent = (g.db.query(ModAction.id)
+					.filter(
+						ModAction.kind == 'approve_marsey',
+						ModAction._note == marsey.name,
+						ModAction.created_utc >= now - 10,
+					).first())
+				if not recent:
+					g.db.add(ModAction(
+						kind='approve_marsey',
+						user_id=actor.id,
+						target_user_id=marsey.author_id,
+						_note=marsey.name,
+					))
+		_clear()
+		return response
+
+	tracked._tracks_emote_approval = True
+	app.view_functions['approve_marsey'] = tracked
+
+
+_install_legacy_approval_tracking()
