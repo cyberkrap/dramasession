@@ -5,6 +5,97 @@
 	{% set alts = get_alt_graph(u.id) %}
 {% endif %}
 
+<style nonce="{{g.nonce}}">
+body#userpage .profile-badges {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: center !important;
+	gap: 10px !important;
+}
+
+body#userpage .profile-badge-glare {
+	--profile-badge-glare-angle: -30deg;
+	--profile-badge-glare-duration: 850ms;
+	--profile-badge-glare-size: 250%;
+	position: relative;
+	display: inline-grid !important;
+	flex: 0 0 auto !important;
+	place-items: center;
+	width: 55px !important;
+	height: 60px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden;
+	isolation: isolate;
+	color: inherit !important;
+	text-decoration: none !important;
+	border: 0 !important;
+	border-radius: 10px;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+body#userpage .profile-badge-glare::before {
+	content: "";
+	position: absolute;
+	z-index: 2;
+	inset: 0;
+	pointer-events: none;
+	background: linear-gradient(
+		var(--profile-badge-glare-angle),
+		rgba(255, 255, 255, 0) 60%,
+		rgba(255, 255, 255, .5) 70%,
+		rgba(255, 255, 255, 0) 82%,
+		rgba(255, 255, 255, 0) 100%
+	);
+	background-repeat: no-repeat;
+	background-size: var(--profile-badge-glare-size) var(--profile-badge-glare-size);
+	background-position: -100% -100%;
+	transition: background-position var(--profile-badge-glare-duration) ease;
+}
+
+body#userpage .profile-badge-glare:hover::before,
+body#userpage .profile-badge-glare:focus-visible::before {
+	background-position: 100% 100%;
+}
+
+body#userpage .profile-badge-glare > img {
+	position: relative;
+	z-index: 1;
+	display: block !important;
+	width: 55px !important;
+	height: 60px !important;
+	max-width: 55px !important;
+	max-height: 60px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	object-fit: contain !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	transition: transform .18s ease, filter .18s ease;
+}
+
+body#userpage .profile-badge-glare:hover > img,
+body#userpage .profile-badge-glare:focus-visible > img {
+	filter: drop-shadow(0 5px 10px rgba(0, 0, 0, .35));
+	transform: translateY(-1px) scale(1.04);
+}
+
+body#userpage .profile-badge-glare:focus-visible {
+	outline: 2px solid rgba(255, 255, 255, .72) !important;
+	outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body#userpage .profile-badge-glare::before,
+	body#userpage .profile-badge-glare > img {
+		transition: none !important;
+	}
+}
+</style>
+
 {% block desktopUserBanner %}
 <section class="profile-shell">
 	{% set profile_hero_background = u.profile_background or u.banner_url %}
@@ -109,9 +200,13 @@
 					<h2>Badges</h2>
 					<div id="profile--badges" class="profile-badges">
 						{% for b in u.badges %}
-							{% if b.url %}<a rel="nofollow noopener" href="{{b.url}}">{% endif %}
-							<img class="contain" alt="{{b.name}}" width="55" height="60" loading="lazy" src="{{b.path}}?b=6" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{b.text}}" {% if b.until %}data-until="{{b.until}}" data-nonce="{{g.nonce}}" data-onmouseover="badge_timestamp(this)"{% endif %}>
-							{% if b.url %}</a>{% endif %}
+							{% if b.url %}
+								<a rel="nofollow noopener" href="{{b.url}}" class="profile-badge-glare">
+							{% else %}
+								<span class="profile-badge-glare">
+							{% endif %}
+								<img class="contain" alt="{{b.name}}" width="55" height="60" loading="lazy" src="{{b.path}}?b=6" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{b.text}}" {% if b.until %}data-until="{{b.until}}" data-nonce="{{g.nonce}}" data-onmouseover="badge_timestamp(this)"{% endif %}>
+							{% if b.url %}</a>{% else %}</span>{% endif %}
 						{% endfor %}
 					</div>
 				</section>
