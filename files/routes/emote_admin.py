@@ -2,7 +2,7 @@ from pathlib import Path
 
 from flask import abort, g, send_file
 
-from files.__main__ import app
+from files.__main__ import app, limiter
 from files.classes import Marsey
 from files.helpers.config.const import PERMS
 from files.helpers.emote_management import (
@@ -17,7 +17,8 @@ from files.routes.static import get_emojis
 from files.routes.wrappers import auth_required
 
 
-STATIC_EMOTE_DIR = Path('files/assets/images/emojis')
+FILES_ROOT = Path(__file__).resolve().parents[1]
+STATIC_EMOTE_DIR = FILES_ROOT / 'assets' / 'images' / 'emojis'
 
 
 def enhanced_emoji_list():
@@ -56,6 +57,7 @@ def _serve_pending_emote(v, name):
 
 
 @app.get('/pending-emote/<name>.webp')
+@limiter.exempt
 @auth_required
 def pending_emote_preview(v, name):
 	"""Serve pending previews through an application route that nginx does not intercept."""
@@ -63,6 +65,7 @@ def pending_emote_preview(v, name):
 
 
 @app.get('/asset_submissions/marseys/<name>.webp')
+@limiter.exempt
 @auth_required
 def pending_emote_file(v, name):
 	"""Backward-compatible pending preview URL."""
@@ -70,6 +73,7 @@ def pending_emote_file(v, name):
 
 
 @app.get('/emote-preview/<name>.webp')
+@limiter.exempt
 def active_emote_preview(name):
 	"""Serve either persistent or bundled active emotes through one stable URL."""
 	name = str(name or '').lower().strip()
@@ -88,13 +92,15 @@ def active_emote_preview(name):
 
 
 @app.get('/community-emote/<name>.webp')
+@limiter.exempt
 def community_emote_file(name):
+	name = str(name or '').lower().strip()
 	if not marsey_regex.fullmatch(name):
 		abort(404)
 	path = approved_webp_path(name)
 	if not path.is_file():
 		abort(404)
-	return send_file(path, conditional=True, max_age=3600)
+	return send_file(path, mimetype='image/webp', conditional=True, max_age=3600)
 
 
 def install_emote_management():
