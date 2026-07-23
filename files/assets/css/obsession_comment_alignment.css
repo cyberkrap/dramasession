@@ -1,0 +1,34 @@
+/* Keep top-level comments aligned with the page content while preserving a
+ * narrow, usable collapse rail. Nested replies retain their normal indent. */
+@media (min-width: 768px) {
+	#main-content-col > .comment,
+	.comment-section > .comment,
+	.notifs > .comment {
+		box-sizing: border-box;
+		width: 100%;
+		min-width: 0;
+		padding-left: 0 !important;
+	}
+
+	#main-content-col > .comment > .comment-collapse-desktop,
+	.comment-section > .comment > .comment-collapse-desktop,
+	.notifs > .comment > .comment-collapse-desktop {
+		flex: 0 0 12px;
+		width: 12px;
+		padding-right: 12px;
+	}
+
+	#main-content-col > .comment > .comment-body,
+	.comment-section > .comment > .comment-body,
+	.notifs > .comment > .comment-body {
+		min-width: 0;
+	}
+}
+
+@media (max-width: 767.98px) {
+	#main-content-col > .comment,
+	.comment-section > .comment,
+	.notifs > .comment {
+		padding-left: 8px !important;
+	}
+}
