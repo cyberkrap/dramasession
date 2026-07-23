@@ -58,6 +58,15 @@
   overflow-wrap: anywhere;
 }
 
+#settings2 .modlog-emote {
+  display: inline-block;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin: -8px 2px -7px;
+}
+
 #settings2 .modlog-meta {
   display: flex;
   align-items: center;
@@ -91,5 +100,12 @@
 
   #settings2 .modlog-action .profile-pic-35-wrapper {
     flex: 0 0 auto;
+  }
+
+  #settings2 .modlog-emote {
+    width: 36px;
+    height: 36px;
+    margin-top: -6px;
+    margin-bottom: -6px;
   }
 }
