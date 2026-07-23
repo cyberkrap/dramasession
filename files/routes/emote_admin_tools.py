@@ -5,13 +5,16 @@ from files.classes.marsey import Marsey
 from files.classes.mod_logs import ModAction
 from files.helpers.config.const import DEFAULT_RATELIMIT, DEFAULT_RATELIMIT_SLOWER, EMOJIS_CACHE_KEY, MARSEYS_CACHE_KEY, PERMS
 from files.helpers.emote_management import (
-	approve_emote_files, category_for_emote, custom_emote_exists,
-	delete_emote_category, get_emote_categories, remove_emote_files,
+	approve_emote_files, custom_emote_exists, delete_emote_category,
+	get_emote_categories, get_emote_category_map, remove_emote_files,
 	rename_emote_category, rename_emote_files, save_emote_categories,
 	set_emote_category,
 )
 from files.helpers.regex import marsey_regex, tags_regex
 from files.routes.wrappers import admin_level_required, get_ID
+
+
+ADMIN_EMOTES_PAGE_SIZE = 100
 
 
 def _clear():
@@ -23,12 +26,55 @@ def _clear():
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
 @admin_level_required(PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'])
 def admin_emotes(v):
-	pending = g.db.query(Marsey).filter(Marsey.submitter_id != None).order_by(Marsey.created_utc.desc()).all()
-	active = g.db.query(Marsey).filter(Marsey.submitter_id == None).order_by(Marsey.name).all()
-	return render_template('admin/emotes.html', v=v, pending=pending, active=active,
-		categories=get_emote_categories(), category_for_emote=category_for_emote,
-		custom_emote_exists=custom_emote_exists,
-		msg=request.values.get('msg'), error=request.values.get('error'))
+	try:
+		page = max(1, int(request.values.get('page', 1)))
+	except (TypeError, ValueError):
+		page = 1
+	query = (request.values.get('q') or '').strip().lower()[:64]
+
+	pending_query = g.db.query(Marsey).filter(Marsey.submitter_id != None)
+	active_query = g.db.query(Marsey).filter(Marsey.submitter_id == None)
+	if query:
+		pattern = f'%{query}%'
+		pending_query = pending_query.filter(Marsey.name.ilike(pattern))
+		active_query = active_query.filter(Marsey.name.ilike(pattern))
+
+	pending = pending_query.order_by(Marsey.created_utc.desc()).limit(ADMIN_EMOTES_PAGE_SIZE).all()
+	active_rows = (active_query.order_by(Marsey.name)
+		.offset((page - 1) * ADMIN_EMOTES_PAGE_SIZE)
+		.limit(ADMIN_EMOTES_PAGE_SIZE + 1).all())
+	next_exists = len(active_rows) > ADMIN_EMOTES_PAGE_SIZE
+	active = active_rows[:ADMIN_EMOTES_PAGE_SIZE]
+
+	# Read persistent category configuration once. The old template helper performed
+	# multiple database queries per emote, which blocked the worker until Gunicorn
+	# killed it on larger emote collections.
+	categories = get_emote_categories()
+	category_map = get_emote_category_map()
+	default_category = 'Community Emotes'
+	valid_categories = set(categories)
+	emote_categories = {
+		emote.name: category_map.get(emote.name, default_category)
+		if category_map.get(emote.name, default_category) in valid_categories
+		else default_category
+		for emote in active
+	}
+	custom_emotes = {emote.name for emote in active if custom_emote_exists(emote.name)}
+
+	return render_template(
+		'admin/emotes.html',
+		v=v,
+		pending=pending,
+		active=active,
+		categories=categories,
+		emote_categories=emote_categories,
+		custom_emotes=custom_emotes,
+		page=page,
+		next_exists=next_exists,
+		q=query,
+		msg=request.values.get('msg'),
+		error=request.values.get('error'),
+	)
 
 
 @app.post('/admin/emotes/<name>/approve')
