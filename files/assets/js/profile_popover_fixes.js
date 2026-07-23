@@ -92,11 +92,34 @@
 		});
 	}
 
+	function badgeTooltipText(badge) {
+		const candidates = [
+			badge.getAttribute('data-bs-original-title'),
+			badge.getAttribute('data-original-title'),
+			badge.getAttribute('title'),
+			badge.getAttribute('data-tooltip'),
+		];
+		for (const candidate of candidates) {
+			const text = (candidate || '').replace(/\s+/g, ' ').trim();
+			if (text && !/^badge$/i.test(text)) return text;
+		}
+		return '';
+	}
+
 	function initializeBadgeTooltips(popover) {
 		if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) return;
 		popover.querySelectorAll('.popover-badges-div img').forEach(badge => {
-			const title = (badge.getAttribute('title') || badge.getAttribute('alt') || '').trim();
-			if (!title) return;
+			const title = badgeTooltipText(badge);
+			const existing = bootstrap.Tooltip.getInstance(badge);
+			if (existing) existing.dispose();
+			badge.removeAttribute('data-bs-original-title');
+			badge.removeAttribute('data-original-title');
+			if (!title) {
+				badge.removeAttribute('title');
+				badge.removeAttribute('data-bs-toggle');
+				badge.removeAttribute('tabindex');
+				return;
+			}
 			badge.setAttribute('title', title);
 			badge.setAttribute('tabindex', '0');
 			badge.setAttribute('data-bs-toggle', 'tooltip');
@@ -104,6 +127,7 @@
 			bootstrap.Tooltip.getOrCreateInstance(badge, {
 				container: 'body',
 				trigger: 'hover focus',
+				title,
 			});
 		});
 	}
