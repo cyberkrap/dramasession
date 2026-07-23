@@ -1,3 +1,35 @@
 .comment {
 	margin-top: 0.3rem;
 }
+
+/* Avoid stacking the page gutter, notification wrapper padding, and the
+ * top-level comment indent. That combination pushed notification cards too
+ * far right and made their right edge overflow at narrow desktop widths. */
+#notifications .notifs {
+	padding-right: 0 !important;
+	padding-left: 0 !important;
+}
+
+#notifications .notifs > .post-info {
+	margin-left: 0 !important;
+	padding-right: 0.75rem;
+	padding-left: 0.75rem;
+}
+
+#notifications .notifs > .comment {
+	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
+	margin-left: 0 !important;
+	padding-left: 0 !important;
+}
+
+#notifications .notifs > .comment > .comment-collapse-desktop {
+	flex: 0 0 12px;
+	width: 12px;
+	padding-right: 12px;
+}
+
+#notifications .notifs > .comment > .comment-body {
+	min-width: 0;
+}
