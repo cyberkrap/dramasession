@@ -98,6 +98,13 @@ def _claw_back_vote_coins(author, amount):
 	return amount
 
 
+def _restore_vote_coins(author, amount):
+	if amount <= 0:
+		return 0
+	author.pay_account('coins', amount, skip_if_unlimited=False)
+	return amount
+
+
 def install_report_fixes():
 	app.view_functions['reported_posts'] = fixed_reported_posts
 	app.view_functions['reported_comments'] = fixed_reported_comments
@@ -106,6 +113,8 @@ def install_report_fixes():
 	remove_report_comment = app.view_functions.get('remove_report_comment')
 	remove_post = app.view_functions.get('remove_post')
 	remove_comment = app.view_functions.get('remove_comment')
+	approve_post = app.view_functions.get('approve_post')
+	approve_comment = app.view_functions.get('approve_comment')
 
 	if remove_report_post and not getattr(remove_report_post, '_report_notice_v2', False):
 		def wrapped_remove_report_post(*args, **kwargs):
@@ -204,3 +213,47 @@ def install_report_fixes():
 			return result
 		wrapped_remove_comment._report_notice_v2 = True
 		app.view_functions['remove_comment'] = wrapped_remove_comment
+
+	if approve_post and not getattr(approve_post, '_reinstatement_notice_v1', False):
+		def wrapped_approve_post(*args, **kwargs):
+			post_id = int(_route_arg(args, kwargs, 'post_id', 0))
+			post = get_post(post_id)
+			was_removed = bool(post.is_banned)
+			earned = _earned_vote_coins(Vote, 'submission_id', post.id) if was_removed else 0
+			author_id = post.author_id
+			author = post.author
+			link = post.shortlink
+			result = approve_post(*args, **kwargs)
+			actor = _actor_after_route()
+			if actor and was_removed:
+				restored = _restore_vote_coins(author, earned)
+				if author_id != actor.id:
+					message = f'@{actor.username} (a site admin) has reinstated your [post]({link})'
+					if restored:
+						message += f" and you've earned back {restored:,} Wishcoins gained from its votes"
+					send_repeatable_notification(author_id, message)
+			return result
+		wrapped_approve_post._reinstatement_notice_v1 = True
+		app.view_functions['approve_post'] = wrapped_approve_post
+
+	if approve_comment and not getattr(approve_comment, '_reinstatement_notice_v1', False):
+		def wrapped_approve_comment(*args, **kwargs):
+			comment_id = int(_route_arg(args, kwargs, 'c_id', 0))
+			comment = get_comment(comment_id)
+			was_removed = bool(comment.is_banned)
+			earned = _earned_vote_coins(CommentVote, 'comment_id', comment.id) if was_removed else 0
+			author_id = comment.author_id
+			author = comment.author
+			link = comment.shortlink
+			result = approve_comment(*args, **kwargs)
+			actor = _actor_after_route()
+			if actor and was_removed:
+				restored = _restore_vote_coins(author, earned)
+				if author_id != actor.id:
+					message = f'@{actor.username} (a site admin) has reinstated your [comment]({link})'
+					if restored:
+						message += f" and you've earned back {restored:,} Wishcoins gained from its votes"
+					send_repeatable_notification(author_id, message)
+			return result
+		wrapped_approve_comment._reinstatement_notice_v1 = True
+		app.view_functions['approve_comment'] = wrapped_approve_comment
