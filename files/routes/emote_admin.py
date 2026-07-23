@@ -17,13 +17,16 @@ from files.routes.static import get_emojis
 from files.routes.wrappers import auth_required
 
 
+STATIC_EMOTE_DIR = Path('files/assets/images/emojis')
+
+
 def enhanced_emoji_list():
 	items = list(get_emojis(g.db))
 	known = {item.get('name') for item in items}
 	for marsey in g.db.query(Marsey).filter(Marsey.submitter_id == None).order_by(Marsey.name).all():
 		if marsey.name in known:
 			continue
-		if not custom_emote_exists(marsey.name) and not Path(f'files/assets/images/emojis/{marsey.name}.webp').is_file():
+		if not custom_emote_exists(marsey.name) and not (STATIC_EMOTE_DIR / f'{marsey.name}.webp').is_file():
 			continue
 		items.append({
 			'name': marsey.name,
@@ -64,6 +67,24 @@ def pending_emote_preview(v, name):
 def pending_emote_file(v, name):
 	"""Backward-compatible pending preview URL."""
 	return _serve_pending_emote(v, name)
+
+
+@app.get('/emote-preview/<name>.webp')
+def active_emote_preview(name):
+	"""Serve either persistent or bundled active emotes through one stable URL."""
+	name = str(name or '').lower().strip()
+	if not marsey_regex.fullmatch(name):
+		abort(404)
+
+	custom_path = approved_webp_path(name)
+	if custom_path.is_file():
+		return send_file(custom_path, mimetype='image/webp', conditional=True, max_age=3600)
+
+	bundled_path = STATIC_EMOTE_DIR / f'{name}.webp'
+	if bundled_path.is_file():
+		return send_file(bundled_path, mimetype='image/webp', conditional=True, max_age=3600)
+
+	abort(404)
 
 
 @app.get('/community-emote/<name>.webp')
