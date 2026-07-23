@@ -1,0 +1,170 @@
+/* Final visual refinement: red + maroon palette and compact horizontal profile badges. */
+:root {
+	--obs-red: #ef233c;
+	--obs-red-strong: #b5122f;
+	--obs-red-soft: rgba(239, 35, 60, .16);
+	--obs-coral: #ff3f4f;
+	--obs-violet: #86152b;
+	--obs-cyan: #c21b37;
+	--obs-maroon: #741126;
+	--obs-maroon-deep: #390711;
+}
+
+body {
+	--primary: var(--obs-red);
+	--primary-hover: #ff3148;
+	--danger: var(--obs-red-strong);
+}
+
+.btn-primary,
+.btn-danger {
+	background: linear-gradient(135deg, #f12a42 0%, #b5122f 58%, #741126 100%) !important;
+	box-shadow: 0 8px 24px rgba(181, 18, 47, .24) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-danger:hover,
+.btn-danger:focus {
+	background: linear-gradient(135deg, #ff3a50 0%, #d01635 55%, #86152b 100%) !important;
+	box-shadow: 0 10px 28px rgba(209, 22, 53, .3) !important;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+	border-color: rgba(239, 35, 60, .42) !important;
+	background: linear-gradient(180deg, rgba(239, 35, 60, .13), rgba(116, 17, 38, .09)) !important;
+}
+
+:focus-visible {
+	outline-color: #ff3b4f !important;
+}
+
+.profile-moderation {
+	background:
+		radial-gradient(circle at 12% 0%, rgba(181, 18, 47, .14), transparent 36%),
+		linear-gradient(145deg, rgba(20, 13, 17, .94), rgba(8, 6, 8, .92)) !important;
+}
+
+.profile-moderation .actionbtns {
+	background: linear-gradient(135deg, rgba(239, 35, 60, .07), rgba(116, 17, 38, .08)) !important;
+}
+
+.popover.show:has(.popover-user-profile) {
+	box-shadow: 0 28px 80px rgba(0, 0, 0, .62), 0 0 0 1px rgba(239, 35, 60, .1) !important;
+}
+
+.popover-user-profile {
+	background:
+		radial-gradient(circle at 10% 12%, rgba(181, 18, 47, .12), transparent 32%),
+		linear-gradient(155deg, rgba(18, 12, 16, .99), rgba(7, 7, 9, .99)) !important;
+}
+
+.popover-user-profile::before {
+	background: linear-gradient(90deg, #ef233c 0%, #a50f2b 48%, #741126 72%, #ef233c 100%) !important;
+	box-shadow: 0 0 16px rgba(181, 18, 47, .38) !important;
+}
+
+.popover-user-profile::after {
+	background:
+		linear-gradient(180deg, rgba(0, 0, 0, .06), rgba(9, 6, 8, .24) 48%, rgba(8, 7, 9, .98) 100%),
+		linear-gradient(105deg, rgba(239, 35, 60, .1), transparent 45%, rgba(116, 17, 38, .12)) !important;
+}
+
+.popover-user-profile .popover-profile-identity .profile-pic-75-wrapper {
+	box-shadow: 0 14px 34px rgba(0, 0, 0, .55), 0 0 0 1px rgba(239, 35, 60, .18) !important;
+}
+
+.popover-user-profile .popover-profile-identity .profile-pic-75-wrapper:hover {
+	box-shadow: 0 18px 42px rgba(0, 0, 0, .6), 0 0 0 1px rgba(239, 35, 60, .48) !important;
+}
+
+.popover-user-profile .popover-profile-meta .obs-meta-joined::before {
+	color: #ef233c !important;
+}
+
+/* Keep every badge on the natural horizontal flow, regardless of legacy wrappers. */
+.popover-user-profile .popover-badges-div {
+	display: flex !important;
+	flex-flow: row wrap !important;
+	align-items: center !important;
+	align-content: flex-start !important;
+	justify-content: flex-start !important;
+	gap: 7px !important;
+	max-height: 150px !important;
+	padding-right: 18px !important;
+}
+
+.popover-user-profile .popover-badges-div > *,
+.popover-user-profile .popover-badges-div [class*="col-"] {
+	display: inline-flex !important;
+	flex: 0 0 auto !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: auto !important;
+	max-width: none !important;
+	min-width: 0 !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.popover-user-profile .popover-badges-div .row {
+	display: contents !important;
+}
+
+.popover-user-profile .popover-badges-div a {
+	display: inline-flex !important;
+	flex: 0 0 auto !important;
+	width: auto !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.popover-user-profile .popover-badges-div img {
+	display: block !important;
+	flex: 0 0 auto !important;
+	width: 44px !important;
+	height: 48px !important;
+	max-width: 44px !important;
+	max-height: 48px !important;
+	margin: 0 !important;
+	padding: 2px !important;
+	object-fit: contain !important;
+	border: 1px solid transparent !important;
+	border-radius: 8px !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.popover-user-profile .popover-badges-div img:hover,
+.popover-user-profile .popover-badges-div img:focus {
+	border-color: rgba(239, 35, 60, .34) !important;
+	background: rgba(181, 18, 47, .09) !important;
+	filter: drop-shadow(0 5px 10px rgba(0, 0, 0, .34));
+	transform: translateY(-2px) scale(1.06) !important;
+}
+
+.popover-user-profile .pop-profile-stat:hover {
+	border-color: rgba(239, 35, 60, .28) !important;
+	background: linear-gradient(145deg, rgba(239, 35, 60, .08), rgba(116, 17, 38, .07)) !important;
+}
+
+.popover-user-profile .pop-view_more {
+	border-color: rgba(239, 35, 60, .3) !important;
+	background: linear-gradient(135deg, rgba(239, 35, 60, .2), rgba(116, 17, 38, .22)) !important;
+}
+
+.popover-user-profile .pop-view_more:hover,
+.popover-user-profile .pop-view_more:focus {
+	border-color: rgba(255, 49, 72, .58) !important;
+	background: linear-gradient(135deg, rgba(255, 49, 72, .32), rgba(133, 20, 43, .3)) !important;
+	box-shadow: 0 8px 22px rgba(181, 18, 47, .16) !important;
+}
