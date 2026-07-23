@@ -1,72 +1,84 @@
 {% extends "default.html" %}
 {% block pagetitle %}Manage Emotes{% endblock %}
+{% block head_final %}
+<style nonce="{{g.nonce}}">
+.emote-admin-shell{max-width:1180px;margin:0 auto;padding:24px 16px 48px}.emote-admin-header{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}.emote-admin-header h1{margin:0;font-size:1.65rem}.emote-admin-header p{margin:4px 0 0;color:var(--muted,#aaa)}.emote-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;width:min(520px,100%)}.emote-panel{background:rgba(10,10,13,.9);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:16px;margin-bottom:20px}.emote-panel h2{font-size:1.05rem;margin:0 0 12px}.category-create{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.category-list{display:grid;gap:8px;margin-top:12px}.category-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px}.emote-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}.emote-card{display:grid;grid-template-columns:76px minmax(0,1fr);gap:14px;padding:14px;background:rgba(18,18,22,.96);border:1px solid rgba(255,255,255,.09);border-radius:10px}.emote-preview{width:76px;height:76px;display:grid;place-items:center;background:rgba(255,255,255,.04);border-radius:8px;overflow:hidden}.emote-preview img{max-width:72px;max-height:72px;object-fit:contain}.emote-name{font-weight:800;overflow-wrap:anywhere;margin-bottom:8px}.emote-form{display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:8px}.emote-form label{display:block;font-size:.72rem;color:var(--muted,#aaa);margin-bottom:4px}.emote-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.emote-actions .btn{min-width:88px}.pending-card .emote-form{grid-template-columns:minmax(0,1fr) auto}.empty-state{padding:20px;text-align:center;color:var(--muted,#aaa);border:1px dashed rgba(255,255,255,.12);border-radius:8px}.emote-pagination{display:flex;justify-content:center;gap:8px;margin-top:18px}@media(max-width:700px){.emote-admin-shell{padding:16px 10px 36px}.emote-search,.category-create,.category-row,.emote-form,.pending-card .emote-form{grid-template-columns:1fr}.category-row form{display:contents}.emote-grid{grid-template-columns:1fr}.emote-card{grid-template-columns:58px minmax(0,1fr)}.emote-preview{width:58px;height:58px}.emote-preview img{max-width:54px;max-height:54px}.emote-actions .btn{flex:1 1 120px}}
+</style>
+{% endblock %}
 {% block content %}
-<div class="container-fluid py-3">
-	<h3>Manage Emotes</h3>
+<div class="emote-admin-shell">
+	<div class="emote-admin-header">
+		<div><h1>Manage Emotes</h1><p>Approve, rename, tag, categorize, and remove community emotes.</p></div>
+		<form method="get" class="emote-search">
+			<input class="form-control" name="q" value="{{request.values.get('q','')}}" placeholder="Search emote names or tags">
+			<button class="btn btn-secondary" type="submit">Search</button>
+		</form>
+	</div>
 	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
 	{% if error %}{{macros.alert(error, true)}}{% endif %}
 
-	<form method="get" action="/admin/emotes" class="d-flex gap-2 mb-4">
-		<input class="form-control" name="q" value="{{q}}" maxlength="64" placeholder="Search emote names">
-		<button class="btn btn-secondary" type="submit">Search</button>
-		{% if q %}<a class="btn btn-outline-secondary" href="/admin/emotes">Clear</a>{% endif %}
-	</form>
-
-	<section class="card mb-4"><div class="card-body">
-		<h5>Categories</h5>
-		<form method="post" action="/admin/emotes/categories" class="d-flex gap-2 mb-3">
+	<section class="emote-panel">
+		<h2>Categories</h2>
+		<form method="post" action="/admin/emotes/categories" class="category-create">
 			<input type="hidden" name="formkey" value="{{v|formkey}}">
 			<input class="form-control" name="category" maxlength="40" required placeholder="New category name">
-			<button class="btn btn-primary" type="submit">Create</button>
+			<button class="btn btn-primary" type="submit">Create category</button>
 		</form>
+		<div class="category-list">
 		{% for category in categories if category not in ['Community Emotes', 'Community Classics', 'Misc'] %}
-		<div class="d-flex gap-2 mb-2">
-			<form method="post" action="/admin/emotes/categories/rename" class="d-flex gap-2 flex-grow-1">
-				<input type="hidden" name="formkey" value="{{v|formkey}}"><input type="hidden" name="old" value="{{category}}">
-				<input class="form-control" name="new" value="{{category}}" maxlength="40" required>
-				<button class="btn btn-secondary" type="submit">Rename</button>
-			</form>
-			<form method="post" action="/admin/emotes/categories/delete" onsubmit="return confirm('Delete this category? Emotes will move to Community Emotes.')">
-				<input type="hidden" name="formkey" value="{{v|formkey}}"><input type="hidden" name="category" value="{{category}}">
-				<button class="btn btn-danger" type="submit">Delete</button>
-			</form>
-		</div>
+			<div class="category-row">
+				<form method="post" action="/admin/emotes/categories/rename">
+					<input type="hidden" name="formkey" value="{{v|formkey}}"><input type="hidden" name="old" value="{{category}}">
+					<input class="form-control" name="new" value="{{category}}" maxlength="40" required>
+					<button class="btn btn-secondary" type="submit">Rename</button>
+				</form>
+				<form method="post" action="/admin/emotes/categories/delete" onsubmit="return confirm('Delete this category? Emotes will move to Community Emotes.')">
+					<input type="hidden" name="formkey" value="{{v|formkey}}"><input type="hidden" name="category" value="{{category}}">
+					<button class="btn btn-danger" type="submit">Delete</button>
+				</form>
+			</div>
 		{% endfor %}
-	</div></section>
+		</div>
+	</section>
 
-	<h4>Pending</h4>
-	{% for emote in pending %}
-	<div class="card mb-3"><div class="card-body">
-		<div class="d-flex align-items-center gap-3 mb-2"><img src="/asset_submissions/marseys/{{emote.name}}.webp" width="80" alt="{{emote.name}}"><strong>:{{emote.name}}:</strong></div>
-		<form method="post" action="/admin/emotes/{{emote.name}}/approve" class="d-flex gap-2">
-			<input type="hidden" name="formkey" value="{{v|formkey}}">
-			<select class="form-control" name="category">{% for category in categories %}<option>{{category}}</option>{% endfor %}</select>
-			<button class="btn btn-success" type="submit">Approve</button>
-		</form>
-	</div></div>
-	{% else %}<p class="text-muted">No pending emotes{% if q %} matching “{{q}}”{% endif %}.</p>{% endfor %}
+	<section class="emote-panel">
+		<h2>Pending</h2>
+		<div class="emote-grid">
+		{% for emote in pending %}
+			<article class="emote-card pending-card">
+				<div class="emote-preview"><img src="/asset_submissions/marseys/{{emote.name}}.webp" alt=":{{emote.name}}:"></div>
+				<div><div class="emote-name">:{{emote.name}}:</div>
+				<form method="post" action="/admin/emotes/{{emote.name}}/approve" class="emote-form">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<select class="form-control" name="category">{% for category in categories %}<option>{{category}}</option>{% endfor %}</select>
+					<button class="btn btn-success" type="submit">Approve</button>
+				</form></div>
+			</article>
+		{% else %}<div class="empty-state">No pending emotes.</div>{% endfor %}
+		</div>
+	</section>
 
-	<h4>Active</h4>
-	{% for emote in active %}
-	<div class="card mb-3"><div class="card-body">
-		<div class="d-flex align-items-center gap-3 mb-3"><img src="{% if emote.name in custom_emotes %}/community-emote/{{emote.name}}.webp{% else %}/e/{{emote.name}}.webp{% endif %}" width="80" alt="{{emote.name}}"><strong>:{{emote.name}}:</strong></div>
-		<form method="post" action="/admin/emotes/{{emote.name}}/update" class="row g-2 align-items-end">
-			<input type="hidden" name="formkey" value="{{v|formkey}}">
-			<div class="col-md-3"><label>Name</label><input class="form-control" name="name" value="{{emote.name}}" required></div>
-			<div class="col-md-4"><label>Tags</label><input class="form-control" name="tags" value="{{emote.tags}}"></div>
-			<div class="col-md-3"><label>Category</label><select class="form-control" name="category">{% for category in categories %}<option {% if category == emote_categories.get(emote.name, 'Community Emotes') %}selected{% endif %}>{{category}}</option>{% endfor %}</select></div>
-			<div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Update</button></div>
-		</form>
-		<form method="post" action="/admin/emotes/{{emote.name}}/delete" class="mt-2" onsubmit="return confirm('Delete this emote?')">
-			<input type="hidden" name="formkey" value="{{v|formkey}}"><button class="btn btn-danger" type="submit">Delete</button>
-		</form>
-	</div></div>
-	{% else %}<p class="text-muted">No active emotes{% if q %} matching “{{q}}”{% endif %}.</p>{% endfor %}
-
-	<nav class="d-flex justify-content-between align-items-center mt-4">
-		{% if page > 1 %}<a class="btn btn-secondary" href="/admin/emotes?page={{page - 1}}{% if q %}&q={{q|urlencode}}{% endif %}">Previous</a>{% else %}<span></span>{% endif %}
-		<span class="text-muted">Page {{page}}</span>
-		{% if next_exists %}<a class="btn btn-secondary" href="/admin/emotes?page={{page + 1}}{% if q %}&q={{q|urlencode}}{% endif %}">Next</a>{% else %}<span></span>{% endif %}
-	</nav>
+	<section class="emote-panel">
+		<h2>Active</h2>
+		<div class="emote-grid">
+		{% for emote in active %}
+			<article class="emote-card">
+				<div class="emote-preview"><img src="{{custom_urls.get(emote.name, '/e/' ~ emote.name ~ '.webp')}}" alt=":{{emote.name}}:"></div>
+				<div><div class="emote-name">:{{emote.name}}:</div>
+				<form method="post" action="/admin/emotes/{{emote.name}}/update" class="emote-form">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<div><label>Name</label><input class="form-control" name="name" value="{{emote.name}}" required></div>
+					<div><label>Tags</label><input class="form-control" name="tags" value="{{emote.tags}}"></div>
+					<div><label>Category</label><select class="form-control" name="category">{% for category in categories %}<option {% if category == category_map.get(emote.name, 'Community Emotes') %}selected{% endif %}>{{category}}</option>{% endfor %}</select></div>
+					<div class="emote-actions"><button class="btn btn-primary" type="submit">Save changes</button></div>
+				</form>
+				<form method="post" action="/admin/emotes/{{emote.name}}/delete" class="emote-actions" onsubmit="return confirm('Delete this emote?')">
+					<input type="hidden" name="formkey" value="{{v|formkey}}"><button class="btn btn-danger" type="submit">Delete emote</button>
+				</form></div>
+			</article>
+		{% else %}<div class="empty-state">No matching active emotes.</div>{% endfor %}
+		</div>
+		{% if page > 1 or next_exists %}<nav class="emote-pagination">{% if page > 1 %}<a class="btn btn-secondary" href="?page={{page-1}}&q={{request.values.get('q','')|urlencode}}">Previous</a>{% endif %}{% if next_exists %}<a class="btn btn-secondary" href="?page={{page+1}}&q={{request.values.get('q','')|urlencode}}">Next</a>{% endif %}</nav>{% endif %}
+	</section>
 </div>
 {% endblock %}
