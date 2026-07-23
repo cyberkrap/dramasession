@@ -35,10 +35,7 @@ def enhanced_emoji_list():
 	return items
 
 
-@app.get('/asset_submissions/marseys/<name>.webp')
-@auth_required
-def pending_emote_file(v, name):
-	"""Serve a pending emote preview from either current or legacy storage."""
+def _serve_pending_emote(v, name):
 	name = str(name or '').lower().strip()
 	if not marsey_regex.fullmatch(name):
 		abort(404)
@@ -53,6 +50,20 @@ def pending_emote_file(v, name):
 	if not preview:
 		abort(404)
 	return send_file(preview, mimetype='image/webp', conditional=True, max_age=0)
+
+
+@app.get('/pending-emote/<name>.webp')
+@auth_required
+def pending_emote_preview(v, name):
+	"""Serve pending previews through an application route that nginx does not intercept."""
+	return _serve_pending_emote(v, name)
+
+
+@app.get('/asset_submissions/marseys/<name>.webp')
+@auth_required
+def pending_emote_file(v, name):
+	"""Backward-compatible pending preview URL."""
+	return _serve_pending_emote(v, name)
 
 
 @app.get('/community-emote/<name>.webp')
