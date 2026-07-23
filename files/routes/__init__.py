@@ -26,6 +26,7 @@ from files.helpers.runtime_source_fixes import (
 from files.helpers.final_ui_source_fixes import (
 	patch_admin_emote_link_source,
 	patch_asset_submission_directories_source,
+	patch_asset_submission_removal_source,
 	patch_badge_gift_note_source,
 	patch_custom_emote_sources,
 	patch_live_banner_source,
@@ -39,6 +40,7 @@ except RuntimeError:
 try:
 	patch_admin_emote_link_source()
 	patch_asset_submission_directories_source()
+	patch_asset_submission_removal_source()
 	patch_badge_gift_note_source()
 	patch_custom_emote_sources()
 	patch_live_banner_source()
