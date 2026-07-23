@@ -127,12 +127,30 @@ class ModAction(Base):
 
 	@property
 	@lazy
+	def emoji_author(self):
+		if self.target_user:
+			return self.target_user
+		if self.kind != 'approve_marsey':
+			return None
+		try:
+			from flask import g
+			from files.classes.marsey import Marsey
+			marsey = g.db.get(Marsey, self.emoji_name_raw)
+			if not marsey or not marsey.author_id:
+				return None
+			return g.db.get(self.user.__class__, marsey.author_id)
+		except Exception:
+			return None
+
+	@property
+	@lazy
 	def emoji_author_link(self):
-		if not self.target_user:
+		author = self.emoji_author
+		if not author:
 			return '<span class="text-muted">@unknown</span>'
 		return (
-			f'<a href="{escape(self.target_user.url, quote=True)}">'
-			f'@{escape(self.target_user.username)}</a>'
+			f'<a href="{escape(author.url, quote=True)}">'
+			f'@{escape(author.username)}</a>'
 		)
 
 	@property
