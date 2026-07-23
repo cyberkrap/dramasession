@@ -1,4 +1,5 @@
 import time
+from html import escape
 
 from sqlalchemy import Column, ForeignKey
 from sqlalchemy.orm import relationship
@@ -48,8 +49,19 @@ class ModAction(Base):
 
 	@property
 	@lazy
+	def action_type(self):
+		action_type = MODACTION_TYPES.get(self.kind)
+		if action_type: return action_type
+		return {
+			"str": f'performed moderator action <code>{escape(self.kind or "unknown")}</code>',
+			"icon": 'fa-question-circle',
+			"color": 'bg-muted'
+		}
+
+	@property
+	@lazy
 	def string(self):
-		output = MODACTION_TYPES[self.kind]["str"].format(self=self)
+		output = self.action_type["str"].format(self=self)
 		if self.note and self.kind != "chat_timeout": output += f" <i>({self.note})</i>"
 		return output
 
@@ -64,12 +76,12 @@ class ModAction(Base):
 	@property
 	@lazy
 	def icon(self):
-		return MODACTION_TYPES[self.kind]['icon']
+		return self.action_type['icon']
 
 	@property
 	@lazy
 	def color(self):
-		return MODACTION_TYPES[self.kind]['color']
+		return self.action_type['color']
 
 	@property
 	@lazy
