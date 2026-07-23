@@ -1,6 +1,36 @@
 {% extends "default.html" %}
 {% block pagetitle %}Submit Emotes{% endblock %}
 {% block pagetype %}message{% endblock %}
+{% block head_final %}
+<style nonce="{{g.nonce}}">
+.emote-submission-preview {
+	width: 180px;
+	height: 180px;
+	display: grid;
+	place-items: center;
+	margin: 8px 0 14px;
+	padding: 10px;
+	background: rgba(255,255,255,.035);
+	border: 1px solid rgba(255,255,255,.12);
+	border-radius: 12px;
+	overflow: hidden;
+}
+.emote-submission-preview img,
+img.emote-submission-preview {
+	object-fit: contain;
+}
+img.emote-submission-preview {
+	display: block;
+	padding: 10px;
+}
+@media (max-width: 600px) {
+	.emote-submission-preview {
+		width: 140px;
+		height: 140px;
+	}
+}
+</style>
+{% endblock %}
 {% block content %}
 	{% if error %}{{macros.alert(error, true)}}{% endif %}
 	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
@@ -15,7 +45,7 @@
 							<div id="image-upload-block">
 								<div><label class="mt-3">Image</label></div>
 
-								<img loading="lazy" id="image-preview" class="d-none" style="max-width:50%;border:5px white solid">
+								<img loading="lazy" id="image-preview" class="d-none emote-submission-preview" alt="Selected emote preview">
 								<label class="btn btn-secondary m-0" for="file-upload">
 									<div id="filename-show">Select Image</div>
 									<input autocomplete="off" id="file-upload" accept="image/*" type="file" name="image" {% if g.is_tor %}disabled{% endif %} hidden>
@@ -57,7 +87,7 @@
 								<input hidden name="formkey" value="{{v|formkey}}">
 
 								<div><label class="mt-3">Image</label></div>
-								<img loading="lazy" src="/pending-emote/{{marsey.name}}.webp?v={{marsey.created_utc}}" alt=":{{marsey.name}}:" style="max-width:50%;border:5px white solid">
+								<img loading="lazy" class="emote-submission-preview" src="/pending-emote/{{marsey.name}}.webp?v={{marsey.created_utc}}" alt=":{{marsey.name}}:">
 
 								<div><label class="mt-3" for="{{marsey.name}}-submitter">Submitter</label></div>
 								<input autocomplete="off" type="text" id="{{marsey.name}}-submitter" class="form-control" maxlength="30" value="{{marsey.submitter}}" readonly>
