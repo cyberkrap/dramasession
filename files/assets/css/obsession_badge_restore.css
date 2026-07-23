@@ -1,17 +1,28 @@
 /* Restore the compact profile-card badge strip used before the premium UI pass. */
 .popover-user-profile .popover-badges-div {
-	display: flex !important;
-	flex-flow: row wrap !important;
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, 38px) !important;
+	grid-auto-flow: row !important;
+	grid-auto-rows: 42px !important;
 	align-items: center !important;
-	align-content: flex-start !important;
-	justify-content: flex-start !important;
+	align-content: start !important;
+	justify-content: start !important;
 	gap: 4px !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	max-width: 100% !important;
+	height: 96px !important;
 	max-height: 96px !important;
 	margin: 0 !important;
-	padding: 0 4px !important;
+	padding: 4px 10px 4px 4px !important;
+	overflow-x: hidden !important;
 	overflow-y: auto !important;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+	white-space: normal !important;
 	background: transparent !important;
 	border: 0 !important;
+	box-sizing: border-box !important;
 }
 
 .popover-user-profile .popover-badges-div::before {
@@ -19,18 +30,26 @@
 	content: none !important;
 }
 
+/* Flatten every legacy layout wrapper so each badge becomes a grid item. */
 .popover-user-profile .popover-badges-div .row,
-.popover-user-profile .popover-badges-div [class*="col-"] {
+.popover-user-profile .popover-badges-div [class*="col-"],
+.popover-user-profile .popover-badges-div > div,
+.popover-user-profile .popover-badges-div > span,
+.popover-user-profile .popover-badges-div .d-flex,
+.popover-user-profile .popover-badges-div .flex-row,
+.popover-user-profile .popover-badges-div .flex-wrap {
 	display: contents !important;
 }
 
 .popover-user-profile .popover-badges-div a {
 	display: inline-flex !important;
-	flex: 0 0 auto !important;
+	flex: none !important;
 	align-items: center !important;
 	justify-content: center !important;
 	width: 38px !important;
 	height: 42px !important;
+	min-width: 38px !important;
+	max-width: 38px !important;
 	margin: 0 !important;
 	padding: 0 !important;
 	border: 0 !important;
@@ -40,9 +59,10 @@
 
 .popover-user-profile .popover-badges-div img {
 	display: block !important;
-	flex: 0 0 auto !important;
+	flex: none !important;
 	width: 38px !important;
 	height: 42px !important;
+	min-width: 38px !important;
 	max-width: 38px !important;
 	max-height: 42px !important;
 	margin: 0 !important;
@@ -63,6 +83,20 @@
 	box-shadow: none !important;
 	filter: none !important;
 	transform: none !important;
+}
+
+.popover-user-profile .popover-badges-div::-webkit-scrollbar {
+	width: 8px;
+}
+
+.popover-user-profile .popover-badges-div::-webkit-scrollbar-track {
+	background: rgba(255, 255, 255, .035);
+	border-radius: 999px;
+}
+
+.popover-user-profile .popover-badges-div::-webkit-scrollbar-thumb {
+	background: rgba(239, 35, 60, .42);
+	border-radius: 999px;
 }
 
 /* Primary navigation pills must keep white labels and icons. */
