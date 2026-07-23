@@ -4,9 +4,17 @@ from flask import abort, g, send_file
 
 from files.__main__ import app
 from files.classes import Marsey
-from files.helpers.emote_management import approved_webp_path, category_for_emote, custom_emote_exists, custom_emote_url
+from files.helpers.config.const import PERMS
+from files.helpers.emote_management import (
+	approved_webp_path,
+	category_for_emote,
+	custom_emote_exists,
+	custom_emote_url,
+	find_pending_webp,
+)
 from files.helpers.regex import marsey_regex
 from files.routes.static import get_emojis
+from files.routes.wrappers import auth_required
 
 
 def enhanced_emoji_list():
@@ -25,6 +33,26 @@ def enhanced_emoji_list():
 			'url': custom_emote_url(marsey.name) if custom_emote_exists(marsey.name) else f'/e/{marsey.name}.webp',
 		})
 	return items
+
+
+@app.get('/asset_submissions/marseys/<name>.webp')
+@auth_required
+def pending_emote_file(v, name):
+	"""Serve a pending emote preview from either current or legacy storage."""
+	name = str(name or '').lower().strip()
+	if not marsey_regex.fullmatch(name):
+		abort(404)
+
+	marsey = g.db.get(Marsey, name)
+	if not marsey or marsey.submitter_id is None:
+		abort(404)
+	if v.id != marsey.submitter_id and v.admin_level < PERMS['VIEW_PENDING_SUBMITTED_MARSEYS']:
+		abort(404)
+
+	preview = find_pending_webp(name)
+	if not preview:
+		abort(404)
+	return send_file(preview, mimetype='image/webp', conditional=True, max_age=0)
 
 
 @app.get('/community-emote/<name>.webp')
