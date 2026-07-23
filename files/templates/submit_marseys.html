@@ -57,7 +57,7 @@
 								<input hidden name="formkey" value="{{v|formkey}}">
 
 								<div><label class="mt-3">Image</label></div>
-								<img loading="lazy" src="/asset_submissions/marseys/{{marsey.name}}.webp?s={{range(1, 10000000)|random}}" style="max-width:50%;border:5px white solid">
+								<img loading="lazy" src="/pending-emote/{{marsey.name}}.webp?v={{marsey.created_utc}}" alt=":{{marsey.name}}:" style="max-width:50%;border:5px white solid">
 
 								<div><label class="mt-3" for="{{marsey.name}}-submitter">Submitter</label></div>
 								<input autocomplete="off" type="text" id="{{marsey.name}}-submitter" class="form-control" maxlength="30" value="{{marsey.submitter}}" readonly>
