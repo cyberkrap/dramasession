@@ -1,65 +1,0 @@
-UTC: 2026-07-24T21:22:17Z
-
-=== https://i.rdrama.net/assets/i/animations/effects/acid.webp?x=61 ===
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 12892    0 12892    0     0  86717      0 --:--:-- --:--:-- --:--:-- 87108
-status=200 bytes=12892 type=text/html final=https://i.rdrama.net/assets/i/animations/effects/acid.webp?x=61
-/tmp/probe.bin: HTML document, Unicode text, UTF-8 text
-magic= b'<!DOCTYPE html>\n'
-
-=== https://staging.rdrama.net/assets/i/animations/effects/acid.webp?x=61 ===
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   162    0   162    0     0   1148      0 --:--:-- --:--:-- --:--:--  1148
-status=404 bytes=162 type=text/html final=https://staging.rdrama.net/assets/i/animations/effects/acid.webp?x=61
-/tmp/probe.bin: HTML document, ASCII text, with CRLF line terminators
-magic= b'<html>\r\n<head><t'
-
-=== https://devrama.net/assets/i/animations/effects/acid.webp?x=61 ===
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 12892    0 12892    0     0  38137      0 --:--:-- --:--:-- --:--:-- 38142
-status=200 bytes=12892 type=text/html final=https://devrama.net/assets/i/animations/effects/acid.webp?x=61
-/tmp/probe.bin: HTML document, Unicode text, UTF-8 text
-magic= b'<!DOCTYPE html>\n'
-
-=== https://redscarepod.net/assets/i/animations/effects/acid.webp?x=61 ===
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 13218    0 13218    0     0  88910      0 --:--:-- --:--:-- --:--:-- 89310
-status=200 bytes=13218 type=text/html final=https://redscarepod.net/assets/i/animations/effects/acid.webp?x=61
-/tmp/probe.bin: HTML document, ASCII text, with very long lines (1317)
-magic= b'<html lang="en" '
-
-=== https://www.themotte.org/assets/i/animations/effects/acid.webp ===
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  9564  100  9564    0     0  32130      0 --:--:-- --:--:-- --:--:-- 32202
-status=404 bytes=9564 type=text/html; charset=utf-8 final=https://www.themotte.org/assets/i/animations/effects/acid.webp
-/tmp/probe.bin: HTML document, ASCII text
-magic= b'<!DOCTYPE html>\n'
-
-=== https://watchpeopledie.tv/assets/i/animations/effects/acid.webp ===
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  5476  100  5476    0     0   107k      0 --:--:-- --:--:-- --:--:--  109k
-status=403 bytes=5476 type=text/html; charset=UTF-8 final=https://watchpeopledie.tv/assets/i/animations/effects/acid.webp
-/tmp/probe.bin: HTML document, ASCII text, with very long lines (5476), with no line terminators
-magic= b'<!DOCTYPE html><'
-
-=== https://web.archive.org/web/2id_/https://rdrama.net/assets/i/animations/effects/acid.webp ===
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  138k    0  138k    0     0   355k      0 --:--:-- --:--:-- --:--:--  355k
-status=404 bytes=142219 type=text/html final=https://web.archive.org/web/2id_/https://rdrama.net/assets/i/animations/effects/acid.webp
-/tmp/probe.bin: HTML document, Unicode text, UTF-8 text, with very long lines (3941)
-magic= b'<!DOCTYPE html>\n'
-
-=== https://web.archive.org/cdx/search/cdx?url=rdrama.net/assets/i/animations/effects/acid.webp&output=json&filter=statuscode:200&fl=timestamp,original,statuscode,mimetype,digest,length&limit=10 ===
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100     3    0     3    0     0      5      0 --:--:-- --:--:-- --:--:--     5
-status=200 bytes=3 type=application/json final=https://web.archive.org/cdx/search/cdx?url=rdrama.net/assets/i/animations/effects/acid.webp&output=json&filter=statuscode:200&fl=timestamp,original,statuscode,mimetype,digest,length&limit=10
-/tmp/probe.bin: JSON text data
-magic= b'[]\n'
