@@ -1,4 +1,4 @@
-name: Migrate username effects to direct assets
+name: Restore original username effect assets
 
 on:
   push:
@@ -9,11 +9,11 @@ permissions:
   contents: write
 
 concurrency:
-  group: migrate-username-effect-assets
+  group: restore-original-username-effects
   cancel-in-progress: false
 
 jobs:
-  migrate:
+  restore:
     runs-on: ubuntu-latest
     steps:
       - name: Check out production branch
@@ -22,84 +22,117 @@ jobs:
           ref: obsession-rebrand
           fetch-depth: 0
 
-      - name: Extract and commit direct WebP assets
+      - name: Download and validate original rDrama WebPs
         shell: bash
         run: |
           set -euo pipefail
+          python -m pip install --quiet Pillow
           python - <<'PY'
-          import base64
-          import io
           import re
-          import shutil
+          import time
+          import urllib.request
+          from io import BytesIO
           from pathlib import Path
-          from zipfile import ZipFile
+
+          from PIL import Image
 
           root = Path.cwd()
-          bundle_dir = root / 'files/username_effects_bundle'
           asset_dir = root / 'files/assets/images/username_effects'
-          helper_path = root / 'files/helpers/username_effects.py'
-          config_path = root / 'files/helpers/config/username_effects.py'
+          css_path = root / 'files/assets/css/username_effects.css'
           js_path = root / 'files/assets/js/username_effects.js'
-
-          expected = {
-              'acid', 'aurora', 'bee', 'blood', 'candycane', 'candycorn_darker',
-              'china', 'diamond', 'effeminate', 'fire_dark', 'fishy', 'fur',
-              'galaxy', 'gold_dark', 'israel', 'japan', 'lasers', 'lightning',
-              'lsd', 'nether', 'party', 'rainbow', 'siren', 'splatter', 'stars',
-              'static', 'steel', 'sunbeams', 'synthwave', 'uk', 'ukraine', 'usa',
-              'valid', 'vaporwave', 'water', 'weed',
-          }
-
-          parts = sorted(bundle_dir.glob('chunk*.b64'))
-          if not parts:
-              raise SystemExit('No username-effect bundle chunks were found.')
-
-          encoded = ''.join(part.read_text(encoding='ascii').strip() for part in parts)
-          archive_bytes = base64.b64decode(encoded, validate=True)
+          config_path = root / 'files/helpers/config/username_effects.py'
           asset_dir.mkdir(parents=True, exist_ok=True)
 
-          with ZipFile(io.BytesIO(archive_bytes)) as archive:
-              available = {Path(name).stem for name in archive.namelist() if name.endswith('.webp')}
-              missing = expected - available
-              unexpected = available - expected
-              if missing or unexpected:
-                  raise SystemExit(f'Effect archive mismatch. Missing={sorted(missing)} unexpected={sorted(unexpected)}')
-              for key in sorted(expected):
-                  target = asset_dir / f'{key}.webp'
-                  target.write_bytes(archive.read(f'{key}.webp'))
-                  if target.stat().st_size < 1:
-                      raise SystemExit(f'Empty effect asset: {target}')
+          expected = {
+              'acid': ((100, 56), 50),
+              'aurora': ((366, 364), 36),
+              'bee': ((350, 350), 167),
+              'blood': ((150, 113), 74),
+              'candycane': ((28, 28), 28),
+              'candycorn_darker': ((85, 85), 85),
+              'china': ((319, 220), 25),
+              'diamond': ((241, 149), 60),
+              'effeminate': ((100, 96), 45),
+              'fire_dark': ((40, 40), 25),
+              'fishy': ((274, 93), 84),
+              'fur': ((100, 75), 40),
+              'galaxy': ((320, 156), 60),
+              'gold_dark': ((85, 85), 85),
+              'israel': ((508, 382), 25),
+              'japan': ((305, 218), 25),
+              'lasers': ((250, 231), 60),
+              'lightning': ((100, 65), 66),
+              'lsd': ((100, 75), 37),
+              'nether': ((400, 279), 74),
+              'party': ((1, 1), 35),
+              'rainbow': ((50, 50), 180),
+              'siren': ((361, 351), 2),
+              'splatter': ((150, 113), 55),
+              'stars': ((100, 100), 25),
+              'static': ((300, 200), 28),
+              'steel': ((320, 320), 85),
+              'sunbeams': ((375, 140), 24),
+              'synthwave': ((193, 84), 10),
+              'uk': ((323, 162), 25),
+              'ukraine': ((324, 215), 25),
+              'usa': ((320, 170), 25),
+              'valid': ((100, 100), 100),
+              'vaporwave': ((323, 75), 10),
+              'water': ((100, 100), 16),
+              'weed': ((800, 192), 84),
+          }
 
-          helper = helper_path.read_text(encoding='utf-8')
-          helper = helper.replace('import base64\n', '')
-          helper = helper.replace('import io\n', '')
-          helper = helper.replace('import os\n', '')
-          helper = helper.replace('from zipfile import ZipFile\n', '')
-          start = helper.index('_EFFECT_BUNDLE_PARTS =')
-          end = helper.index('\n\ndef normalize_username_effects', start)
-          replacement = '''_EFFECT_ASSET_DIR = Path("files/assets/images/username_effects")\n\n\ndef ensure_username_effect_assets():\n    missing = sorted(\n        f"{key}.webp"\n        for key in USERNAME_EFFECT_KEYS\n        if not (_EFFECT_ASSET_DIR / f"{key}.webp").is_file()\n    )\n    if missing:\n        raise RuntimeError(\n            "Direct username effect assets are missing: " + ", ".join(missing)\n        )'''
-          helper = helper[:start] + replacement + helper[end:]
-          helper_path.write_text(helper, encoding='utf-8')
+          opener = urllib.request.build_opener()
+          opener.addheaders = [
+              ('User-Agent', 'Mozilla/5.0 (compatible; ObsessionAssetRestore/1.0)'),
+              ('Accept', 'image/webp,image/*;q=0.8,*/*;q=0.5'),
+          ]
 
-          config = config_path.read_text(encoding='utf-8')
-          config = re.sub(r'username_effects/\{key\}\.webp\?v=\d+', 'username_effects/{key}.webp?v=4', config)
-          config_path.write_text(config, encoding='utf-8')
+          for key, (expected_size, expected_frames) in expected.items():
+              url = f'https://rdrama.net/assets/i/animations/effects/{key}.webp?x=61'
+              last_error = None
+              for attempt in range(5):
+                  try:
+                      with opener.open(url, timeout=45) as response:
+                          data = response.read()
+                      if not (data.startswith(b'RIFF') and data[8:12] == b'WEBP'):
+                          raise RuntimeError(f'{key}: response was not WebP data')
+                      image = Image.open(BytesIO(data))
+                      actual_size = image.size
+                      actual_frames = getattr(image, 'n_frames', 1)
+                      if actual_size != expected_size:
+                          raise RuntimeError(f'{key}: expected {expected_size}, got {actual_size}')
+                      if actual_frames != expected_frames:
+                          raise RuntimeError(f'{key}: expected {expected_frames} frames, got {actual_frames}')
+                      (asset_dir / f'{key}.webp').write_bytes(data)
+                      print(f'{key}: {actual_size[0]}x{actual_size[1]}, {actual_frames} frames, {len(data)} bytes')
+                      break
+                  except Exception as exc:
+                      last_error = exc
+                      if attempt == 4:
+                          raise
+                      time.sleep(2 ** attempt)
+              else:
+                  raise last_error
+
+          css = css_path.read_text(encoding='utf-8')
+          css = css.replace('background-repeat: repeat-x !important;', 'background-repeat: no-repeat !important;')
+          css = css.replace('background-size: auto 100% !important;', 'background-size: 100% 100% !important;')
+          css = css.replace('background-origin: content-box !important;', 'background-origin: border-box !important;')
+          css_path.write_text(css, encoding='utf-8')
 
           js = js_path.read_text(encoding='utf-8')
-          js = re.sub(r"const ASSET_VERSION = '[^']+';", "const ASSET_VERSION = '4';", js)
+          js = re.sub(r"const ASSET_VERSION = '[^']+';", "const ASSET_VERSION = '5';", js)
           js_path.write_text(js, encoding='utf-8')
 
-          shutil.rmtree(bundle_dir)
-          (asset_dir / '.direct-assets-placeholder').unlink(missing_ok=True)
-          (asset_dir / '.migration-test').unlink(missing_ok=True)
-          (asset_dir / '.tree-test').unlink(missing_ok=True)
+          config = config_path.read_text(encoding='utf-8')
+          config = re.sub(r'username_effects/\{key\}\.webp\?v=\d+', 'username_effects/{key}.webp?v=5', config)
+          config_path.write_text(config, encoding='utf-8')
           PY
 
           test "$(find files/assets/images/username_effects -maxdepth 1 -name '*.webp' | wc -l)" -eq 36
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add files/assets/images/username_effects files/helpers/username_effects.py files/helpers/config/username_effects.py files/assets/js/username_effects.js files/username_effects_bundle
-          git commit -m "Store username effects as direct WebP assets"
+          git add files/assets/images/username_effects files/assets/css/username_effects.css files/assets/js/username_effects.js files/helpers/config/username_effects.py
+          git commit -m "Restore original username effect WebPs"
           git push origin HEAD:obsession-rebrand
-
-# Triggered once from the isolated migration branch.
