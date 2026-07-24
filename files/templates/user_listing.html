@@ -13,7 +13,7 @@
 			<div class="card-body" style="word-wrap: break-word;">
 				<div class="d-flex flex-wrap justify-content-between align-items-center mb-1">
 
-					<a class="card-title text-break stretched-link mb-0" href="{{u.url}}"><h5>@{{u.username}}</h5></a>
+					<a class="card-title text-break stretched-link mb-0" href="{{u.url}}"><h5><span data-username-effect-user="{{u.id}}" data-username-effects="{{u.active_username_effects|join(',')}}">@{{u.username}}</span></h5></a>
 
 					{% if v %}
 						{% if v.id != u.id %}
