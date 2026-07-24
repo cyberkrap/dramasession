@@ -1,60 +1,88 @@
 {% extends "default.html" %}
-{% block pagetitle %}Shop{% endblock %}
-{% block pagetype %}message{% endblock %}
-{% block banner %}
-<div class="shop-shell-header">
-	<nav class="shop-tabs" aria-label="Shop sections">
-		<a class="shop-tab active" href="/shop"><i class="fas fa-gift mr-2"></i>Awards</a>
-		<a class="shop-tab" href="/hats"><i class="fas fa-hat-cowboy mr-2"></i>Hats</a>
-	</nav>
-	<div class="shop-heading">
-		<div class="shop-mark"><i class="fas fa-store"></i></div>
-		<h1>Obsession Shop</h1>
-		<p>Choose an effect and apply it directly to a post, comment, or member.</p>
-		<div class="shop-stats">
-			{% if FEATURES['MARSEYBUX'] %}<span><strong>{{v.marseybux|number}}</strong> Wishbux</span>{% endif %}
-			<span><strong>{{v.coins|number}}</strong> Wishcoins</span>
-			<span><strong>{{v.coins_spent|number}}</strong> spent</span>
-			<span><strong>{{v.lootboxes_bought|number}}</strong> lootboxes</span>
-		</div>
-	</div>
-</div>
+{% block pagetitle %}Awards Shop{% endblock %}
+{% block pagetype %}shop{% endblock %}
+{% block head_final %}
+<link rel="stylesheet" href="{{'css/obsession_shop.css' | asset}}">
 {% endblock %}
+{% block banner %}{% endblock %}
 {% block content %}
-<div class="shop-grid" id="effects">
-	{% for a in awards %}
-		{% set kind = a['kind'] %}
-		{% if kind == 'benefactor' %}
-			{% set currency = 'marseybux' %}
-			{% set can_buy = v.can_spend('marseybux', a['price']) %}
-		{% elif kind == 'grass' %}
-			{% set currency = 'coins' %}
-			{% set can_buy = v.can_spend('coins', a['price']) %}
-		{% else %}
-			{% if v.can_spend('marseybux', a['price']) %}
-				{% set currency = 'marseybux' %}
-			{% elif v.can_spend('coins', a['price']) %}
-				{% set currency = 'coins' %}
-			{% elif v.marseybux > 0 %}
-				{% set currency = 'marseybux' %}
-			{% else %}
-				{% set currency = 'coins' %}
-			{% endif %}
-			{% set can_buy = v.can_spend('marseybux', a['price']) or v.can_spend('coins', a['price']) %}
-		{% endif %}
-		<article class="shop-card" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{a['title']}} — {{a['description'] or 'A community effect from the Obsession collection.'}}">
-			<div class="shop-card-icon"><i class="{{a['icon']}} {{a['color']}}"></i></div>
-			<div class="shop-card-body">
-				<h2>{{a['title']}}</h2>
-				<p>{{a['description'] or 'A community effect from the Obsession collection.'}}</p>
-			</div>
-			<div class="shop-card-footer">
-				<div>
-					{% if a['baseprice'] != a['price'] %}<span class="discounted-price">{{a['baseprice']|number}}</span> {% endif %}<strong>{{a['price']|number}}</strong> {{'Wishbux' if currency == 'marseybux' else 'Wishcoins'}}
-				</div>
-				<button type="button" class="btn btn-primary shop-buy-button" {% if not can_buy %}disabled{% endif %} data-areyousure="postToastSwitch(this,'/buy/{{kind}}?currency={{currency}}')" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)">{{a['price']|number}} {{'Wishbux' if currency == 'marseybux' else 'Wishcoins'}}</button>
-			</div>
-		</article>
-	{% endfor %}
+{% set shop_section = 'awards' %}
+<div class="obs-shop-shell">
+    {% include "shop_nav.html" %}
+
+    <header class="obs-shop-hero">
+        <div class="obs-shop-hero__copy">
+            <span class="obs-shop-eyebrow"><i class="fas fa-award" aria-hidden="true"></i> Community rewards</span>
+            <h1>Awards Shop</h1>
+            <p>Buy awards for posts and comments. Your inventory stays available until you use it.</p>
+        </div>
+        <div class="obs-shop-wallet" aria-label="Account balances">
+            <div><span>Wishcoins</span><strong>{{v.coins|number}}{% if v.has_unlimited_spending %} &infin;{% endif %}</strong></div>
+            {% if FEATURES['MARSEYBUX'] %}<div><span>Wishbux</span><strong>{{v.marseybux|number}}{% if v.has_unlimited_spending %} &infin;{% endif %}</strong></div>{% endif %}
+            <div><span>Total spent</span><strong>{{v.coins_spent|number}}</strong></div>
+            <div><span>Lootboxes</span><strong>{{v.lootboxes_bought|number}}</strong></div>
+        </div>
+    </header>
+
+    <section class="obs-shop-toolbar" aria-label="Award filters">
+        <label class="obs-shop-search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input class="form-control" type="search" placeholder="Search awards" data-shop-search autocomplete="off">
+        </label>
+        <span class="obs-shop-result-count" data-shop-count>{{awards|length}} awards</span>
+    </section>
+
+    <div class="obs-shop-catalog" data-shop-catalog>
+        <div class="obs-shop-grid obs-shop-grid--awards">
+        {% for a in awards %}
+            {% set kind = a['kind'] %}
+            <article class="obs-shop-card obs-award-card"
+                data-shop-card
+                data-search="{{(a['title'] ~ ' ' ~ (a['description'] or '') ~ ' ' ~ kind)|lower}}">
+                <div class="obs-shop-card__topline">
+                    <div class="obs-award-icon"><i class="{{a['icon']}} {{a['color']}}" aria-hidden="true"></i></div>
+                    {% if a['owned'] %}<span class="obs-shop-state">{{a['owned']}} owned</span>{% endif %}
+                </div>
+                <div class="obs-shop-card__body">
+                    <h2>{{a['title']}}</h2>
+                    <p>{{a['description'] or 'A community award from the Obsession collection.'}}</p>
+                </div>
+                <div class="obs-shop-card__footer">
+                    <div class="obs-shop-price">
+                        {% if a['baseprice'] != a['price'] %}<del>{{a['baseprice']|number}}</del>{% endif %}
+                        <strong>{{a['price']|number}}</strong>
+                        <span>each</span>
+                    </div>
+                    <div class="obs-shop-actions">
+                        {% if kind != 'benefactor' %}
+                        <button type="button"
+                            id="buy1-award-{{kind}}"
+                            class="btn btn-primary"
+                            {% if not v.can_spend('coins', a['price']) %}disabled{% endif %}
+                            data-areyousure="postToastReload(this,'/buy/{{kind}}')"
+                            data-nonce="{{g.nonce}}"
+                            data-onclick="areyousure(this)">
+                            <i class="fas fa-coins mr-1" aria-hidden="true"></i>Wishcoins
+                        </button>
+                        {% endif %}
+                        {% if FEATURES['MARSEYBUX'] and kind != 'grass' %}
+                        <button type="button"
+                            id="buy2-award-{{kind}}"
+                            class="btn btn-secondary"
+                            {% if not v.can_spend('marseybux', a['price']) %}disabled{% endif %}
+                            data-areyousure="postToastReload(this,'/buy/{{kind}}?mb=true')"
+                            data-nonce="{{g.nonce}}"
+                            data-onclick="areyousure(this)">
+                            <i class="fas fa-money-bill-wave mr-1" aria-hidden="true"></i>Wishbux
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+        </div>
+        <div class="obs-shop-empty" data-shop-empty hidden>No awards match that search.</div>
+    </div>
 </div>
+<script defer src="{{'js/obsession_shop.js' | asset}}"></script>
 {% endblock %}
