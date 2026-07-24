@@ -74,6 +74,7 @@ from .votes import *
 from .feeds import *
 if FEATURES['AWARDS']:
 	from .awards import *
+from .username_effects import *
 from .giphy import *
 from .subs import *
 if FEATURES['GAMBLING']:
@@ -92,16 +93,19 @@ from .special import *
 from .push_notifs import *
 
 from files.classes import User
+from files.__main__ import engine
 from files.helpers.ban_hats import install_ban_hat_support
 from files.helpers.contribution_badges import install_cumulative_contribution_badges
 from files.helpers.default_user_background import install_default_user_background
 from files.helpers.patron_branding import install_patron_branding
 from files.helpers.persistent_site_content import install_persistent_site_content
+from files.helpers.username_effects import install_username_effects
 install_ban_hat_support()
 install_cumulative_contribution_badges()
 install_default_user_background()
 install_patron_branding()
 install_persistent_site_content()
+install_username_effects(engine, User)
 if FEATURES['ASSET_SUBMISSIONS']:
 	from files.helpers.emote_management import ensure_emote_directories, install_custom_emote_rendering
 	ensure_emote_directories()
