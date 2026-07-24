@@ -1,0 +1,103 @@
+name: Migrate username effects to direct assets
+
+on:
+  push:
+    branches:
+      - agent/migrate-effect-assets
+
+permissions:
+  contents: write
+
+concurrency:
+  group: migrate-username-effect-assets
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out production branch
+        uses: actions/checkout@v4
+        with:
+          ref: obsession-rebrand
+          fetch-depth: 0
+
+      - name: Extract and commit direct WebP assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64
+          import io
+          import re
+          import shutil
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          root = Path.cwd()
+          bundle_dir = root / 'files/username_effects_bundle'
+          asset_dir = root / 'files/assets/images/username_effects'
+          helper_path = root / 'files/helpers/username_effects.py'
+          config_path = root / 'files/helpers/config/username_effects.py'
+          js_path = root / 'files/assets/js/username_effects.js'
+
+          expected = {
+              'acid', 'aurora', 'bee', 'blood', 'candycane', 'candycorn_darker',
+              'china', 'diamond', 'effeminate', 'fire_dark', 'fishy', 'fur',
+              'galaxy', 'gold_dark', 'israel', 'japan', 'lasers', 'lightning',
+              'lsd', 'nether', 'party', 'rainbow', 'siren', 'splatter', 'stars',
+              'static', 'steel', 'sunbeams', 'synthwave', 'uk', 'ukraine', 'usa',
+              'valid', 'vaporwave', 'water', 'weed',
+          }
+
+          parts = sorted(bundle_dir.glob('chunk*.b64'))
+          if not parts:
+              raise SystemExit('No username-effect bundle chunks were found.')
+
+          encoded = ''.join(part.read_text(encoding='ascii').strip() for part in parts)
+          archive_bytes = base64.b64decode(encoded, validate=True)
+          asset_dir.mkdir(parents=True, exist_ok=True)
+
+          with ZipFile(io.BytesIO(archive_bytes)) as archive:
+              available = {Path(name).stem for name in archive.namelist() if name.endswith('.webp')}
+              missing = expected - available
+              unexpected = available - expected
+              if missing or unexpected:
+                  raise SystemExit(f'Effect archive mismatch. Missing={sorted(missing)} unexpected={sorted(unexpected)}')
+              for key in sorted(expected):
+                  target = asset_dir / f'{key}.webp'
+                  target.write_bytes(archive.read(f'{key}.webp'))
+                  if target.stat().st_size < 1:
+                      raise SystemExit(f'Empty effect asset: {target}')
+
+          helper = helper_path.read_text(encoding='utf-8')
+          helper = helper.replace('import base64\n', '')
+          helper = helper.replace('import io\n', '')
+          helper = helper.replace('import os\n', '')
+          helper = helper.replace('from zipfile import ZipFile\n', '')
+          start = helper.index('_EFFECT_BUNDLE_PARTS =')
+          end = helper.index('\n\ndef normalize_username_effects', start)
+          replacement = '''_EFFECT_ASSET_DIR = Path("files/assets/images/username_effects")\n\n\ndef ensure_username_effect_assets():\n    missing = sorted(\n        f"{key}.webp"\n        for key in USERNAME_EFFECT_KEYS\n        if not (_EFFECT_ASSET_DIR / f"{key}.webp").is_file()\n    )\n    if missing:\n        raise RuntimeError(\n            "Direct username effect assets are missing: " + ", ".join(missing)\n        )'''
+          helper = helper[:start] + replacement + helper[end:]
+          helper_path.write_text(helper, encoding='utf-8')
+
+          config = config_path.read_text(encoding='utf-8')
+          config = re.sub(r'username_effects/\{key\}\.webp\?v=\d+', 'username_effects/{key}.webp?v=4', config)
+          config_path.write_text(config, encoding='utf-8')
+
+          js = js_path.read_text(encoding='utf-8')
+          js = re.sub(r"const ASSET_VERSION = '[^']+';", "const ASSET_VERSION = '4';", js)
+          js_path.write_text(js, encoding='utf-8')
+
+          shutil.rmtree(bundle_dir)
+          (asset_dir / '.direct-assets-placeholder').unlink(missing_ok=True)
+          (asset_dir / '.migration-test').unlink(missing_ok=True)
+          (asset_dir / '.tree-test').unlink(missing_ok=True)
+          PY
+
+          test "$(find files/assets/images/username_effects -maxdepth 1 -name '*.webp' | wc -l)" -eq 36
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add files/assets/images/username_effects files/helpers/username_effects.py files/helpers/config/username_effects.py files/assets/js/username_effects.js files/username_effects_bundle
+          git commit -m "Store username effects as direct WebP assets"
+          git push origin HEAD:obsession-rebrand
