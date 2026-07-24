@@ -1,0 +1,160 @@
+name: Apply original username effects
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-original-username-effects
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out production branch
+        uses: actions/checkout@v4
+        with:
+          ref: obsession-rebrand
+          fetch-depth: 0
+
+      - name: Read and validate uploaded ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin agent/migrate-effect-assets
+          git show "origin/agent/migrate-effect-assets:username effects.zip" > /tmp/username-effects.zip
+          python -m pip install --quiet Pillow
+          rm -rf /tmp/original-effects
+          mkdir -p /tmp/original-effects
+          python - <<'PY'
+          from io import BytesIO
+          from pathlib import Path, PurePosixPath
+          from zipfile import ZipFile
+
+          from PIL import Image
+
+          archive_path = Path('/tmp/username-effects.zip')
+          output = Path('/tmp/original-effects')
+          expected = {
+              'acid': (100, 56),
+              'aurora': (366, 364),
+              'bee': (350, 350),
+              'blood': (150, 113),
+              'candycane': (28, 28),
+              'candycorn_darker': (85, 85),
+              'china': (319, 220),
+              'diamond': (241, 149),
+              'effeminate': (100, 96),
+              'fire_dark': (40, 40),
+              'fishy': (274, 93),
+              'fur': (100, 75),
+              'galaxy': (320, 156),
+              'gold_dark': (85, 85),
+              'israel': (508, 382),
+              'japan': (305, 218),
+              'lasers': (250, 231),
+              'lightning': (100, 65),
+              'lsd': (100, 75),
+              'nether': (400, 279),
+              'party': (1, 1),
+              'rainbow': (50, 50),
+              'siren': (361, 351),
+              'splatter': (150, 113),
+              'stars': (100, 100),
+              'static': (300, 200),
+              'steel': (320, 320),
+              'sunbeams': (375, 140),
+              'synthwave': (193, 84),
+              'uk': (323, 162),
+              'ukraine': (324, 215),
+              'usa': (320, 170),
+              'valid': (100, 100),
+              'vaporwave': (323, 75),
+              'water': (100, 100),
+              'weed': (800, 192),
+          }
+          optional = {'siren_patron'}
+
+          with ZipFile(archive_path) as archive:
+              candidates = {}
+              for info in archive.infolist():
+                  if info.is_dir():
+                      continue
+                  path = PurePosixPath(info.filename)
+                  if path.suffix.lower() != '.webp':
+                      continue
+                  key = path.stem.lower()
+                  if key in candidates:
+                      raise RuntimeError(f'Duplicate WebP basename in ZIP: {key}')
+                  candidates[key] = info
+
+              missing = sorted(set(expected) - set(candidates))
+              extras = sorted(set(candidates) - set(expected) - optional)
+              if missing or extras:
+                  raise RuntimeError(f'ZIP contents mismatch. Missing={missing}; extra={extras}')
+
+              for key, expected_size in expected.items():
+                  data = archive.read(candidates[key])
+                  if not (data.startswith(b'RIFF') and data[8:12] == b'WEBP'):
+                      raise RuntimeError(f'{key}: not a WebP binary')
+                  image = Image.open(BytesIO(data))
+                  if image.size != expected_size:
+                      raise RuntimeError(f'{key}: expected {expected_size}, got {image.size}')
+                  (output / f'{key}.webp').write_bytes(data)
+                  print(f'{key}.webp: {image.width}x{image.height}, {getattr(image, "n_frames", 1)} frames, {len(data)} bytes')
+
+              if 'siren_patron' in candidates:
+                  data = archive.read(candidates['siren_patron'])
+                  if not (data.startswith(b'RIFF') and data[8:12] == b'WEBP'):
+                      raise RuntimeError('siren_patron: not a WebP binary')
+                  image = Image.open(BytesIO(data))
+                  (output / 'siren_patron.webp').write_bytes(data)
+                  print(f'siren_patron.webp: {image.width}x{image.height}, {getattr(image, "n_frames", 1)} frames, {len(data)} bytes')
+          PY
+
+      - name: Commit untouched assets to production
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p files/assets/images/username_effects
+          cp /tmp/original-effects/*.webp files/assets/images/username_effects/
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          js_path = Path('files/assets/js/username_effects.js')
+          config_path = Path('files/helpers/config/username_effects.py')
+
+          js = js_path.read_text(encoding='utf-8')
+          js, count = re.subn(
+              r"const ASSET_VERSION = '[^']+';",
+              "const ASSET_VERSION = '7';",
+              js,
+              count=1,
+          )
+          if count != 1:
+              raise RuntimeError('Could not update JavaScript asset version')
+          js_path.write_text(js, encoding='utf-8')
+
+          config = config_path.read_text(encoding='utf-8')
+          config, count = re.subn(
+              r'username_effects/\{key\}\.webp\?v=\d+',
+              'username_effects/{key}.webp?v=7',
+              config,
+          )
+          if count < 1:
+              raise RuntimeError('Could not update configured asset version')
+          config_path.write_text(config, encoding='utf-8')
+          PY
+
+          test "$(find files/assets/images/username_effects -maxdepth 1 -type f -name '*.webp' | wc -l)" -ge 36
+          git rm -f .github/workflows/apply-original-username-effects.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add files/assets/images/username_effects files/assets/js/username_effects.js files/helpers/config/username_effects.py
+          git diff --cached --stat
+          git commit -m 'Restore untouched username effect assets'
+          git push origin HEAD:obsession-rebrand
