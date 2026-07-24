@@ -1,36 +1,41 @@
-/* Animated username textures with patron-aware rendering and safe fallbacks. */
-.username-effect {
+/* Animated username textures. WebPs tile across the complete target. */
+.username-effect-host,
+.username-effect,
+.username-effect-text {
 	--username-effect-image: none;
-	--username-effect-fallback: #f5f5f5;
-	display: inline-block;
-	max-width: 100%;
-	color: inherit;
-	-webkit-text-fill-color: currentColor;
 	font: inherit;
 	font-weight: inherit;
 	line-height: inherit;
 	letter-spacing: inherit;
+}
+
+.username-effect,
+.username-effect-text {
+	display: inline-block;
+	color: inherit;
+	-webkit-text-fill-color: currentColor;
 	vertical-align: baseline;
-	overflow-wrap: inherit;
 	background: none;
 }
 
-.username-effect.username-effect--ready {
+.username-effect.username-effect--ready,
+.username-effect-text.username-effect--ready {
 	color: transparent !important;
 	-webkit-text-fill-color: transparent !important;
-	background-color: var(--username-effect-fallback) !important;
+	background-color: transparent !important;
 	background-image: var(--username-effect-image) !important;
-	background-position: center !important;
-	background-repeat: no-repeat !important;
-	background-size: 100% 100% !important;
-	background-origin: border-box !important;
+	background-position: left center !important;
+	background-repeat: repeat-x !important;
+	background-size: auto 100% !important;
+	background-origin: content-box !important;
 	-webkit-background-clip: text !important;
 	background-clip: text !important;
-	text-shadow: 0 1px 1px rgba(0, 0, 0, .62);
+	text-shadow: none !important;
+	filter: none !important;
 	image-rendering: auto;
 }
 
-/* Patron effects belong to the nameplate surface. The username stays readable. */
+/* Patron effects replace the nameplate surface, not the username glyphs. */
 .patron.username-effect-plate {
 	-webkit-text-fill-color: currentColor !important;
 	background-clip: border-box !important;
@@ -39,42 +44,44 @@
 
 .patron.username-effect-plate.username-effect--ready {
 	background-image: var(--username-effect-image) !important;
-	background-position: center !important;
-	background-repeat: no-repeat !important;
-	background-size: 100% 100% !important;
+	background-position: left center !important;
+	background-repeat: repeat-x !important;
+	background-size: auto 100% !important;
 	background-origin: border-box !important;
 	image-rendering: auto;
 }
 
-/* Keep text visible until the animated asset has actually loaded. */
-.username-effect:not(.username-effect--ready) {
+/* Never hide a username before its WebP is decoded. */
+.username-effect:not(.username-effect--ready),
+.username-effect-text:not(.username-effect--ready) {
 	background-image: none !important;
 }
 
 @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
 	.username-effect,
-	.username-effect.username-effect--ready {
+	.username-effect-text,
+	.username-effect.username-effect--ready,
+	.username-effect-text.username-effect--ready {
 		color: inherit !important;
 		-webkit-text-fill-color: currentColor !important;
 		background-image: none !important;
-		background-color: transparent !important;
-		text-shadow: none;
 	}
 }
 
-/* Shop previews always reserve the complete username and only animate near the viewport. */
+/* Preview text keeps its natural width; JS reduces only the font size when needed. */
 .obs-effect-preview,
 .obs-effect-live-preview {
 	contain: layout paint;
 }
 
+.obs-effect-preview .username-effect-host,
+.obs-effect-live-preview .username-effect-host,
 .obs-effect-preview .username-effect,
-.obs-effect-live-preview .username-effect,
-.obs-effect-live-preview .username-effect-plate {
+.obs-effect-live-preview .username-effect {
 	display: inline-block !important;
 	width: auto !important;
 	min-width: 0 !important;
-	max-width: calc(100% - 8px) !important;
+	max-width: none !important;
 	padding: .12em .08em !important;
 	white-space: nowrap !important;
 	overflow: visible !important;
@@ -82,4 +89,9 @@
 	word-break: normal !important;
 	line-height: 1.2 !important;
 	text-align: center !important;
+}
+
+.obs-effect-card {
+	content-visibility: auto;
+	contain-intrinsic-size: 320px;
 }
