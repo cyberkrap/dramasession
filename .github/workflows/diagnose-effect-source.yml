@@ -17,26 +17,31 @@ jobs:
         with:
           ref: agent/migrate-effect-assets
           fetch-depth: 0
-      - name: Probe rDrama effect asset
+      - name: Probe upstream repository tree
         shell: bash
         run: |
           set +e
+          rm -rf /tmp/rdrama-upstream
           {
             echo "UTC: $(date -u +%FT%TZ)"
-            echo "DNS:"
-            getent hosts rdrama.net || true
+            echo "CLONE:"
+            git clone --depth 1 --filter=blob:none --no-checkout --branch frost https://github.com/themotte/rDrama.git /tmp/rdrama-upstream 2>&1
+            echo "clone_status=$?"
             echo
-            echo "HEADERS:"
-            curl -I -L --connect-timeout 20 --max-time 60 --user-agent 'Mozilla/5.0 ObsessionAssetDiagnostic/1.0' 'https://rdrama.net/assets/i/animations/effects/acid.webp?x=61' 2>&1
-            echo
-            echo "DOWNLOAD:"
-            curl -L --connect-timeout 20 --max-time 120 --user-agent 'Mozilla/5.0 ObsessionAssetDiagnostic/1.0' -o /tmp/acid.webp -w 'status=%{http_code} bytes=%{size_download} type=%{content_type}\n' 'https://rdrama.net/assets/i/animations/effects/acid.webp?x=61' 2>&1
-            file /tmp/acid.webp 2>&1 || true
-            sha256sum /tmp/acid.webp 2>&1 || true
-          } > asset-restore-diagnostic.txt
+            if [ -d /tmp/rdrama-upstream/.git ]; then
+              cd /tmp/rdrama-upstream
+              echo "HEAD: $(git rev-parse HEAD 2>&1)"
+              echo "ACID PATHS:"
+              git ls-tree -r --name-only HEAD | grep -Ei '(^|/)acid\.webp$' | head -n 50
+              echo
+              echo "EFFECT-LIKE DIRECTORIES:"
+              git ls-tree -r --name-only HEAD | grep -Ei 'animations/.*/effects|animations/effects|username.*effects|/effects/.*\.webp$' | head -n 300
+            fi
+          } > "$GITHUB_WORKSPACE/asset-restore-diagnostic.txt" 2>&1
+          cd "$GITHUB_WORKSPACE"
           cat asset-restore-diagnostic.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add asset-restore-diagnostic.txt
-          git commit -m 'Record effect source diagnostic' || true
+          git commit -m 'Record upstream effect tree diagnostic' || true
           git push origin HEAD:agent/migrate-effect-assets
