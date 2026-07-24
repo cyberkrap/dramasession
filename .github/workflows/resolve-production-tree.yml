@@ -1,0 +1,34 @@
+name: Resolve production tree
+
+on:
+  push:
+    branches:
+      - agent/migrate-effect-assets
+
+permissions:
+  contents: write
+
+jobs:
+  resolve:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-effect-assets
+          fetch-depth: 0
+      - name: Record production commit and tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin obsession-rebrand
+          {
+            echo "commit=$(git rev-parse origin/obsession-rebrand)"
+            echo "tree=$(git rev-parse 'origin/obsession-rebrand^{tree}')"
+          } > production-tree.txt
+          cat production-tree.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add production-tree.txt
+          git commit -m 'Record production tree SHA' || true
+          git push origin HEAD:agent/migrate-effect-assets
