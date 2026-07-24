@@ -101,3 +101,5 @@ jobs:
           git add files/assets/images/username_effects files/helpers/username_effects.py files/helpers/config/username_effects.py files/assets/js/username_effects.js files/username_effects_bundle
           git commit -m "Store username effects as direct WebP assets"
           git push origin HEAD:obsession-rebrand
+
+# Triggered once from the isolated migration branch.
