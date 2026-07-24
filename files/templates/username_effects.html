@@ -18,7 +18,8 @@
         </div>
         <div class="obs-effect-live-preview">
             <span class="obs-effect-live-preview__label">{% if active_effects %}Your active rotation{% else %}Live preview{% endif %}</span>
-            <strong class="username-effect"
+            <strong class="{% if v.patron %}patron{% else %}username-effect{% endif %}"
+                {% if v.patron %}style="background-color:#{{v.name_color}}"{% endif %}
                 data-username-effect-user="shop-live-preview"
                 data-username-effects="{{active_effects|join(',') if active_effects else 'aurora'}}">{{v.username}}</strong>
             <small>{% if active_effects %}{{active_effects|length}} equipped{% else %}Previewing Aurora{% endif %}</small>
