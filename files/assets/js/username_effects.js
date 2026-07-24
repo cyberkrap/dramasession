@@ -2,7 +2,7 @@
 	'use strict';
 
 	const ASSET_ROOT = '/assets/images/username_effects/';
-	const ASSET_VERSION = '3';
+	const ASSET_VERSION = '4';
 	const CYCLE_INTERVAL = 8000;
 	const groups = new Map();
 	const registrations = new WeakMap();

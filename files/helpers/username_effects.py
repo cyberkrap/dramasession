@@ -1,10 +1,6 @@
-import base64
-import io
 import json
-import os
 from pathlib import Path
 from typing import Iterable
-from zipfile import ZipFile
 
 from sqlalchemy import Column, Text, inspect, text
 
@@ -14,45 +10,19 @@ from files.helpers.config.username_effects import USERNAME_EFFECT_KEYS
 _EMPTY_EFFECTS = "[]"
 
 
-_EFFECT_BUNDLE_PARTS = Path("files/username_effects_bundle")
 _EFFECT_ASSET_DIR = Path("files/assets/images/username_effects")
 
 
 def ensure_username_effect_assets():
-    expected = {f"{key}.webp" for key in USERNAME_EFFECT_KEYS}
-    if expected and all((_EFFECT_ASSET_DIR / filename).is_file() for filename in expected):
-        return
-
-    parts = sorted(_EFFECT_BUNDLE_PARTS.glob("chunk*.b64"))
-    if not parts:
-        raise RuntimeError("Username effect asset bundle is missing.")
-
-    try:
-        encoded = "".join(part.read_text(encoding="ascii").strip() for part in parts)
-        bundle = base64.b64decode(encoded, validate=True)
-    except (OSError, ValueError) as exc:
-        raise RuntimeError("Username effect asset bundle is corrupt.") from exc
-
-    _EFFECT_ASSET_DIR.mkdir(parents=True, exist_ok=True)
-    with ZipFile(io.BytesIO(bundle)) as archive:
-        available = set(archive.namelist())
-        missing = expected - available
-        if missing:
-            raise RuntimeError(
-                "Username effect bundle is incomplete: " + ", ".join(sorted(missing))
-            )
-
-        for filename in sorted(expected):
-            target = _EFFECT_ASSET_DIR / filename
-            temporary = target.with_suffix(".webp.tmp")
-            with archive.open(filename) as source, temporary.open("wb") as destination:
-                while True:
-                    chunk = source.read(1024 * 256)
-                    if not chunk:
-                        break
-                    destination.write(chunk)
-            os.replace(temporary, target)
-
+    missing = sorted(
+        f"{key}.webp"
+        for key in USERNAME_EFFECT_KEYS
+        if not (_EFFECT_ASSET_DIR / f"{key}.webp").is_file()
+    )
+    if missing:
+        raise RuntimeError(
+            "Direct username effect assets are missing: " + ", ".join(missing)
+        )
 
 def normalize_username_effects(value) -> list[str]:
     if value is None:
