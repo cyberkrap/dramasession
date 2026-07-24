@@ -1,0 +1,42 @@
+name: Diagnose username effect source
+
+on:
+  push:
+    branches:
+      - agent/migrate-effect-assets
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/migrate-effect-assets
+          fetch-depth: 0
+      - name: Probe rDrama effect asset
+        shell: bash
+        run: |
+          set +e
+          {
+            echo "UTC: $(date -u +%FT%TZ)"
+            echo "DNS:"
+            getent hosts rdrama.net || true
+            echo
+            echo "HEADERS:"
+            curl -I -L --connect-timeout 20 --max-time 60 --user-agent 'Mozilla/5.0 ObsessionAssetDiagnostic/1.0' 'https://rdrama.net/assets/i/animations/effects/acid.webp?x=61' 2>&1
+            echo
+            echo "DOWNLOAD:"
+            curl -L --connect-timeout 20 --max-time 120 --user-agent 'Mozilla/5.0 ObsessionAssetDiagnostic/1.0' -o /tmp/acid.webp -w 'status=%{http_code} bytes=%{size_download} type=%{content_type}\n' 'https://rdrama.net/assets/i/animations/effects/acid.webp?x=61' 2>&1
+            file /tmp/acid.webp 2>&1 || true
+            sha256sum /tmp/acid.webp 2>&1 || true
+          } > asset-restore-diagnostic.txt
+          cat asset-restore-diagnostic.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add asset-restore-diagnostic.txt
+          git commit -m 'Record effect source diagnostic' || true
+          git push origin HEAD:agent/migrate-effect-assets
