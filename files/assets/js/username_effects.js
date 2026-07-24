@@ -2,7 +2,8 @@
 	'use strict';
 
 	const ASSET_ROOT = '/assets/images/username_effects/';
-	const CYCLE_INTERVAL = 6500;
+	const ASSET_VERSION = '3';
+	const CYCLE_INTERVAL = 8000;
 	const groups = new Map();
 	const registrations = new WeakMap();
 	const assetCache = new Map();
@@ -23,7 +24,7 @@
 	}
 
 	function assetUrl(effect) {
-		return `${ASSET_ROOT}${encodeURIComponent(effect)}.webp?v=1`;
+		return `${ASSET_ROOT}${encodeURIComponent(effect)}.webp?v=${ASSET_VERSION}`;
 	}
 
 	function effectUrl(effect) {
@@ -31,77 +32,124 @@
 	}
 
 	function preloadEffect(effect) {
-		if (assetCache.has(effect)) return assetCache.get(effect);
+		if (assetCache.has(effect)) return assetCache.get(effect).promise;
+		const image = new Image();
+		image.decoding = 'async';
 		const promise = new Promise(resolve => {
-			const image = new Image();
-			image.decoding = 'async';
 			image.addEventListener('load', () => resolve(true), {once: true});
 			image.addEventListener('error', () => resolve(false), {once: true});
-			image.src = assetUrl(effect);
 		});
-		assetCache.set(effect, promise);
+		image.src = assetUrl(effect);
+		assetCache.set(effect, {image, promise});
 		return promise;
 	}
 
-	function usableColor(element) {
-		if (element.dataset.usernameEffectFallback) return element.dataset.usernameEffectFallback;
-		let node = element;
-		while (node instanceof Element) {
-			const color = getComputedStyle(node).color;
-			if (color && color !== 'transparent' && !/^rgba\([^)]*,\s*0(?:\.0+)?\)$/.test(color)) {
-				element.dataset.usernameEffectFallback = color;
-				return color;
-			}
-			node = node.parentElement;
-		}
-		element.dataset.usernameEffectFallback = '#f5f5f5';
-		return '#f5f5f5';
-	}
-
-	function unwrapOldInnerEffect(element) {
-		const inner = element.querySelector(':scope > .username-effect');
-		if (!inner) return;
-		while (inner.firstChild) element.insertBefore(inner.firstChild, inner);
-		inner.remove();
+	function schedulePreload(effects) {
+		const load = () => effects.forEach(preloadEffect);
+		if ('requestIdleCallback' in window) requestIdleCallback(load, {timeout: 1800});
+		else window.setTimeout(load, 250);
 	}
 
 	function isPatronPlate(element) {
 		return element instanceof Element && element.classList.contains('patron');
 	}
 
-	function resolveTarget(host) {
+	function unwrapLegacyInnerEffect(element) {
+		if (!(element instanceof Element)) return;
+		const inner = element.querySelector(':scope > .username-effect, :scope > .username-effect-text');
+		if (!inner || isPatronPlate(inner)) return;
+		while (inner.firstChild) element.insertBefore(inner.firstChild, inner);
+		inner.remove();
+	}
+
+	function wrapFirstTextToken(root) {
+		if (!(root instanceof Element)) return null;
+		const existing = root.querySelector(':scope > [data-profile-username-effect]');
+		if (existing) return existing;
+
+		for (const node of Array.from(root.childNodes)) {
+			if (node.nodeType !== Node.TEXT_NODE || !node.nodeValue || !node.nodeValue.trim()) continue;
+			const match = node.nodeValue.match(/^(\s*)(\S+)([\s\S]*)$/);
+			if (!match) continue;
+			const target = document.createElement('span');
+			target.dataset.profileUsernameEffect = '1';
+			target.textContent = match[2];
+			const fragment = document.createDocumentFragment();
+			if (match[1]) fragment.append(document.createTextNode(match[1]));
+			fragment.append(target);
+			if (match[3]) fragment.append(document.createTextNode(match[3]));
+			node.replaceWith(fragment);
+			return target;
+		}
+
+		const excluded = '.pronouns, .sub-flair, .badge, [class*="flair"], [class*="pronoun"], i, img, svg, button';
+		const candidates = Array.from(root.children).filter(child => {
+			if (!(child instanceof Element) || child.matches(excluded)) return false;
+			return Boolean(child.textContent && child.textContent.trim());
+		});
+		return candidates[0] || null;
+	}
+
+	function isolateProfileUsername(root) {
+		if (!(root instanceof Element)) return null;
+		if (isPatronPlate(root)) return root;
+		const patron = root.querySelector(':scope > .patron, .patron');
+		if (patron) return patron;
+		return wrapFirstTextToken(root);
+	}
+
+	function resolveTarget(host, fromProfileMarker = false) {
 		if (!(host instanceof Element)) return null;
+		if (fromProfileMarker || host.id === 'profile--name') return isolateProfileUsername(host);
 		if (isPatronPlate(host)) return host;
+
+		if (host.matches('span, strong, b, bdi, h1, h2, h3, h4, h5')) return host;
+
 		const directPatron = host.querySelector(':scope > .patron');
 		if (directPatron) return directPatron;
-		if (isPatronPlate(host.parentElement)) return host.parentElement;
-		if (host.matches('span, strong, b, bdi, h1, h2, h3, h4, h5')) return host;
-		const candidates = Array.from(host.children).filter(
-			child => child.tagName === 'SPAN' && !child.classList.contains('pronouns')
-		);
-		return candidates[candidates.length - 1] || host;
+
+		if (host.matches('.user-name, a')) {
+			const candidates = Array.from(host.children).filter(child =>
+				child instanceof Element &&
+				child.tagName === 'SPAN' &&
+				!child.matches('.pronouns, [class*="pronoun"], [class*="flair"]')
+			);
+			return candidates[candidates.length - 1] || null;
+		}
+
+		return null;
+	}
+
+	function removeOldInlineOverrides(element) {
+		if (!(element instanceof HTMLElement)) return;
+		if (element.style.getPropertyValue('color') === 'transparent') element.style.removeProperty('color');
+		if (element.style.getPropertyValue('-webkit-text-fill-color') === 'transparent') {
+			element.style.removeProperty('-webkit-text-fill-color');
+		}
+		for (const property of [
+			'background-image', 'background-position', 'background-repeat', 'background-size',
+			'-webkit-background-clip', 'background-clip'
+		]) element.style.removeProperty(property);
 	}
 
 	function prepareTarget(element) {
+		if (!(element instanceof Element)) return;
+		removeOldInlineOverrides(element);
+		element.classList.add('username-effect-host');
+
 		if (isPatronPlate(element)) {
-			unwrapOldInnerEffect(element);
-			element.classList.remove('username-effect');
+			unwrapLegacyInnerEffect(element);
+			element.classList.remove('username-effect', 'username-effect-text');
 			element.classList.add('username-effect-plate');
-			element.style.removeProperty('color');
-			element.style.removeProperty('-webkit-text-fill-color');
-			element.style.removeProperty('-webkit-background-clip');
-			element.style.removeProperty('background-clip');
-			return;
+		} else {
+			element.classList.remove('username-effect-plate');
+			element.classList.add('username-effect', 'username-effect-text');
 		}
-		element.classList.remove('username-effect-plate');
-		element.classList.add('username-effect');
-		element.style.setProperty('--username-effect-fallback', usableColor(element));
 	}
 
 	function clearVisual(element) {
 		if (!(element instanceof Element)) return;
 		element.classList.remove('username-effect--ready');
-		element.style.removeProperty('background-image');
 		element.style.removeProperty('--username-effect-image');
 		delete element.dataset.usernameEffectCurrent;
 	}
@@ -109,23 +157,19 @@
 	async function applyEffect(element, effect) {
 		if (!(element instanceof Element) || !effect || !element.isConnected) return;
 		if (element.dataset.usernameEffectCurrent === effect && element.classList.contains('username-effect--ready')) return;
-		const token = `${effect}:${performance.now()}`;
-		element.dataset.usernameEffectRequest = token;
+
+		const requestToken = `${effect}:${performance.now()}:${Math.random()}`;
+		element.dataset.usernameEffectRequest = requestToken;
 		const loaded = await preloadEffect(effect);
-		if (!element.isConnected || element.dataset.usernameEffectRequest !== token) return;
+		if (!element.isConnected || element.dataset.usernameEffectRequest !== requestToken) return;
 		if (!loaded) {
 			clearVisual(element);
 			return;
 		}
-		const image = effectUrl(effect);
-		element.style.setProperty('--username-effect-image', image);
-		element.style.setProperty('background-image', image, 'important');
+
+		element.style.setProperty('--username-effect-image', effectUrl(effect));
 		element.dataset.usernameEffectCurrent = effect;
 		element.classList.add('username-effect--ready');
-	}
-
-	function groupKey(element, effects) {
-		return `${element.dataset.usernameEffectUser || 'anonymous'}::${effects.join(',')}`;
 	}
 
 	function isPreview(element) {
@@ -140,12 +184,12 @@
 		const baseSize = parseFloat(computed.fontSize) || 24;
 		const boxStyle = getComputedStyle(box);
 		const available = Math.max(
-			40,
-			box.clientWidth - parseFloat(boxStyle.paddingLeft || 0) - parseFloat(boxStyle.paddingRight || 0) - 10
+			44,
+			box.clientWidth - (parseFloat(boxStyle.paddingLeft) || 0) - (parseFloat(boxStyle.paddingRight) || 0) - 12,
 		);
-		const naturalWidth = element.scrollWidth;
+		const naturalWidth = Math.max(element.scrollWidth, element.getBoundingClientRect().width);
 		if (naturalWidth > available) {
-			const fitted = Math.max(9, baseSize * available / naturalWidth);
+			const fitted = Math.max(9, baseSize * (available / naturalWidth));
 			element.style.setProperty('font-size', `${fitted}px`, 'important');
 		}
 	}
@@ -165,7 +209,7 @@
 					clearVisual(element);
 				}
 			}
-		}, {rootMargin: '180px 0px', threshold: 0.01})
+		}, {rootMargin: '120px 0px', threshold: 0.01})
 		: null;
 
 	function unregister(element) {
@@ -179,10 +223,10 @@
 		registrations.delete(element);
 	}
 
-	function register(host, userId, effectsValue) {
+	function register(host, userId, effectsValue, options = {}) {
 		const effects = cleanEffects(effectsValue);
 		if (!effects.length) return;
-		const element = resolveTarget(host);
+		const element = resolveTarget(host, Boolean(options.profile));
 		if (!element) return;
 
 		const userValue = String(userId || element.dataset.usernameEffectUser || 'anonymous');
@@ -201,8 +245,9 @@
 
 		let state = groups.get(nextKey);
 		if (!state) {
-			state = {effects, index: Math.floor(Math.random() * effects.length), elements: new Set()};
+			state = {effects, index: 0, elements: new Set()};
 			groups.set(nextKey, state);
+			if (effects.length > 1) schedulePreload(effects);
 		}
 		state.elements.add(element);
 		registrations.set(element, {key: nextKey});
@@ -232,22 +277,27 @@
 		const data = dataForTrigger(trigger);
 		const effects = cleanEffects(data.username_effects);
 		if (!effects.length) return;
-		const candidates = Array.from(trigger.children).filter(
-			child => child.tagName === 'SPAN' && !child.classList.contains('pronouns')
-		);
-		const host = candidates[candidates.length - 1];
-		if (host) register(host, data.id, effects.join(','));
+		register(trigger, data.id, effects.join(','));
 	}
 
 	function enhanceMarkers(root = document) {
 		const markers = [];
 		if (root instanceof Element && root.matches('[data-username-effect-target]')) markers.push(root);
 		if (root.querySelectorAll) markers.push(...root.querySelectorAll('[data-username-effect-target]'));
+
 		for (const marker of markers) {
 			const selector = marker.dataset.usernameEffectTarget;
-			let target = selector ? document.querySelector(selector) : null;
-			if (!target && selector && selector.endsWith(' > span')) target = document.querySelector(selector.slice(0, -7));
-			if (target) register(target, marker.dataset.usernameEffectUser, marker.dataset.usernameEffects);
+			if (!selector) continue;
+			const profileMarker = selector.startsWith('#profile--name');
+			const target = profileMarker
+				? document.querySelector('#profile--name')
+				: document.querySelector(selector);
+			if (target) register(
+				target,
+				marker.dataset.usernameEffectUser,
+				marker.dataset.usernameEffects,
+				{profile: profileMarker},
+			);
 		}
 	}
 
@@ -282,9 +332,7 @@
 				continue;
 			}
 			if (state.effects.length < 2) continue;
-			let next = state.index;
-			while (next === state.index) next = Math.floor(Math.random() * state.effects.length);
-			state.index = next;
+			state.index = (state.index + 1) % state.effects.length;
 			const effect = state.effects[state.index];
 			state.elements.forEach(element => {
 				if (element.dataset.usernameEffectVisible !== '0') applyEffect(element, effect);
