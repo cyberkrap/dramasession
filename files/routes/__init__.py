@@ -1,6 +1,10 @@
 # import constants then...
 from files.helpers.config.const import FEATURES
 
+# Never block a request while tldextract tries to download the Public Suffix List.
+from files.helpers.offline_tldextract import configure_tldextract_offline
+configure_tldextract_offline()
+
 # import flask then...
 from flask import g, request, render_template, make_response, redirect, send_file
 
