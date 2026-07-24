@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - agent/migrate-effect-assets
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -22,15 +23,14 @@ jobs:
           ref: obsession-rebrand
           fetch-depth: 0
 
-      - name: Download and validate original rDrama WebPs
+      - name: Download original effect WebPs and update renderer
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install --quiet Pillow
           python - <<'PY'
           import re
-          import time
-          import urllib.request
+          import subprocess
           from io import BytesIO
           from pathlib import Path
 
@@ -43,78 +43,41 @@ jobs:
           config_path = root / 'files/helpers/config/username_effects.py'
           asset_dir.mkdir(parents=True, exist_ok=True)
 
-          expected = {
-              'acid': ((100, 56), 50),
-              'aurora': ((366, 364), 36),
-              'bee': ((350, 350), 167),
-              'blood': ((150, 113), 74),
-              'candycane': ((28, 28), 28),
-              'candycorn_darker': ((85, 85), 85),
-              'china': ((319, 220), 25),
-              'diamond': ((241, 149), 60),
-              'effeminate': ((100, 96), 45),
-              'fire_dark': ((40, 40), 25),
-              'fishy': ((274, 93), 84),
-              'fur': ((100, 75), 40),
-              'galaxy': ((320, 156), 60),
-              'gold_dark': ((85, 85), 85),
-              'israel': ((508, 382), 25),
-              'japan': ((305, 218), 25),
-              'lasers': ((250, 231), 60),
-              'lightning': ((100, 65), 66),
-              'lsd': ((100, 75), 37),
-              'nether': ((400, 279), 74),
-              'party': ((1, 1), 35),
-              'rainbow': ((50, 50), 180),
-              'siren': ((361, 351), 2),
-              'splatter': ((150, 113), 55),
-              'stars': ((100, 100), 25),
-              'static': ((300, 200), 28),
-              'steel': ((320, 320), 85),
-              'sunbeams': ((375, 140), 24),
-              'synthwave': ((193, 84), 10),
-              'uk': ((323, 162), 25),
-              'ukraine': ((324, 215), 25),
-              'usa': ((320, 170), 25),
-              'valid': ((100, 100), 100),
-              'vaporwave': ((323, 75), 10),
-              'water': ((100, 100), 16),
-              'weed': ((800, 192), 84),
-          }
+          keys = (
+              'acid', 'aurora', 'bee', 'blood', 'candycane', 'candycorn_darker',
+              'china', 'diamond', 'effeminate', 'fire_dark', 'fishy', 'fur',
+              'galaxy', 'gold_dark', 'israel', 'japan', 'lasers', 'lightning',
+              'lsd', 'nether', 'party', 'rainbow', 'siren', 'splatter', 'stars',
+              'static', 'steel', 'sunbeams', 'synthwave', 'uk', 'ukraine', 'usa',
+              'valid', 'vaporwave', 'water', 'weed',
+          )
 
-          opener = urllib.request.build_opener()
-          opener.addheaders = [
-              ('User-Agent', 'Mozilla/5.0 (compatible; ObsessionAssetRestore/1.0)'),
-              ('Accept', 'image/webp,image/*;q=0.8,*/*;q=0.5'),
-          ]
-
-          for key, (expected_size, expected_frames) in expected.items():
+          for key in keys:
               url = f'https://rdrama.net/assets/i/animations/effects/{key}.webp?x=61'
-              last_error = None
-              for attempt in range(5):
-                  try:
-                      with opener.open(url, timeout=45) as response:
-                          data = response.read()
-                      if not (data.startswith(b'RIFF') and data[8:12] == b'WEBP'):
-                          raise RuntimeError(f'{key}: response was not WebP data')
-                      image = Image.open(BytesIO(data))
-                      actual_size = image.size
-                      actual_frames = getattr(image, 'n_frames', 1)
-                      if actual_size != expected_size:
-                          raise RuntimeError(f'{key}: expected {expected_size}, got {actual_size}')
-                      if actual_frames != expected_frames:
-                          raise RuntimeError(f'{key}: expected {expected_frames} frames, got {actual_frames}')
-                      (asset_dir / f'{key}.webp').write_bytes(data)
-                      print(f'{key}: {actual_size[0]}x{actual_size[1]}, {actual_frames} frames, {len(data)} bytes')
-                      break
-                  except Exception as exc:
-                      last_error = exc
-                      if attempt == 4:
-                          raise
-                      time.sleep(2 ** attempt)
-              else:
-                  raise last_error
+              result = subprocess.run(
+                  [
+                      'curl', '--fail', '--location', '--silent', '--show-error',
+                      '--retry', '5', '--retry-all-errors', '--connect-timeout', '20',
+                      '--max-time', '120',
+                      '--user-agent', 'Mozilla/5.0 ObsessionAssetRestore/2.0',
+                      url,
+                  ],
+                  check=True,
+                  capture_output=True,
+              )
+              data = result.stdout
+              if not (data.startswith(b'RIFF') and data[8:12] == b'WEBP'):
+                  raise RuntimeError(f'{key}: source response is not a WebP')
+              image = Image.open(BytesIO(data))
+              width, height = image.size
+              frames = getattr(image, 'n_frames', 1)
+              if width < 1 or height < 1 or frames < 1:
+                  raise RuntimeError(f'{key}: invalid WebP metadata')
+              (asset_dir / f'{key}.webp').write_bytes(data)
+              print(f'{key}: {width}x{height}, {frames} frames, {len(data)} bytes')
 
+          # The original images are complete textures. Stretch one texture across
+          # the exact username/nameplate box instead of repeating a tiny tile.
           css = css_path.read_text(encoding='utf-8')
           css = css.replace('background-repeat: repeat-x !important;', 'background-repeat: no-repeat !important;')
           css = css.replace('background-size: auto 100% !important;', 'background-size: 100% 100% !important;')
