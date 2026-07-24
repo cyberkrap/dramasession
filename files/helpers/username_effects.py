@@ -23,12 +23,12 @@ def ensure_username_effect_assets():
     if expected and all((_EFFECT_ASSET_DIR / filename).is_file() for filename in expected):
         return
 
-    bundle_path = _EFFECT_BUNDLE_PARTS / "bundle.b64"
-    if not bundle_path.is_file():
+    parts = sorted(_EFFECT_BUNDLE_PARTS.glob("chunk*.b64"))
+    if not parts:
         raise RuntimeError("Username effect asset bundle is missing.")
 
     try:
-        encoded = bundle_path.read_text(encoding="ascii").strip()
+        encoded = "".join(part.read_text(encoding="ascii").strip() for part in parts)
         bundle = base64.b64decode(encoded, validate=True)
     except (OSError, ValueError) as exc:
         raise RuntimeError("Username effect asset bundle is corrupt.") from exc
