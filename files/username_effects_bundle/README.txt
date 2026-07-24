@@ -1,1 +1,1 @@
-Runtime-packed username effect assets.
+Username effect assets used by the Obsession shop and profile renderer.
