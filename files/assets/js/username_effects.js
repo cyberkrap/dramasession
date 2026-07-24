@@ -106,7 +106,11 @@
 		if (root instanceof Element && root.matches('[data-username-effect-target]')) markers.push(root);
 		if (root.querySelectorAll) markers.push(...root.querySelectorAll('[data-username-effect-target]'));
 		for (const marker of markers) {
-			const target = document.querySelector(marker.dataset.usernameEffectTarget);
+			const selector = marker.dataset.usernameEffectTarget;
+			let target = document.querySelector(selector);
+			if (!target && selector && selector.endsWith(' > span')) {
+				target = document.querySelector(selector.slice(0, -7));
+			}
 			if (target) ensureInnerEffect(
 				target,
 				marker.dataset.usernameEffectUser,
