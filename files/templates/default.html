@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{{'css/obsession_moderation_tools.css' | asset}}">
 <link rel="stylesheet" href="{{'css/obsession_comment_alignment.css' | asset}}">
 <link rel="stylesheet" href="{{'css/emoji_modal_refinement.css' | asset}}">
+<link rel="stylesheet" href="{{'css/username_effects.css' | asset}}">
 {% block banner %}
 	{% include "modals/expanded_image.html" %}
 	{% if err or '@' not in request.path %}
@@ -26,6 +27,12 @@
 {% endblock %}
 
 {% include "header.html" %}
+{% if v %}
+<span hidden data-username-effect-target="#header--username" data-username-effect-user="{{v.id}}" data-username-effects="{{v.active_username_effects|join(',')}}"></span>
+{% endif %}
+{% if u is defined and u %}
+<span hidden data-username-effect-target="#profile--name > span" data-username-effect-user="{{u.id}}" data-username-effects="{{u.active_username_effects|join(',')}}"></span>
+{% endif %}
 {% block mobileUserBanner %}{% endblock %}
 <div class="container app-shell">
 	<div class="row justify-content-around" id="main-content-row">
@@ -68,6 +75,7 @@
 <script defer src="{{'js/vendor/lozad.js' | asset}}"></script>
 <script defer src="{{'js/vendor/lite-youtube.js' | asset}}"></script>
 <script defer src="{{'js/profile_popover_fixes.js' | asset}}"></script>
+<script defer src="{{'js/username_effects.js' | asset}}"></script>
 {% if not err and v and v.spider %}
 	<script defer src="{{'js/vendor/critters.js' | asset}}"></script>
 	<script defer src="{{'js/spider.js' | asset}}"></script>
