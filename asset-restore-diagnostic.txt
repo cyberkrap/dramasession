@@ -1,0 +1,41 @@
+UTC: 2026-07-24T21:10:48Z
+DNS:
+2606:4700:20::681a:6ee rdrama.net
+2606:4700:20::ac43:4a4a rdrama.net
+2606:4700:20::681a:7ee rdrama.net
+
+HEADERS:
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0HTTP/2 200 
+date: Fri, 24 Jul 2026 21:10:48 GMT
+content-type: text/html
+server: cloudflare
+last-modified: Fri, 17 Jul 2026 07:05:47 GMT
+expect-ct: max-age=86400, enforce
+referrer-policy: same-origin
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+cross-origin-opener-policy: same-origin-allow-popups
+content-security-policy: default-src 'none'; frame-ancestors 'none'; form-action 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'self'; font-src 'self' files.catbox.moe fonts.gstatic.com fonts.cdnfonts.com; style-src-elem 'self' rdrama.net watchpeopledie.tv; style-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline'; script-src-elem 'self' challenges.cloudflare.com vc.rdrama.net ; script-src-attr 'none'; script-src 'self' challenges.cloudflare.com vc.rdrama.net ; frame-src vc.rdrama.net  skribbl.io garticphone.com pokerpatio.com lolbeans.io lolshot.io openfront.io main.openfront.dev poxel.io colonist.io defly.io www.teamblind.com www.tiktok.com www.instagram.com embed.reddit.com truthsocial.com substack.com *.substack.com challenges.cloudflare.com cdpn.io www.youtube.com platform.twitter.com embed.bsky.app rumble.com player.twitch.tv www.twitch.tv player.kick.com cdn.iframe.ly; connect-src 'self' submit.watchpeopledie.tv cloudflareinsights.com api.fpjs.io ; img-src blob: i.rdrama.net rdrama.net media.giphy.com files.catbox.moe upload.wikimedia.org i.watchpeoplelive.tv uploads.kiwifarms.st external-preview.redd.it i.pinimg.com static.klipy.com media4.giphy.com staging.rdrama.net kiwifarms.net 66.media.tumblr.com c.tenor.com i.imgur.io i.redd.it media1.giphy.com cdn.bsky.app i.postimg.cc substackcdn.com videos.watchpeopledie.tv 64.media.tumblr.com devrama.net redscarepod.net media3.giphy.com 78.media.tumblr.com dragcave.net uploads.kiwifarms.net i.giphy.com media0.giphy.com media1.tenor.com marsey.world watchpeoplelive.tv v.redd.it media2.giphy.com pbs.twimg.com preview.redd.it uploads.kiwifarms.hk videos2.watchpeopledie.tv 37.media.tumblr.com kiwifarms.st i.watchpeopledie.tv kiwifarms.hk live.staticflickr.com i.imgur.com media.tenor.com i.ytimg.com watchpeopledie.tv i.kym-cdn.com files.catbox.moe data:; media-src data: *.googlevideo.com archive.org *.archive.org files.catbox.moe litter.catbox.moe i.rdrama.net rdrama.net media.giphy.com files.catbox.moe upload.wikimedia.org i.watchpeoplelive.tv uploads.kiwifarms.st external-preview.redd.it i.pinimg.com static.klipy.com media4.giphy.com staging.rdrama.net kiwifarms.net 66.media.tumblr.com c.tenor.com i.imgur.io i.redd.it media1.giphy.com cdn.bsky.app i.postimg.cc substackcdn.com videos.watchpeopledie.tv 64.media.tumblr.com devrama.net redscarepod.net media3.giphy.com 78.media.tumblr.com dragcave.net uploads.kiwifarms.net i.giphy.com media0.giphy.com media1.tenor.com marsey.world watchpeoplelive.tv v.redd.it media2.giphy.com pbs.twimg.com preview.redd.it uploads.kiwifarms.hk videos2.watchpeopledie.tv 37.media.tumblr.com kiwifarms.st i.watchpeopledie.tv kiwifarms.hk live.staticflickr.com i.imgur.com media.tenor.com i.ytimg.com watchpeopledie.tv i.kym-cdn.com; upgrade-insecure-requests;
+permissions-policy: accelerometer=*, ambient-light-sensor=(), autoplay=*, battery=(), camera=(self "https://vc.rdrama.net"), cross-origin-isolated=(), display-capture=(self "https://vc.rdrama.net"), document-domain=(), encrypted-media=*, execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=*, geolocation=(), gyroscope=*, keyboard-map=(), magnetometer=(), microphone=(self "https://vc.rdrama.net"), midi=(), navigation-override=(), payment=(), picture-in-picture=*, publickey-credentials-get=(), screen-wake-lock=(self "https://vc.rdrama.net"), storage-access=*, sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=*, gamepad=*, speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), interest-cohort=(), serial=(), sync-script=(), trust-token-redemption=(), unload=(), window-pl  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+acement=(), vertical-scroll=()
+cache-control: no-store
+x-xss-protection: 1; mode=block
+cf-cache-status: BYPASS
+speculation-rules: "/cdn-cgi/speculation"
+vary: accept-encoding
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=WpwQRTORQOod2UAfY%2BGG7%2FUkx6gYKmTSlBoEHSbcqr13gWa%2FE7S5Jm9XyR7f9i8TPPCEdQFjfhXNFaUdUBC9rhF2D2BnSfupkeib3q8mcxV9rMrh6ryFmYG7FIg%3D"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-ray: a205e9e6ab0252d6-IAD
+alt-svc: h3=":443"; ma=86400
+
+
+DOWNLOAD:
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 12892    0 12892    0     0   246k      0 --:--:-- --:--:-- --:--:--  251k
+status=200 bytes=12892 type=text/html
+/tmp/acid.webp: HTML document, Unicode text, UTF-8 text
+7a09000d97695936aa4ee7fd3aa6ff17044bc7fb4c737a9c0bb4b11e2f54ffb7  /tmp/acid.webp
