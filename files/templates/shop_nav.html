@@ -1,0 +1,16 @@
+<nav class="obs-shop-tabs" aria-label="Shop sections">
+    <a class="obs-shop-tab{% if shop_section == 'awards' %} is-active{% endif %}" href="/shop">
+        <i class="fas fa-award" aria-hidden="true"></i>
+        <span>Awards</span>
+    </a>
+    {% if FEATURES['HATS'] %}
+    <a class="obs-shop-tab{% if shop_section == 'hats' %} is-active{% endif %}" href="/hats">
+        <i class="fas fa-hat-cowboy" aria-hidden="true"></i>
+        <span>Hats</span>
+    </a>
+    {% endif %}
+    <a class="obs-shop-tab{% if shop_section == 'effects' %} is-active{% endif %}" href="/shop/effects">
+        <i class="fas fa-sparkles" aria-hidden="true"></i>
+        <span>Effects</span>
+    </a>
+</nav>
