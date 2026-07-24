@@ -1,0 +1,116 @@
+{% extends "default.html" %}
+{% block pagetitle %}Username Effects Shop{% endblock %}
+{% block pagetype %}shop{% endblock %}
+{% block head_final %}
+<link rel="stylesheet" href="{{'css/obsession_shop.css' | asset}}">
+{% endblock %}
+{% block banner %}{% endblock %}
+{% block content %}
+{% set shop_section = 'effects' %}
+<div class="obs-shop-shell">
+    {% include "shop_nav.html" %}
+
+    <header class="obs-shop-hero obs-effects-hero">
+        <div class="obs-shop-hero__copy">
+            <span class="obs-shop-eyebrow"><i class="fas fa-sparkles" aria-hidden="true"></i> Animated identity</span>
+            <h1>Username Effects</h1>
+            <p>Own as many effects as you like. Equip several and your username will cycle between them across the site.</p>
+        </div>
+        <div class="obs-effect-live-preview">
+            <span class="obs-effect-live-preview__label">{% if active_effects %}Your active rotation{% else %}Live preview{% endif %}</span>
+            <strong class="username-effect"
+                data-username-effect-user="shop-live-preview"
+                data-username-effects="{{active_effects|join(',') if active_effects else 'aurora'}}">{{v.username}}</strong>
+            <small>{% if active_effects %}{{active_effects|length}} equipped{% else %}Previewing Aurora{% endif %}</small>
+        </div>
+        <div class="obs-shop-wallet" aria-label="Effects account summary">
+            <div><span>Owned</span><strong>{{owned_effects|length}}</strong></div>
+            <div><span>Equipped</span><strong>{{active_effects|length}}</strong></div>
+            <div><span>Wishcoins</span><strong>{{v.coins|number}}{% if v.has_unlimited_spending %} &infin;{% endif %}</strong></div>
+            {% if FEATURES['MARSEYBUX'] %}<div><span>Wishbux</span><strong>{{v.marseybux|number}}{% if v.has_unlimited_spending %} &infin;{% endif %}</strong></div>{% endif %}
+        </div>
+    </header>
+
+    <section class="obs-shop-toolbar" aria-label="Effect filters">
+        <label class="obs-shop-search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input class="form-control" type="search" placeholder="Search effects" data-shop-search autocomplete="off">
+        </label>
+        <select class="form-control obs-shop-filter" data-shop-filter aria-label="Filter username effects">
+            <option value="all">All effects</option>
+            <option value="active">Equipped</option>
+            <option value="owned">Owned</option>
+            <option value="available">Not owned</option>
+            {% for category in categories %}<option value="category-{{category|lower|replace(' ', '-')}}">{{category}}</option>{% endfor %}
+        </select>
+        {% if active_effects %}
+        <button type="button" class="btn btn-secondary obs-shop-clear" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/shop/effects/unequip-all')">Unequip all</button>
+        {% endif %}
+        <span class="obs-shop-result-count" data-shop-count>{{effects|length}} effects</span>
+    </section>
+
+    <div class="obs-shop-catalog" data-shop-catalog>
+        <div class="obs-shop-grid obs-shop-grid--effects">
+        {% for effect in effects %}
+            <article class="obs-shop-card obs-effect-card"
+                data-shop-card
+                data-state="{% if effect.active %}active{% elif effect.owned %}owned{% else %}available{% endif %}"
+                data-category="category-{{effect.category|lower|replace(' ', '-')}}"
+                data-search="{{(effect.title ~ ' ' ~ effect.description ~ ' ' ~ effect.category)|lower}}">
+                <div class="obs-effect-preview">
+                    <span class="username-effect"
+                        data-username-effect-user="preview-{{effect.key}}"
+                        data-username-effects="{{effect.key}}">{{v.username}}</span>
+                </div>
+                <div class="obs-shop-card__body">
+                    <div class="obs-shop-card__heading">
+                        <h2>{{effect.title}}</h2>
+                        {% if effect.active %}<span class="obs-shop-state is-active">Equipped</span>{% elif effect.owned %}<span class="obs-shop-state">Owned</span>{% endif %}
+                    </div>
+                    <p>{{effect.description}}</p>
+                    <div class="obs-shop-meta">
+                        <span>{{effect.category}}</span>
+                        <a href="/shop/effects/{{effect.key}}/owners">{{effect.owner_count|number}} owner{{macros.plural(effect.owner_count)}}</a>
+                    </div>
+                </div>
+                <div class="obs-shop-card__footer">
+                    <div class="obs-shop-price"><strong>{{effect.price|number}}</strong><span>per currency</span></div>
+                    <div class="obs-shop-actions">
+                    {% if effect.owned %}
+                        {% if effect.active %}
+                        <button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/shop/effects/{{effect.key}}/toggle')">Unequip</button>
+                        {% else %}
+                        <button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/shop/effects/{{effect.key}}/toggle')">Equip</button>
+                        {% endif %}
+                    {% else %}
+                        <button type="button"
+                            id="buy1-effect-{{effect.key}}"
+                            class="btn btn-primary"
+                            {% if not v.can_spend('coins', effect.price) %}disabled{% endif %}
+                            data-areyousure="postToastReload(this,'/shop/effects/{{effect.key}}/buy')"
+                            data-nonce="{{g.nonce}}"
+                            data-onclick="areyousure(this)">
+                            <i class="fas fa-coins mr-1" aria-hidden="true"></i>Wishcoins
+                        </button>
+                        {% if FEATURES['MARSEYBUX'] %}
+                        <button type="button"
+                            id="buy2-effect-{{effect.key}}"
+                            class="btn btn-secondary"
+                            {% if not v.can_spend('marseybux', effect.price) %}disabled{% endif %}
+                            data-areyousure="postToastReload(this,'/shop/effects/{{effect.key}}/buy?mb=true')"
+                            data-nonce="{{g.nonce}}"
+                            data-onclick="areyousure(this)">
+                            <i class="fas fa-money-bill-wave mr-1" aria-hidden="true"></i>Wishbux
+                        </button>
+                        {% endif %}
+                    {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+        </div>
+        <div class="obs-shop-empty" data-shop-empty hidden>No username effects match those filters.</div>
+    </div>
+</div>
+<script defer src="{{'js/obsession_shop.js' | asset}}"></script>
+{% endblock %}
