@@ -23,61 +23,77 @@ jobs:
           ref: obsession-rebrand
           fetch-depth: 0
 
-      - name: Download original effect WebPs and update renderer
+      - name: Fetch the upstream effect directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rdrama-upstream
+          git clone --depth 1 --filter=blob:none --no-checkout --branch frost https://github.com/themotte/rDrama.git /tmp/rdrama-upstream
+          cd /tmp/rdrama-upstream
+          EFFECT_PATH="$(git ls-tree -r --name-only HEAD | grep -E '(^|/)animations/effects/acid\.webp$' | head -n 1)"
+          if [ -z "$EFFECT_PATH" ]; then
+            echo 'Could not locate animations/effects/acid.webp in upstream tree.' >&2
+            exit 1
+          fi
+          EFFECT_DIR="${EFFECT_PATH%/acid.webp}"
+          echo "$EFFECT_DIR" > /tmp/effect-dir.txt
+          git sparse-checkout init --cone
+          git sparse-checkout set "$EFFECT_DIR"
+          git checkout HEAD
+          find "$EFFECT_DIR" -maxdepth 1 -type f -name '*.webp' -printf '%f %s bytes\n' | sort
+
+      - name: Copy original WebPs and update renderer
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install --quiet Pillow
           python - <<'PY'
           import re
-          import subprocess
           from io import BytesIO
           from pathlib import Path
 
           from PIL import Image
 
           root = Path.cwd()
+          upstream = Path('/tmp/rdrama-upstream') / Path('/tmp/effect-dir.txt').read_text().strip()
           asset_dir = root / 'files/assets/images/username_effects'
           css_path = root / 'files/assets/css/username_effects.css'
           js_path = root / 'files/assets/js/username_effects.js'
           config_path = root / 'files/helpers/config/username_effects.py'
           asset_dir.mkdir(parents=True, exist_ok=True)
 
-          keys = (
-              'acid', 'aurora', 'bee', 'blood', 'candycane', 'candycorn_darker',
-              'china', 'diamond', 'effeminate', 'fire_dark', 'fishy', 'fur',
-              'galaxy', 'gold_dark', 'israel', 'japan', 'lasers', 'lightning',
-              'lsd', 'nether', 'party', 'rainbow', 'siren', 'splatter', 'stars',
-              'static', 'steel', 'sunbeams', 'synthwave', 'uk', 'ukraine', 'usa',
-              'valid', 'vaporwave', 'water', 'weed',
-          )
+          expected = {
+              'acid': (100, 56), 'aurora': (366, 364), 'bee': (350, 350),
+              'blood': (150, 113), 'candycane': (28, 28),
+              'candycorn_darker': (85, 85), 'china': (319, 220),
+              'diamond': (241, 149), 'effeminate': (100, 96),
+              'fire_dark': (40, 40), 'fishy': (274, 93), 'fur': (100, 75),
+              'galaxy': (320, 156), 'gold_dark': (85, 85),
+              'israel': (508, 382), 'japan': (305, 218),
+              'lasers': (250, 231), 'lightning': (100, 65), 'lsd': (100, 75),
+              'nether': (400, 279), 'party': (1, 1), 'rainbow': (50, 50),
+              'siren': (361, 351), 'splatter': (150, 113), 'stars': (100, 100),
+              'static': (300, 200), 'steel': (320, 320),
+              'sunbeams': (375, 140), 'synthwave': (193, 84),
+              'uk': (323, 162), 'ukraine': (324, 215), 'usa': (320, 170),
+              'valid': (100, 100), 'vaporwave': (323, 75),
+              'water': (100, 100), 'weed': (800, 192),
+          }
 
-          for key in keys:
-              url = f'https://rdrama.net/assets/i/animations/effects/{key}.webp?x=61'
-              result = subprocess.run(
-                  [
-                      'curl', '--fail', '--location', '--silent', '--show-error',
-                      '--retry', '5', '--retry-all-errors', '--connect-timeout', '20',
-                      '--max-time', '120',
-                      '--user-agent', 'Mozilla/5.0 ObsessionAssetRestore/2.0',
-                      url,
-                  ],
-                  check=True,
-                  capture_output=True,
-              )
-              data = result.stdout
+          for key, expected_size in expected.items():
+              source = upstream / f'{key}.webp'
+              if not source.is_file():
+                  raise RuntimeError(f'Missing upstream effect: {source}')
+              data = source.read_bytes()
               if not (data.startswith(b'RIFF') and data[8:12] == b'WEBP'):
-                  raise RuntimeError(f'{key}: source response is not a WebP')
+                  raise RuntimeError(f'{key}: upstream file is not a WebP')
               image = Image.open(BytesIO(data))
-              width, height = image.size
+              if image.size != expected_size:
+                  raise RuntimeError(f'{key}: expected {expected_size}, got {image.size}')
               frames = getattr(image, 'n_frames', 1)
-              if width < 1 or height < 1 or frames < 1:
-                  raise RuntimeError(f'{key}: invalid WebP metadata')
               (asset_dir / f'{key}.webp').write_bytes(data)
-              print(f'{key}: {width}x{height}, {frames} frames, {len(data)} bytes')
+              print(f'{key}: {image.width}x{image.height}, {frames} frames, {len(data)} bytes')
 
-          # The original images are complete textures. Stretch one texture across
-          # the exact username/nameplate box instead of repeating a tiny tile.
           css = css_path.read_text(encoding='utf-8')
           css = css.replace('background-repeat: repeat-x !important;', 'background-repeat: no-repeat !important;')
           css = css.replace('background-size: auto 100% !important;', 'background-size: 100% 100% !important;')
