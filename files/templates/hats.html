@@ -1,94 +1,112 @@
 {% extends "default.html" %}
-{% block pagetitle %}Hats{% endblock %}
-{% block pagetype %}message{% endblock %}
-
-{% block banner %}
-	<div class="container-fluid bg-white sticky shop-tabs" style="padding-bottom: 0 !important;">
-		<div class="row box-shadow-bottom">
-			<div class="col p-0">
-				<div class="container" style="padding-bottom: 0;">
-					<div class="row box-shadow-bottom bg-white" style="justify-content: center;">
-						<a class="btn btn-primary btn-block m-0 shop-tab" href="/shop">
-							<span class="mr-auto ml-auto"><i class="fas fa-gift mr-2"></i>AWARDS</span>
-						</a>
-						<a class="btn btn-primary btn-block m-0 shop-tab active" href="/hats">
-							<span class="mr-auto ml-auto"><i class="fas fa-hat-cowboy mr-2"></i>HATS</span>
-						</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<header class="container pb-1 text-center">
-		<img loading="lazy" id="hats-banner" class="mt-5" alt="hats banner" src="/i/hats.webp?v=1" width="50%">
-		<h5 class="mt-4">Number of hats you bought: {{v.num_of_owned_hats}}</h5>
-		<h5 class="mt-4">Number of hats you designed: {{v.num_of_designed_hats}}</h5>
-		<h5 class="mt-4">Coins you spent on hats: {{"{:,}".format(v.coins_spent_on_hats)}}</h5>
-		<h5 class="mt-4">Total hat sales:  {{"{:,}".format(sales)}}</h5>
-		<h5 class="mt-4">Number of hats: {{num_of_hats|number}}</h5>
-	</header>
+{% block pagetitle %}Hats Shop{% endblock %}
+{% block pagetype %}shop{% endblock %}
+{% block head_final %}
+<link rel="stylesheet" href="{{'css/obsession_shop.css' | asset}}">
 {% endblock %}
-
+{% block banner %}{% endblock %}
 {% block content %}
-	<script defer src="{{'js/hats.js' | asset}}"></script>
+{% set shop_section = 'hats' %}
+<div class="obs-shop-shell">
+    {% include "shop_nav.html" %}
 
-	<div class="overflow-x-auto mt-1 mb-5">
-		<table class="table table-striped shop">
-		<thead class="bg-primary text-white">
-			<tr>
-				<th class="disable-sort-click">Hat</th>
-				<th>Name</th>
-				<th>Description</th>
-				{% if SITE == 'rdrama.net' %}
-					<th>Author</a></th>
-				{% endif %}
-				<th>Owners</th>
-				<th>Price</th>
-				<th class="disable-sort-click">Actions</th>
-				<th>Added on</th>
-			</tr>
-		</thead>
+    <header class="obs-shop-hero">
+        <div class="obs-shop-hero__copy">
+            <span class="obs-shop-eyebrow"><i class="fas fa-hat-cowboy" aria-hidden="true"></i> Profile cosmetics</span>
+            <h1>Hats Shop</h1>
+            <p>Preview hats on your avatar, buy them with either currency, and manage what you wear.</p>
+        </div>
+        <div class="obs-shop-wallet" aria-label="Hat statistics">
+            <div><span>Owned</span><strong>{{v.num_of_owned_hats|number}}</strong></div>
+            <div><span>Designed</span><strong>{{v.num_of_designed_hats|number}}</strong></div>
+            <div><span>Spent on hats</span><strong>{{v.coins_spent_on_hats|number}}</strong></div>
+            <div><span>Available</span><strong>{{num_of_hats|number}}</strong></div>
+        </div>
+    </header>
 
-		<tbody>
-			{% for hat, user in hats %}
-				{% set hat_display_name = hat.name | replace('MARSEY', 'COMMUNITY') | replace('Marsey', 'Community') | replace('marsey', 'community') | replace('rDrama', 'Obsession') | replace('rdrama', 'Obsession') | replace('WPD', 'Obsession') %}
-				<tr>
-					<td>
-						<div class="profile-pic-75-wrapper mt-4">
-							<img loading="lazy" alt="avatar" src="{{v.profile_url}}" class="profile-pic-75">
-							<img loading="lazy" alt="{{hat_display_name}}" class="profile-pic-75-hat" src="/i/hats/{{hat.name}}.webp?h=7">
-						</div>
-					</td>
-					<td>{{hat_display_name}}</td>
-					<td style="word-break:break-word">{{hat.censored_description(v) | replace('MARSEY', 'COMMUNITY EMOTE') | replace('Marsey', 'community emote') | replace('marsey', 'community emote') | replace('rDrama', 'Obsession') | replace('rdrama', 'Obsession') | replace('WPD', 'Obsession')}}</td>
-					{% if SITE == 'rdrama.net' %}
-						<td>{% include "user_in_table.html" %}</td>
-					{% endif %}
-					<td><a href="/hat_owners/{{hat.id}}">{{hat.number_sold(g.db)}}</a></td>
-					<td>{{hat.price|number}}</td>
-					<td class="shop-table-actions" style="width:unset">
-						{% if hat.id not in owned_hat_ids and hat.is_purchasable %}
-							<div id="if-not-owned-{{hat.id}}">
-								<button type="button" id="buy1-{{hat.id}}" class="btn btn-success {% if not v.can_spend('coins', hat.price) %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200){% if not v.has_unlimited_spending %}document.getElementById('user-coins-amount').innerText=formatNumber(Number(document.getElementById('user-coins-amount').innerText.replaceAll(',', ''))-{{hat.price}}){% endif %}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Buy</span></button>
+    <section class="obs-shop-toolbar" aria-label="Hat filters">
+        <label class="obs-shop-search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input class="form-control" type="search" placeholder="Search hats or descriptions" data-shop-search autocomplete="off">
+        </label>
+        <select class="form-control obs-shop-filter" data-shop-filter aria-label="Filter hats">
+            <option value="all">All hats</option>
+            <option value="owned">Owned</option>
+            <option value="equipped">Equipped</option>
+            <option value="available">Not owned</option>
+        </select>
+        <span class="obs-shop-result-count" data-shop-count>{{hats|length}} hats</span>
+    </section>
 
-								{% if FEATURES['MARSEYBUX'] %}
-									<button type="button" id="buy2-{{hat.id}}" class="marseybux btn btn-success {% if not v.can_spend('marseybux', hat.price) %}disabled{% endif %}" data-areyousure="postToastSwitch(this, '/buy_hat/{{hat.id}}?mb=true', 'if-not-owned-{{hat.id}}', 'if-owned-{{hat.id}}', 'd-none', (xhr)=>{if(xhr.status == 200){% if not v.has_unlimited_spending %}document.getElementById('user-bux-amount').innerText=formatNumber(Number(document.getElementById('user-bux-amount').innerText.replaceAll(',', ''))-{{hat.price}}){% endif %}})" data-nonce="{{g.nonce}}" data-onclick="areyousure(this)"><span class="m-auto">Wishbux</span></button>
-								{% endif %}
-							</div>
-						{% endif %}
-
-						<div id="if-owned-{{hat.id}}" {% if hat.id not in owned_hat_ids %}class="d-none"{% endif %}>
-							<button type="button" id="unequip-{{hat.id}}" class="unequip {% if hat.id not in v.equipped_hat_ids %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this, '/unequip_hat/{{hat.id}}', 'equip-{{hat.id}}', 'unequip-{{hat.id}}', 'd-none')"><span class="m-auto">Unequip</span></button>
-
-							<button type="button" id="equip-{{hat.id}}" class="equip {% if hat.id in v.equipped_hat_ids %}d-none{% endif %} btn btn-success" data-nonce="{{g.nonce}}" data-onclick="equip_hat(this, '{{hat.id}}', '{{hat.name}}')"><span class="m-auto">Equip</span></button>
-						</div>
-					</td>
-
-					<td data-time="{{hat.created_utc}}"></td>
-				</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-
+    <div class="obs-shop-catalog" data-shop-catalog>
+        <div class="obs-shop-grid obs-shop-grid--hats">
+        {% for hat, user in hats %}
+            {% set owned = hat.id in owned_hat_ids %}
+            {% set equipped = hat.id in v.equipped_hat_ids %}
+            {% set hat_display_name = hat.name | replace('MARSEY', 'COMMUNITY') | replace('Marsey', 'Community') | replace('marsey', 'community') | replace('rDrama', 'Obsession') | replace('rdrama', 'Obsession') | replace('WPD', 'Obsession') %}
+            {% set owner_count = hat.number_sold(g.db) %}
+            {% set hat_description = hat.censored_description(v) | replace('MARSEY', 'COMMUNITY EMOTE') | replace('Marsey', 'community emote') | replace('marsey', 'community emote') | replace('rDrama', 'Obsession') | replace('rdrama', 'Obsession') | replace('WPD', 'Obsession') %}
+            <article class="obs-shop-card obs-hat-card"
+                data-shop-card
+                data-state="{% if equipped %}equipped{% elif owned %}owned{% else %}available{% endif %}"
+                data-search="{{(hat_display_name ~ ' ' ~ hat_description ~ ' ' ~ user.username)|lower}}">
+                <div class="obs-hat-preview" aria-label="{{hat_display_name}} preview">
+                    <div class="profile-pic-75-wrapper">
+                        <img loading="lazy" alt="" src="{{v.profile_url}}" class="profile-pic-75">
+                        <img loading="lazy" alt="{{hat_display_name}}" class="profile-pic-75-hat" src="/i/hats/{{hat.name}}.webp?h=7">
+                    </div>
+                </div>
+                <div class="obs-shop-card__body">
+                    <div class="obs-shop-card__heading">
+                        <h2>{{hat_display_name}}</h2>
+                        {% if equipped %}<span class="obs-shop-state is-active">Equipped</span>{% elif owned %}<span class="obs-shop-state">Owned</span>{% endif %}
+                    </div>
+                    <p>{{hat_description}}</p>
+                    <div class="obs-shop-meta">
+                        <a href="/hat_owners/{{hat.id}}">{{owner_count|number}} owner{{macros.plural(owner_count)}}</a>
+                        {% if SITE == 'rdrama.net' %}<span>by @{{user.username}}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="obs-shop-card__footer">
+                    <div class="obs-shop-price"><strong>{{hat.price|number}}</strong><span>per currency</span></div>
+                    <div class="obs-shop-actions">
+                    {% if not owned and hat.is_purchasable %}
+                        <button type="button"
+                            id="buy1-hat-{{hat.id}}"
+                            class="btn btn-primary"
+                            {% if not v.can_spend('coins', hat.price) %}disabled{% endif %}
+                            data-areyousure="postToastReload(this,'/buy_hat/{{hat.id}}')"
+                            data-nonce="{{g.nonce}}"
+                            data-onclick="areyousure(this)">
+                            <i class="fas fa-coins mr-1" aria-hidden="true"></i>Wishcoins
+                        </button>
+                        {% if FEATURES['MARSEYBUX'] %}
+                        <button type="button"
+                            id="buy2-hat-{{hat.id}}"
+                            class="btn btn-secondary"
+                            {% if not v.can_spend('marseybux', hat.price) %}disabled{% endif %}
+                            data-areyousure="postToastReload(this,'/buy_hat/{{hat.id}}?mb=true')"
+                            data-nonce="{{g.nonce}}"
+                            data-onclick="areyousure(this)">
+                            <i class="fas fa-money-bill-wave mr-1" aria-hidden="true"></i>Wishbux
+                        </button>
+                        {% endif %}
+                    {% elif owned %}
+                        {% if equipped %}
+                        <button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/unequip_hat/{{hat.id}}')">Unequip</button>
+                        {% else %}
+                        <button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/equip_hat/{{hat.id}}')">Equip</button>
+                        {% endif %}
+                    {% else %}
+                        <span class="obs-shop-unavailable">Not for sale</span>
+                    {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+        </div>
+        <div class="obs-shop-empty" data-shop-empty hidden>No hats match those filters.</div>
+    </div>
+</div>
+<script defer src="{{'js/obsession_shop.js' | asset}}"></script>
 {% endblock %}
