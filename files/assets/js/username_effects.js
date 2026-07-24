@@ -31,15 +31,15 @@
 	}
 
 	function preloadEffect(effect) {
-		if (assetCache.has(effect)) return assetCache.get(effect).promise;
-		const image = new Image();
-		image.decoding = 'async';
+		if (assetCache.has(effect)) return assetCache.get(effect);
 		const promise = new Promise(resolve => {
+			const image = new Image();
+			image.decoding = 'async';
 			image.addEventListener('load', () => resolve(true), {once: true});
 			image.addEventListener('error', () => resolve(false), {once: true});
+			image.src = assetUrl(effect);
 		});
-		image.src = assetUrl(effect);
-		assetCache.set(effect, {image, promise});
+		assetCache.set(effect, promise);
 		return promise;
 	}
 
@@ -76,15 +76,14 @@
 		if (directPatron) return directPatron;
 		if (isPatronPlate(host.parentElement)) return host.parentElement;
 		if (host.matches('span, strong, b, bdi, h1, h2, h3, h4, h5')) return host;
-		const textSpans = Array.from(host.children).filter(
+		const candidates = Array.from(host.children).filter(
 			child => child.tagName === 'SPAN' && !child.classList.contains('pronouns')
 		);
-		return textSpans[textSpans.length - 1] || host;
+		return candidates[candidates.length - 1] || host;
 	}
 
 	function prepareTarget(element) {
-		const plate = isPatronPlate(element);
-		if (plate) {
+		if (isPatronPlate(element)) {
 			unwrapOldInnerEffect(element);
 			element.classList.remove('username-effect');
 			element.classList.add('username-effect-plate');
@@ -92,11 +91,11 @@
 			element.style.removeProperty('-webkit-text-fill-color');
 			element.style.removeProperty('-webkit-background-clip');
 			element.style.removeProperty('background-clip');
-		} else {
-			element.classList.remove('username-effect-plate');
-			element.classList.add('username-effect');
-			element.style.setProperty('--username-effect-fallback', usableColor(element));
+			return;
 		}
+		element.classList.remove('username-effect-plate');
+		element.classList.add('username-effect');
+		element.style.setProperty('--username-effect-fallback', usableColor(element));
 	}
 
 	function clearVisual(element) {
@@ -110,10 +109,10 @@
 	async function applyEffect(element, effect) {
 		if (!(element instanceof Element) || !effect || !element.isConnected) return;
 		if (element.dataset.usernameEffectCurrent === effect && element.classList.contains('username-effect--ready')) return;
-		const requestToken = `${effect}:${Date.now()}:${Math.random()}`;
-		element.dataset.usernameEffectRequest = requestToken;
+		const token = `${effect}:${performance.now()}`;
+		element.dataset.usernameEffectRequest = token;
 		const loaded = await preloadEffect(effect);
-		if (!element.isConnected || element.dataset.usernameEffectRequest !== requestToken) return;
+		if (!element.isConnected || element.dataset.usernameEffectRequest !== token) return;
 		if (!loaded) {
 			clearVisual(element);
 			return;
@@ -137,12 +136,16 @@
 		const box = element.closest('.obs-effect-preview, .obs-effect-live-preview');
 		if (!box || !box.clientWidth) return;
 		element.style.removeProperty('font-size');
-		const baseSize = parseFloat(getComputedStyle(element).fontSize) || 24;
+		const computed = getComputedStyle(element);
+		const baseSize = parseFloat(computed.fontSize) || 24;
 		const boxStyle = getComputedStyle(box);
-		const available = Math.max(40, box.clientWidth - parseFloat(boxStyle.paddingLeft || 0) - parseFloat(boxStyle.paddingRight || 0) - 8);
-		const naturalWidth = Math.max(element.scrollWidth, element.getBoundingClientRect().width);
+		const available = Math.max(
+			40,
+			box.clientWidth - parseFloat(boxStyle.paddingLeft || 0) - parseFloat(boxStyle.paddingRight || 0) - 10
+		);
+		const naturalWidth = element.scrollWidth;
 		if (naturalWidth > available) {
-			const fitted = Math.max(9, baseSize * (available / naturalWidth));
+			const fitted = Math.max(9, baseSize * available / naturalWidth);
 			element.style.setProperty('font-size', `${fitted}px`, 'important');
 		}
 	}
@@ -156,19 +159,13 @@
 				const state = registration && groups.get(registration.key);
 				if (!state) continue;
 				if (entry.isIntersecting) {
-					fitPreview(element);
+					requestAnimationFrame(() => fitPreview(element));
 					applyEffect(element, state.effects[state.index]);
 				} else {
 					clearVisual(element);
 				}
 			}
 		}, {rootMargin: '180px 0px', threshold: 0.01})
-		: null;
-
-	const previewResizeObserver = 'ResizeObserver' in window
-		? new ResizeObserver(entries => {
-			for (const entry of entries) requestAnimationFrame(() => fitPreview(entry.target));
-		})
 		: null;
 
 	function unregister(element) {
@@ -187,29 +184,39 @@
 		if (!effects.length) return;
 		const element = resolveTarget(host);
 		if (!element) return;
-		prepareTarget(element);
-		element.dataset.usernameEffectUser = String(userId || element.dataset.usernameEffectUser || 'anonymous');
-		element.dataset.usernameEffects = effects.join(',');
-		const key = groupKey(element, effects);
+
+		const userValue = String(userId || element.dataset.usernameEffectUser || 'anonymous');
+		const effectsString = effects.join(',');
+		const nextKey = `${userValue}::${effectsString}`;
 		const previous = registrations.get(element);
-		if (previous && previous.key !== key) unregister(element);
-		let state = groups.get(key);
+		if (previous && previous.key === nextKey) {
+			if (isPreview(element)) requestAnimationFrame(() => fitPreview(element));
+			return;
+		}
+
+		if (previous) unregister(element);
+		prepareTarget(element);
+		if (element.dataset.usernameEffectUser !== userValue) element.dataset.usernameEffectUser = userValue;
+		if (element.dataset.usernameEffects !== effectsString) element.dataset.usernameEffects = effectsString;
+
+		let state = groups.get(nextKey);
 		if (!state) {
 			state = {effects, index: Math.floor(Math.random() * effects.length), elements: new Set()};
-			groups.set(key, state);
+			groups.set(nextKey, state);
 		}
 		state.elements.add(element);
-		registrations.set(element, {key});
+		registrations.set(element, {key: nextKey});
+
 		if (isPreview(element)) {
 			previewElements.add(element);
-			fitPreview(element);
+			requestAnimationFrame(() => fitPreview(element));
 			if (previewObserver) previewObserver.observe(element);
 			else applyEffect(element, state.effects[state.index]);
-			if (previewResizeObserver) previewResizeObserver.observe(element);
-		} else {
-			element.dataset.usernameEffectVisible = '1';
-			applyEffect(element, state.effects[state.index]);
+			return;
 		}
+
+		element.dataset.usernameEffectVisible = '1';
+		applyEffect(element, state.effects[state.index]);
 	}
 
 	function dataForTrigger(trigger) {
@@ -232,7 +239,7 @@
 		if (host) register(host, data.id, effects.join(','));
 	}
 
-	function enhanceMarkers(root=document) {
+	function enhanceMarkers(root = document) {
 		const markers = [];
 		if (root instanceof Element && root.matches('[data-username-effect-target]')) markers.push(root);
 		if (root.querySelectorAll) markers.push(...root.querySelectorAll('[data-username-effect-target]'));
@@ -244,16 +251,16 @@
 		}
 	}
 
-	function scan(root=document) {
+	function scan(root = document) {
 		const hosts = [];
 		const triggers = [];
-		const hostSelector = '[data-username-effects]:not([data-username-effect-target])';
+		const selector = '[data-username-effects]:not([data-username-effect-target])';
 		if (root instanceof Element) {
-			if (root.matches(hostSelector)) hosts.push(root);
+			if (root.matches(selector)) hosts.push(root);
 			if (root.matches('.user-name[data-pop-info]')) triggers.push(root);
 		}
 		if (root.querySelectorAll) {
-			hosts.push(...root.querySelectorAll(hostSelector));
+			hosts.push(...root.querySelectorAll(selector));
 			triggers.push(...root.querySelectorAll('.user-name[data-pop-info]'));
 		}
 		hosts.forEach(host => register(host, host.dataset.usernameEffectUser, host.dataset.usernameEffects));
@@ -301,19 +308,25 @@
 
 	document.addEventListener('DOMContentLoaded', () => {
 		scan(document);
-		if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => previewElements.forEach(fitPreview));
+		if (document.fonts && document.fonts.ready) {
+			document.fonts.ready.then(() => previewElements.forEach(element => requestAnimationFrame(() => fitPreview(element))));
+		}
+
 		const observer = new MutationObserver(mutations => {
 			for (const mutation of mutations) {
-				if (mutation.type === 'attributes' && mutation.target instanceof Element) scan(mutation.target);
-				for (const node of mutation.addedNodes || []) if (node instanceof Element) scan(node);
+				for (const node of mutation.addedNodes) {
+					if (node instanceof Element) scan(node);
+				}
 			}
 		});
-		observer.observe(document.body, {
-			childList: true,
-			subtree: true,
-			attributes: true,
-			attributeFilter: ['class', 'data-username-effects'],
-		});
+		observer.observe(document.body, {childList: true, subtree: true});
+
+		let resizeFrame = 0;
+		window.addEventListener('resize', () => {
+			cancelAnimationFrame(resizeFrame);
+			resizeFrame = requestAnimationFrame(() => previewElements.forEach(fitPreview));
+		}, {passive: true});
+
 		window.setInterval(cycle, CYCLE_INTERVAL);
 	});
 })();
