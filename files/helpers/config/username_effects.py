@@ -50,7 +50,7 @@ USERNAME_EFFECTS = OrderedDict(
             "description": description,
             "category": category,
             "price": USERNAME_EFFECT_PRICE,
-            "asset_url": f"/assets/images/username_effects/{key}.webp?v=4",
+            "asset_url": f"/assets/images/username_effects/{key}.webp?v=7",
         },
     )
     for key, title, description, category in _EFFECT_ROWS
