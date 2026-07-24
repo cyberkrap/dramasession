@@ -69,3 +69,83 @@ a.btn-primary:active,
 	-webkit-text-fill-color: #fff !important;
 	fill: currentColor !important;
 }
+
+/* React Bits GlareHover behavior for full-profile badges. */
+body#userpage #profile--badges.profile-badges {
+	display: flex !important;
+	flex-flow: row wrap !important;
+	align-items: center !important;
+	gap: 10px !important;
+}
+
+body#userpage #profile--badges .profile-badge-glare {
+	position: relative !important;
+	display: inline-grid !important;
+	flex: 0 0 55px !important;
+	place-items: center !important;
+	width: 55px !important;
+	height: 60px !important;
+	min-width: 55px !important;
+	min-height: 60px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	isolation: isolate !important;
+	border: 0 !important;
+	border-radius: 10px !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	text-decoration: none !important;
+}
+
+body#userpage #profile--badges .profile-badge-glare::before {
+	content: "" !important;
+	position: absolute !important;
+	z-index: 4 !important;
+	inset: 0 !important;
+	pointer-events: none !important;
+	background: linear-gradient(
+		-30deg,
+		rgba(255, 255, 255, 0) 60%,
+		rgba(255, 255, 255, .3) 70%,
+		rgba(255, 255, 255, 0) 82%,
+		rgba(255, 255, 255, 0) 100%
+	) !important;
+	background-repeat: no-repeat !important;
+	background-size: 300% 300%, 100% 100% !important;
+	background-position: -100% -100%, 0 0 !important;
+	transition: none !important;
+	animation: none !important;
+	will-change: background-position;
+}
+
+body#userpage #profile--badges .profile-badge-glare:hover::before,
+body#userpage #profile--badges .profile-badge-glare:focus-visible::before {
+	animation: obsessionBadgeGlareSweep 800ms ease both !important;
+}
+
+body#userpage #profile--badges .profile-badge-glare > img {
+	position: relative !important;
+	z-index: 1 !important;
+	display: block !important;
+	width: 55px !important;
+	height: 60px !important;
+	max-width: 55px !important;
+	max-height: 60px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	object-fit: contain !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+@keyframes obsessionBadgeGlareSweep {
+	0% {
+		background-position: -100% -100%, 0 0;
+	}
+	100% {
+		background-position: 100% 100%, 0 0;
+	}
+}
