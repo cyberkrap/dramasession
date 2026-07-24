@@ -1,14 +1,14 @@
-UTC: 2026-07-24T21:10:48Z
+UTC: 2026-07-24T21:16:06Z
 DNS:
-2606:4700:20::681a:6ee rdrama.net
 2606:4700:20::ac43:4a4a rdrama.net
+2606:4700:20::681a:6ee rdrama.net
 2606:4700:20::681a:7ee rdrama.net
 
 HEADERS:
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0HTTP/2 200 
-date: Fri, 24 Jul 2026 21:10:48 GMT
+date: Fri, 24 Jul 2026 21:16:06 GMT
 content-type: text/html
 server: cloudflare
 last-modified: Fri, 17 Jul 2026 07:05:47 GMT
@@ -26,16 +26,16 @@ x-xss-protection: 1; mode=block
 cf-cache-status: BYPASS
 speculation-rules: "/cdn-cgi/speculation"
 vary: accept-encoding
-report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=WpwQRTORQOod2UAfY%2BGG7%2FUkx6gYKmTSlBoEHSbcqr13gWa%2FE7S5Jm9XyR7f9i8TPPCEdQFjfhXNFaUdUBC9rhF2D2BnSfupkeib3q8mcxV9rMrh6ryFmYG7FIg%3D"}]}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=Jcs2WSDpi1cFFp3Q8vu0oatjJ1a2JjazMUT2NjfvgaHIZujY9XBHaVl6p9n5DdA0p0AZavPYC3gkFo4uLRSmHtbM2vebnKpxs52TR1y6vTh0eop3bo3XQCMjJMQ%3D"}]}
 nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
-cf-ray: a205e9e6ab0252d6-IAD
+cf-ray: a205f1adadbd41cb-ORD
 alt-svc: h3=":443"; ma=86400
 
 
 DOWNLOAD:
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 12892    0 12892    0     0   246k      0 --:--:-- --:--:-- --:--:--  251k
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 12892    0 12892    0     0   126k      0 --:--:-- --:--:-- --:--:--  127k
 status=200 bytes=12892 type=text/html
 /tmp/acid.webp: HTML document, Unicode text, UTF-8 text
 7a09000d97695936aa4ee7fd3aa6ff17044bc7fb4c737a9c0bb4b11e2f54ffb7  /tmp/acid.webp
