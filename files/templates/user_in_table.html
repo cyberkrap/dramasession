@@ -7,6 +7,6 @@
 			<img class="profile-pic-20-hat hat" loading="lazy" src="{{user.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{user.hat_active(v)[1]}}">
 		{%- endif %}
 	</div>
-	<span {% if user.patron %}class="patron" style="background-color:#{{user.name_color}}"{% endif %}>{{user.user_name}}</span>
+	<span data-username-effect-user="{{user.id}}" data-username-effects="{{user.active_username_effects|join(',')}}" {% if user.patron %}class="patron" style="background-color:#{{user.name_color}}"{% endif %}>{{user.user_name}}</span>
 </a>
 {% endif %}
