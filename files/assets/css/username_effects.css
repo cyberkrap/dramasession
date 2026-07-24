@@ -1,0 +1,46 @@
+/* Animated username textures. The outer username plate remains untouched. */
+.username-effect {
+	--username-effect-image: none;
+	display: inline-block;
+	max-width: 100%;
+	color: transparent !important;
+	-webkit-text-fill-color: transparent !important;
+	background-image: var(--username-effect-image) !important;
+	background-position: center !important;
+	background-repeat: no-repeat !important;
+	background-size: cover !important;
+	-webkit-background-clip: text !important;
+	background-clip: text !important;
+	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .78));
+	font: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+	letter-spacing: inherit;
+	vertical-align: baseline;
+	overflow-wrap: inherit;
+}
+
+.username-effect[data-username-effect-current="static"],
+.username-effect[data-username-effect-current="splatter"],
+.username-effect[data-username-effect-current="stars"] {
+	background-size: 180% 180% !important;
+}
+
+.username-effect[data-username-effect-current="weed"],
+.username-effect[data-username-effect-current="fur"],
+.username-effect[data-username-effect-current="fishy"] {
+	background-size: auto 175% !important;
+	background-repeat: repeat-x !important;
+}
+
+.username-effect[data-username-effect-current="party"] {
+	background-size: 100% 100% !important;
+}
+
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+	.username-effect {
+		color: inherit !important;
+		-webkit-text-fill-color: currentColor !important;
+		background-image: none !important;
+	}
+}
