@@ -141,30 +141,55 @@ def _with_benefits(tiers):
     return tuple(result)
 
 
-PAYPAL_MODE = os.environ.get("PAYPAL_MODE", "sandbox").strip().lower()
-if PAYPAL_MODE not in {"sandbox", "live"}:
-    PAYPAL_MODE = "sandbox"
+def _env(name, default=""):
+    return os.environ.get(name, default).strip()
 
-PAYPAL_CLIENT_ID = os.environ.get("PAYPAL_CLIENT_ID", "").strip()
-PAYPAL_CLIENT_SECRET = os.environ.get("PAYPAL_CLIENT_SECRET", "").strip()
-PAYPAL_WEBHOOK_ID = os.environ.get("PAYPAL_WEBHOOK_ID", "").strip()
-PAYPAL_CURRENCY = os.environ.get("PAYPAL_CURRENCY", "USD").strip().upper() or "USD"
+
+def _env_flag(name, default=False):
+    value = _env(name, "1" if default else "0").lower()
+    return value in {"1", "true", "yes", "on"}
+
+
+# Production uses live PayPal by default. Sandbox checkout must be explicitly
+# selected and explicitly allowed, so test payments cannot leak onto the public
+# support page by accident.
+PAYPAL_MODE = _env("PAYPAL_MODE", "live").lower()
+if PAYPAL_MODE not in {"sandbox", "live"}:
+    PAYPAL_MODE = "live"
+
+PAYPAL_ALLOW_SANDBOX_CHECKOUT = _env_flag("PAYPAL_ALLOW_SANDBOX_CHECKOUT", False)
+PAYPAL_ENVIRONMENT_ALLOWED = PAYPAL_MODE == "live" or PAYPAL_ALLOW_SANDBOX_CHECKOUT
+PAYPAL_CURRENCY = _env("PAYPAL_CURRENCY", "USD").upper() or "USD"
 PAYPAL_API_BASE = (
     "https://api-m.sandbox.paypal.com"
     if PAYPAL_MODE == "sandbox"
     else "https://api-m.paypal.com"
 )
 
-_PAYPAL_PLAN_ENV = {
-    "supporter": "PAYPAL_PLAN_SUPPORTER",
-    "insider": "PAYPAL_PLAN_INSIDER",
-    "devoted": "PAYPAL_PLAN_DEVOTED",
-    "obsessed": "PAYPAL_PLAN_OBSESSED",
-    "inner_circle": "PAYPAL_PLAN_INNER_CIRCLE",
+# Live credentials are intentionally separate from the old generic sandbox
+# variables. This prevents an existing sandbox client ID, secret, webhook, or
+# plan from being sent to PayPal's live API after deployment.
+if PAYPAL_MODE == "live":
+    _credential_prefix = "PAYPAL_LIVE_"
+    _plan_prefix = "PAYPAL_LIVE_PLAN_"
+else:
+    _credential_prefix = "PAYPAL_SANDBOX_"
+    _plan_prefix = "PAYPAL_SANDBOX_PLAN_"
+
+PAYPAL_CLIENT_ID = _env(f"{_credential_prefix}CLIENT_ID")
+PAYPAL_CLIENT_SECRET = _env(f"{_credential_prefix}CLIENT_SECRET")
+PAYPAL_WEBHOOK_ID = _env(f"{_credential_prefix}WEBHOOK_ID")
+
+_PAYPAL_PLAN_SUFFIXES = {
+    "supporter": "SUPPORTER",
+    "insider": "INSIDER",
+    "devoted": "DEVOTED",
+    "obsessed": "OBSESSED",
+    "inner_circle": "INNER_CIRCLE",
 }
 PAYPAL_PLAN_IDS = {
-    slug: os.environ.get(variable, "").strip()
-    for slug, variable in _PAYPAL_PLAN_ENV.items()
+    slug: _env(f"{_plan_prefix}{suffix}")
+    for slug, suffix in _PAYPAL_PLAN_SUFFIXES.items()
 }
 
 SUPPORT_TIERS = tuple(
@@ -175,9 +200,11 @@ SUPPORT_TIER_BY_PLAN_ID = {
     tier["plan_id"]: tier for tier in SUPPORT_TIERS if tier["plan_id"]
 }
 SUPPORT_TIER_BY_LEVEL = {tier["level"]: tier for tier in SUPPORT_TIERS}
+PAYPAL_ACTIVE_PLAN_IDS = tuple(SUPPORT_TIER_BY_PLAN_ID)
 
 PAYPAL_CHECKOUT_CONFIGURED = bool(
-    PAYPAL_CLIENT_ID
+    PAYPAL_ENVIRONMENT_ALLOWED
+    and PAYPAL_CLIENT_ID
     and PAYPAL_CLIENT_SECRET
     and all(PAYPAL_PLAN_IDS.values())
 )
