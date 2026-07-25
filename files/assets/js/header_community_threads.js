@@ -84,17 +84,29 @@
 	}
 
 	function setDirectoryIcon(card, iconClass) {
-		const icon = card.querySelector('i');
-		if (!icon) return;
-		for (const className of Array.from(icon.classList)) {
-			if (
-				className === 'fas' || className === 'far' || className === 'fal' ||
-				className === 'fab' || className === 'fad' || className.startsWith('fa-')
-			) {
-				icon.classList.remove(className);
-			}
+		const oldIcon = card.querySelector('[data-directory-icon], i');
+		const icon = document.createElement('i');
+		const preservedClasses = oldIcon
+			? Array.from(oldIcon.classList).filter((className) =>
+				!['fas', 'far', 'fal', 'fab', 'fad'].includes(className) &&
+				!className.startsWith('fa-')
+			)
+			: [];
+		icon.className = [...preservedClasses, 'fas', iconClass].join(' ');
+		icon.setAttribute('aria-hidden', 'true');
+		icon.removeAttribute('hidden');
+		icon.style.display = '';
+
+		if (oldIcon) {
+			oldIcon.replaceWith(icon);
+			return;
 		}
-		icon.classList.add('fas', iconClass);
+
+		const heading = card.querySelector(
+			'[data-directory-title], h1, h2, h3, h4, h5, h6, strong, b, .font-weight-bold'
+		);
+		if (heading) heading.insertAdjacentElement('beforebegin', icon);
+		else card.prepend(icon);
 	}
 
 	function setDirectoryCard(card, item, previousLabel = 'Community Feedback') {
