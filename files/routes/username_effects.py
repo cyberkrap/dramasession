@@ -61,12 +61,22 @@ def username_effect_shop(v):
     counts = _owner_counts()
 
     effects = []
-    for effect in USERNAME_EFFECTS.values():
+    for position, effect in enumerate(USERNAME_EFFECTS.values()):
         item = dict(effect)
         item['owned'] = item['key'] in owned
         item['active'] = item['key'] in active
         item['owner_count'] = counts[item['key']]
+        item['_position'] = position
         effects.append(item)
+
+    effects.sort(
+        key=lambda item: (
+            0 if item['active'] else 1 if item['owned'] else 2,
+            item['_position'],
+        )
+    )
+    for item in effects:
+        item.pop('_position', None)
 
     return render_template(
         'username_effects.html',
@@ -116,32 +126,58 @@ def gift_username_effect(v, effect_key):
     if not username:
         abort(400, 'Enter a username to receive the gift.')
 
-    recipient = get_user(username, graceful=True)
-    if not recipient:
+    recipient_lookup = get_user(username, graceful=True)
+    if not recipient_lookup:
         abort(404, 'That user does not exist.')
-    if recipient.id == v.id:
+    if recipient_lookup.id == v.id:
         abort(400, 'You cannot gift an effect to yourself.')
+
+    locked_users = {
+        user.id: user
+        for user in g.db.query(User)
+        .filter(User.id.in_([v.id, recipient_lookup.id]))
+        .with_for_update()
+        .all()
+    }
+    sender = locked_users.get(v.id)
+    recipient = locked_users.get(recipient_lookup.id)
+    if not sender or not recipient:
+        abort(404, 'One of those accounts no longer exists.')
+
+    sender_owned = normalize_username_effects(sender.username_effects)
+    if key not in sender_owned:
+        abort(403, 'You can only gift an effect you currently own.')
 
     recipient_owned = normalize_username_effects(recipient.username_effects)
     if key in recipient_owned:
         abort(409, f'@{recipient.username} already owns {effect["title"]}.')
 
-    price = int(effect['price'])
-    currency = _charge_effect_account(v, price)
+    sender_owned.remove(key)
+    sender_active = normalize_username_effects(sender.username_effects_active)
+    if key in sender_active:
+        sender_active.remove(key)
+
     recipient_owned.append(key)
+    sender.username_effects = dump_username_effects(sender_owned)
+    sender.username_effects_active = dump_username_effects(sender_active)
     recipient.username_effects = dump_username_effects(recipient_owned)
 
-    g.db.add(v)
+    g.db.add(sender)
     g.db.add(recipient)
     send_repeatable_notification(
         recipient.id,
-        f'@{v.username} gifted you the {effect["title"]} username effect.',
+        (
+            f'@{sender.username} has gifted you the {effect["title"]} username effect. '
+            'You can equip it in the [Effects Shop](/shop/effects).'
+        ),
     )
 
     return {
-        'message': f"{effect['title']} gifted to @{recipient.username} with {currency}.",
+        'message': f"{effect['title']} transferred to @{recipient.username}.",
         'effect': key,
         'recipient': recipient.username,
+        'owned': False,
+        'active': False,
     }
 
 
