@@ -1,0 +1,180 @@
+/* Thread comments: stronger spacing, quieter surfaces, and unboxed actions. */
+#thread .comment-section,
+#thread .comment,
+#thread .comment .comment-body,
+#thread .comment .comment-anchor {
+	min-width: 0;
+}
+
+#thread .comment-section > .comment {
+	margin-bottom: 14px;
+	padding-left: 0 !important;
+}
+
+#thread .comment .comment-body {
+	overflow: visible;
+	background: rgba(13, 13, 16, .88) !important;
+	border: 1px solid rgba(255, 255, 255, .1) !important;
+	border-radius: 6px !important;
+	box-shadow: none !important;
+}
+
+#thread .comment .comment .comment-body {
+	background: rgba(11, 11, 14, .7) !important;
+	border-color: rgba(255, 255, 255, .075) !important;
+}
+
+#thread .comment .comment-anchor {
+	box-sizing: border-box;
+	padding: 14px 16px 10px;
+}
+
+#thread .comment .user-info {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 6px;
+	min-width: 0;
+	margin-bottom: 10px;
+	line-height: 1.35;
+}
+
+#thread .comment .comment-text {
+	max-width: 100%;
+	margin: 0;
+	color: #e5e1e2;
+	line-height: 1.58;
+	overflow-wrap: anywhere;
+}
+
+#thread .comment .comment-text > :last-child {
+	margin-bottom: 0;
+}
+
+#thread .comment .comment-text img,
+#thread .comment .comment-text video,
+#thread .comment .comment-text iframe,
+#thread .comment .comment-text table {
+	max-width: 100% !important;
+}
+
+#thread .comment .comment {
+	margin-top: 12px;
+	padding-left: 16px !important;
+}
+
+#thread .comment-actions {
+	margin-top: 12px;
+	padding-top: 8px;
+	border-top: 1px solid rgba(255, 255, 255, .065);
+}
+
+#thread .comment-actions > ul.d-none.d-md-flex {
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 2px 12px;
+	margin: 0 !important;
+	padding: 0;
+}
+
+#thread .comment-actions > ul.d-none.d-md-flex > li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 2px 12px;
+	min-width: 0;
+}
+
+#thread .comment-actions .btn.caction,
+#thread .comment-actions span.btn.caction {
+	min-height: 0 !important;
+	height: auto;
+	margin: 0 !important;
+	padding: 4px 0 !important;
+	color: #aaa5a7 !important;
+	font-size: .78rem;
+	line-height: 1.35;
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	transform: none !important;
+}
+
+#thread .comment-actions .btn.caction:hover,
+#thread .comment-actions .btn.caction:focus-visible {
+	color: #fff !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+#thread .comment-actions .btn.caction i {
+	margin-right: 4px;
+}
+
+#thread .comment-actions .voting {
+	margin: 0;
+	padding: 0 !important;
+	background: transparent;
+	border: 0;
+}
+
+#thread .comment-actions .post-actions {
+	padding: 0 !important;
+	background: transparent !important;
+	border: 0 !important;
+}
+
+#thread .comment-actions .post-actions ul {
+	align-items: center;
+	margin: 0;
+	padding: 0;
+}
+
+#thread .comment-actions .post-actions button,
+#thread .comment-actions .post-actions a {
+	min-height: 36px;
+	padding: 6px 7px !important;
+	color: #aaa5a7 !important;
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+#thread .comment-actions .post-actions button:hover,
+#thread .comment-actions .post-actions a:hover {
+	color: #fff !important;
+	background: transparent !important;
+}
+
+#thread .comment-collapse-desktop {
+	opacity: .62;
+}
+
+#thread .comment:hover > .comment-collapse-desktop {
+	opacity: 1;
+}
+
+@media (max-width: 767.98px) {
+	#thread .comment-section > .comment {
+		padding-left: 10px !important;
+	}
+
+	#thread .comment .comment {
+		padding-left: 12px !important;
+	}
+
+	#thread .comment .comment-anchor {
+		padding: 12px 13px 9px;
+	}
+
+	#thread .comment .user-info {
+		margin-bottom: 8px;
+	}
+
+	#thread .comment-actions {
+		margin-top: 10px;
+		padding-top: 6px;
+	}
+}
