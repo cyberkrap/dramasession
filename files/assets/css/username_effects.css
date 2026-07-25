@@ -1,4 +1,4 @@
-/* Animated username textures. Each WebP is rendered once across its target. */
+/* Animated username textures. Each WebP is stretched once across its exact target. */
 .username-effect-host,
 .username-effect,
 .username-effect-text {
@@ -26,7 +26,7 @@
 	background-image: var(--username-effect-image) !important;
 	background-position: center center !important;
 	background-repeat: no-repeat !important;
-	background-size: cover !important;
+	background-size: 100% 100% !important;
 	background-origin: content-box !important;
 	-webkit-background-clip: text !important;
 	background-clip: text !important;
@@ -46,7 +46,7 @@
 	background-image: var(--username-effect-image) !important;
 	background-position: center center !important;
 	background-repeat: no-repeat !important;
-	background-size: cover !important;
+	background-size: 100% 100% !important;
 	background-origin: border-box !important;
 	image-rendering: auto;
 }
@@ -104,6 +104,14 @@
 	word-break: normal !important;
 	line-height: 1.2 !important;
 	text-align: center !important;
+}
+
+/* Card previews use the same readable scale for free names and patron plates. */
+.obs-effect-preview .username-effect-host,
+.obs-effect-preview .username-effect,
+.obs-effect-preview .patron.username-effect-host {
+	font-size: clamp(1.45rem, 2.7vw, 2rem) !important;
+	font-weight: 900 !important;
 }
 
 .obs-effect-card {
