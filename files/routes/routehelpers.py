@@ -24,9 +24,11 @@ def validate_formkey(u:User, formkey:Optional[str]) -> bool:
 	if not formkey: return False
 	return validate_hash(get_raw_formkey(u), formkey)
 
-@cache.memoize()
 def get_alt_graph_ids(uid:int) -> List[int]:
-	alt_graph_cte = g.db.query(literal(uid).label('user_id')).select_from(Alt).cte('alt_graph', recursive=True)
+	# Delinking is a persistent moderation decision. This query must always read
+	# the current database state rather than a memoized graph, otherwise a stale
+	# linked component can reappear after refresh and continue propagating bans.
+	alt_graph_cte = g.db.query(literal(uid).label('user_id')).cte('alt_graph', recursive=True)
 
 	alt_graph_cte_inner = g.db.query(
 		case(
@@ -34,7 +36,8 @@ def get_alt_graph_ids(uid:int) -> List[int]:
 			(Alt.user2 == alt_graph_cte.c.user_id, Alt.user1),
 		)
 	).select_from(Alt, alt_graph_cte).filter(
-		or_(alt_graph_cte.c.user_id == Alt.user1, alt_graph_cte.c.user_id == Alt.user2)
+		or_(alt_graph_cte.c.user_id == Alt.user1, alt_graph_cte.c.user_id == Alt.user2),
+		Alt.deleted == False,
 	)
 
 	alt_graph_cte = alt_graph_cte.union(alt_graph_cte_inner)
@@ -124,6 +127,7 @@ def execute_shadowban_viewers_and_voters(v:Optional[User], target:Union[Submissi
 
 	amount = randint(0, 3)
 	if amount != 1: return
+	if target.upvotes >= rand: return
 
 	target.upvotes += amount
 	if isinstance(target, Submission):
