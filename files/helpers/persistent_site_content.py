@@ -91,8 +91,53 @@ def _default_rules():
 		return ""
 
 
+def _rules_content_is_malformed(content):
+	if SITE_NAME != "Obsession" or not content:
+		return False
+
+	# The sidebar editor sanitizes unsupported structural HTML into escaped text.
+	# When that happens, tags such as </section>, <footer>, and social-link <a>
+	# elements are printed visibly in the sidebar instead of being rendered.
+	normalized = content.lower()
+	return any(marker in normalized for marker in (
+		"&lt;section",
+		"&lt;/section",
+		"&lt;footer",
+		"&lt;/footer",
+		"&lt;div",
+		"&lt;/div",
+		"&lt;a ",
+		"&lt;/a",
+	))
+
+
+def _restore_default_rules(default):
+	if not default:
+		return
+	_ensure_table()
+	with engine.begin() as connection:
+		connection.execute(text("""
+			INSERT INTO persistent_site_content (content_key, content, updated_utc, updated_by)
+			VALUES (:content_key, :content, :updated_utc, :updated_by)
+			ON CONFLICT (content_key) DO UPDATE SET
+				content = EXCLUDED.content,
+				updated_utc = EXCLUDED.updated_utc,
+				updated_by = EXCLUDED.updated_by
+		"""), {
+			"content_key": _rules_key(),
+			"content": default,
+			"updated_utc": int(time.time()),
+			"updated_by": "automatic sidebar repair",
+		})
+
+
 def persistent_rules():
-	return get_site_content(_rules_key(), _default_rules())
+	default = _default_rules()
+	content = get_site_content(_rules_key(), default)
+	if _rules_content_is_malformed(content):
+		_restore_default_rules(default)
+		return default
+	return content
 
 
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
@@ -130,7 +175,6 @@ def install_persistent_site_content():
 	original_listdir = app.jinja_env.globals.get("listdir", os.listdir)
 	if getattr(original_listdir, "_persistent_asset_filter", False):
 		return
-
 	def persistent_asset_listdir(path):
 		normalized = str(path).replace("\\", "/").rstrip("/")
 		if normalized.endswith("files/assets/images/Obsession/banners"):
