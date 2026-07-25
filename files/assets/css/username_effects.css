@@ -1,4 +1,4 @@
-/* Animated username textures. WebPs tile across the complete target. */
+/* Animated username textures. Each WebP is rendered once across its target. */
 .username-effect-host,
 .username-effect,
 .username-effect-text {
@@ -24,9 +24,9 @@
 	-webkit-text-fill-color: transparent !important;
 	background-color: transparent !important;
 	background-image: var(--username-effect-image) !important;
-	background-position: left center !important;
-	background-repeat: repeat-x !important;
-	background-size: auto 100% !important;
+	background-position: center center !important;
+	background-repeat: no-repeat !important;
+	background-size: cover !important;
 	background-origin: content-box !important;
 	-webkit-background-clip: text !important;
 	background-clip: text !important;
@@ -35,7 +35,7 @@
 	image-rendering: auto;
 }
 
-/* Patron effects replace the nameplate surface, not the username glyphs. */
+/* Patron effects replace the complete nameplate surface, not the username glyphs. */
 .patron.username-effect-plate {
 	-webkit-text-fill-color: currentColor !important;
 	background-clip: border-box !important;
@@ -44,9 +44,9 @@
 
 .patron.username-effect-plate.username-effect--ready {
 	background-image: var(--username-effect-image) !important;
-	background-position: left center !important;
-	background-repeat: repeat-x !important;
-	background-size: auto 100% !important;
+	background-position: center center !important;
+	background-repeat: no-repeat !important;
+	background-size: cover !important;
 	background-origin: border-box !important;
 	image-rendering: auto;
 }
@@ -74,10 +74,10 @@
 	contain: layout paint;
 }
 
-.obs-effect-preview .username-effect-host,
-.obs-effect-live-preview .username-effect-host,
-.obs-effect-preview .username-effect,
-.obs-effect-live-preview .username-effect {
+.obs-effect-preview .username-effect-host:not(.patron),
+.obs-effect-live-preview .username-effect-host:not(.patron),
+.obs-effect-preview .username-effect:not(.patron),
+.obs-effect-live-preview .username-effect:not(.patron) {
 	display: inline-block !important;
 	width: auto !important;
 	min-width: 0 !important;
@@ -85,6 +85,21 @@
 	padding: .12em .08em !important;
 	white-space: nowrap !important;
 	overflow: visible !important;
+	overflow-wrap: normal !important;
+	word-break: normal !important;
+	line-height: 1.2 !important;
+	text-align: center !important;
+}
+
+/* Keep the site's real patron plate geometry in previews. */
+.obs-effect-preview .patron.username-effect-host,
+.obs-effect-live-preview .patron.username-effect-host {
+	display: inline-block !important;
+	width: auto !important;
+	min-width: 0 !important;
+	max-width: none !important;
+	white-space: nowrap !important;
+	overflow: hidden !important;
 	overflow-wrap: normal !important;
 	word-break: normal !important;
 	line-height: 1.2 !important;
