@@ -37,7 +37,7 @@ def get_alt_graph_ids(uid:int) -> List[int]:
 		)
 	).select_from(Alt, alt_graph_cte).filter(
 		or_(alt_graph_cte.c.user_id == Alt.user1, alt_graph_cte.c.user_id == Alt.user2),
-		Alt.deleted == False,
+		or_(Alt.deleted == False, Alt.deleted == None),
 	)
 
 	alt_graph_cte = alt_graph_cte.union(alt_graph_cte_inner)
@@ -127,7 +127,6 @@ def execute_shadowban_viewers_and_voters(v:Optional[User], target:Union[Submissi
 
 	amount = randint(0, 3)
 	if amount != 1: return
-	if target.upvotes >= rand: return
 
 	target.upvotes += amount
 	if isinstance(target, Submission):
