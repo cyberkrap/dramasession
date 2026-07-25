@@ -78,6 +78,7 @@
 		<script src="{{'js/top.js' | asset}}"></script>	
 		{% block body required %}{% endblock %}
 		{{html_head.stylesheets_lower()}}
+		{% block stylesheets_after %}{% endblock %}
 		<script defer src="{{'js/bottom.js' | asset}}"></script>
 		<script defer src="{{'js/award_modal_guard.js' | asset}}"></script>
 		{% if request.path == '/settings/personal' and v %}
