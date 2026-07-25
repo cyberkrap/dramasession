@@ -25,12 +25,17 @@ from files.helpers.paypal import (
 from files.helpers.support import (
     PAYPAL_CHECKOUT_CONFIGURED,
     PAYPAL_CLIENT_ID,
+    PAYPAL_CURRENCY,
     PAYPAL_MODE,
     PAYPAL_READY,
     PAYPAL_WEBHOOK_ID,
+    SUPPORT_TIER_BY_PLAN_ID,
     paypal_custom_id,
 )
 from files.routes.wrappers import auth_required, get_ID
+
+
+_ACTIVE_PLAN_IDS = tuple(SUPPORT_TIER_BY_PLAN_ID)
 
 
 @app.context_processor
@@ -40,9 +45,10 @@ def paypal_support_template_context():
 
     viewer = getattr(g, "v", None)
     current_subscription = None
-    if viewer:
+    if viewer and _ACTIVE_PLAN_IDS:
         current_subscription = g.db.query(PaypalSubscription).filter(
             PaypalSubscription.user_id == viewer.id,
+            PaypalSubscription.plan_id.in_(_ACTIVE_PLAN_IDS),
             PaypalSubscription.status.in_(("ACTIVE", "APPROVAL_PENDING", "PAYMENT_FAILED")),
         ).order_by(PaypalSubscription.updated_utc.desc()).first()
 
@@ -51,6 +57,7 @@ def paypal_support_template_context():
         "paypal_ready": PAYPAL_READY,
         "paypal_webhook_configured": bool(PAYPAL_WEBHOOK_ID),
         "paypal_client_id": PAYPAL_CLIENT_ID,
+        "paypal_currency": PAYPAL_CURRENCY,
         "paypal_mode": PAYPAL_MODE,
         "paypal_custom_id": paypal_custom_id(viewer.id) if viewer else "",
         "paypal_current_subscription": current_subscription,
@@ -81,6 +88,9 @@ def _try_subscription_lock(subscription_id):
 @limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
 @auth_required
 def confirm_paypal_subscription(v):
+    if not PAYPAL_READY:
+        return jsonify(ok=False, error="Live PayPal checkout is not configured."), 503
+
     subscription_id = request.values.get("subscription_id", "").strip()
     try:
         ensure_inner_circle_badge_definition(g.db)
@@ -113,8 +123,12 @@ def confirm_paypal_subscription(v):
 @limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
 @auth_required
 def cancel_current_paypal_subscription(v):
+    if not PAYPAL_READY or not _ACTIVE_PLAN_IDS:
+        abort(503)
+
     subscription = g.db.query(PaypalSubscription).filter(
         PaypalSubscription.user_id == v.id,
+        PaypalSubscription.plan_id.in_(_ACTIVE_PLAN_IDS),
         PaypalSubscription.status == "ACTIVE",
     ).order_by(PaypalSubscription.updated_utc.desc()).first()
     if not subscription:
@@ -138,6 +152,9 @@ def cancel_current_paypal_subscription(v):
 @app.post("/api/paypal/webhook")
 @limiter.limit("120/minute")
 def paypal_webhook():
+    if not PAYPAL_READY:
+        abort(503)
+
     event = request.get_json(silent=True)
     if not isinstance(event, dict) or not event.get("id") or not event.get("event_type"):
         abort(400)
