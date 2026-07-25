@@ -2,6 +2,7 @@
 	'use strict';
 
 	const ACTION_PATTERN = /\/(subscribe|unsubscribe|save_post|unsave_post|save_comment|unsave_comment)\/(\d+)/;
+	const RELATIONSHIP_BUTTON_SELECTOR = 'button[data-onclick], button[data-areyousure]';
 
 	function relationshipFromAction(actionText) {
 		const match = String(actionText || '').match(ACTION_PATTERN);
@@ -37,10 +38,11 @@
 		);
 	}
 
-	function relationshipButtons() {
-		return Array.from(document.querySelectorAll('button[data-onclick], button[data-areyousure]'))
+	function relationshipButtons(missingOnly = false) {
+		return Array.from(document.querySelectorAll(RELATIONSHIP_BUTTON_SELECTOR))
 			.map((button) => ({button, relationship: relationshipFromButton(button)}))
-			.filter((entry) => entry.relationship);
+			.filter((entry) => entry.relationship)
+			.filter((entry) => !missingOnly || !entry.button.querySelector('.relationship-count'));
 	}
 
 	function setCount(key, count) {
@@ -74,7 +76,7 @@
 	}
 
 	async function loadCounts() {
-		const entries = relationshipButtons();
+		const entries = relationshipButtons(true);
 		if (!entries.length) return;
 
 		const postIds = new Set();
@@ -136,10 +138,47 @@
 		};
 	}
 
-	installCountUpdates();
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', loadCounts, {once: true});
-	} else {
+	function installSubscribeConfirmationCompatibility() {
+		if (typeof window.areyousure !== 'function') return;
+		const originalAreYouSure = window.areyousure;
+
+		window.areyousure = function(t) {
+			const counter = t?.querySelector?.('.relationship-count');
+			if (counter) counter.remove();
+			const result = originalAreYouSure(t);
+			if (counter) t.append(counter);
+			return result;
+		};
+	}
+
+	function watchDynamicControls() {
+		let timer = null;
+		const observer = new MutationObserver((mutations) => {
+			const hasNewControls = mutations.some((mutation) =>
+				Array.from(mutation.addedNodes).some((node) =>
+					node.nodeType === Node.ELEMENT_NODE && (
+						node.matches?.(RELATIONSHIP_BUTTON_SELECTOR) ||
+						node.querySelector?.(RELATIONSHIP_BUTTON_SELECTOR)
+					)
+				)
+			);
+			if (!hasNewControls) return;
+			clearTimeout(timer);
+			timer = setTimeout(loadCounts, 50);
+		});
+		observer.observe(document.body, {childList: true, subtree: true});
+	}
+
+	function initialise() {
 		loadCounts();
+		watchDynamicControls();
+	}
+
+	installCountUpdates();
+	installSubscribeConfirmationCompatibility();
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initialise, {once: true});
+	} else {
+		initialise();
 	}
 })();
