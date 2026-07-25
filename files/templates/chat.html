@@ -2,10 +2,18 @@
 {% block pagetitle -%}Chat{%- endblock %}
 {% block pagetype %}chat{% endblock %}
 {% block stylesheets_after %}
+	<link rel="stylesheet" href="{{'css/username_effects.css' | asset}}">
 	<link rel="stylesheet" href="{{'css/chat_mobile_composer.css' | asset}}">
 {% endblock %}
 {% block body %}
 	{% include "header.html" %}
+	{% if v.active_username_effects %}
+		<span class="d-none" aria-hidden="true"
+			data-username-effect-target="#header--username"
+			data-username-effect-user="{{v.id}}"
+			data-username-effects="{{v.active_username_effects|join(',')}}"
+			data-username-effect-color="{{v.username_effect_text_color}}"></span>
+	{% endif %}
 	{% include "modals/expanded_image.html" %}
 	{% include "modals/emoji.html" %}
 	{% set vlink = '<a href="/id/' ~ v.id ~ '">' %}
@@ -77,7 +85,7 @@
 							<i class="fas fa-shield-alt chat-admin-icon {% if not (m and m.get('distinguish_by')) %}d-none{% endif %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Obsession admin, speaking officially." aria-label="Obsession admin, speaking officially."></i>
 						</a>
 						<span class="text-black time ml-1 mb-3 text-center" data-epoch="{% if m %}{{m['time']}}{% endif %}">
-							<a class="chat-local-time" {% if m %}href="/chat#{{id}}"{% endif %}></a>
+							<span class="chat-local-time"></span>
 							<a class="chat-message-id" {% if m %}href="/chat#{{id}}"{% endif %}>{% if m %}#{{id}}{% endif %}</a>
 						</span>
 						<input hidden class="user_id" {% if m %}value="{{m['user_id']}}"{% endif %}>
@@ -180,7 +188,9 @@
 	<input id="chat-has-more" hidden value="{{1 if initial_has_more else 0}}">
 	<script defer src="{{'js/vendor/socketio.js' | asset}}"></script>
 	<script defer src="{{'js/chat.js' | asset}}"></script>
+	<script defer src="{{'js/username_effects.js' | asset}}"></script>
 	<script defer src="{{'js/chat_time_overrides.js' | asset}}"></script>
+	<script defer src="{{'js/chat_effects_grouping.js' | asset}}"></script>
 	<script defer src="{{'js/vendor/lozad.js' | asset}}"></script>
 	<script defer src="{{'js/vendor/lite-youtube.js' | asset}}"></script>
 {% endblock %}
