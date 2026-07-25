@@ -5,9 +5,8 @@ from files.__main__ import app, cache, limiter
 from files.classes import Alt, ModAction
 from files.helpers.config.const import DEFAULT_RATELIMIT_SLOWER, PERMS
 from files.helpers.get import get_account, get_user
-from files.helpers.security import get_ID
 from files.routes.routehelpers import check_for_alts, get_alt_graph_ids
-from files.routes.wrappers import admin_level_required
+from files.routes.wrappers import admin_level_required, get_ID
 
 
 def _get_alt_link(user1_id, user2_id):
