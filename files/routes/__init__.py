@@ -86,6 +86,7 @@ if FEATURES['GAMBLING']:
 	from .casino import *
 from .polls import *
 from .notifications import *
+from .relationship_counts import *
 if FEATURES['HATS']:
 	from .hats import *
 if FEATURES['ASSET_SUBMISSIONS']:
