@@ -75,6 +75,12 @@
 													<input autocomplete="off" type="checkbox" class="custom-control-input" id="post-new" name="new" data-nonce="{{g.nonce}}" data-onchange="savetext()">
 													<label class="custom-control-label" for="post-new">Make the default comment sorting "new"</label>
 												</div>
+												{% if v.admin_level >= PERMS['POST_COMMENT_MODERATION'] %}
+													<div class="custom-control custom-checkbox">
+														<input autocomplete="off" type="checkbox" class="custom-control-input" id="post-admin-comments" name="admin_only_comments" data-nonce="{{g.nonce}}" data-onchange="savetext()">
+														<label class="custom-control-label" for="post-admin-comments">Only admins can comment</label>
+													</div>
+												{% endif %}
 												{% if FEATURES['NSFW_MARKING'] %}
 													<div class="custom-control custom-checkbox">
 														<input autocomplete="off" type="checkbox" class="custom-control-input" id="post-nsfw" name="over_18" data-nonce="{{g.nonce}}" data-onchange="savetext()">
