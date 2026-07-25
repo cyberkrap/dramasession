@@ -1,11 +1,11 @@
 from flask import abort, g, request
 from sqlalchemy.sql.expression import and_, or_
 
-from files.__main__ import app, cache, limiter
+from files.__main__ import app, limiter
 from files.classes import Alt, ModAction
 from files.helpers.config.const import DEFAULT_RATELIMIT_SLOWER, PERMS
 from files.helpers.get import get_account, get_user
-from files.routes.routehelpers import check_for_alts, get_alt_graph_ids
+from files.routes.routehelpers import check_for_alts
 from files.routes.wrappers import admin_level_required, get_ID
 
 
@@ -24,8 +24,10 @@ def _save_alt_state(user1, user2, link, deleted):
 	g.db.add(link)
 	g.db.flush()
 
-	cache.delete_memoized(get_alt_graph_ids, user1.id)
-	cache.delete_memoized(get_alt_graph_ids, user2.id)
+	# get_alt_graph_ids deliberately reads live database state and is no longer
+	# memoized. Trying to delete a memoized entry for it raises AttributeError
+	# inside Flask-Caching and turns a successful delink into a 500 response.
+	# No cache invalidation is needed here.
 
 	# Only propagate moderation state when the accounts are actively linked.
 	if not link.deleted:
