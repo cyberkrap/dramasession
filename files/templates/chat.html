@@ -1,6 +1,9 @@
 {%- extends 'root.html' -%}
 {% block pagetitle -%}Chat{%- endblock %}
 {% block pagetype %}chat{% endblock %}
+{% block head_final %}
+	<link rel="stylesheet" href="{{'css/chat_mobile_composer.css' | asset}}">
+{% endblock %}
 {% block body %}
 	{% include "header.html" %}
 	{% include "modals/expanded_image.html" %}
@@ -121,7 +124,7 @@
 
 				<div id="shrink">
 					<button type="button" id="chat-load-more" class="btn btn-secondary d-none mb-2">Load more messages</button>
-<div id="chat-window" class="container pl-0 py-0" aria-live="polite"></div>
+					<div id="chat-window" class="container pl-0 py-0" aria-live="polite"></div>
 				</div>
 
 				<div id="quotes" class="mt-3 ml-3 mb-2 d-none" style="font-size:12px">
@@ -133,28 +136,30 @@
 				</div>
 
 				<div id="chat-mention-suggestions" class="chat-mention-suggestions d-none" role="listbox" aria-label="Mention suggestions"></div>
-<div id="chat-typing-row" class="text-muted text-small" aria-live="polite">
-	<span id="typing-indicator"></span>
-	<span id="loading-indicator" class="d-none"></span>
-</div>
-<span id="chat-status" class="d-none"></span>
-<div id="message" class="position-relative form-group d-flex">
-					<span class="my-auto">
-						<i class="btn btn-secondary fas fa-smile-beam" style="font-size:1.3rem!important" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-text')" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add emoji" aria-label="Add emoji"></i>
+				<div id="chat-typing-row" class="text-muted text-small" aria-live="polite">
+					<span id="typing-indicator"></span>
+					<span id="loading-indicator" class="d-none"></span>
+				</div>
+				<span id="chat-status" class="d-none"></span>
+				<div id="message" class="position-relative form-group d-flex">
+					<span class="chat-compose-control">
+						<button type="button" class="btn btn-secondary chat-compose-action" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-text')" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add emoji" aria-label="Add emoji">
+							<i class="fas fa-smile-beam" aria-hidden="true"></i>
+						</button>
 					</span>
-					<span class="my-auto ml-1">
-						<label class="btn btn-secondary format mb-0" title="Attach image">
-							<div id="filename" class="mr-3" style="font-size:12px"><i class="fas fa-image" style="font-size:1.3rem!important"></i></div>
+					<span class="chat-compose-control">
+						<label class="btn btn-secondary chat-compose-action chat-upload-action mb-0" title="Attach image" aria-label="Attach image">
+							<span id="filename"><i class="fas fa-image" aria-hidden="true"></i></span>
 							<input autocomplete="off" id="file" accept="image/*" type="file" multiple="multiple" name="file" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" hidden>
 						</label>
 					</span>
 					{% if v.admin_level >= PERMS['POST_COMMENT_DISTINGUISH'] %}
-						<label class="chat-official-toggle my-auto ml-1" title="Send this message with the official Obsession admin treatment.">
+						<label class="chat-official-toggle" title="Send this message with the official Obsession admin treatment." aria-label="Send as admin">
 							<input id="chat-send-official" type="checkbox"><i class="fas fa-shield-alt" aria-hidden="true"></i><span>Send as admin</span>
 						</label>
 					{% endif %}
 					<textarea id="input-text" minlength="1" maxlength="{% if SITE == 'rdrama.net' %}200{% else %}1000{% endif %}" {% if g.browser == "apple" %}style="font-size:16px!important"{% endif %} class="form-control" placeholder="Message" autocomplete="off" autofocus rows="1" aria-label="Chat message"></textarea>
-					<button id="chatsend" class="btn btn-secondary fas fa-reply ml-3 my-auto" type="button" title="Send message" aria-label="Send message" style="transform:rotateY(180deg);font-size:1.3rem!important"></button>
+					<button id="chatsend" class="btn btn-secondary fas fa-reply" type="button" title="Send message" aria-label="Send message" style="transform:rotateY(180deg)"></button>
 				</div>
 			</div>
 
