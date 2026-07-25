@@ -1,0 +1,189 @@
+/* Mobile chat: maximize message history and keep composer controls aligned. */
+@media (max-width: 767.98px) {
+	body#chat #main-content-col > .border-right {
+		min-height: 30px;
+		padding: 2px 8px !important;
+	}
+
+	body#chat #online2 {
+		min-height: 30px;
+		padding: 3px 6px;
+	}
+
+	body#chat .chat-filter-toolbar {
+		min-height: 36px;
+		margin: 0 !important;
+		padding: 1px 8px 3px;
+	}
+
+	body#chat .chat-filter-toolbar .btn {
+		min-height: 34px;
+		padding: 5px 9px !important;
+	}
+
+	body#chat #chat-filter-summary {
+		font-size: .78rem;
+	}
+
+	body#chat #quotes {
+		margin: 2px 8px 4px !important;
+	}
+
+	body#chat #chat-typing-row {
+		min-height: 0;
+		padding: 0 8px;
+		font-size: .74rem;
+		line-height: 18px;
+	}
+
+	body#chat #chat-typing-row:has(#typing-indicator:empty) {
+		height: 0;
+		min-height: 0;
+		padding-top: 0;
+		padding-bottom: 0;
+		overflow: hidden;
+	}
+
+	body#chat #main-content-col > #message {
+		display: flex !important;
+		flex: 0 0 auto;
+		flex-wrap: nowrap !important;
+		gap: 6px;
+		align-items: center;
+		width: 100% !important;
+		margin: 0 !important;
+		padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+		background: #08080a;
+		border: 0 !important;
+		border-top: 1px solid rgba(255,255,255,.1) !important;
+		border-radius: 0 !important;
+	}
+
+	body#chat #message > .chat-compose-control {
+		display: flex;
+		flex: 0 0 44px;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		min-width: 44px;
+		margin: 0 !important;
+	}
+
+	body#chat .chat-compose-action,
+	body#chat #chatsend,
+	body#chat .chat-official-toggle {
+		box-sizing: border-box;
+		display: inline-flex !important;
+		flex: 0 0 44px;
+		align-items: center;
+		justify-content: center;
+		width: 44px !important;
+		height: 44px !important;
+		min-width: 44px !important;
+		min-height: 44px !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		border-radius: 8px !important;
+		line-height: 1;
+	}
+
+	body#chat .chat-compose-action i,
+	body#chat #chatsend,
+	body#chat .chat-official-toggle i {
+		margin: 0 !important;
+		font-size: 1.25rem !important;
+		line-height: 1 !important;
+	}
+
+	body#chat .chat-upload-action {
+		position: relative;
+	}
+
+	body#chat .chat-upload-action.has-file::after {
+		content: "";
+		position: absolute;
+		top: 5px;
+		right: 5px;
+		width: 8px;
+		height: 8px;
+		border: 2px solid #08080a;
+		border-radius: 50%;
+		background: #39c879;
+	}
+
+	body#chat #filename {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		margin: 0 !important;
+	}
+
+	body#chat #input-text {
+		order: initial;
+		flex: 1 1 auto;
+		width: auto !important;
+		min-width: 0;
+		min-height: 44px;
+		max-height: 72px;
+		margin: 0 !important;
+		padding: 10px 12px;
+		font-size: 16px !important;
+		line-height: 1.35;
+		resize: none !important;
+	}
+
+	body#chat #chatsend {
+		order: initial;
+	}
+
+	body#chat .chat-official-toggle {
+		position: relative;
+		order: initial;
+		color: var(--text-muted, #c8c5c7);
+		background: rgba(255,255,255,.055);
+		border: 1px solid rgba(255,255,255,.1) !important;
+		cursor: pointer;
+	}
+
+	body#chat .chat-official-toggle input {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	body#chat .chat-official-toggle span {
+		display: none;
+	}
+
+	body#chat .chat-official-toggle:has(input:checked) {
+		color: #fff;
+		background: rgba(239,35,60,.24);
+		border-color: rgba(239,35,60,.62) !important;
+	}
+
+	body#chat #chat-window {
+		padding-bottom: 4px !important;
+	}
+}
+
+@media (max-width: 374.98px) {
+	body#chat #main-content-col > #message {
+		gap: 4px;
+		padding-right: 6px !important;
+		padding-left: 6px !important;
+	}
+
+	body#chat #message > .chat-compose-control,
+	body#chat .chat-compose-action,
+	body#chat #chatsend,
+	body#chat .chat-official-toggle {
+		flex-basis: 40px;
+		width: 40px !important;
+		min-width: 40px !important;
+	}
+}
