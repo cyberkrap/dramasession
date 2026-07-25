@@ -9,6 +9,7 @@ from .comment import *
 from .domains import *
 from .flags import *
 from .user import *
+from .alt_state import *
 from .badges import *
 from .userblock import *
 from .submission import *
