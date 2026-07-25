@@ -15,7 +15,7 @@
         <p class="support-note">PayPal handles the payment details. Obsession stores only the subscription status and transaction identifiers needed to activate benefits, prevent duplicate rewards and process cancellations.</p>
 
         {% if request.values.get('payment') == 'success' %}
-            <div class="support-payment-status support-payment-status-ready" role="status"><i class="fas fa-check-circle" aria-hidden="true"></i><span><strong>PayPal approved your subscription.</strong><small>Your benefits activate as soon as the payment is confirmed.</small></span></div>
+            <div class="support-payment-status support-payment-status-ready" role="status"><i class="fas fa-check-circle" aria-hidden="true"></i><span><strong>PayPal approved your subscription.</strong><small>Your benefits activate as soon as the live payment is confirmed.</small></span></div>
         {% elif request.values.get('payment') == 'cancelled' %}
             <div class="support-payment-status" role="status"><i class="fas fa-circle-info" aria-hidden="true"></i><span>Your PayPal subscription was cancelled.</span></div>
         {% elif request.values.get('payment') == 'cancel_error' %}
@@ -36,11 +36,11 @@
                 {% endif %}
             </div>
         {% elif paypal_ready and v %}
-            <div class="support-payment-status support-payment-status-ready" role="status"><i class="fab fa-paypal" aria-hidden="true"></i><span>Secure monthly checkout is ready through PayPal.</span></div>
+            <div class="support-payment-status support-payment-status-ready" role="status"><i class="fab fa-paypal" aria-hidden="true"></i><span><strong>Live PayPal checkout is ready.</strong><small>This creates a real recurring monthly subscription.</small></span></div>
         {% elif paypal_checkout_configured and not paypal_webhook_configured %}
-            <div class="support-payment-status" role="status"><i class="fas fa-wrench" aria-hidden="true"></i><span><strong>Final payment connection is being completed.</strong><small>The PayPal plans are configured, but checkout remains disabled until signed payment notifications are connected.</small></span></div>
+            <div class="support-payment-status" role="status"><i class="fas fa-wrench" aria-hidden="true"></i><span><strong>Final live payment connection is being completed.</strong><small>The PayPal plans are configured, but checkout remains disabled until signed live payment notifications are connected.</small></span></div>
         {% else %}
-            <div class="support-payment-status" role="status"><i class="fas fa-wrench" aria-hidden="true"></i><span><strong>Support payments are being prepared.</strong><small>No payment will be accepted until the PayPal configuration is complete.</small></span></div>
+            <div class="support-payment-status" role="status"><i class="fas fa-wrench" aria-hidden="true"></i><span><strong>Live support payments are not configured yet.</strong><small>No payment will be accepted until the live PayPal credentials, plans and webhook are complete.</small></span></div>
         {% endif %}
     </header>
 
@@ -90,7 +90,7 @@
                 {% elif not v %}
                     <a class="support-tier-action" href="/login?redirect=/donate"><i class="fas fa-sign-in-alt" aria-hidden="true"></i>Sign in to subscribe</a>
                 {% else %}
-                    <button class="support-tier-action" type="button" disabled><i class="fas fa-lock" aria-hidden="true"></i>Payment setup in progress</button>
+                    <button class="support-tier-action" type="button" disabled><i class="fas fa-lock" aria-hidden="true"></i>Live payment setup in progress</button>
                 {% endif %}
             </article>
             {% endfor %}
@@ -100,7 +100,7 @@
 
     <section class="support-footer-note" aria-label="Payment information">
         <i class="fas fa-lock" aria-hidden="true"></i>
-        <div><h2>Verified before rewards</h2><p>Patron status and monthly Wishbux are granted only after the server verifies the PayPal subscription and completed transaction. Duplicate webhook deliveries cannot grant rewards twice.</p></div>
+        <div><h2>Verified before rewards</h2><p>Patron status and monthly Wishbux are granted only after the server verifies the live PayPal subscription and completed transaction. Duplicate webhook deliveries cannot grant rewards twice.</p></div>
     </section>
 </main>
 
@@ -108,9 +108,11 @@
 <script id="paypal-support-config" type="application/json">{{{
     'confirmUrl': '/api/paypal/subscriptions/confirm',
     'formkey': v|formkey,
-    'customId': paypal_custom_id
+    'customId': paypal_custom_id,
+    'mode': paypal_mode,
+    'currency': paypal_currency
 }|tojson}}</script>
-<script src="https://www.paypal.com/sdk/js?client-id={{paypal_client_id|e}}&amp;components=buttons&amp;vault=true&amp;intent=subscription&amp;currency=USD"></script>
+<script src="https://www.paypal.com/sdk/js?client-id={{paypal_client_id|e}}&amp;components=buttons&amp;vault=true&amp;intent=subscription&amp;currency={{paypal_currency|e}}"></script>
 <script defer src="{{'js/paypal_support.js' | asset}}"></script>
 {% endif %}
 {% endblock %}
