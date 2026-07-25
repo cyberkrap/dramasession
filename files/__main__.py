@@ -96,6 +96,14 @@ Compress(app)
 
 from files.routes.allroutes import *
 
+# The chat process runs independently from the main web process, so install
+# the dynamic username-effect columns and properties before either service
+# imports routes that read User.active_username_effects.
+from files.classes import User
+from files.helpers.username_effects import install_username_effects
+install_username_effects(engine, User)
+from files.routes.chat_username_effects import *
+
 if app.config['SERVICE'] == Service.RDRAMA:
 	from files.routes import *
 
