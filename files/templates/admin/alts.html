@@ -14,9 +14,13 @@
 	</form>
 </section>
 {% if u %}
-{% set count=alts|length %}
+{% set linked_alts = alts|rejectattr('_is_deleted')|list %}
+{% set delinked_alts = alts|selectattr('_is_deleted')|list %}
+{% set linked_count = linked_alts|length %}
+{% set delinked_count = delinked_alts|length %}
 <section class="userinfo-section">
-	<p><a href="/@{{u.username}}">@{{u.username}}</a> created their account {{u.created_utc|timestamp}} and has {{count}} known alt{{macros.plural(count)}}.<br>
+	<p><a href="/@{{u.username}}">@{{u.username}}</a> created their account {{u.created_utc|timestamp}} and has {{linked_count}} linked alt{{macros.plural(linked_count)}}.
+	{% if delinked_count %}<br>{{delinked_count}} delinked record{{macros.plural(delinked_count)}} retained below for audit and relinking.{% endif %}<br>
 	They are {% if not u.is_suspended_permanently %}not {% endif %}permanently banned{% if v.admin_level >= PERMS['USER_SHADOWBAN'] %} and they are {% if not u.shadowbanned %}not {% endif %}shadowbanned{% endif %}.</p>
 </section>
 <div class="overflow-x-auto">
@@ -32,17 +36,20 @@
 			<th class="disable-sort-click">Actions</th>
 		</tr>
 	</thead>
-	{% for user in alts %}
-		<tr>
+	{% for user in linked_alts + delinked_alts %}
+		<tr{% if user._is_deleted %} class="text-muted"{% endif %}>
 			<td>{{loop.index}}</td>
 			<td>{% include "user_in_table.html" %}</td>
 			<td>{{user.created_utc|timestamp}}</td>
 			<td>{{user._alt_created_utc|timestamp}}</td>
 			<td>{{user._is_manual}}</td>
-			<td>{{user._is_deleted}}</td>
+			<td>{{'Yes' if user._is_deleted else 'No'}}</td>
 			<td>
-				<button type="button" id="delink-alt-{{u.id}}-{{user.id}}" class="btn btn-danger{% if user._is_deleted %} d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/alts/{{user.id}}/deleted', 'delink-alt-{{u.id}}-{{user.id}}', 'relink-alt-{{u.id}}-{{user.id}}', 'd-none', 'null', 'PUT')">Delink</button>
-				<button type="button" id="relink-alt-{{u.id}}-{{user.id}}" class="btn btn-danger{% if not user._is_deleted %} d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/alts/{{user.id}}/deleted', 'relink-alt-{{u.id}}-{{user.id}}', 'delink-alt-{{u.id}}-{{user.id}}', 'd-none', 'null', 'DELETE')">Relink</button>
+				{% if user._is_deleted %}
+					<button type="button" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="setAltDeletedState(this, '{{u.username}}', {{user.id}}, false)">Relink</button>
+				{% else %}
+					<button type="button" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="setAltDeletedState(this, '{{u.username}}', {{user.id}}, true)">Delink</button>
+				{% endif %}
 				<a class="btn btn-secondary" href="/@{{user.username}}/alts">Alts</a>
 				{% if v.admin_level >= PERMS['VIEW_ALT_VOTES'] %}
 					<a class="btn btn-secondary" href="/admin/alt_votes/?u1={{u.username}}&u2={{user.username}}">Alt Votes</a>
@@ -54,9 +61,9 @@
 </div>
 <section id="add-alt" class="rounded rounded-section p-3">
 	<h5>Add Alt</h5>
-	<p>This tool allows you to add an alt either linked or delinked.<br>
-		Adding linked will link the two alts together manually, while adding delinked will attempt to delink alts whereever possible.<br>
-		You're on your own for reversing any propagation though.
+	<p>This tool creates a new relationship or changes the saved state of an existing one.<br>
+		Add Alt Linked marks the pair as actively linked. Add Alt Delinked marks the pair as deliberately separated.<br>
+		Delinked records remain visible above for audit and can be relinked later.
 	</p>
 	<label for="link-input-other">Other Username</label>
 	<input autocomplete="off" id="link-input-other" type="text" class="form-control mb-2" name="other_username" placeholder="Other Username">
