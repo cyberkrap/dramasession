@@ -33,3 +33,11 @@
 #notifications .notifs > .comment > .comment-body {
 	min-width: 0;
 }
+
+/* The global unread style adds 12px of inner padding, while a read comment
+ * falls back to the one-pixel comment-anchor padding. Keep the notification
+ * card contents aligned identically after the notification is marked read. */
+#notifications .notifs > .comment > .comment-body > .comment-anchor {
+	padding: 12px;
+	padding-bottom: 4px;
+}
