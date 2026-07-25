@@ -9,6 +9,9 @@
 {% macro javascript() %}
 	<script defer src="{{'js/vendor/bootstrap.js' | asset}}"></script>
 	<script defer src="{{'js/core.js' | asset}}"></script>
+	{% if SITE_NAME == 'Obsession' %}
+		<script defer src="{{'js/navbar_currency_tooltips.js' | asset}}"></script>
+	{% endif %}
 {% endmacro %}
 
 {% macro page_meta(title=none) %}
@@ -31,13 +34,13 @@
 
 	{% elif '@' in request.path and u %}
 		{% set author, a_author, published, url, title, image, section =
-			'@'~u.username,
-			'@'~u.username,
-			u.created_date,
-			u.url,
-			u.username ~ "'s profile",
-			u.banner_url,
-			u.username ~ "'s profile" %}
+		'@'~u.username,
+		'@'~u.username,
+		u.created_date,
+		u.url,
+		u.username ~ "'s profile",
+		u.banner_url,
+		u.username ~ "'s profile" %}
 
 		{% set description %}
 			{{u.coins|number}} Wishcoins - Joined {{u.created_date}} -
@@ -59,9 +62,15 @@
 		'/h/'+sub.name, sub.sidebar if sub.sidebar %}
 	{% endif %}
 
-	{% set app_icon = ('official-logo.png' if SITE_NAME == 'Obsession' else 'icon.webp') | asset_siteimg %}
-{% set app_icon_type = 'image/png' if SITE_NAME == 'Obsession' else 'image/webp' %}
-<link rel='icon' type='{{app_icon_type}}' href='{{app_icon}}'>
+	{% if SITE_NAME == 'Obsession' %}
+		{% set app_icon = '/i/Obsession/official-logo.png?v=20260726' %}
+		{% set app_icon_type = 'image/png' %}
+	{% else %}
+		{% set app_icon = 'icon.webp' | asset_siteimg %}
+		{% set app_icon_type = 'image/webp' %}
+	{% endif %}
+	<link rel="icon" type="{{app_icon_type}}" href="{{app_icon}}">
+	<link rel="shortcut icon" type="{{app_icon_type}}" href="{{app_icon}}">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta name="thumbnail" content="{{'site_preview.webp' | asset_siteimg}}">
 	<meta name="description" content="{{DESCRIPTION}}">
@@ -122,6 +131,7 @@
 	<link rel="stylesheet" href="{{'css/awards.css' | asset}}">
 	{% if SITE_NAME == 'Obsession' %}
 		<link rel="stylesheet" href="{{'css/obsession.css' | asset}}">
+		<link rel="stylesheet" href="{{'css/obsession_ui_fixes.css' | asset}}">
 	{% endif %}
 
 	{% if sub and sub.css and not request.path.endswith('settings') and not request.values.get('nocss') %}
@@ -129,7 +139,7 @@
 	{% endif %}
 
 	{% if IS_FISTMAS() %}
-		<link rel="stylesheet" href="{{'fistmas/css/fistmas.css' | asset}}">
+		<link rel="stylesheet" href="{{'fistmas/css/fistmas.css'| asset}}">
 
 		{% if v and v.event_darkmode %}
 			<link rel="stylesheet" href="{{'fistmas/css/themes/dark.css'| asset}}">
@@ -159,17 +169,22 @@
 {% endmacro %}
 
 {% macro seo() %}
-	{% set app_icon = ('official-logo.png' if SITE_NAME == 'Obsession' else 'icon.webp') | asset_siteimg %}
-	{% set app_icon_type = 'image/png' if SITE_NAME == 'Obsession' else 'image/webp' %}
+	{% if SITE_NAME == 'Obsession' %}
+		{% set app_icon = '/i/Obsession/official-logo.png?v=20260726' %}
+		{% set app_icon_type = 'image/png' %}
+	{% else %}
+		{% set app_icon = 'icon.webp' | asset_siteimg %}
+		{% set app_icon_type = 'image/webp' %}
+	{% endif %}
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-touch-fullscreen" content="yes">
 	<meta name="format-detection" content="telephone=no">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 
-	<link rel='apple-touch-icon' sizes='180x180' href='{{app_icon}}'>
+	<link rel="apple-touch-icon" sizes="180x180" href="{{app_icon}}">
 	<link rel="manifest" href="/assets/manifest_{{SITE_NAME}}.json?v=426">
-	<link rel='mask-icon' href='{{app_icon}}'>
-	<link rel='shortcut icon' href='{{app_icon}}'>
+	<link rel="mask-icon" href="{{app_icon}}">
+	<link rel="shortcut icon" type="{{app_icon_type}}" href="{{app_icon}}">
 	<meta name="apple-mobile-web-app-title" content="{{SITE_NAME}}">
 	<meta name="application-name" content="{{SITE_NAME}}">
 	<meta name="msapplication-TileColor" content="#{% if v %}{{v.themecolor}}{% else %}{{DEFAULT_COLOR}}{% endif %}">
@@ -180,6 +195,6 @@
 					'1024x748', '1024x768', '1125x2436', '1242x2208', '1356x2048',
 					'1668x2224', '1792x828', '2048x1496', '2048x2732', '2208x1242',
 					'2224x1668', '2436x1125', '2668x1242', '2737x2048') %}
-			<link rel='apple-touch-startup-image' sizes='{{size}}' href='{{app_icon}}'>
+			<link rel="apple-touch-startup-image" sizes="{{size}}" href="{{app_icon}}">
 	{% endfor %}
 {% endmacro %}
