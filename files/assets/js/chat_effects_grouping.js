@@ -197,9 +197,23 @@
 		replaceOnlineList(document.getElementById('online-mobile'), users, mutedUsers, adminLevel);
 	}
 
+	function lockObsessionFavicon() {
+		if (siteName !== 'Obsession') return;
+		const icon = document.querySelector("link[rel~='icon']");
+		if (!icon) return;
+		const officialIcon = '/i/Obsession/official-logo.png?v=20260726';
+		const restore = () => {
+			if (icon.getAttribute('href') !== officialIcon) icon.setAttribute('href', officialIcon);
+		};
+		restore();
+		new MutationObserver(restore).observe(icon, {attributes: true, attributeFilter: ['href']});
+	}
+
 	socket.on('online', data => {
 		void renderOnlineWithEffects(data);
 	});
+
+	lockObsessionFavicon();
 
 	// chat.js performs its first render before this enhancement file runs.
 	// Re-render once so the 30-second grouping rule applies immediately.
