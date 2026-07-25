@@ -79,6 +79,7 @@ def install_submission_comment_permissions(app, engine):
 	def enforce_admin_only_post_comments():
 		if request.method != 'POST' or request.path != '/comment':
 			return None
+		user = _current_user()
 		submission_id = _submission_id_from_comment_request()
 		if not submission_id:
 			return None
@@ -87,7 +88,6 @@ def install_submission_comment_permissions(app, engine):
 		).scalar()
 		if not locked:
 			return None
-		user = _current_user()
 		if not user or user.admin_level < PERMS['POST_COMMENT_MODERATION']:
 			abort(403, 'Only admins can comment on this post!')
 		return None
