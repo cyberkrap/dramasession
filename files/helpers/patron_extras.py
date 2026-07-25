@@ -2,10 +2,19 @@
 
 from sqlalchemy import or_
 
-from files.classes import Badge, BadgeDef, Comment, Notification, PaypalPayment, User
+from files.classes import (
+    Badge,
+    BadgeDef,
+    Comment,
+    Notification,
+    PaypalPayment,
+    PaypalSubscription,
+    User,
+)
 from files.helpers.config.const import AUTOJANNY_ID
 from files.helpers.contribution_badges import CONTRIBUTION_BADGE_THRESHOLDS
 from files.helpers.sanitize import sanitize
+from files.helpers.support import PAYPAL_ACTIVE_PLAN_IDS
 
 
 INNER_CIRCLE_BADGE_ID = 25
@@ -110,18 +119,22 @@ def _legacy_badge_bodies(badge):
 
 
 def ensure_patron_extras(db, user_id):
-    """Backfill all verified contribution badges and their one-time notices."""
+    """Backfill live contribution badges and their one-time notices."""
     user_id = int(user_id)
 
     try:
         with db.begin_nested():
             user = db.get(User, user_id)
-            if user is None:
+            if user is None or not PAYPAL_ACTIVE_PLAN_IDS:
                 return False
 
-            has_completed_payment = db.query(PaypalPayment.payment_id).filter(
+            has_completed_payment = db.query(PaypalPayment.payment_id).join(
+                PaypalSubscription,
+                PaypalSubscription.subscription_id == PaypalPayment.subscription_id,
+            ).filter(
                 PaypalPayment.user_id == user_id,
                 PaypalPayment.status == "COMPLETED",
+                PaypalSubscription.plan_id.in_(PAYPAL_ACTIVE_PLAN_IDS),
             ).first()
             if not has_completed_payment:
                 return False
