@@ -16,6 +16,7 @@ _TABLE_LOCK = threading.Lock()
 _TABLE_READY = False
 
 
+
 def _ensure_table():
 	global _TABLE_READY
 	if _TABLE_READY:
@@ -35,6 +36,7 @@ def _ensure_table():
 		_TABLE_READY = True
 
 
+
 def get_site_content(content_key, default=None):
 	_ensure_table()
 	value = g.db.execute(
@@ -42,6 +44,7 @@ def get_site_content(content_key, default=None):
 		{"content_key": content_key},
 	).scalar()
 	return default if value is None else value
+
 
 
 def set_site_content(content_key, content, updated_by=None):
@@ -61,12 +64,14 @@ def set_site_content(content_key, content, updated_by=None):
 	})
 
 
+
 def delete_site_content(content_key):
 	_ensure_table()
 	g.db.execute(
 		text("DELETE FROM persistent_site_content WHERE content_key = :content_key"),
 		{"content_key": content_key},
 	)
+
 
 
 def get_site_content_keys(prefix):
@@ -78,8 +83,10 @@ def get_site_content_keys(prefix):
 	return set(rows)
 
 
+
 def _rules_key():
 	return f"rules:{SITE_NAME}"
+
 
 
 def _default_rules():
@@ -89,6 +96,7 @@ def _default_rules():
 			return stream.read()
 	except OSError:
 		return ""
+
 
 
 def _rules_content_is_malformed(content):
@@ -111,13 +119,20 @@ def _rules_content_is_malformed(content):
 	))
 
 
-def _without_wpd_related_site(content):
+
+def _normalize_obsession_sidebar_links(content):
 	if SITE_NAME != "Obsession" or not content:
 		return content
+
+	content = content.replace(
+		"https://discord.gg/SnzRCwkJ3s",
+		"https://discord.gg/ymKWdNHSXq",
+	)
 	return "".join(
 		line for line in content.splitlines(keepends=True)
 		if "watchpeopledie.tv" not in line.lower()
 	)
+
 
 
 def _restore_default_rules(default):
@@ -132,6 +147,7 @@ def _restore_default_rules(default):
 	set_site_content(_rules_key(), default, "automatic sidebar repair")
 
 
+
 def persistent_rules():
 	default = _default_rules()
 	content = get_site_content(_rules_key(), default)
@@ -139,11 +155,12 @@ def persistent_rules():
 		_restore_default_rules(default)
 		return default
 
-	cleaned = _without_wpd_related_site(content)
+	cleaned = _normalize_obsession_sidebar_links(content)
 	if cleaned != content:
-		set_site_content(_rules_key(), cleaned, "automatic related-site cleanup")
+		set_site_content(_rules_key(), cleaned, "automatic sidebar link cleanup")
 		content = cleaned
 	return content
+
 
 
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
@@ -152,15 +169,17 @@ def persistent_edit_rules_get(v):
 	return render_template("admin/edit_rules.html", v=v, rules=persistent_rules())
 
 
+
 @limiter.limit("1/second;30/minute;200/hour;1000/day")
 @limiter.limit("1/second;30/minute;200/hour;1000/day", key_func=get_ID)
 @admin_level_required(PERMS["EDIT_RULES"])
 def persistent_edit_rules_post(v):
 	rules = sanitize(request.values.get("rules", "").strip(), sidebar=True, showmore=False)
-	rules = _without_wpd_related_site(rules)
+	rules = _normalize_obsession_sidebar_links(rules)
 	set_site_content(_rules_key(), rules, v.username)
 	g.db.add(ModAction(kind="edit_rules", user_id=v.id))
 	return render_template("admin/edit_rules.html", v=v, rules=rules, msg="Rules edited successfully!")
+
 
 
 def install_persistent_site_content():
