@@ -28,10 +28,10 @@
 
 {% include "header.html" %}
 {% if v %}
-<span hidden data-username-effect-target="#header--username" data-username-effect-user="{{v.id}}" data-username-effects="{{v.active_username_effects|join(',')}}"></span>
+<span hidden data-username-effect-target="#header--username" data-username-effect-user="{{v.id}}" data-username-effect-color="{{v.username_effect_text_color}}" data-username-effects="{{v.active_username_effects|join(',')}}"></span>
 {% endif %}
 {% if u is defined and u %}
-<span hidden data-username-effect-target="#profile--name > span" data-username-effect-user="{{u.id}}" data-username-effects="{{u.active_username_effects|join(',')}}"></span>
+<span hidden data-username-effect-target="#profile--name > span" data-username-effect-user="{{u.id}}" data-username-effect-color="{{u.username_effect_text_color}}" data-username-effects="{{u.active_username_effects|join(',')}}"></span>
 {% endif %}
 {% block mobileUserBanner %}{% endblock %}
 <div class="container app-shell">
