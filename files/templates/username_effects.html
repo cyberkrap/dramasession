@@ -3,6 +3,7 @@
 {% block pagetype %}shop{% endblock %}
 {% block head_final %}
 <link rel="stylesheet" href="{{'css/obsession_shop.css' | asset}}">
+<link rel="stylesheet" href="{{'css/username_effect_dialogs.css' | asset}}">
 {% endblock %}
 {% block banner %}{% endblock %}
 {% block content %}
@@ -101,16 +102,96 @@
                             <i class="fas fa-palette" aria-hidden="true"></i> Color
                         </button>
                     {% endif %}
+                    {% if effect.owned %}
                         <button type="button"
                             class="btn btn-secondary"
-                            {% if not can_purchase %}disabled{% endif %}
+                            data-effect-title="{{effect.title|e}}"
                             data-effect-gift-url="/shop/effects/{{effect.key}}/gift">Gift</button>
+                    {% endif %}
                     </div>
                 </div>
             </article>
         {% endfor %}
         </div>
         <div class="obs-shop-empty" data-shop-empty hidden>No username effects match those filters.</div>
+    </div>
+
+    {% if v.active_patron %}
+    <div class="obs-effect-modal" data-effect-color-modal hidden aria-hidden="true">
+        <div class="obs-effect-modal__backdrop" data-effect-modal-close></div>
+        <section class="obs-effect-modal__panel" role="dialog" aria-modal="true" aria-labelledby="effect-color-title">
+            <header class="obs-effect-modal__header">
+                <h2 class="obs-effect-modal__title" id="effect-color-title">
+                    <i class="fas fa-palette" aria-hidden="true"></i> Effect Text Color
+                </h2>
+                <button type="button" class="obs-effect-modal__close" data-effect-modal-close aria-label="Close">&times;</button>
+            </header>
+            <form data-effect-color-form>
+                <div class="obs-effect-modal__body">
+                    <div class="obs-effect-color-swatches" data-effect-color-swatches>
+                        {% for color in ['ff3b82', '5ee7e7', 'f0523b', '7395df', '2d9bf0', 'ff1515', '59c95c', 'f664a9', 'ff9c35', '3db184', '82dde0', '3aa2b2', 'df6ad8', 'ee455f', '3948ad', 'e73ce6', '8da0b8', 'ffd451', '7d4bd8'] %}
+                        <button type="button"
+                            class="obs-effect-color-swatch"
+                            style="--effect-swatch:#{{color}}"
+                            data-effect-color="{{color}}"
+                            aria-label="Use color #{{color}}"></button>
+                        {% endfor %}
+                    </div>
+                    <label class="obs-effect-field-label" for="effect-color-hex">Or type a color hex code:</label>
+                    <div class="obs-effect-hex-field">
+                        <span class="obs-effect-field-prefix">#</span>
+                        <input id="effect-color-hex"
+                            class="form-control"
+                            type="text"
+                            name="color"
+                            value="{{v.username_effect_text_color}}"
+                            inputmode="text"
+                            autocomplete="off"
+                            maxlength="6"
+                            pattern="[0-9A-Fa-f]{6}"
+                            required>
+                    </div>
+                </div>
+                <footer class="obs-effect-modal__footer">
+                    <button type="button" class="btn btn-secondary" data-effect-modal-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-effect-color-save>Save</button>
+                </footer>
+            </form>
+        </section>
+    </div>
+    {% endif %}
+
+    <div class="obs-effect-modal" data-effect-gift-modal hidden aria-hidden="true">
+        <div class="obs-effect-modal__backdrop" data-effect-modal-close></div>
+        <section class="obs-effect-modal__panel" role="dialog" aria-modal="true" aria-labelledby="effect-gift-title">
+            <header class="obs-effect-modal__header">
+                <h2 class="obs-effect-modal__title" id="effect-gift-title">Gift Effect</h2>
+                <button type="button" class="obs-effect-modal__close" data-effect-modal-close aria-label="Close">&times;</button>
+            </header>
+            <form data-effect-gift-form>
+                <div class="obs-effect-modal__body">
+                    <p class="obs-effect-modal__copy">
+                        Enter the username of the person you want to gift <strong data-effect-gift-name>this effect</strong> to.
+                        Your copy will be transferred, unequipped, and removed from your inventory.
+                    </p>
+                    <label class="obs-effect-field-label" for="effect-gift-username">Recipient username</label>
+                    <div class="obs-effect-gift-field">
+                        <span class="obs-effect-field-prefix">@</span>
+                        <input id="effect-gift-username"
+                            class="form-control"
+                            type="text"
+                            name="username"
+                            autocomplete="off"
+                            maxlength="25"
+                            required>
+                    </div>
+                </div>
+                <footer class="obs-effect-modal__footer">
+                    <button type="button" class="btn btn-secondary" data-effect-modal-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-effect-gift-save>Gift Effect</button>
+                </footer>
+            </form>
+        </section>
     </div>
 </div>
 <script defer src="{{'js/obsession_shop.js' | asset}}"></script>
