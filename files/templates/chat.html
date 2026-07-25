@@ -1,7 +1,7 @@
 {%- extends 'root.html' -%}
 {% block pagetitle -%}Chat{%- endblock %}
 {% block pagetype %}chat{% endblock %}
-{% block head_final %}
+{% block stylesheets_after %}
 	<link rel="stylesheet" href="{{'css/chat_mobile_composer.css' | asset}}">
 {% endblock %}
 {% block body %}
@@ -154,8 +154,10 @@
 						</label>
 					</span>
 					{% if v.admin_level >= PERMS['POST_COMMENT_DISTINGUISH'] %}
-						<label class="chat-official-toggle" title="Send this message with the official Obsession admin treatment." aria-label="Send as admin">
-							<input id="chat-send-official" type="checkbox"><i class="fas fa-shield-alt" aria-hidden="true"></i><span>Send as admin</span>
+						<label class="chat-official-toggle" title="Send as admin" aria-label="Send as admin">
+							<input id="chat-send-official" type="checkbox">
+							<span class="chat-admin-mop" aria-hidden="true">🧹</span>
+							<span class="chat-official-label">Send as admin</span>
 						</label>
 					{% endif %}
 					<textarea id="input-text" minlength="1" maxlength="{% if SITE == 'rdrama.net' %}200{% else %}1000{% endif %}" {% if g.browser == "apple" %}style="font-size:16px!important"{% endif %} class="form-control" placeholder="Message" autocomplete="off" autofocus rows="1" aria-label="Chat message"></textarea>
@@ -178,6 +180,7 @@
 	<input id="chat-has-more" hidden value="{{1 if initial_has_more else 0}}">
 	<script defer src="{{'js/vendor/socketio.js' | asset}}"></script>
 	<script defer src="{{'js/chat.js' | asset}}"></script>
+	<script defer src="{{'js/chat_time_overrides.js' | asset}}"></script>
 	<script defer src="{{'js/vendor/lozad.js' | asset}}"></script>
 	<script defer src="{{'js/vendor/lite-youtube.js' | asset}}"></script>
 {% endblock %}
