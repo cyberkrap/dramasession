@@ -114,21 +114,13 @@ def _rules_content_is_malformed(content):
 def _restore_default_rules(default):
 	if not default:
 		return
-	_ensure_table()
-	with engine.begin() as connection:
-		connection.execute(text("""
-			INSERT INTO persistent_site_content (content_key, content, updated_utc, updated_by)
-			VALUES (:content_key, :content, :updated_utc, :updated_by)
-			ON CONFLICT (content_key) DO UPDATE SET
-				content = EXCLUDED.content,
-				updated_utc = EXCLUDED.updated_utc,
-				updated_by = EXCLUDED.updated_by
-		"""), {
-			"content_key": _rules_key(),
-			"content": default,
-			"updated_utc": int(time.time()),
-			"updated_by": "automatic sidebar repair",
-		})
+
+	# Use the request's existing SQLAlchemy session. The edit-rules request may
+	# already hold a row lock on this content key. Opening a second engine
+	# transaction here makes that connection wait on the current request while
+	# the current request waits for this function, eventually killing the only
+	# Gunicorn web worker and producing a site-wide 502.
+	set_site_content(_rules_key(), default, "automatic sidebar repair")
 
 
 def persistent_rules():
