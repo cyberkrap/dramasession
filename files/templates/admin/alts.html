@@ -39,9 +39,10 @@
 			<td>{{user.created_utc|timestamp}}</td>
 			<td>{{user._alt_created_utc|timestamp}}</td>
 			<td>{{user._is_manual}}</td>
+			<td>{{user._is_deleted}}</td>
 			<td>
-				<button type="button" id="delink-alt-{{u.id}}-{{user.id}}" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/alts/{{user.id}}/deleted', 'delink-alt-{{u.id}}-{{user.id}}', 'relink-alt-{{u.id}}-{{user.id}}', 'd-none', 'null', 'PUT')">Delink</button>
-				<button type="button" id="relink-alt-{{u.id}}-{{user.id}}" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/alts/{{user.id}}/deleted', 'relink-alt-{{u.id}}-{{user.id}}', 'delink-alt-{{u.id}}-{{user.id}}', 'd-none', 'null', 'DELETE')">Relink</button>
+				<button type="button" id="delink-alt-{{u.id}}-{{user.id}}" class="btn btn-danger{% if user._is_deleted %} d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/alts/{{user.id}}/deleted', 'delink-alt-{{u.id}}-{{user.id}}', 'relink-alt-{{u.id}}-{{user.id}}', 'd-none', 'null', 'PUT')">Delink</button>
+				<button type="button" id="relink-alt-{{u.id}}-{{user.id}}" class="btn btn-danger{% if not user._is_deleted %} d-none{% endif %}" data-nonce="{{g.nonce}}" data-onclick="postToastSwitch(this,'/@{{u.username}}/alts/{{user.id}}/deleted', 'relink-alt-{{u.id}}-{{user.id}}', 'delink-alt-{{u.id}}-{{user.id}}', 'd-none', 'null', 'DELETE')">Relink</button>
 				<a class="btn btn-secondary" href="/@{{user.username}}/alts">Alts</a>
 				{% if v.admin_level >= PERMS['VIEW_ALT_VOTES'] %}
 					<a class="btn btn-secondary" href="/admin/alt_votes/?u1={{u.username}}&u2={{user.username}}">Alt Votes</a>
