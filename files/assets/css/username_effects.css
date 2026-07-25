@@ -35,8 +35,9 @@
 	image-rendering: auto;
 }
 
-/* Patron effects replace the complete nameplate surface, not the username glyphs. */
+/* Patron effects replace the nameplate surface while keeping readable solid text. */
 .patron.username-effect-plate {
+	color: var(--username-effect-text-color, #fff) !important;
 	-webkit-text-fill-color: currentColor !important;
 	background-clip: border-box !important;
 	-webkit-background-clip: border-box !important;
@@ -112,6 +113,15 @@
 .obs-effect-preview .patron.username-effect-host {
 	font-size: clamp(1.45rem, 2.7vw, 2rem) !important;
 	font-weight: 900 !important;
+}
+
+.obs-effect-color-input {
+	position: fixed;
+	left: -9999px;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
 }
 
 .obs-effect-card {
