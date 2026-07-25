@@ -1,17 +1,22 @@
-/* Thread comments: stronger spacing, quieter surfaces, and unboxed actions. */
-#thread .comment-section,
-#thread .comment,
-#thread .comment .comment-body,
-#thread .comment .comment-anchor {
+/* Site-wide comments: consistent gutters, quieter surfaces, and unboxed actions. */
+.comment-section,
+.notifs,
+.comment,
+.comment .comment-body,
+.comment .comment-anchor {
 	min-width: 0;
 }
 
-#thread .comment-section > .comment {
+#main-content-col > .comment,
+.comment-section > .comment,
+.notifs > .comment {
+	box-sizing: border-box;
+	width: 100%;
 	margin-bottom: 14px;
 	padding-left: 0 !important;
 }
 
-#thread .comment .comment-body {
+.comment .comment-body {
 	overflow: visible;
 	background: rgba(13, 13, 16, .88) !important;
 	border: 1px solid rgba(255, 255, 255, .1) !important;
@@ -19,17 +24,19 @@
 	box-shadow: none !important;
 }
 
-#thread .comment .comment .comment-body {
+.comment .comment .comment-body {
 	background: rgba(11, 11, 14, .7) !important;
 	border-color: rgba(255, 255, 255, .075) !important;
 }
 
-#thread .comment .comment-anchor {
+.comment .comment-anchor {
 	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
 	padding: 14px 16px 10px !important;
 }
 
-#thread .comment .user-info {
+.comment .user-info {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -39,7 +46,7 @@
 	line-height: 1.35;
 }
 
-#thread .comment .comment-text {
+.comment .comment-text {
 	max-width: 100%;
 	margin: 0;
 	color: #e5e1e2;
@@ -47,29 +54,29 @@
 	overflow-wrap: anywhere;
 }
 
-#thread .comment .comment-text > :last-child {
+.comment .comment-text > :last-child {
 	margin-bottom: 0;
 }
 
-#thread .comment .comment-text img,
-#thread .comment .comment-text video,
-#thread .comment .comment-text iframe,
-#thread .comment .comment-text table {
+.comment .comment-text img,
+.comment .comment-text video,
+.comment .comment-text iframe,
+.comment .comment-text table {
 	max-width: 100% !important;
 }
 
-#thread .comment .comment {
+.comment .comment {
 	margin-top: 12px;
 	padding-left: 16px !important;
 }
 
-#thread .comment-actions {
+.comment-actions {
 	margin-top: 12px;
 	padding-top: 8px;
 	border-top: 1px solid rgba(255, 255, 255, .065);
 }
 
-#thread .comment-actions > ul.d-none.d-md-flex {
+.comment-actions > ul.d-none.d-md-flex {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 2px 12px;
@@ -77,7 +84,7 @@
 	padding: 0;
 }
 
-#thread .comment-actions > ul.d-none.d-md-flex > li {
+.comment-actions > ul.d-none.d-md-flex > li {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -85,8 +92,8 @@
 	min-width: 0;
 }
 
-#thread .comment-actions .btn.caction,
-#thread .comment-actions span.btn.caction {
+.comment-actions .btn.caction,
+.comment-actions span.btn.caction {
 	min-height: 0 !important;
 	height: auto;
 	margin: 0 !important;
@@ -101,38 +108,41 @@
 	transform: none !important;
 }
 
-#thread .comment-actions .btn.caction:hover,
-#thread .comment-actions .btn.caction:focus-visible {
+.comment-actions .btn.caction:hover,
+.comment-actions .btn.caction:focus-visible {
 	color: #fff !important;
 	background: transparent !important;
 	box-shadow: none !important;
 }
 
-#thread .comment-actions .btn.caction i {
+.comment-actions .btn.caction i {
 	margin-right: 4px;
 }
 
-#thread .comment-actions .voting {
+.comment-actions .voting {
 	margin: 0;
-	padding: 0 !important;
-	background: transparent;
-	border: 0;
-}
-
-#thread .comment-actions .post-actions {
 	padding: 0 !important;
 	background: transparent !important;
 	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
 }
 
-#thread .comment-actions .post-actions ul {
+.comment-actions .post-actions {
+	padding: 0 !important;
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
+}
+
+.comment-actions .post-actions ul {
 	align-items: center;
 	margin: 0;
 	padding: 0;
 }
 
-#thread .comment-actions .post-actions button,
-#thread .comment-actions .post-actions a {
+.comment-actions .post-actions button,
+.comment-actions .post-actions a {
 	min-height: 36px;
 	padding: 6px 7px !important;
 	color: #aaa5a7 !important;
@@ -142,38 +152,43 @@
 	box-shadow: none !important;
 }
 
-#thread .comment-actions .post-actions button:hover,
-#thread .comment-actions .post-actions a:hover {
+.comment-actions .post-actions button:hover,
+.comment-actions .post-actions a:hover,
+.comment-actions .post-actions button:focus-visible,
+.comment-actions .post-actions a:focus-visible {
 	color: #fff !important;
 	background: transparent !important;
+	box-shadow: none !important;
 }
 
-#thread .comment-collapse-desktop {
+.comment-collapse-desktop {
 	opacity: .62;
 }
 
-#thread .comment:hover > .comment-collapse-desktop {
+.comment:hover > .comment-collapse-desktop {
 	opacity: 1;
 }
 
 @media (max-width: 767.98px) {
-	#thread .comment-section > .comment {
+	#main-content-col > .comment,
+	.comment-section > .comment,
+	.notifs > .comment {
 		padding-left: 10px !important;
 	}
 
-	#thread .comment .comment {
+	.comment .comment {
 		padding-left: 12px !important;
 	}
 
-	#thread .comment .comment-anchor {
+	.comment .comment-anchor {
 		padding: 12px 13px 9px !important;
 	}
 
-	#thread .comment .user-info {
+	.comment .user-info {
 		margin-bottom: 8px;
 	}
 
-	#thread .comment-actions {
+	.comment-actions {
 		margin-top: 10px;
 		padding-top: 6px;
 	}
