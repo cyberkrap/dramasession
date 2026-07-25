@@ -96,6 +96,10 @@ from .report_fixes import *
 from .special import *
 from .push_notifs import *
 
+# Replace the legacy alt handlers only after the original endpoints exist.
+from .alt_link_fixes import install_alt_link_fixes
+install_alt_link_fixes()
+
 from files.classes import User
 from files.__main__ import engine
 from files.helpers.ban_hats import install_ban_hat_support
