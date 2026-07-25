@@ -59,7 +59,8 @@
                 data-category="category-{{effect.category|lower|replace(' ', '-')}}"
                 data-search="{{(effect.title ~ ' ' ~ effect.description ~ ' ' ~ effect.category)|lower}}">
                 <div class="obs-effect-preview">
-                    <span class="username-effect"
+                    <span class="{% if v.patron %}patron{% else %}username-effect{% endif %}"
+                        {% if v.patron %}style="background-color:#{{v.name_color}}"{% endif %}
                         data-username-effect-user="preview-{{effect.key}}"
                         data-username-effects="{{effect.key}}">{{v.username}}</span>
                 </div>
