@@ -46,7 +46,49 @@
 		update();
 	}
 
+	function initializeEffectActions(shell) {
+		if (!(shell instanceof Element) || shell.dataset.effectActionsReady === '1') return;
+		shell.dataset.effectActionsReady = '1';
+
+		const colorButtons = Array.from(shell.querySelectorAll('[data-effect-color-button]'));
+		if (colorButtons.length) {
+			const picker = document.createElement('input');
+			picker.type = 'color';
+			picker.className = 'obs-effect-color-input';
+			picker.value = `#${String(shell.dataset.effectShopColor || 'ffffff').replace(/^#/, '')}`;
+			picker.setAttribute('aria-label', 'Effect username text colour');
+			shell.append(picker);
+
+			let sourceButton = colorButtons[0];
+			for (const button of colorButtons) {
+				button.addEventListener('click', () => {
+					sourceButton = button;
+					picker.click();
+				});
+			}
+
+			picker.addEventListener('change', () => {
+				const color = picker.value.replace(/^#/, '');
+				postToast(sourceButton, '/shop/effects/color', {color}, () => location.reload());
+			});
+		}
+
+		for (const button of shell.querySelectorAll('[data-effect-gift-url]')) {
+			button.addEventListener('click', () => {
+				const entered = window.prompt('Gift this effect to which username?');
+				if (entered === null) return;
+				const username = entered.trim().replace(/^@/, '');
+				if (!username) {
+					showToast(false, 'Enter a username to receive the gift.');
+					return;
+				}
+				postToast(button, button.dataset.effectGiftUrl, {username}, () => location.reload());
+			});
+		}
+	}
+
 	document.addEventListener('DOMContentLoaded', () => {
 		document.querySelectorAll('[data-shop-catalog]').forEach(initializeCatalog);
+		document.querySelectorAll('.obs-shop-shell').forEach(initializeEffectActions);
 	});
 })();
