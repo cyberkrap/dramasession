@@ -69,10 +69,104 @@
 		}
 	}
 
+	function replaceText(root, oldText, newText) {
+		const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+		const needle = oldText.toLowerCase();
+		let node = walker.nextNode();
+		while (node) {
+			if (node.nodeValue.toLowerCase().includes(needle)) {
+				node.nodeValue = node.nodeValue.replace(new RegExp(oldText, 'i'), newText);
+				return true;
+			}
+			node = walker.nextNode();
+		}
+		return false;
+	}
+
+	function setDirectoryIcon(card, iconClass) {
+		const icon = card.querySelector('i');
+		if (!icon) return;
+		for (const className of Array.from(icon.classList)) {
+			if (
+				className === 'fas' || className === 'far' || className === 'fal' ||
+				className === 'fab' || className === 'fad' || className.startsWith('fa-')
+			) {
+				icon.classList.remove(className);
+			}
+		}
+		icon.classList.add('fas', iconClass);
+	}
+
+	function setDirectoryCard(card, item, previousLabel = 'Community Feedback') {
+		card.href = item.href;
+		card.removeAttribute('target');
+		card.removeAttribute('rel');
+		setDirectoryIcon(card, item.icon);
+
+		const heading = Array.from(card.querySelectorAll(
+			'[data-directory-title], h1, h2, h3, h4, h5, h6, strong, b, .font-weight-bold'
+		)).find((element) => element.textContent.toLowerCase().includes(previousLabel.toLowerCase()));
+		if (heading) heading.textContent = item.label;
+		else replaceText(card, previousLabel, item.label);
+
+		const description = card.querySelector(
+			'[data-directory-description], .directory-description, p, small, .text-muted'
+		);
+		if (description) description.textContent = item.description;
+	}
+
+	function enhanceDirectory() {
+		if (!location.pathname.startsWith('/directory')) return;
+
+		const main = document.querySelector('#main-content-col') || document.querySelector('main') || document.body;
+		const feedbackCard = Array.from(main.querySelectorAll('a')).find((link) =>
+			link.textContent.replace(/\s+/g, ' ').trim().toLowerCase().includes('community feedback')
+		);
+		if (!feedbackCard) return;
+
+		const parent = feedbackCard.parentElement;
+		if (!parent) return;
+
+		const sourceCard = feedbackCard.cloneNode(true);
+		setDirectoryCard(feedbackCard, {
+			href: '/donate',
+			label: 'Support',
+			description: 'Support The Obsession Club.',
+			icon: 'fa-heart',
+		});
+
+		const directoryItems = [
+			{
+				href: '/post/10/bugs-and-suggestions-megathread',
+				label: 'Bugs & Suggestions',
+				description: 'Report bugs and suggest improvements.',
+				icon: 'fa-bug',
+			},
+			{
+				href: '/post/11/changelog-and-site-updates-megathread',
+				label: 'Changelog',
+				description: 'Read the latest site changes and updates.',
+				icon: 'fa-clipboard',
+			},
+		];
+
+		let insertionPoint = feedbackCard;
+		for (const item of directoryItems) {
+			if (parent.querySelector(`a[href="${item.href}"]`)) continue;
+			const card = sourceCard.cloneNode(true);
+			card.removeAttribute('id');
+			card.querySelectorAll('[id]').forEach((element) => element.removeAttribute('id'));
+			setDirectoryCard(card, item);
+			insertionPoint.insertAdjacentElement('afterend', card);
+			insertionPoint = card;
+		}
+	}
+
 	function install() {
 		removeFeedbackLinks();
 		insertDesktopLinks();
 		insertMobileLinks();
+		enhanceDirectory();
 	}
 
 	if (document.readyState === 'loading') {
