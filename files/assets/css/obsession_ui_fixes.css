@@ -1,0 +1,58 @@
+/* Native select menus must remain readable even when the browser draws the popup. */
+select,
+select.form-control,
+select.custom-select {
+	color-scheme: dark !important;
+	color: #f4f1f2 !important;
+	background-color: #111116 !important;
+	border-color: rgba(255, 255, 255, .16) !important;
+}
+
+select option,
+select optgroup {
+	color: #f4f1f2 !important;
+	background-color: #111116 !important;
+}
+
+select option:disabled {
+	color: #7f7a7d !important;
+}
+
+/* Preserve the original hat artwork geometry instead of forcing every asset into a square. */
+body#shop .obs-hat-preview {
+	min-height: 168px;
+	overflow: visible;
+}
+
+body#shop .obs-hat-preview .profile-pic-75-wrapper {
+	width: 75px !important;
+	height: 75px !important;
+	overflow: visible !important;
+	transform: scale(1.34);
+	transform-origin: center center;
+}
+
+body#shop .obs-hat-preview img.profile-pic-75 {
+	width: 75px !important;
+	height: 75px !important;
+	object-fit: cover !important;
+}
+
+body#shop .obs-hat-preview img.profile-pic-75-hat {
+	width: 75px !important;
+	height: auto !important;
+	max-width: none !important;
+	max-height: none !important;
+	object-fit: contain !important;
+	image-rendering: auto;
+}
+
+.admin-only-comments-notice {
+	margin: 0 0 1rem;
+	padding: .8rem 1rem;
+	color: #f5dadd;
+	font-weight: 700;
+	border: 1px solid rgba(210, 43, 53, .4);
+	border-radius: 6px;
+	background: rgba(94, 14, 24, .24);
+}
