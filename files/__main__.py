@@ -32,8 +32,8 @@ if _trusted_proxy_hops:
 		app.wsgi_app,
 		x_for=_trusted_proxy_hops,
 		x_proto=_trusted_proxy_hops,
-	x_host=_trusted_proxy_hops,
-	x_port=_trusted_proxy_hops,
+		x_host=_trusted_proxy_hops,
+		x_port=_trusted_proxy_hops,
 	)
 
 def _startup_check():
@@ -84,6 +84,9 @@ limiter = Limiter(
 
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URL'])
 
+from files.helpers.submission_comment_permissions import install_submission_comment_permissions
+install_submission_comment_permissions(app, engine)
+
 db_session = scoped_session(sessionmaker(bind=engine, autoflush=False))
 
 const_initialize(db_session)
@@ -109,5 +112,8 @@ if app.config['SERVICE'] == Service.RDRAMA:
 
 elif app.config['SERVICE'] == Service.CHAT:
 	from files.routes.chat import *
+	from sys import modules
+	from files.helpers.chat_presence import install_chat_presence_fix
+	install_chat_presence_fix(modules['files.routes.chat'])
 
 stdout.flush()
