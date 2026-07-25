@@ -2,7 +2,7 @@
 	'use strict';
 
 	const ASSET_ROOT = '/assets/images/username_effects/';
-	const ASSET_VERSION = '7';
+	const ASSET_VERSION = '8';
 	const CYCLE_INTERVAL = 8000;
 	const groups = new Map();
 	const registrations = new WeakMap();
@@ -21,6 +21,11 @@
 				seen.add(item);
 				return true;
 			});
+	}
+
+	function cleanColor(value) {
+		const color = String(value || '').trim().toLowerCase().replace(/^#/, '');
+		return /^[0-9a-f]{6}$/.test(color) ? color : 'ffffff';
 	}
 
 	function assetUrl(effect) {
@@ -52,6 +57,10 @@
 
 	function isPatronPlate(element) {
 		return element instanceof Element && element.classList.contains('patron');
+	}
+
+	function renderedAsset(effect, element) {
+		return effect === 'siren' && isPatronPlate(element) ? 'siren_patron' : effect;
 	}
 
 	function unwrapLegacyInnerEffect(element) {
@@ -102,7 +111,6 @@
 		if (!(host instanceof Element)) return null;
 		if (fromProfileMarker || host.id === 'profile--name') return isolateProfileUsername(host);
 		if (isPatronPlate(host)) return host;
-
 		if (host.matches('span, strong, b, bdi, h1, h2, h3, h4, h5')) return host;
 
 		const directPatron = host.querySelector(':scope > .patron');
@@ -116,7 +124,6 @@
 			);
 			return candidates[candidates.length - 1] || null;
 		}
-
 		return null;
 	}
 
@@ -132,7 +139,7 @@
 		]) element.style.removeProperty(property);
 	}
 
-	function prepareTarget(element) {
+	function prepareTarget(element, color) {
 		if (!(element instanceof Element)) return;
 		removeOldInlineOverrides(element);
 		element.classList.add('username-effect-host');
@@ -141,9 +148,11 @@
 			unwrapLegacyInnerEffect(element);
 			element.classList.remove('username-effect', 'username-effect-text');
 			element.classList.add('username-effect-plate');
+			element.style.setProperty('--username-effect-text-color', `#${cleanColor(color)}`);
 		} else {
 			element.classList.remove('username-effect-plate');
 			element.classList.add('username-effect', 'username-effect-text');
+			element.style.removeProperty('--username-effect-text-color');
 		}
 	}
 
@@ -156,19 +165,20 @@
 
 	async function applyEffect(element, effect) {
 		if (!(element instanceof Element) || !effect || !element.isConnected) return;
-		if (element.dataset.usernameEffectCurrent === effect && element.classList.contains('username-effect--ready')) return;
+		const asset = renderedAsset(effect, element);
+		if (element.dataset.usernameEffectCurrent === asset && element.classList.contains('username-effect--ready')) return;
 
-		const requestToken = `${effect}:${performance.now()}:${Math.random()}`;
+		const requestToken = `${asset}:${performance.now()}:${Math.random()}`;
 		element.dataset.usernameEffectRequest = requestToken;
-		const loaded = await preloadEffect(effect);
+		const loaded = await preloadEffect(asset);
 		if (!element.isConnected || element.dataset.usernameEffectRequest !== requestToken) return;
 		if (!loaded) {
 			clearVisual(element);
 			return;
 		}
 
-		element.style.setProperty('--username-effect-image', effectUrl(effect));
-		element.dataset.usernameEffectCurrent = effect;
+		element.style.setProperty('--username-effect-image', effectUrl(asset));
+		element.dataset.usernameEffectCurrent = asset;
 		element.classList.add('username-effect--ready');
 	}
 
@@ -231,7 +241,8 @@
 
 		const userValue = String(userId || element.dataset.usernameEffectUser || 'anonymous');
 		const effectsString = effects.join(',');
-		const nextKey = `${userValue}::${effectsString}`;
+		const color = cleanColor(options.color || element.dataset.usernameEffectColor);
+		const nextKey = `${userValue}::${effectsString}::${color}`;
 		const previous = registrations.get(element);
 		if (previous && previous.key === nextKey) {
 			if (isPreview(element)) requestAnimationFrame(() => fitPreview(element));
@@ -239,9 +250,10 @@
 		}
 
 		if (previous) unregister(element);
-		prepareTarget(element);
+		prepareTarget(element, color);
 		if (element.dataset.usernameEffectUser !== userValue) element.dataset.usernameEffectUser = userValue;
 		if (element.dataset.usernameEffects !== effectsString) element.dataset.usernameEffects = effectsString;
+		if (element.dataset.usernameEffectColor !== color) element.dataset.usernameEffectColor = color;
 
 		let state = groups.get(nextKey);
 		if (!state) {
@@ -277,7 +289,7 @@
 		const data = dataForTrigger(trigger);
 		const effects = cleanEffects(data.username_effects);
 		if (!effects.length) return;
-		register(trigger, data.id, effects.join(','));
+		register(trigger, data.id, effects.join(','), {color: data.username_effect_color});
 	}
 
 	function enhanceMarkers(root = document) {
@@ -296,7 +308,7 @@
 				target,
 				marker.dataset.usernameEffectUser,
 				marker.dataset.usernameEffects,
-				{profile: profileMarker},
+				{profile: profileMarker, color: marker.dataset.usernameEffectColor},
 			);
 		}
 	}
@@ -313,7 +325,12 @@
 			hosts.push(...root.querySelectorAll(selector));
 			triggers.push(...root.querySelectorAll('.user-name[data-pop-info]'));
 		}
-		hosts.forEach(host => register(host, host.dataset.usernameEffectUser, host.dataset.usernameEffects));
+		hosts.forEach(host => register(
+			host,
+			host.dataset.usernameEffectUser,
+			host.dataset.usernameEffects,
+			{color: host.dataset.usernameEffectColor},
+		));
 		triggers.forEach(enhanceTrigger);
 		enhanceMarkers(root);
 	}
@@ -350,7 +367,7 @@
 			const popoverId = trigger.getAttribute('aria-describedby');
 			const popover = popoverId ? document.getElementById(popoverId) : null;
 			const host = popover && popover.querySelector('.pop-username');
-			if (host) register(host, data.id, effects.join(','));
+			if (host) register(host, data.id, effects.join(','), {color: data.username_effect_color});
 		});
 	});
 
