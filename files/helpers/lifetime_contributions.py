@@ -6,7 +6,8 @@ import time
 from sqlalchemy import func, text
 
 from files.__main__ import engine
-from files.classes import PaypalPayment
+from files.classes import PaypalPayment, PaypalSubscription
+from files.helpers.support import PAYPAL_ACTIVE_PLAN_IDS
 
 
 _TABLE_LOCK = threading.Lock()
@@ -33,11 +34,17 @@ def _ensure_table():
 
 
 def verified_contribution_cents(db, user_id):
+	if not PAYPAL_ACTIVE_PLAN_IDS:
+		return 0
 	return int(db.query(
 		func.coalesce(func.sum(PaypalPayment.gross_cents), 0)
+	).join(
+		PaypalSubscription,
+		PaypalSubscription.subscription_id == PaypalPayment.subscription_id,
 	).filter(
 		PaypalPayment.user_id == int(user_id),
 		PaypalPayment.status == "COMPLETED",
+		PaypalSubscription.plan_id.in_(PAYPAL_ACTIVE_PLAN_IDS),
 	).scalar() or 0)
 
 
