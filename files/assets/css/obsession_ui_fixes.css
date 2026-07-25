@@ -56,3 +56,70 @@ body#shop .obs-hat-preview img.profile-pic-75-hat {
 	border-radius: 6px;
 	background: rgba(94, 14, 24, .24);
 }
+
+/* Official admin identity is a fixed plate, never a user-owned cosmetic effect. */
+.admin-nameplate,
+.user-name > .mod,
+.chat-username.mod,
+.post-meta .mod,
+.comment .user-info .mod {
+	display: inline-block !important;
+	padding: .12em .48em .16em !important;
+	color: #fff !important;
+	-webkit-text-fill-color: #fff !important;
+	font-weight: 900 !important;
+	line-height: 1.35 !important;
+	white-space: nowrap !important;
+	vertical-align: baseline !important;
+	border: 1px solid rgba(255, 255, 255, .55) !important;
+	border-radius: .42rem !important;
+	background-color: #6f35cb !important;
+	background-image: linear-gradient(
+		90deg,
+		#ef3131 0%,
+		#ff8a20 16%,
+		#f7d92d 32%,
+		#30c761 48%,
+		#219ce5 64%,
+		#6558d9 80%,
+		#d543c5 100%
+	) !important;
+	background-position: center !important;
+	background-repeat: no-repeat !important;
+	background-size: 100% 100% !important;
+	background-origin: border-box !important;
+	background-clip: border-box !important;
+	-webkit-background-clip: border-box !important;
+	text-shadow:
+		-1px -1px 0 #000,
+		1px -1px 0 #000,
+		-1px 1px 0 #000,
+		1px 1px 0 #000 !important;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 1px 2px rgba(0, 0, 0, .35) !important;
+	filter: none !important;
+	animation: none !important;
+}
+
+.admin-nameplate.username-effect-host,
+.admin-nameplate.username-effect,
+.admin-nameplate.username-effect-text,
+.admin-nameplate.username-effect-plate,
+.admin-nameplate.username-effect--ready,
+.user-name > .mod.username-effect--ready,
+.chat-username.mod.username-effect--ready {
+	--username-effect-image: none !important;
+	color: #fff !important;
+	-webkit-text-fill-color: #fff !important;
+	background-image: linear-gradient(
+		90deg,
+		#ef3131 0%,
+		#ff8a20 16%,
+		#f7d92d 32%,
+		#30c761 48%,
+		#219ce5 64%,
+		#6558d9 80%,
+		#d543c5 100%
+	) !important;
+	background-clip: border-box !important;
+	-webkit-background-clip: border-box !important;
+}
