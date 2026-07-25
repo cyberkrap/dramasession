@@ -69,7 +69,7 @@
 	function normalisePlate(plate) {
 		if (!(plate instanceof Element) || !plate.matches(plateSelector)) return;
 
-		if (!plate.classList.contains('admin-nameplate')) plate.classList.add('admin-nameplate');
+		plate.classList.add('admin-nameplate');
 		for (const className of effectClasses) plate.classList.remove(className);
 		for (const attribute of effectAttributes) {
 			if (plate.hasAttribute(attribute)) plate.removeAttribute(attribute);
@@ -82,7 +82,7 @@
 
 		const trigger = plate.closest('.user-name');
 		if (trigger) {
-			if (trigger.dataset.distinguished !== '1') trigger.dataset.distinguished = '1';
+			trigger.dataset.distinguished = '1';
 			stripEffectPayload(trigger);
 		}
 	}
@@ -95,18 +95,11 @@
 
 	process(document);
 
+	// Only watch inserted DOM. Watching class/style/effect attributes caused this
+	// script and the username-effect renderer to react to each other's writes.
+	// That feedback cycle could peg the browser after a hard reload.
 	const observer = new MutationObserver(mutations => {
 		for (const mutation of mutations) {
-			if (mutation.type === 'attributes') {
-				const target = mutation.target;
-				if (target instanceof Element) {
-					if (target.matches(plateSelector)) normalisePlate(target);
-					else if (target.matches('.user-name') && target.querySelector(':scope > .mod')) {
-						normalisePlate(target.querySelector(':scope > .mod'));
-					}
-				}
-				continue;
-			}
 			for (const node of mutation.addedNodes) {
 				if (node instanceof Element) process(node);
 			}
@@ -116,15 +109,5 @@
 	observer.observe(document.documentElement, {
 		childList: true,
 		subtree: true,
-		attributes: true,
-		attributeFilter: [
-			'class',
-			'style',
-			'data-pop-info',
-			'data-username-effects',
-			'data-username-effect-color',
-			'data-username-effect-current',
-			'data-username-effect-request',
-		],
 	});
 })();
