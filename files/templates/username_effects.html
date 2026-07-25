@@ -7,7 +7,7 @@
 {% block banner %}{% endblock %}
 {% block content %}
 {% set shop_section = 'effects' %}
-<div class="obs-shop-shell">
+<div class="obs-shop-shell" data-effect-shop-color="{{v.username_effect_text_color}}">
     {% include "shop_nav.html" %}
 
     <header class="obs-shop-hero obs-effects-hero">
@@ -18,9 +18,10 @@
         </div>
         <div class="obs-effect-live-preview">
             <span class="obs-effect-live-preview__label">{% if active_effects %}Your active rotation{% else %}Live preview{% endif %}</span>
-            <strong class="{% if v.patron %}patron{% else %}username-effect{% endif %}"
-                {% if v.patron %}style="background-color:#{{v.name_color}}"{% endif %}
+            <strong class="{% if v.active_patron %}patron{% else %}username-effect{% endif %}"
+                {% if v.active_patron %}style="background-color:#{{v.name_color}}"{% endif %}
                 data-username-effect-user="shop-live-preview"
+                data-username-effect-color="{{v.username_effect_text_color}}"
                 data-username-effects="{{active_effects|join(',') if active_effects else 'aurora'}}">{{v.username}}</strong>
             <small>{% if active_effects %}{{active_effects|length}} equipped{% else %}Previewing Aurora{% endif %}</small>
         </div>
@@ -53,15 +54,17 @@
     <div class="obs-shop-catalog" data-shop-catalog>
         <div class="obs-shop-grid obs-shop-grid--effects">
         {% for effect in effects %}
+            {% set can_purchase = v.can_spend('coins', effect.price) or (FEATURES['MARSEYBUX'] and v.can_spend('marseybux', effect.price)) %}
             <article class="obs-shop-card obs-effect-card"
                 data-shop-card
                 data-state="{% if effect.active %}active{% elif effect.owned %}owned{% else %}available{% endif %}"
                 data-category="category-{{effect.category|lower|replace(' ', '-')}}"
                 data-search="{{(effect.title ~ ' ' ~ effect.description ~ ' ' ~ effect.category)|lower}}">
                 <div class="obs-effect-preview">
-                    <span class="{% if v.patron %}patron{% else %}username-effect{% endif %}"
-                        {% if v.patron %}style="background-color:#{{v.name_color}}"{% endif %}
+                    <span class="{% if v.active_patron %}patron{% else %}username-effect{% endif %}"
+                        {% if v.active_patron %}style="background-color:#{{v.name_color}}"{% endif %}
                         data-username-effect-user="preview-{{effect.key}}"
+                        data-username-effect-color="{{v.username_effect_text_color}}"
                         data-username-effects="{{effect.key}}">{{v.username}}</span>
                 </div>
                 <div class="obs-shop-card__body">
@@ -76,7 +79,7 @@
                     </div>
                 </div>
                 <div class="obs-shop-card__footer">
-                    <div class="obs-shop-price"><strong>{{effect.price|number}}</strong><span>per currency</span></div>
+                    <div class="obs-shop-price"><strong>{{effect.price|number}}</strong><span>Wish currency</span></div>
                     <div class="obs-shop-actions">
                     {% if effect.owned %}
                         {% if effect.active %}
@@ -86,26 +89,22 @@
                         {% endif %}
                     {% else %}
                         <button type="button"
-                            id="buy1-effect-{{effect.key}}"
+                            id="buy-effect-{{effect.key}}"
                             class="btn btn-primary"
-                            {% if not v.can_spend('coins', effect.price) %}disabled{% endif %}
+                            {% if not can_purchase %}disabled{% endif %}
                             data-areyousure="postToastReload(this,'/shop/effects/{{effect.key}}/buy')"
                             data-nonce="{{g.nonce}}"
-                            data-onclick="areyousure(this)">
-                            <i class="fas fa-coins mr-1" aria-hidden="true"></i>Wishcoins
-                        </button>
-                        {% if FEATURES['MARSEYBUX'] %}
-                        <button type="button"
-                            id="buy2-effect-{{effect.key}}"
-                            class="btn btn-secondary"
-                            {% if not v.can_spend('marseybux', effect.price) %}disabled{% endif %}
-                            data-areyousure="postToastReload(this,'/shop/effects/{{effect.key}}/buy?mb=true')"
-                            data-nonce="{{g.nonce}}"
-                            data-onclick="areyousure(this)">
-                            <i class="fas fa-money-bill-wave mr-1" aria-hidden="true"></i>Wishbux
-                        </button>
-                        {% endif %}
+                            data-onclick="areyousure(this)">Buy</button>
                     {% endif %}
+                    {% if v.active_patron %}
+                        <button type="button" class="btn btn-secondary" data-effect-color-button>
+                            <i class="fas fa-palette" aria-hidden="true"></i> Color
+                        </button>
+                    {% endif %}
+                        <button type="button"
+                            class="btn btn-secondary"
+                            {% if not can_purchase %}disabled{% endif %}
+                            data-effect-gift-url="/shop/effects/{{effect.key}}/gift">Gift</button>
                     </div>
                 </div>
             </article>
