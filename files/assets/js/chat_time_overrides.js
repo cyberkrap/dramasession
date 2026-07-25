@@ -54,7 +54,9 @@
 		localTime.dataset.bsToggle = 'tooltip';
 		localTime.dataset.bsPlacement = 'top';
 		localTime.setAttribute('aria-label', exact);
-		if (id) localTime.href = `/chat#${id}`;
+		localTime.setAttribute('role', 'text');
+		localTime.removeAttribute('href');
+		localTime.style.cursor = 'default';
 
 		if (messageId && id) {
 			messageId.textContent = `#${id}`;
