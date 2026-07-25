@@ -19,6 +19,28 @@
 		overflow-y: auto;
 		-webkit-overflow-scrolling: touch;
 	}
+
+	/* Standalone posts inherited a 0.3rem left inset from the desktop card
+	 * layout. Give mobile post metadata, titles, media, and body copy a real
+	 * symmetric gutter so they do not sit against the card border. */
+	body#thread #post-root .actual-post #post-content {
+		box-sizing: border-box;
+		min-width: 0;
+		padding: .85rem 1rem .8rem !important;
+	}
+
+	body#thread #post-root .actual-post #post-body,
+	body#thread #post-root .actual-post #post-text {
+		min-width: 0;
+		max-width: 100%;
+	}
+
+	body#thread #post-root .actual-post #post-text img,
+	body#thread #post-root .actual-post #post-text video,
+	body#thread #post-root .actual-post #post-text iframe,
+	body#thread #post-root .actual-post #post-text table {
+		max-width: 100% !important;
+	}
 }
 
 body.award-modal-open #awards-container,
