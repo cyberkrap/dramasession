@@ -5,7 +5,7 @@ import time
 
 from files.classes import Badge, PaypalPayment, PaypalSubscription, User
 from files.helpers.lifetime_contributions import effective_contribution_cents
-from files.helpers.support import SUPPORT_TIER_BY_LEVEL
+from files.helpers.support import PAYPAL_ACTIVE_PLAN_IDS, SUPPORT_TIER_BY_LEVEL
 
 
 CONTRIBUTION_BADGE_THRESHOLDS = (
@@ -51,23 +51,32 @@ def sync_cumulative_contribution_badges(db, user):
 
 
 def recalculate_paypal_patron(db, user_id):
-    """Recalculate active benefits without deleting lifetime contribution badges."""
+    """Recalculate active benefits from the currently configured PayPal plans."""
     user = db.query(User).filter(User.id == int(user_id)).with_for_update().one_or_none()
     if user is None:
         return None
 
-    paid_subscription_ids = {
-        row[0]
-        for row in db.query(PaypalPayment.subscription_id).filter(
-            PaypalPayment.user_id == user.id,
-            PaypalPayment.status == "COMPLETED",
+    paid_subscription_ids = set()
+    candidates = []
+    if PAYPAL_ACTIVE_PLAN_IDS:
+        paid_subscription_ids = {
+            row[0]
+            for row in db.query(PaypalPayment.subscription_id).join(
+                PaypalSubscription,
+                PaypalSubscription.subscription_id == PaypalPayment.subscription_id,
+            ).filter(
+                PaypalPayment.user_id == user.id,
+                PaypalPayment.status == "COMPLETED",
+                PaypalSubscription.plan_id.in_(PAYPAL_ACTIVE_PLAN_IDS),
+            ).all()
+        }
+        candidates = db.query(PaypalSubscription).filter(
+            PaypalSubscription.user_id == user.id,
+            PaypalSubscription.plan_id.in_(PAYPAL_ACTIVE_PLAN_IDS),
+            PaypalSubscription.status.in_(("ACTIVE", "CANCELLED")),
         ).all()
-    }
+
     now = int(time.time())
-    candidates = db.query(PaypalSubscription).filter(
-        PaypalSubscription.user_id == user.id,
-        PaypalSubscription.status.in_(("ACTIVE", "CANCELLED")),
-    ).all()
     active = []
     for subscription in candidates:
         if subscription.subscription_id not in paid_subscription_ids:
@@ -92,7 +101,9 @@ def recalculate_paypal_patron(db, user_id):
         user.patron = tier["level"]
         user.patron_utc = max(paid_until, now + 86400)
 
-    grant_cumulative_contribution_badges(db, user)
+    # Live totals replace old sandbox test totals. Manual contribution overrides
+    # still take precedence through effective_contribution_cents().
+    sync_cumulative_contribution_badges(db, user)
     user.__dict__.pop("_lazy", None)
     db.add(user)
     db.flush()
