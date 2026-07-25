@@ -111,6 +111,15 @@ def _rules_content_is_malformed(content):
 	))
 
 
+def _without_wpd_related_site(content):
+	if SITE_NAME != "Obsession" or not content:
+		return content
+	return "".join(
+		line for line in content.splitlines(keepends=True)
+		if "watchpeopledie.tv" not in line.lower()
+	)
+
+
 def _restore_default_rules(default):
 	if not default:
 		return
@@ -129,6 +138,11 @@ def persistent_rules():
 	if _rules_content_is_malformed(content):
 		_restore_default_rules(default)
 		return default
+
+	cleaned = _without_wpd_related_site(content)
+	if cleaned != content:
+		set_site_content(_rules_key(), cleaned, "automatic related-site cleanup")
+		content = cleaned
 	return content
 
 
@@ -143,6 +157,7 @@ def persistent_edit_rules_get(v):
 @admin_level_required(PERMS["EDIT_RULES"])
 def persistent_edit_rules_post(v):
 	rules = sanitize(request.values.get("rules", "").strip(), sidebar=True, showmore=False)
+	rules = _without_wpd_related_site(rules)
 	set_site_content(_rules_key(), rules, v.username)
 	g.db.add(ModAction(kind="edit_rules", user_id=v.id))
 	return render_template("admin/edit_rules.html", v=v, rules=rules, msg="Rules edited successfully!")
