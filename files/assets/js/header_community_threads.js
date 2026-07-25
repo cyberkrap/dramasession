@@ -5,7 +5,7 @@
 		{
 			href: '/post/11/changelog-and-site-updates-megathread',
 			label: 'Changelog',
-			icon: 'fas fa-clipboard-list',
+			icon: 'fas fa-clipboard',
 		},
 		{
 			href: '/post/10/bugs-and-suggestions-megathread',
@@ -26,6 +26,14 @@
 		icon.setAttribute('aria-hidden', 'true');
 		link.append(icon, document.createTextNode(item.label));
 		return link;
+	}
+
+	function removeFeedbackLinks() {
+		document.querySelectorAll(
+			'#header--dropdown-menu a[href="/contact"], .mobile-drawer-section a[href="/contact"]'
+		).forEach((link) => {
+			if (link.textContent.trim().toLowerCase() === 'feedback') link.remove();
+		});
 	}
 
 	function insertDesktopLinks() {
@@ -51,16 +59,18 @@
 		const accountSection = document.querySelector('.mobile-drawer-section');
 		if (!accountSection) return;
 
-		const feedback = accountSection.querySelector('a[href="/contact"]');
+		const contact = Array.from(accountSection.querySelectorAll('a[href="/contact"]'))
+			.find((link) => link.textContent.trim().toLowerCase() === 'contact us');
 		for (const item of links) {
 			if (accountSection.querySelector(`a[href="${item.href}"]`)) continue;
 			const link = makeLink(item, true);
-			if (feedback) feedback.insertAdjacentElement('beforebegin', link);
+			if (contact) contact.insertAdjacentElement('beforebegin', link);
 			else accountSection.append(link);
 		}
 	}
 
 	function install() {
+		removeFeedbackLinks();
 		insertDesktopLinks();
 		insertMobileLinks();
 	}
