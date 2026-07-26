@@ -14,16 +14,66 @@ from files.classes import (
 from files.helpers.config.const import AUTOJANNY_ID
 from files.helpers.contribution_badges import CONTRIBUTION_BADGE_THRESHOLDS
 from files.helpers.sanitize import sanitize
-from files.helpers.support import PAYPAL_ACTIVE_PLAN_IDS
+from files.helpers.support import (
+    CONTRIBUTION_BADGE_DESCRIPTIONS,
+    CONTRIBUTION_BADGE_NAMES,
+    PAYPAL_ACTIVE_PLAN_IDS,
+)
 
 
 INNER_CIRCLE_BADGE_ID = 25
 SUPPORT_THANK_YOU = "Thank you for your support. Freaky Nikki must be obsessed with you!"
 LEGACY_INNER_CIRCLE_BADGE_NOTICE = "You earned the Inner Circle supporter badge."
 
+OBSESSION_BADGE_BRANDING = {
+    16: (
+        "Emoji Master",
+        "Made major contributions to the site's emoji collection.",
+    ),
+    17: (
+        "Emoji Artisan",
+        "Created an approved emoji for the site.",
+    ),
+    99: (
+        "Sidebar Artist",
+        "Created approved artwork for the site sidebar.",
+    ),
+}
+
+
+def ensure_obsession_badge_definitions(db):
+    """Remove legacy Marsey branding and keep contribution badges current."""
+    definitions = dict(OBSESSION_BADGE_BRANDING)
+    definitions.update({
+        badge_id: (
+            CONTRIBUTION_BADGE_NAMES[badge_id],
+            CONTRIBUTION_BADGE_DESCRIPTIONS[badge_id],
+        )
+        for badge_id in CONTRIBUTION_BADGE_NAMES
+    })
+
+    changed = False
+    for badge_id, (name, description) in definitions.items():
+        badge = db.get(BadgeDef, badge_id)
+        if badge is None:
+            continue
+        if badge.name != name:
+            badge.name = name
+            changed = True
+        if badge.description != description:
+            badge.description = description
+            changed = True
+        if changed:
+            db.add(badge)
+
+    if changed:
+        db.flush()
+    return changed
+
 
 def ensure_inner_circle_badge_definition(db):
-    """Keep the existing PayPal route interface without mutating badge data."""
+    """Keep the existing PayPal route interface while refreshing badge data."""
+    ensure_obsession_badge_definitions(db)
     return db.get(BadgeDef, INNER_CIRCLE_BADGE_ID)
 
 
@@ -124,6 +174,7 @@ def ensure_patron_extras(db, user_id):
 
     try:
         with db.begin_nested():
+            ensure_obsession_badge_definitions(db)
             user = db.get(User, user_id)
             if user is None or not PAYPAL_ACTIVE_PLAN_IDS:
                 return False
