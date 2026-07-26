@@ -171,7 +171,9 @@
 		scope.querySelectorAll?.(selector).forEach(image => images.push(image));
 
 		images.forEach(image => {
-			const wrapper = image.closest('[title], [data-bs-original-title], [data-bs-toggle="tooltip"]');
+			const wrapper = image.parentElement
+				? image.parentElement.closest('[title], [data-bs-original-title], [data-bs-toggle="tooltip"]')
+				: null;
 			const trigger = originalTooltipText(image) ? image : (wrapper || image);
 			const text = originalTooltipText(trigger) || originalTooltipText(image);
 			if (text) install(trigger, text, 'badge');
