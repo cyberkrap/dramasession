@@ -1,13 +1,7 @@
-import re
-from html import escape
-from urllib.parse import unquote
-
-from flask import g, request
-from sqlalchemy import func
+from flask import g
 from sqlalchemy.orm.attributes import set_committed_value
 
 from files.__main__ import app, limiter
-from files.classes import User
 from files.helpers.config.const import DEFAULT_RATELIMIT, PERMS
 from files.helpers.contribution_badges import (
     CONTRIBUTION_BADGE_IDS,
@@ -22,15 +16,7 @@ from files.helpers.lifetime_contributions import effective_contribution_cents
 # duplicating or replacing the route implementations.
 PERMS['USER_VOTERS_VISIBLE'] = 0
 
-_PROFILE_PATH_RE = re.compile(r'^/@([^/]+)(?:/|$)')
 _CONTRIBUTION_BADGE_ID_SET = set(CONTRIBUTION_BADGE_IDS)
-
-
-def _profile_username_from_request():
-    if request.view_args and request.view_args.get('username'):
-        return str(request.view_args['username'])
-    match = _PROFILE_PATH_RE.match(request.path)
-    return unquote(match.group(1)) if match else None
 
 
 def _support_summary(user, *, sync_badges=False):
@@ -63,64 +49,17 @@ def _support_summary(user, *, sync_badges=False):
     }
 
 
-@app.before_request
-def prepare_profile_support_details():
-    """Resolve support details before the profile template renders."""
-    if request.method != 'GET' or not request.path.startswith('/@'):
-        return None
-
-    username = _profile_username_from_request()
-    if not username:
-        return None
-
-    user = g.db.query(User).filter(
-        func.lower(User.username) == username.lower()
-    ).one_or_none()
-    if user is None:
-        return None
-
-    g.profile_support_summary = _support_summary(user, sync_badges=True)
-    return None
+def profile_support_summary_for_template(user):
+    """Resolve support stats while the profile template owns an active DB session."""
+    if user is None or not getattr(g, 'db', None):
+        return {
+            'lifetime_donated': '$0.00',
+            'award_discount': '0%',
+        }
+    return _support_summary(user, sync_badges=True)
 
 
-@app.after_request
-def inject_profile_support_details(response):
-    """Place support values in Account details without a second HTTP request."""
-    summary = getattr(g, 'profile_support_summary', None)
-    if (
-        not summary
-        or response.status_code >= 400
-        or response.direct_passthrough
-        or response.mimetype != 'text/html'
-    ):
-        return response
-
-    page = response.get_data(as_text=True)
-    if 'data-profile-support-summary' in page:
-        return response
-
-    marker_position = page.find('id="profile--info"')
-    if marker_position < 0:
-        marker_position = page.find("id='profile--info'")
-    if marker_position < 0:
-        return response
-
-    closing_position = page.find('</dl>', marker_position)
-    if closing_position < 0:
-        return response
-
-    rows = (
-        '\n\t\t\t\t\t<div data-profile-support-summary="1">'
-        '<dt>Lifetime donated</dt>'
-        f'<dd>{escape(summary["lifetime_donated"])}</dd>'
-        '</div>'
-        '\n\t\t\t\t\t<div data-profile-support-summary="1">'
-        '<dt>Total award discount</dt>'
-        f'<dd>{escape(summary["award_discount"])}</dd>'
-        '</div>\n\t\t\t\t'
-    )
-    response.set_data(page[:closing_position] + rows + page[closing_position:])
-    return response
+app.jinja_env.globals['profile_support_summary_for_template'] = profile_support_summary_for_template
 
 
 @app.get('/api/profile/<username>/support-summary')
