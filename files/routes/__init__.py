@@ -105,12 +105,14 @@ from files.classes import User
 from files.__main__ import engine
 from files.helpers.ban_hats import install_ban_hat_support
 from files.helpers.contribution_badges import install_cumulative_contribution_badges
+from files.helpers.default_follow import install_default_following
 from files.helpers.default_user_background import install_default_user_background
 from files.helpers.patron_branding import install_patron_branding
 from files.helpers.persistent_site_content import install_persistent_site_content
 from files.helpers.username_effects import install_username_effects
 install_ban_hat_support()
 install_cumulative_contribution_badges()
+install_default_following(app, engine)
 install_default_user_background()
 install_patron_branding()
 install_persistent_site_content()
