@@ -4,7 +4,7 @@ import time
 from functools import wraps
 
 from flask import g, session
-from sqlalchemy import case, func, or_, text
+from sqlalchemy import case, event, func, or_, text
 
 from files.classes.follows import Follow
 from files.helpers.config.const import SIGNUP_FOLLOW_ID, SITE_NAME
@@ -14,6 +14,7 @@ _PRIMARY_USERNAME = "cybercrap"
 _SECONDARY_USERNAME = "a1"
 _CANONICAL_USER_ID = 5
 _MIGRATION_KEY = "obsession-default-follow-cybercrap-v1"
+_TARGET_USER_ID = None
 
 
 def _is_obsession():
@@ -188,15 +189,34 @@ def _install_signup_default_follow(app):
 	app.view_functions[endpoint] = wrapped
 
 
+def _force_target_post_notification(mapper, connection, post):
+	"""Keep followed-user notifications enabled on posts from the owner account."""
+	if _TARGET_USER_ID and int(post.author_id or 0) == int(_TARGET_USER_ID):
+		post.notify = True
+
+
+def _install_target_post_notifications():
+	from files.classes.submission import Submission
+
+	for event_name in ("before_insert", "before_update"):
+		if not event.contains(Submission, event_name, _force_target_post_notification):
+			event.listen(Submission, event_name, _force_target_post_notification)
+
+
 def install_default_following(app, engine):
-	"""Backfill current accounts once, then default-follow future signups."""
+	"""Backfill current accounts once, default-follow signups, and notify on owner posts."""
+	global _TARGET_USER_ID
+
 	if not _is_obsession():
 		return
 
 	try:
+		with engine.connect() as connection:
+			_TARGET_USER_ID = _resolve_target_id(connection)
 		backfill_existing_default_follows(engine)
 	except Exception as exc:
 		# Do not take the site down if an optional migration cannot run at boot.
 		print(f"Default-follow backfill skipped: {exc}", flush=True)
 
 	_install_signup_default_follow(app)
+	_install_target_post_notifications()
