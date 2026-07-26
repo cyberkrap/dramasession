@@ -1,6 +1,7 @@
 import random
 import time
 from typing import Optional
+from urllib.parse import quote
 
 from sqlalchemy import Column
 from sqlalchemy.ext.mutable import MutableList
@@ -40,7 +41,18 @@ class Sub(Base):
 	@property
 	@lazy
 	def sidebar_url(self):
-		if self.sidebarurl: return root_relative_url(self.sidebarurl)
+		if self.sidebarurl:
+			return root_relative_url(self.sidebarurl)
+		if SITE_NAME == "Obsession":
+			try:
+				from files.helpers.community_assets import active_community_asset_filenames
+				filenames = active_community_asset_filenames("sidebar")
+				if filenames:
+					# Give each board a stable default from the site's approved sidebar art.
+					index = sum(ord(character) for character in self.name) % len(filenames)
+					return f"/i/Obsession/sidebar/{quote(filenames[index])}"
+			except Exception:
+				pass
 		return f'/i/{SITE_NAME}/sidebar.webp?v=3009'
 
 	@property
@@ -62,7 +74,10 @@ class Sub(Base):
 	@property
 	@lazy
 	def marsey_url(self):
-		if self.marseyurl: return root_relative_url(self.marseyurl)
+		if self.marseyurl:
+			return root_relative_url(self.marseyurl)
+		if SITE_NAME == "Obsession":
+			return "/i/Obsession/official-logo.png?v=1"
 		return f'/i/{SITE_NAME}/headericon.webp?v=3009'
 
 	@property
