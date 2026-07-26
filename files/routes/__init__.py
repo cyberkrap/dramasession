@@ -103,6 +103,7 @@ install_alt_link_fixes()
 
 from files.classes import User
 from files.__main__ import engine
+from files.helpers.badge_branding import install_badge_branding
 from files.helpers.ban_hats import install_ban_hat_support
 from files.helpers.board_branding import install_board_branding
 from files.helpers.contribution_badges import install_cumulative_contribution_badges
@@ -112,6 +113,7 @@ from files.helpers.patron_branding import install_patron_branding
 from files.helpers.persistent_site_content import install_persistent_site_content
 from files.helpers.username_effects import install_username_effects
 from files.helpers.wishcoin_asset import install_wishcoin_asset
+install_badge_branding(engine)
 install_ban_hat_support()
 install_board_branding(app)
 install_cumulative_contribution_badges()
@@ -124,7 +126,6 @@ install_wishcoin_asset(app)
 if FEATURES['ASSET_SUBMISSIONS']:
 	from files.helpers.emote_management import ensure_emote_directories, install_custom_emote_rendering
 	ensure_emote_directories()
-	install_custom_emote_rendering()
 	install_emote_management()
 install_report_fixes()
 User.ban_notice = User.ban_notice_html
