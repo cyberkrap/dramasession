@@ -165,15 +165,15 @@
 
 	function installBadgeTooltips(root) {
 		const scope = root instanceof Element ? root : document;
-		const candidates = [];
-		const selector = 'img[src*="/badges/"][title], img[src*="/badges/"][data-bs-original-title], [title] > img[src*="/badges/"], [data-bs-original-title] > img[src*="/badges/"]';
-		if (scope.matches?.(selector)) candidates.push(scope);
-		scope.querySelectorAll?.(selector).forEach(item => candidates.push(item));
+		const images = [];
+		const selector = 'img[src*="/badges/"]';
+		if (scope.matches?.(selector)) images.push(scope);
+		scope.querySelectorAll?.(selector).forEach(image => images.push(image));
 
-		candidates.forEach(candidate => {
-			const trigger = candidate.matches('img') ? candidate : candidate;
-			const image = candidate.matches('img') ? candidate : candidate.querySelector('img[src*="/badges/"]');
-			const text = originalTooltipText(trigger) || (image ? originalTooltipText(image) : '');
+		images.forEach(image => {
+			const wrapper = image.closest('[title], [data-bs-original-title], [data-bs-toggle="tooltip"]');
+			const trigger = originalTooltipText(image) ? image : (wrapper || image);
+			const text = originalTooltipText(trigger) || originalTooltipText(image);
 			if (text) install(trigger, text, 'badge');
 		});
 	}
