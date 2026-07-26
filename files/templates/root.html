@@ -77,6 +77,9 @@
 		<input hidden id="gbrowser" value="{{g.browser}}">
 		<script src="{{'js/top.js' | asset}}"></script>	
 		{% block body required %}{% endblock %}
+		{% if SITE_NAME == 'Obsession' and v %}
+		<span hidden data-username-effect-target="#header--username" data-username-effect-user="{{v.id}}" data-username-effect-color="{{v.username_effect_text_color}}" data-username-effects="{{v.active_username_effects|join(',')}}"></span>
+		{% endif %}
 		{{html_head.stylesheets_lower()}}
 		{% block stylesheets_after %}{% endblock %}
 		<script defer src="{{'js/bottom.js' | asset}}"></script>
