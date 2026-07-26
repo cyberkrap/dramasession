@@ -1,6 +1,6 @@
 """Obsession-specific board pricing, canonical URLs, and compatibility aliases."""
 
-from importlib import import_module
+import sys
 from urllib.parse import urlsplit, urlunsplit
 
 from flask import redirect, request
@@ -65,6 +65,16 @@ def _install_board_route_aliases(app):
 	_add_alias(app, "/create_board", "create_sub2", ["POST"])
 
 
+def _install_board_cost(app):
+	"""Update every loaded copy of HOLE_COST used by routes, users, and templates."""
+	for module_name, module in list(sys.modules.items()):
+		if not module_name.startswith("files.") or module is None:
+			continue
+		if hasattr(module, "HOLE_COST"):
+			setattr(module, "HOLE_COST", _BOARD_COST)
+	app.jinja_env.globals["HOLE_COST"] = _BOARD_COST
+
+
 def _install_canonical_submission_links():
 	"""Return /b/ links from post and comment permalink properties and APIs."""
 	from files.classes.submission import Submission
@@ -110,11 +120,7 @@ def install_board_branding(app):
 		return
 	setattr(app, _INSTALLED_ATTR, True)
 
-	# Route functions read HOLE_COST from their module globals at request time.
-	# Overriding it here changes both the displayed price and the actual charge.
-	subs_routes = import_module("files.routes.subs")
-	subs_routes.HOLE_COST = _BOARD_COST
-
+	_install_board_cost(app)
 	_install_board_route_aliases(app)
 	_install_canonical_submission_links()
 
