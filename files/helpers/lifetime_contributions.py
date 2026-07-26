@@ -12,24 +12,33 @@ from files.helpers.support import PAYPAL_ACTIVE_PLAN_IDS
 
 _TABLE_LOCK = threading.Lock()
 _TABLE_READY = False
+_CREATE_TABLE_SQL = text("""
+	CREATE TABLE IF NOT EXISTS lifetime_contribution_overrides (
+		user_id BIGINT PRIMARY KEY,
+		amount_cents BIGINT NOT NULL CHECK (amount_cents >= 0),
+		updated_utc BIGINT NOT NULL,
+		updated_by BIGINT
+	)
+""")
 
 
-def _ensure_table():
+def _ensure_table(db=None):
 	global _TABLE_READY
 	if _TABLE_READY:
 		return
 	with _TABLE_LOCK:
 		if _TABLE_READY:
 			return
-		with engine.begin() as connection:
-			connection.execute(text("""
-				CREATE TABLE IF NOT EXISTS lifetime_contribution_overrides (
-					user_id BIGINT PRIMARY KEY,
-					amount_cents BIGINT NOT NULL CHECK (amount_cents >= 0),
-					updated_utc BIGINT NOT NULL,
-					updated_by BIGINT
-				)
-			"""))
+
+		# Contribution totals are normally read during an active profile request.
+		# Reuse that request's SQLAlchemy session instead of opening a second
+		# engine transaction, which can wait behind the request and make the two
+		# support fields appear several seconds after the rest of the profile.
+		if db is not None:
+			db.execute(_CREATE_TABLE_SQL)
+		else:
+			with engine.begin() as connection:
+				connection.execute(_CREATE_TABLE_SQL)
 		_TABLE_READY = True
 
 
@@ -49,7 +58,7 @@ def verified_contribution_cents(db, user_id):
 
 
 def contribution_override_cents(db, user_id):
-	_ensure_table()
+	_ensure_table(db)
 	return db.execute(
 		text("SELECT amount_cents FROM lifetime_contribution_overrides WHERE user_id = :user_id"),
 		{"user_id": int(user_id)},
@@ -64,7 +73,7 @@ def effective_contribution_cents(db, user_id):
 
 
 def set_contribution_override(db, user_id, amount_cents, updated_by):
-	_ensure_table()
+	_ensure_table(db)
 	amount_cents = max(0, int(amount_cents))
 	db.execute(text("""
 		INSERT INTO lifetime_contribution_overrides (user_id, amount_cents, updated_utc, updated_by)
@@ -83,7 +92,7 @@ def set_contribution_override(db, user_id, amount_cents, updated_by):
 
 
 def clear_contribution_override(db, user_id):
-	_ensure_table()
+	_ensure_table(db)
 	db.execute(
 		text("DELETE FROM lifetime_contribution_overrides WHERE user_id = :user_id"),
 		{"user_id": int(user_id)},
