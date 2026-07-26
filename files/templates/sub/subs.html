@@ -15,23 +15,20 @@
 			</tr>
 		</thead>
 
-		{% for sub, count in subs %}
+		{% for sub, count in subs|sort(attribute='0.created_utc') %}
 			<tr>
 				<td>{{loop.index}}</td>
-				<td><a href="/h/{{sub}}">{{sub}} {% if sub.name in v.all_blocks %}<span class="text-danger">[blocked, visit it to unblock it]</span>{% endif %}</a></td>
-				<td><a href="/h/{{sub}}" >{{count}}</a></td>
-				<td><a href="/h/{{sub}}/followers">{{sub.follow_num}}</a></td>
+				<td><a href="/b/{{sub}}">{{sub}} {% if sub.name in v.all_blocks %}<span class="text-danger">[blocked, visit it to unblock it]</span>{% endif %}</a></td>
+				<td><a href="/b/{{sub}}">{{count}}</a></td>
+				<td><a href="/b/{{sub}}/followers">{{sub.follow_num}}</a></td>
 				{% if sub.stealth %}
 					<td>{{total_users - sub.join_num}}</td>
 				{% else %}
-					<td><a href="/h/{{sub}}/blockers">{{sub.block_num}}</a></td>
+					<td><a href="/b/{{sub}}/blockers">{{sub.block_num}}</a></td>
 				{% endif %}
 				<td data-time="{{sub.created_utc}}"></td>
 			</tr>
 		{% endfor %}
 	</table>
 </div>
-
-
-
 {% endblock %}
