@@ -1,12 +1,13 @@
 """Active recurring-support badge fulfilment for verified PayPal subscriptions."""
 
 import importlib
+import threading
 import time
 
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from files.__main__ import engine
+from files.__main__ import app, engine
 from files.classes import Badge, PaypalPayment, PaypalSubscription, User
 from files.helpers.support import PAYPAL_ACTIVE_PLAN_IDS, SUPPORT_TIER_BY_LEVEL
 
@@ -25,6 +26,9 @@ ACTIVE_SUPPORT_BADGE_IDS = tuple(
 )
 LEGACY_LIFETIME_BADGE_IDS = (26, 27)
 CONTRIBUTION_BADGE_IDS = ACTIVE_SUPPORT_BADGE_IDS + LEGACY_LIFETIME_BADGE_IDS
+
+_SYNC_LOCK = threading.Lock()
+_NEXT_GLOBAL_SYNC_UTC = 0
 
 
 def sync_active_support_badges(db, user, level=None):
@@ -183,6 +187,23 @@ def _sync_existing_active_support_badges():
         return False
 
 
+def _periodic_active_support_badge_sync():
+    """Remove expired badges even when PayPal sends no event at access expiry."""
+    global _NEXT_GLOBAL_SYNC_UTC
+    now = int(time.time())
+    if now < _NEXT_GLOBAL_SYNC_UTC:
+        return
+    if not _SYNC_LOCK.acquire(blocking=False):
+        return
+    try:
+        if now < _NEXT_GLOBAL_SYNC_UTC:
+            return
+        _sync_existing_active_support_badges()
+        _NEXT_GLOBAL_SYNC_UTC = now + 3600
+    finally:
+        _SYNC_LOCK.release()
+
+
 def install_cumulative_contribution_badges():
     """Install active-subscription recalculation and migrate old badge ownership."""
     paypal_helpers = importlib.import_module("files.helpers.paypal")
@@ -190,3 +211,4 @@ def install_cumulative_contribution_badges():
     paypal_helpers.recalculate_paypal_patron = recalculate_paypal_patron
     paypal_routes.recalculate_paypal_patron = recalculate_paypal_patron
     _sync_existing_active_support_badges()
+    app.before_request(_periodic_active_support_badge_sync)
