@@ -3,17 +3,15 @@
 
 	if (!window.location.pathname.startsWith('/casino')) return;
 
-	const isCurrencyImage = (image) => {
+	const currencyKind = (image) => {
 		const source = String(image.currentSrc || image.getAttribute('src') || '').toLowerCase();
 		const alt = String(image.getAttribute('alt') || '').toLowerCase();
 		const title = String(image.getAttribute('title') || '').toLowerCase();
-		return source.includes('wishcoin')
-			|| source.includes('coins.webp')
-			|| source.includes('marseybux')
-			|| alt.includes('wishcoin')
-			|| alt.includes('wishbux')
-			|| title.includes('wishcoin')
-			|| title.includes('wishbux');
+		const text = `${source} ${alt} ${title}`;
+
+		if (text.includes('wishbux') || text.includes('marseybux')) return 'wishbux';
+		if (text.includes('wishcoin') || text.includes('coins.webp')) return 'wishcoin';
+		return null;
 	};
 
 	const hasAssociatedRadio = (choice) => {
@@ -34,12 +32,14 @@
 
 	const cleanCurrencyChoices = (root = document) => {
 		root.querySelectorAll('img').forEach((image) => {
-			if (!isCurrencyImage(image)) return;
+			const kind = currencyKind(image);
+			if (!kind) return;
 
 			const choice = image.closest('label, button, .btn, [role="radio"]');
 			if (!choice || !hasAssociatedRadio(choice)) return;
 
 			choice.classList.add('casino-currency-choice-clean');
+			image.classList.add('casino-currency-icon', `casino-currency-${kind}`);
 		});
 	};
 
@@ -50,7 +50,7 @@
 			for (const mutation of mutations) {
 				for (const node of mutation.addedNodes) {
 					if (!(node instanceof Element)) continue;
-					if (node.matches('img') && isCurrencyImage(node)) {
+					if (node.matches('img') && currencyKind(node)) {
 						cleanCurrencyChoices(node.parentElement || document);
 					} else if (node.querySelector('img')) {
 						cleanCurrencyChoices(node);
