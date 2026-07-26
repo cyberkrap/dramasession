@@ -2,13 +2,13 @@
 	'use strict';
 
 	const ASSET_ROOT = '/assets/images/username_effects/';
-	const ASSET_VERSION = '8';
-	const CYCLE_INTERVAL = 8000;
+	const ASSET_VERSION = '9';
+	const CYCLE_INTERVAL = 40000;
 	const groups = new Map();
 	const registrations = new WeakMap();
 	const assetCache = new Map();
 	const previewElements = new Set();
-	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+	let cycleTimer = 0;
 
 	function cleanEffects(value) {
 		const seen = new Set();
@@ -32,27 +32,17 @@
 		return `${ASSET_ROOT}${encodeURIComponent(effect)}.webp?v=${ASSET_VERSION}`;
 	}
 
-	function effectUrl(effect) {
-		return `url("${assetUrl(effect)}")`;
-	}
-
 	function preloadEffect(effect) {
-		if (assetCache.has(effect)) return assetCache.get(effect).promise;
-		const image = new Image();
-		image.decoding = 'async';
+		if (assetCache.has(effect)) return assetCache.get(effect);
 		const promise = new Promise(resolve => {
+			const image = new Image();
+			image.decoding = 'async';
 			image.addEventListener('load', () => resolve(true), {once: true});
 			image.addEventListener('error', () => resolve(false), {once: true});
+			image.src = assetUrl(effect);
 		});
-		image.src = assetUrl(effect);
-		assetCache.set(effect, {image, promise});
+		assetCache.set(effect, promise);
 		return promise;
-	}
-
-	function schedulePreload(effects) {
-		const load = () => effects.forEach(preloadEffect);
-		if ('requestIdleCallback' in window) requestIdleCallback(load, {timeout: 1800});
-		else window.setTimeout(load, 250);
 	}
 
 	function isPatronPlate(element) {
@@ -63,21 +53,13 @@
 		return effect === 'siren' && isPatronPlate(element) ? 'siren_patron' : effect;
 	}
 
-	function unwrapLegacyInnerEffect(element) {
-		if (!(element instanceof Element)) return;
-		const inner = element.querySelector(':scope > .username-effect, :scope > .username-effect-text');
-		if (!inner || isPatronPlate(inner)) return;
-		while (inner.firstChild) element.insertBefore(inner.firstChild, inner);
-		inner.remove();
-	}
-
 	function wrapFirstTextToken(root) {
 		if (!(root instanceof Element)) return null;
 		const existing = root.querySelector(':scope > [data-profile-username-effect]');
 		if (existing) return existing;
 
 		for (const node of Array.from(root.childNodes)) {
-			if (node.nodeType !== Node.TEXT_NODE || !node.nodeValue || !node.nodeValue.trim()) continue;
+			if (node.nodeType !== Node.TEXT_NODE || !node.nodeValue?.trim()) continue;
 			const match = node.nodeValue.match(/^(\s*)(\S+)([\s\S]*)$/);
 			if (!match) continue;
 			const target = document.createElement('span');
@@ -92,60 +74,35 @@
 		}
 
 		const excluded = '.pronouns, .sub-flair, .badge, [class*="flair"], [class*="pronoun"], i, img, svg, button';
-		const candidates = Array.from(root.children).filter(child => {
-			if (!(child instanceof Element) || child.matches(excluded)) return false;
-			return Boolean(child.textContent && child.textContent.trim());
-		});
-		return candidates[0] || null;
+		return Array.from(root.children).find(child =>
+			child instanceof Element && !child.matches(excluded) && child.textContent?.trim()
+		) || null;
 	}
 
-	function isolateProfileUsername(root) {
-		if (!(root instanceof Element)) return null;
-		if (isPatronPlate(root)) return root;
-		const patron = root.querySelector(':scope > .patron, .patron');
-		if (patron) return patron;
-		return wrapFirstTextToken(root);
-	}
-
-	function resolveTarget(host, fromProfileMarker = false) {
+	function resolveTarget(host, profile = false) {
 		if (!(host instanceof Element)) return null;
-		if (fromProfileMarker || host.id === 'profile--name') return isolateProfileUsername(host);
+		if (profile || host.id === 'profile--name') {
+			if (isPatronPlate(host)) return host;
+			return host.querySelector(':scope > .patron, .patron') || wrapFirstTextToken(host);
+		}
 		if (isPatronPlate(host)) return host;
 		if (host.matches('span, strong, b, bdi, h1, h2, h3, h4, h5')) return host;
-
-		const directPatron = host.querySelector(':scope > .patron');
-		if (directPatron) return directPatron;
-
+		const patron = host.querySelector(':scope > .patron');
+		if (patron) return patron;
 		if (host.matches('.user-name, a')) {
-			const candidates = Array.from(host.children).filter(child =>
-				child instanceof Element &&
-				child.tagName === 'SPAN' &&
+			const spans = Array.from(host.children).filter(child =>
+				child instanceof Element && child.tagName === 'SPAN' &&
 				!child.matches('.pronouns, [class*="pronoun"], [class*="flair"]')
 			);
-			return candidates[candidates.length - 1] || null;
+			return spans[spans.length - 1] || null;
 		}
 		return null;
 	}
 
-	function removeOldInlineOverrides(element) {
-		if (!(element instanceof HTMLElement)) return;
-		if (element.style.getPropertyValue('color') === 'transparent') element.style.removeProperty('color');
-		if (element.style.getPropertyValue('-webkit-text-fill-color') === 'transparent') {
-			element.style.removeProperty('-webkit-text-fill-color');
-		}
-		for (const property of [
-			'background-image', 'background-position', 'background-repeat', 'background-size',
-			'-webkit-background-clip', 'background-clip'
-		]) element.style.removeProperty(property);
-	}
-
 	function prepareTarget(element, color) {
-		if (!(element instanceof Element)) return;
-		removeOldInlineOverrides(element);
+		if (!(element instanceof HTMLElement)) return;
 		element.classList.add('username-effect-host');
-
 		if (isPatronPlate(element)) {
-			unwrapLegacyInnerEffect(element);
 			element.classList.remove('username-effect', 'username-effect-text');
 			element.classList.add('username-effect-plate');
 			element.style.setProperty('--username-effect-text-color', `#${cleanColor(color)}`);
@@ -167,60 +124,37 @@
 		if (!(element instanceof Element) || !effect || !element.isConnected) return;
 		const asset = renderedAsset(effect, element);
 		if (element.dataset.usernameEffectCurrent === asset && element.classList.contains('username-effect--ready')) return;
-
-		const requestToken = `${asset}:${performance.now()}:${Math.random()}`;
-		element.dataset.usernameEffectRequest = requestToken;
+		const token = `${asset}:${performance.now()}:${Math.random()}`;
+		element.dataset.usernameEffectRequest = token;
 		const loaded = await preloadEffect(asset);
-		if (!element.isConnected || element.dataset.usernameEffectRequest !== requestToken) return;
+		if (!element.isConnected || element.dataset.usernameEffectRequest !== token) return;
 		if (!loaded) {
 			clearVisual(element);
 			return;
 		}
-
-		element.style.setProperty('--username-effect-image', effectUrl(asset));
+		element.style.setProperty('--username-effect-image', `url("${assetUrl(asset)}")`);
 		element.dataset.usernameEffectCurrent = asset;
 		element.classList.add('username-effect--ready');
 	}
 
-	function isPreview(element) {
-		return Boolean(element.closest('.obs-effect-preview, .obs-effect-live-preview'));
+	function currentIndex(length) {
+		return length > 1 ? Math.floor(Date.now() / CYCLE_INTERVAL) % length : 0;
 	}
 
 	function fitPreview(element) {
 		const box = element.closest('.obs-effect-preview, .obs-effect-live-preview');
 		if (!box || !box.clientWidth) return;
 		element.style.removeProperty('font-size');
-		const computed = getComputedStyle(element);
-		const baseSize = parseFloat(computed.fontSize) || 24;
+		const baseSize = parseFloat(getComputedStyle(element).fontSize) || 24;
 		const boxStyle = getComputedStyle(box);
-		const available = Math.max(
-			44,
-			box.clientWidth - (parseFloat(boxStyle.paddingLeft) || 0) - (parseFloat(boxStyle.paddingRight) || 0) - 12,
-		);
+		const available = Math.max(44, box.clientWidth -
+			(parseFloat(boxStyle.paddingLeft) || 0) -
+			(parseFloat(boxStyle.paddingRight) || 0) - 12);
 		const naturalWidth = Math.max(element.scrollWidth, element.getBoundingClientRect().width);
 		if (naturalWidth > available) {
-			const fitted = Math.max(9, baseSize * (available / naturalWidth));
-			element.style.setProperty('font-size', `${fitted}px`, 'important');
+			element.style.setProperty('font-size', `${Math.max(9, baseSize * (available / naturalWidth))}px`, 'important');
 		}
 	}
-
-	const previewObserver = 'IntersectionObserver' in window
-		? new IntersectionObserver(entries => {
-			for (const entry of entries) {
-				const element = entry.target;
-				element.dataset.usernameEffectVisible = entry.isIntersecting ? '1' : '0';
-				const registration = registrations.get(element);
-				const state = registration && groups.get(registration.key);
-				if (!state) continue;
-				if (entry.isIntersecting) {
-					requestAnimationFrame(() => fitPreview(element));
-					applyEffect(element, state.effects[state.index]);
-				} else {
-					clearVisual(element);
-				}
-			}
-		}, {rootMargin: '120px 0px', threshold: 0.01})
-		: null;
 
 	function unregister(element) {
 		const previous = registrations.get(element);
@@ -242,41 +176,32 @@
 		const userValue = String(userId || element.dataset.usernameEffectUser || 'anonymous');
 		const effectsString = effects.join(',');
 		const color = cleanColor(options.color || element.dataset.usernameEffectColor);
-		const nextKey = `${userValue}::${effectsString}::${color}`;
+		const key = `${userValue}::${effectsString}::${color}`;
 		const previous = registrations.get(element);
-		if (previous && previous.key === nextKey) {
-			if (isPreview(element)) requestAnimationFrame(() => fitPreview(element));
-			return;
-		}
-
+		if (previous?.key === key) return;
 		if (previous) unregister(element);
-		prepareTarget(element, color);
-		if (element.dataset.usernameEffectUser !== userValue) element.dataset.usernameEffectUser = userValue;
-		if (element.dataset.usernameEffects !== effectsString) element.dataset.usernameEffects = effectsString;
-		if (element.dataset.usernameEffectColor !== color) element.dataset.usernameEffectColor = color;
 
-		let state = groups.get(nextKey);
+		prepareTarget(element, color);
+		element.dataset.usernameEffectUser = userValue;
+		element.dataset.usernameEffects = effectsString;
+		element.dataset.usernameEffectColor = color;
+
+		let state = groups.get(key);
 		if (!state) {
-			state = {effects, index: 0, elements: new Set()};
-			groups.set(nextKey, state);
-			if (effects.length > 1) schedulePreload(effects);
+			state = {effects, index: currentIndex(effects.length), elements: new Set()};
+			groups.set(key, state);
+			effects.forEach(preloadEffect);
 		}
 		state.elements.add(element);
-		registrations.set(element, {key: nextKey});
-
-		if (isPreview(element)) {
+		registrations.set(element, {key});
+		if (element.closest('.obs-effect-preview, .obs-effect-live-preview')) {
 			previewElements.add(element);
 			requestAnimationFrame(() => fitPreview(element));
-			if (previewObserver) previewObserver.observe(element);
-			else applyEffect(element, state.effects[state.index]);
-			return;
 		}
-
-		element.dataset.usernameEffectVisible = '1';
 		applyEffect(element, state.effects[state.index]);
 	}
 
-	function dataForTrigger(trigger) {
+	function popoverData(trigger) {
 		try {
 			return JSON.parse(trigger.dataset.popInfo || '{}');
 		} catch (_) {
@@ -285,32 +210,25 @@
 	}
 
 	function enhanceTrigger(trigger) {
-		if (!(trigger instanceof Element)) return;
-		const data = dataForTrigger(trigger);
+		const data = popoverData(trigger);
 		const effects = cleanEffects(data.username_effects);
-		if (!effects.length) return;
-		register(trigger, data.id, effects.join(','), {color: data.username_effect_color});
+		if (effects.length) register(trigger, data.id, effects.join(','), {color: data.username_effect_color});
 	}
 
 	function enhanceMarkers(root = document) {
 		const markers = [];
 		if (root instanceof Element && root.matches('[data-username-effect-target]')) markers.push(root);
-		if (root.querySelectorAll) markers.push(...root.querySelectorAll('[data-username-effect-target]'));
-
-		for (const marker of markers) {
+		root.querySelectorAll?.('[data-username-effect-target]').forEach(marker => markers.push(marker));
+		markers.forEach(marker => {
 			const selector = marker.dataset.usernameEffectTarget;
-			if (!selector) continue;
-			const profileMarker = selector.startsWith('#profile--name');
-			const target = profileMarker
-				? document.querySelector('#profile--name')
-				: document.querySelector(selector);
-			if (target) register(
-				target,
-				marker.dataset.usernameEffectUser,
-				marker.dataset.usernameEffects,
-				{profile: profileMarker, color: marker.dataset.usernameEffectColor},
-			);
-		}
+			if (!selector) return;
+			const profile = selector.startsWith('#profile--name');
+			const target = document.querySelector(profile ? '#profile--name' : selector);
+			if (target) register(target, marker.dataset.usernameEffectUser, marker.dataset.usernameEffects, {
+				profile,
+				color: marker.dataset.usernameEffectColor,
+			});
+		});
 	}
 
 	function scan(root = document) {
@@ -321,77 +239,74 @@
 			if (root.matches(selector)) hosts.push(root);
 			if (root.matches('.user-name[data-pop-info]')) triggers.push(root);
 		}
-		if (root.querySelectorAll) {
-			hosts.push(...root.querySelectorAll(selector));
-			triggers.push(...root.querySelectorAll('.user-name[data-pop-info]'));
-		}
-		hosts.forEach(host => register(
-			host,
-			host.dataset.usernameEffectUser,
-			host.dataset.usernameEffects,
-			{color: host.dataset.usernameEffectColor},
-		));
+		root.querySelectorAll?.(selector).forEach(host => hosts.push(host));
+		root.querySelectorAll?.('.user-name[data-pop-info]').forEach(trigger => triggers.push(trigger));
+		hosts.forEach(host => register(host, host.dataset.usernameEffectUser, host.dataset.usernameEffects, {
+			color: host.dataset.usernameEffectColor,
+		}));
 		triggers.forEach(enhanceTrigger);
 		enhanceMarkers(root);
 	}
 
-	function cycle() {
-		if (reducedMotion.matches || document.hidden) return;
+	function cycleAll() {
 		for (const [key, state] of groups) {
 			for (const element of Array.from(state.elements)) {
-				if (!element.isConnected) {
-					state.elements.delete(element);
-					registrations.delete(element);
-				}
+				if (!element.isConnected) unregister(element);
 			}
 			if (!state.elements.size) {
 				groups.delete(key);
 				continue;
 			}
-			if (state.effects.length < 2) continue;
-			state.index = (state.index + 1) % state.effects.length;
-			const effect = state.effects[state.index];
-			state.elements.forEach(element => {
-				if (element.dataset.usernameEffectVisible !== '0') applyEffect(element, effect);
-			});
+			const next = currentIndex(state.effects.length);
+			if (next === state.index) continue;
+			state.index = next;
+			state.elements.forEach(element => applyEffect(element, state.effects[state.index]));
 		}
+	}
+
+	function scheduleCycle() {
+		window.clearTimeout(cycleTimer);
+		const delay = CYCLE_INTERVAL - (Date.now() % CYCLE_INTERVAL) + 25;
+		cycleTimer = window.setTimeout(() => {
+			cycleAll();
+			scheduleCycle();
+		}, delay);
+	}
+
+	function initialize() {
+		scan(document);
+		const observer = new MutationObserver(mutations => {
+			mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
+				if (node instanceof Element) scan(node);
+			}));
+		});
+		observer.observe(document.body, {childList: true, subtree: true});
+		scheduleCycle();
 	}
 
 	document.addEventListener('shown.bs.popover', event => {
 		const trigger = event.target;
 		if (!(trigger instanceof Element) || !trigger.matches('.user-name[data-pop-info]')) return;
-		const data = dataForTrigger(trigger);
+		const data = popoverData(trigger);
 		const effects = cleanEffects(data.username_effects);
 		if (!effects.length) return;
 		requestAnimationFrame(() => {
-			const popoverId = trigger.getAttribute('aria-describedby');
-			const popover = popoverId ? document.getElementById(popoverId) : null;
-			const host = popover && popover.querySelector('.pop-username');
+			const popover = trigger.getAttribute('aria-describedby')
+				? document.getElementById(trigger.getAttribute('aria-describedby'))
+				: null;
+			const host = popover?.querySelector('.pop-username');
 			if (host) register(host, data.id, effects.join(','), {color: data.username_effect_color});
 		});
 	});
 
-	document.addEventListener('DOMContentLoaded', () => {
-		scan(document);
-		if (document.fonts && document.fonts.ready) {
-			document.fonts.ready.then(() => previewElements.forEach(element => requestAnimationFrame(() => fitPreview(element))));
-		}
-
-		const observer = new MutationObserver(mutations => {
-			for (const mutation of mutations) {
-				for (const node of mutation.addedNodes) {
-					if (node instanceof Element) scan(node);
-				}
-			}
-		});
-		observer.observe(document.body, {childList: true, subtree: true});
-
-		let resizeFrame = 0;
-		window.addEventListener('resize', () => {
-			cancelAnimationFrame(resizeFrame);
-			resizeFrame = requestAnimationFrame(() => previewElements.forEach(fitPreview));
-		}, {passive: true});
-
-		window.setInterval(cycle, CYCLE_INTERVAL);
+	document.addEventListener('visibilitychange', () => {
+		if (!document.hidden) cycleAll();
 	});
+	window.addEventListener('resize', () => previewElements.forEach(fitPreview), {passive: true});
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initialize, {once: true});
+	} else {
+		initialize();
+	}
 })();
