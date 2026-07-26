@@ -1,15 +1,15 @@
 {% extends "default.html" %}
 {% block pagetitle %}Create a {{HOLE_NAME}}{% endblock %}
 {% block content %}
-<form class="mt-3" id="submitform" action="/create_hole" method="post">
+<form class="mt-3" id="submitform" action="/create_board" method="post">
 	<div class="container">
 		<div class="row justify-content-center mb-4 pb-6">
 			<div class="col col-md-6 p-3 py-md-0">
 				<h1 class="d-mob-none">Create a {{HOLE_NAME}}</h1>
-				<h3 class=" d-md-none">Create a {{HOLE_NAME}}</h3>
+				<h3 class="d-md-none">Create a {{HOLE_NAME}}</h3>
 				<div class="body">
 					<input hidden name="formkey" value="{{v|formkey}}">
-					<label for="title">Sub Name</label>
+					<label for="title-register">Board Name</label>
 					<input minlength="3" maxlength="25" pattern='[a-zA-Z0-9_\-]*' class="form-control" id="title-register" type="text" name="name" required>
 					<small class="form-text text-muted">3-25 characters, including letters, numbers, _ , and -</small>
 					<div class="footer">
