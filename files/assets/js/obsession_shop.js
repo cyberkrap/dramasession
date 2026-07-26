@@ -46,6 +46,31 @@
 		update();
 	}
 
+	function initializeAwardPurchases(shell) {
+		if (!(shell instanceof Element) || shell.dataset.awardPurchasesReady === '1') return;
+		shell.dataset.awardPurchasesReady = '1';
+
+		for (const button of shell.querySelectorAll('[data-award-buy-url]')) {
+			button.addEventListener('click', () => {
+				if (button.disabled || button.dataset.purchasePending === '1') return;
+
+				const title = String(button.dataset.awardTitle || 'this award').trim();
+				const price = String(button.dataset.awardPrice || '').trim();
+				const priceText = price ? ` for ${price} Wishbux` : '';
+				if (!window.confirm(`Are you sure you want to buy ${title}${priceText}?`)) return;
+
+				const url = String(button.dataset.awardBuyUrl || '').trim();
+				if (!url || typeof postToastReload !== 'function') {
+					showToast(false, 'This award cannot be purchased right now.');
+					return;
+				}
+
+				button.dataset.purchasePending = '1';
+				postToastReload(button, url);
+			});
+		}
+	}
+
 	function initializeEffectActions(shell) {
 		if (!(shell instanceof Element) || shell.dataset.effectActionsReady === '1') return;
 		shell.dataset.effectActionsReady = '1';
@@ -175,6 +200,9 @@
 
 	document.addEventListener('DOMContentLoaded', () => {
 		document.querySelectorAll('[data-shop-catalog]').forEach(initializeCatalog);
-		document.querySelectorAll('.obs-shop-shell').forEach(initializeEffectActions);
+		document.querySelectorAll('.obs-shop-shell').forEach(shell => {
+			initializeAwardPurchases(shell);
+			initializeEffectActions(shell);
+		});
 	});
 })();
