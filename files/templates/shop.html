@@ -59,9 +59,9 @@
                             id="buy-award-{{kind}}"
                             class="btn btn-primary"
                             {% if not v.can_spend('marseybux', a['price']) %}disabled{% endif %}
-                            data-areyousure="postToastReload(this,'/buy/{{kind}}?mb=true')"
-                            data-nonce="{{g.nonce}}"
-                            data-onclick="areyousure(this)">
+                            data-award-buy-url="/buy/{{kind}}?mb=true"
+                            data-award-title="{{a['title']}}"
+                            data-award-price="{{a['price']|number}}">
                             <i class="fas fa-shopping-cart mr-1" aria-hidden="true"></i>Buy
                         </button>
                     </div>
