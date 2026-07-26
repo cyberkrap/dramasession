@@ -8,9 +8,7 @@
 <link rel="stylesheet" href="{{'css/obsession_comment_alignment.css' | asset}}">
 <link rel="stylesheet" href="{{'css/obsession_comment_refinement.css' | asset}}">
 <link rel="stylesheet" href="{{'css/emoji_modal_refinement.css' | asset}}">
-<link rel="stylesheet" href="{{'css/username_effects.css' | asset}}">
 <link rel="stylesheet" href="{{'css/casino_currency_cleanup.css' | asset}}">
-<link rel="stylesheet" href="{{'css/tooltip_alignment.css' | asset}}">
 {% block banner %}
 	{% include "modals/expanded_image.html" %}
 	{% if err or '@' not in request.path %}
@@ -30,9 +28,6 @@
 {% endblock %}
 
 {% include "header.html" %}
-{% if v %}
-<span hidden data-username-effect-target="#header--username" data-username-effect-user="{{v.id}}" data-username-effect-color="{{v.username_effect_text_color}}" data-username-effects="{{v.active_username_effects|join(',')}}"></span>
-{% endif %}
 {% if u is defined and u %}
 <span hidden data-username-effect-target="#profile--name > span" data-username-effect-user="{{u.id}}" data-username-effect-color="{{u.username_effect_text_color}}" data-username-effects="{{u.active_username_effects|join(',')}}"></span>
 {% endif %}
@@ -79,11 +74,9 @@
 <script defer src="{{'js/vendor/lite-youtube.js' | asset}}"></script>
 <script defer src="{{'js/profile_popover_fixes.js' | asset}}"></script>
 <script defer src="{{'js/distinguished_identity.js' | asset}}"></script>
-<script defer src="{{'js/username_effects.js' | asset}}"></script>
 <script defer src="{{'js/relationship_counts.js' | asset}}"></script>
 <script defer src="{{'js/header_community_threads.js' | asset}}"></script>
 <script defer src="{{'js/casino_currency_cleanup.js' | asset}}"></script>
-<script defer src="{{'js/tooltip_alignment.js' | asset}}"></script>
 {% if not err and v and v.spider %}
 	<script defer src="{{'js/vendor/critters.js' | asset}}"></script>
 	<script defer src="{{'js/spider.js' | asset}}"></script>
