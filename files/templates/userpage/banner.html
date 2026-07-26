@@ -1,4 +1,5 @@
 {% import 'userpage/admintools.html' as userpage_admintools with context %}
+{% set profile_support = profile_support_summary_for_template(u) %}
 {% set hats_total = u.hats_owned_proportion_display[1] if u else 0 %}
 {% set hats_owned_percent = u.hats_owned_proportion_display[0] if u else '' %}
 {% if v and (v.admin_level >= PERMS['VIEW_ALTS'] or v.alt) %}
@@ -286,6 +287,8 @@ body#userpage .profile-badge-glare:focus-visible {
 					<div><dt>True score</dt><dd>{{u.truescore}}</dd></div>
 					<div><dt>Winnings</dt><dd>{{u.winnings|number}}</dd></div>
 					<div><dt>Hats owned</dt><dd>{{u.num_of_owned_hats|number}} / {{hats_total|number}} ({{hats_owned_percent}})</dd></div>
+					<div data-profile-support-summary="1"><dt>Lifetime donated</dt><dd>{{profile_support.lifetime_donated}}</dd></div>
+					<div data-profile-support-summary="1"><dt>Total award discount</dt><dd>{{profile_support.award_discount}}</dd></div>
 					{% if u.is_private %}<div><dt>Privacy</dt><dd>Private mode</dd></div>{% endif %}
 				</dl>
 				{% if u.moderated_subs %}
