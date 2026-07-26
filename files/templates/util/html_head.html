@@ -11,6 +11,8 @@
 	<script defer src="{{'js/core.js' | asset}}"></script>
 	{% if SITE_NAME == 'Obsession' %}
 		<script defer src="{{'js/navbar_currency_tooltips.js' | asset}}"></script>
+		<script defer src="{{'js/username_effects.js' | asset}}"></script>
+		<script defer src="{{'js/tooltip_alignment.js' | asset}}"></script>
 	{% endif %}
 {% endmacro %}
 
@@ -34,7 +36,6 @@
 
 	{% elif '@' in request.path and u %}
 		{% set author, a_author, published, url, title, image, section =
-		'@'~u.username,
 		'@'~u.username,
 		u.created_date,
 		u.url,
@@ -132,6 +133,8 @@
 	{% if SITE_NAME == 'Obsession' %}
 		<link rel="stylesheet" href="{{'css/obsession.css' | asset}}">
 		<link rel="stylesheet" href="{{'css/obsession_ui_fixes.css' | asset}}">
+		<link rel="stylesheet" href="{{'css/username_effects.css' | asset}}">
+		<link rel="stylesheet" href="{{'css/tooltip_alignment.css' | asset}}">
 	{% endif %}
 
 	{% if sub and sub.css and not request.path.endswith('settings') and not request.values.get('nocss') %}
