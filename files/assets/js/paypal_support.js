@@ -30,7 +30,13 @@
         if (!planId) return;
 
         window.paypal.Buttons({
-            style: { layout: 'vertical', shape: 'rect', label: 'subscribe', height: 42 },
+            style: {
+                layout: 'vertical',
+                shape: 'pill',
+                color: 'white',
+                label: 'subscribe',
+                height: 44
+            },
             createSubscription(_data, actions) {
                 showMessage(`Opening PayPal for the ${tierName} tier...`);
                 return actions.subscription.create({
