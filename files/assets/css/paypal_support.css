@@ -27,10 +27,10 @@
 }
 
 .support-paypal-button {
-    min-height: 42px;
+    min-height: 44px;
     margin: 0 18px 18px;
-    overflow: hidden;
-    border-radius: 6px;
+    overflow: visible;
+    border-radius: 0;
 }
 
 .support-checkout-message {
