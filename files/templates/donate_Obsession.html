@@ -74,7 +74,7 @@
             <article class="support-tier{% if tier.popular %} support-tier-popular{% endif %}">
                 {% if tier.popular %}<div class="support-popular-label">Most Popular</div>{% endif %}
                 <div class="support-tier-badge">
-                    <img loading="lazy" src="/i/Obsession/badges/{{tier_badge_assets[tier.badge]}}?v=20260726-webp" alt="{{tier.name}} support badge" onerror="this.onerror=null;this.src='/i/Obsession/badges/{{tier.badge}}.webp?v=1'">
+                    <img loading="lazy" src="/i/Obsession/badges/{{tier_badge_assets[tier.badge]}}?v={{'20260727-animated' if tier.badge == 25 else '20260726-webp'}}" alt="{{tier.name}} support badge" onerror="this.onerror=null;this.src='/i/Obsession/badges/{{tier.badge}}.webp?v=1'">
                     <span class="support-badge-fallback" hidden aria-hidden="true"><i class="fas fa-heart"></i></span>
                 </div>
                 <div class="support-tier-heading">
