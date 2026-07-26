@@ -32,7 +32,20 @@
 	box-shadow: none !important;
 }
 
-.casino-currency-choice-clean img {
+.casino-currency-choice-clean img,
+.casino-currency-icon {
 	display: block;
 	object-fit: contain;
+	max-width: none !important;
+}
+
+/* Equal visual height keeps the round coin and wide banknote balanced. */
+.casino-currency-wishcoin {
+	width: 22px !important;
+	height: 22px !important;
+}
+
+.casino-currency-wishbux {
+	width: auto !important;
+	height: 22px !important;
 }
