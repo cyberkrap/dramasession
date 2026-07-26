@@ -52,31 +52,18 @@
                     <div class="obs-shop-price">
                         {% if a['baseprice'] != a['price'] %}<del>{{a['baseprice']|number}}</del>{% endif %}
                         <strong>{{a['price']|number}}</strong>
-                        <span>each</span>
+                        <span>Wishbux each</span>
                     </div>
                     <div class="obs-shop-actions">
-                        {% if kind != 'benefactor' %}
                         <button type="button"
-                            id="buy1-award-{{kind}}"
+                            id="buy-award-{{kind}}"
                             class="btn btn-primary"
-                            {% if not v.can_spend('coins', a['price']) %}disabled{% endif %}
-                            data-areyousure="postToastReload(this,'/buy/{{kind}}')"
-                            data-nonce="{{g.nonce}}"
-                            data-onclick="areyousure(this)">
-                            <i class="fas fa-coins mr-1" aria-hidden="true"></i>Wishcoins
-                        </button>
-                        {% endif %}
-                        {% if FEATURES['MARSEYBUX'] and kind != 'grass' %}
-                        <button type="button"
-                            id="buy2-award-{{kind}}"
-                            class="btn btn-secondary"
                             {% if not v.can_spend('marseybux', a['price']) %}disabled{% endif %}
                             data-areyousure="postToastReload(this,'/buy/{{kind}}?mb=true')"
                             data-nonce="{{g.nonce}}"
                             data-onclick="areyousure(this)">
-                            <i class="fas fa-money-bill-wave mr-1" aria-hidden="true"></i>Wishbux
+                            <i class="fas fa-shopping-cart mr-1" aria-hidden="true"></i>Buy
                         </button>
-                        {% endif %}
                     </div>
                 </div>
             </article>
