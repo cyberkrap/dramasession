@@ -9,6 +9,19 @@ from files.helpers.support import (
 )
 
 
+# These are recurring support badges, not lifetime donation milestones. Mutating
+# the shared dictionary also keeps the PayPal fulfilment helper consistent.
+CONTRIBUTION_BADGE_DESCRIPTIONS.update({
+    21: "Donates $5/month",
+    22: "Donates $10/month",
+    23: "Donates $20/month",
+    24: "Donates $50/month",
+    25: "Donates $100/month",
+    26: "Retired legacy support badge",
+    27: "Retired legacy support badge",
+})
+
+
 BADGE_BRANDING = {
     16: (
         "Emoji Master",
