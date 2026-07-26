@@ -4,6 +4,7 @@
 {% block head_final %}
 <link rel="stylesheet" href="{{'css/obsession_shop.css' | asset}}">
 <link rel="stylesheet" href="{{'css/obsession_shop_mobile.css' | asset}}">
+<link rel="stylesheet" href="{{'css/obsession_shop_confirm.css' | asset}}">
 {% endblock %}
 {% block banner %}{% endblock %}
 {% block content %}
@@ -70,6 +71,32 @@
         {% endfor %}
         </div>
         <div class="obs-shop-empty" data-shop-empty hidden>No awards match that search.</div>
+    </div>
+
+    <div class="obs-purchase-modal" data-award-purchase-modal hidden aria-hidden="true">
+        <div class="obs-purchase-modal__backdrop" data-award-purchase-close></div>
+        <section class="obs-purchase-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="award-purchase-title" aria-describedby="award-purchase-copy">
+            <button type="button" class="obs-purchase-modal__close" data-award-purchase-close aria-label="Close purchase confirmation">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <div class="obs-purchase-modal__body">
+                <div class="obs-purchase-modal__mark"><i class="fas fa-shopping-bag" aria-hidden="true"></i></div>
+                <p class="obs-purchase-modal__eyebrow">Confirm purchase</p>
+                <h2 id="award-purchase-title">Add this award?</h2>
+                <p class="obs-purchase-modal__copy" id="award-purchase-copy">Review the purchase before it is added to your inventory.</p>
+                <div class="obs-purchase-modal__summary">
+                    <span data-award-confirm-title>Award</span>
+                    <strong><span data-award-confirm-price>0</span> Wishbux</strong>
+                </div>
+                <p class="obs-purchase-modal__note"><i class="fas fa-info-circle" aria-hidden="true"></i><span>The amount will be deducted from your Wishbux balance immediately.</span></p>
+            </div>
+            <div class="obs-purchase-modal__actions">
+                <button type="button" class="btn btn-secondary" data-award-purchase-close>Cancel</button>
+                <button type="button" class="btn btn-primary obs-purchase-modal__confirm" data-award-purchase-confirm>
+                    <i class="fas fa-shopping-cart mr-1" aria-hidden="true"></i>Buy award
+                </button>
+            </div>
+        </section>
     </div>
 </div>
 <script defer src="{{'js/obsession_shop.js' | asset}}"></script>
