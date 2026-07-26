@@ -120,12 +120,18 @@ def install_board_branding(app):
 
 	@app.before_request
 	def obsession_canonical_board_redirect():
-		canonical = _canonical_path(request.path)
-		if not canonical:
-			return None
-		if request.query_string:
-			canonical += "?" + request.query_string.decode("utf-8", "ignore")
-		return redirect(canonical, code=308)
+		path = request.path
+		canonical = _canonical_path(path)
+		if canonical:
+			if request.query_string:
+				canonical += "?" + request.query_string.decode("utf-8", "ignore")
+			return redirect(canonical, code=308)
+
+		# The old route handlers sometimes inspect request.path directly. Keep
+		# those checks working after Flask has matched the public /b/ alias.
+		if path.startswith("/b/"):
+			request.environ["PATH_INFO"] = "/h/" + path[3:]
+		return None
 
 	@app.after_request
 	def obsession_rewrite_board_urls(response):
