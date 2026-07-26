@@ -37,6 +37,7 @@
 	{% elif '@' in request.path and u %}
 		{% set author, a_author, published, url, title, image, section =
 		'@'~u.username,
+		'@'~u.username,
 		u.created_date,
 		u.url,
 		u.username ~ "'s profile",
