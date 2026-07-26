@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="{{'css/obsession_comment_refinement.css' | asset}}">
 <link rel="stylesheet" href="{{'css/emoji_modal_refinement.css' | asset}}">
 <link rel="stylesheet" href="{{'css/username_effects.css' | asset}}">
+<link rel="stylesheet" href="{{'css/casino_currency_cleanup.css' | asset}}">
 {% block banner %}
 	{% include "modals/expanded_image.html" %}
 	{% if err or '@' not in request.path %}
@@ -80,6 +81,7 @@
 <script defer src="{{'js/username_effects.js' | asset}}"></script>
 <script defer src="{{'js/relationship_counts.js' | asset}}"></script>
 <script defer src="{{'js/header_community_threads.js' | asset}}"></script>
+<script defer src="{{'js/casino_currency_cleanup.js' | asset}}"></script>
 {% if not err and v and v.spider %}
 	<script defer src="{{'js/vendor/critters.js' | asset}}"></script>
 	<script defer src="{{'js/spider.js' | asset}}"></script>
