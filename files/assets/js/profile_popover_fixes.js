@@ -140,14 +140,18 @@
 	async function addSupportSummary() {
 		const details = document.getElementById('profile--info');
 		if (!details || details.querySelector('[data-profile-support-summary]')) return;
+		if (details.dataset.profileSupportLoading === '1') return;
+
 		const match = location.pathname.match(/^\/@([^/]+)/);
 		if (!match) return;
+		details.dataset.profileSupportLoading = '1';
+
 		try {
 			const response = await fetch(`/api/profile/${encodeURIComponent(match[1])}/support-summary`, {
 				credentials: 'same-origin',
 				headers: {'xhr': 'xhr'},
 			});
-			if (!response.ok) return;
+			if (!response.ok || details.querySelector('[data-profile-support-summary]')) return;
 			const data = await response.json();
 			const lifetime = document.createElement('div');
 			lifetime.dataset.profileSupportSummary = '1';
@@ -156,7 +160,36 @@
 			discount.dataset.profileSupportSummary = '1';
 			discount.innerHTML = `<dt>Total award discount</dt><dd>${data.award_discount}</dd>`;
 			details.append(lifetime, discount);
-		} catch (_) {}
+		} catch (_) {
+			// Leave the profile usable if the optional support summary request fails.
+		} finally {
+			delete details.dataset.profileSupportLoading;
+		}
+	}
+
+	function initializePage() {
+		if (document.documentElement.dataset.obsProfileFixesReady === '1') {
+			addSupportSummary();
+			return;
+		}
+		document.documentElement.dataset.obsProfileFixesReady = '1';
+
+		applyConfiguredNameColor(document);
+		document.querySelectorAll(triggerSelector).forEach(initializePopover);
+		renameActivity();
+		addHeaderActivityLinks();
+		addSupportSummary();
+
+		const observer = new MutationObserver(mutations => {
+			mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
+				if (!(node instanceof Element)) return;
+				applyConfiguredNameColor(node);
+				if (node.matches(triggerSelector)) initializePopover(node);
+				node.querySelectorAll(triggerSelector).forEach(initializePopover);
+				if (node.id === 'profile--info' || node.querySelector('#profile--info')) addSupportSummary();
+			}));
+		});
+		observer.observe(document.body, {childList: true, subtree: true});
 	}
 
 	document.addEventListener('shown.bs.popover', event => {
@@ -171,20 +204,10 @@
 		});
 	});
 
-	document.addEventListener('DOMContentLoaded', () => {
-		applyConfiguredNameColor(document);
-		document.querySelectorAll(triggerSelector).forEach(initializePopover);
-		renameActivity();
-		addHeaderActivityLinks();
-		addSupportSummary();
-
-		const observer = new MutationObserver(mutations => {
-			mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
-				if (!(node instanceof Element)) return;
-				applyConfiguredNameColor(node);
-				node.querySelectorAll(triggerSelector).forEach(initializePopover);
-			}));
-		});
-		observer.observe(document.body, {childList: true, subtree: true});
-	});
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initializePage, {once: true});
+	} else {
+		initializePage();
+	}
+	window.addEventListener('pageshow', addSupportSummary);
 })();
