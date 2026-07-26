@@ -1,0 +1,57 @@
+"""Keep Obsession badge names and descriptions free of legacy branding."""
+
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+
+from files.helpers.support import (
+    CONTRIBUTION_BADGE_DESCRIPTIONS,
+    CONTRIBUTION_BADGE_NAMES,
+)
+
+
+BADGE_BRANDING = {
+    16: (
+        "Emoji Master",
+        "Made major contributions to the site's emoji collection.",
+    ),
+    17: (
+        "Emoji Artisan",
+        "Created an approved emoji for the site.",
+    ),
+    99: (
+        "Sidebar Artist",
+        "Created approved artwork for the site sidebar.",
+    ),
+}
+BADGE_BRANDING.update({
+    badge_id: (
+        CONTRIBUTION_BADGE_NAMES[badge_id],
+        CONTRIBUTION_BADGE_DESCRIPTIONS[badge_id],
+    )
+    for badge_id in CONTRIBUTION_BADGE_NAMES
+})
+
+
+def install_badge_branding(engine):
+    """Update existing badge definitions at startup without touching ownership."""
+    try:
+        with engine.begin() as connection:
+            for badge_id, (name, description) in BADGE_BRANDING.items():
+                connection.execute(
+                    text(
+                        "UPDATE badge_defs "
+                        "SET name = :name, description = :description "
+                        "WHERE id = :badge_id "
+                        "AND (name IS DISTINCT FROM :name "
+                        "OR description IS DISTINCT FROM :description)"
+                    ),
+                    {
+                        "badge_id": badge_id,
+                        "name": name,
+                        "description": description,
+                    },
+                )
+    except SQLAlchemyError:
+        # Database initialization may run before badge_defs exists on a fresh install.
+        return False
+    return True
