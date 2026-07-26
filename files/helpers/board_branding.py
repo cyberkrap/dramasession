@@ -65,6 +65,22 @@ def _install_board_route_aliases(app):
 	_add_alias(app, "/create_board", "create_sub2", ["POST"])
 
 
+def _install_canonical_submission_links():
+	"""Return /b/ links from post and comment permalink properties and APIs."""
+	from files.classes.submission import Submission
+
+	legacy_shortlink = Submission.shortlink
+	if getattr(legacy_shortlink.fget, "_obsession_board_link", False):
+		return
+
+	def canonical_shortlink(post):
+		value = legacy_shortlink.__get__(post, Submission)
+		return value.replace("/h/", "/b/", 1)
+
+	canonical_shortlink._obsession_board_link = True
+	Submission.shortlink = property(canonical_shortlink)
+
+
 def _canonical_path(path):
 	if path == "/holes":
 		return "/boards"
@@ -100,6 +116,7 @@ def install_board_branding(app):
 	subs_routes.HOLE_COST = _BOARD_COST
 
 	_install_board_route_aliases(app)
+	_install_canonical_submission_links()
 
 	@app.before_request
 	def obsession_canonical_board_redirect():
