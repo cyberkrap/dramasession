@@ -54,6 +54,13 @@
             </div>
             <p>Higher tiers keep previous feature benefits while replacing the monthly Wishbux and discount with the higher amount.</p>
         </div>
+        {% set tier_badge_assets = {
+            21: 'nikki-supporter.png',
+            22: 'bear-insider.png',
+            23: 'sandy-devoted.png',
+            24: 'curry-obsession.png',
+            25: 'ian-bankroller.png'
+        } %}
         <div class="support-tier-grid">
             {% for tier in support_tiers %}
             {% set shown_benefits = namespace(items=[]) %}
@@ -67,7 +74,7 @@
             <article class="support-tier{% if tier.popular %} support-tier-popular{% endif %}">
                 {% if tier.popular %}<div class="support-popular-label">Most Popular</div>{% endif %}
                 <div class="support-tier-badge">
-                    <img loading="lazy" src="/i/Obsession/badges/{{tier.badge}}.webp?v=1" alt="{{tier.name}} support badge" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                    <img loading="lazy" src="/i/Obsession/badges/{{tier_badge_assets[tier.badge]}}?v=20260726" alt="{{tier.name}} support badge" onerror="this.onerror=null;this.src='/i/Obsession/badges/{{tier.badge}}.webp?v=1'">
                     <span class="support-badge-fallback" hidden aria-hidden="true"><i class="fas fa-heart"></i></span>
                 </div>
                 <div class="support-tier-heading">
