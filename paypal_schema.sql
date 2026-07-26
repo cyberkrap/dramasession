@@ -55,25 +55,7 @@ UPDATE public.badge_defs
 SET description = replace(replace(description, 'dramacoin', 'Wishcoin'), 'Dramacoin', 'Wishcoin')
 WHERE description ILIKE '%dramacoin%';
 
--- Restore every lifetime contribution milestone already earned from verified payments.
-WITH verified_totals AS (
-    SELECT user_id, SUM(gross_cents)::bigint AS total_cents
-    FROM public.paypal_payments
-    WHERE status = 'COMPLETED'
-    GROUP BY user_id
-), thresholds(threshold_cents, badge_id) AS (
-    VALUES
-        (500::bigint, 21),
-        (1000::bigint, 22),
-        (2000::bigint, 23),
-        (5000::bigint, 24),
-        (10000::bigint, 25),
-        (25000::bigint, 26),
-        (50000::bigint, 27)
-)
-INSERT INTO public.badges (user_id, badge_id, created_utc)
-SELECT totals.user_id, thresholds.badge_id, EXTRACT(EPOCH FROM NOW())::integer
-FROM verified_totals AS totals
-CROSS JOIN thresholds
-WHERE totals.total_cents >= thresholds.threshold_cents
-ON CONFLICT DO NOTHING;
+-- Do not insert contribution badges from raw PayPal rows here. This schema is
+-- executed during deployments, and historical sandbox payments can be larger
+-- than a user's live or manually overridden lifetime total. The application
+-- now reconciles badge rows exactly against effective_contribution_cents().
