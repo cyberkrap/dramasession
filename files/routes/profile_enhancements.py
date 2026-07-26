@@ -9,6 +9,7 @@ from files.helpers.contribution_badges import (
 )
 from files.helpers.get import get_user
 from files.helpers.lifetime_contributions import effective_contribution_cents
+from files.helpers.shop_spending import reconcile_award_spend
 
 
 # Voting activity is public between users. Existing routes use this permission
@@ -50,12 +51,13 @@ def _support_summary(user, *, sync_badges=False):
 
 
 def profile_support_summary_for_template(user):
-    """Resolve support stats while the profile template owns an active DB session."""
+    """Resolve profile economy stats while the template has an active DB session."""
     if user is None or not getattr(g, 'db', None):
         return {
             'lifetime_donated': '$0.00',
             'award_discount': '0%',
         }
+    reconcile_award_spend(g.db, user)
     return _support_summary(user, sync_badges=True)
 
 
@@ -66,4 +68,5 @@ app.jinja_env.globals['profile_support_summary_for_template'] = profile_support_
 @limiter.limit(DEFAULT_RATELIMIT)
 def profile_support_summary(username):
     user = get_user(username, v=getattr(g, 'v', None), include_shadowbanned=False)
+    reconcile_award_spend(g.db, user)
     return _support_summary(user, sync_badges=True)
