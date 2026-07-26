@@ -1,5 +1,6 @@
 """Obsession-specific board pricing, canonical URLs, and compatibility aliases."""
 
+from importlib import import_module
 from urllib.parse import urlsplit, urlunsplit
 
 from flask import redirect, request
@@ -11,9 +12,17 @@ _BOARD_COST = 15_000
 _INSTALLED_ATTR = "_obsession_board_branding_installed"
 
 
+def _route_key(rule, endpoint, methods):
+	return rule, endpoint, frozenset(methods)
+
+
 def _add_alias(app, rule, endpoint, methods):
-	if any(existing.rule == rule and existing.endpoint == endpoint for existing in app.url_map.iter_rules()):
-		return
+	methods = sorted(set(methods) - {"HEAD", "OPTIONS"})
+	key = _route_key(rule, endpoint, methods)
+	for existing in app.url_map.iter_rules():
+		existing_methods = set(existing.methods or ()) - {"HEAD", "OPTIONS"}
+		if _route_key(existing.rule, existing.endpoint, existing_methods) == key:
+			return
 	view_func = app.view_functions.get(endpoint)
 	if not view_func:
 		return
@@ -22,17 +31,25 @@ def _add_alias(app, rule, endpoint, methods):
 
 def _install_board_route_aliases(app):
 	"""Expose every legacy /h/ route under the canonical /b/ prefix."""
-	existing_rules = {rule.rule for rule in app.url_map.iter_rules()}
+	existing_keys = {
+		_route_key(
+			rule.rule,
+			rule.endpoint,
+			set(rule.methods or ()) - {"HEAD", "OPTIONS"},
+		)
+		for rule in app.url_map.iter_rules()
+	}
 	for rule in list(app.url_map.iter_rules()):
 		if "/h/" not in rule.rule:
 			continue
 		alias = rule.rule.replace("/h/", "/b/", 1)
-		if alias in existing_rules:
+		methods = sorted(set(rule.methods or ()) - {"HEAD", "OPTIONS"})
+		key = _route_key(alias, rule.endpoint, methods)
+		if key in existing_keys:
 			continue
 		view_func = app.view_functions.get(rule.endpoint)
 		if not view_func:
 			continue
-		methods = sorted(set(rule.methods or ()) - {"HEAD", "OPTIONS"})
 		app.add_url_rule(
 			alias,
 			endpoint=rule.endpoint,
@@ -41,7 +58,7 @@ def _install_board_route_aliases(app):
 			defaults=rule.defaults,
 			strict_slashes=rule.strict_slashes,
 		)
-		existing_rules.add(alias)
+		existing_keys.add(key)
 
 	_add_alias(app, "/boards", "subs", ["GET"])
 	_add_alias(app, "/create_board", "create_sub", ["GET"])
@@ -79,7 +96,7 @@ def install_board_branding(app):
 
 	# Route functions read HOLE_COST from their module globals at request time.
 	# Overriding it here changes both the displayed price and the actual charge.
-	from files.routes import subs as subs_routes
+	subs_routes = import_module("files.routes.subs")
 	subs_routes.HOLE_COST = _BOARD_COST
 
 	_install_board_route_aliases(app)
