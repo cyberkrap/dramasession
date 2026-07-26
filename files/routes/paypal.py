@@ -36,6 +36,7 @@ from files.routes.wrappers import auth_required, get_ID
 
 
 _ACTIVE_PLAN_IDS = tuple(SUPPORT_TIER_BY_PLAN_ID)
+_BLOCKING_SUBSCRIPTION_STATUSES = ("ACTIVE", "PAYMENT_FAILED", "SUSPENDED")
 
 
 @app.context_processor
@@ -45,12 +46,20 @@ def paypal_support_template_context():
 
     viewer = getattr(g, "v", None)
     current_subscription = None
+    pending_subscription = None
     if viewer and _ACTIVE_PLAN_IDS:
         current_subscription = g.db.query(PaypalSubscription).filter(
             PaypalSubscription.user_id == viewer.id,
             PaypalSubscription.plan_id.in_(_ACTIVE_PLAN_IDS),
-            PaypalSubscription.status.in_(("ACTIVE", "APPROVAL_PENDING", "PAYMENT_FAILED")),
+            PaypalSubscription.status.in_(_BLOCKING_SUBSCRIPTION_STATUSES),
         ).order_by(PaypalSubscription.updated_utc.desc()).first()
+
+        if current_subscription is None:
+            pending_subscription = g.db.query(PaypalSubscription).filter(
+                PaypalSubscription.user_id == viewer.id,
+                PaypalSubscription.plan_id.in_(_ACTIVE_PLAN_IDS),
+                PaypalSubscription.status == "APPROVAL_PENDING",
+            ).order_by(PaypalSubscription.updated_utc.desc()).first()
 
     return {
         "paypal_checkout_configured": PAYPAL_CHECKOUT_CONFIGURED,
@@ -61,6 +70,7 @@ def paypal_support_template_context():
         "paypal_mode": PAYPAL_MODE,
         "paypal_custom_id": paypal_custom_id(viewer.id) if viewer else "",
         "paypal_current_subscription": current_subscription,
+        "paypal_pending_subscription": pending_subscription,
     }
 
 
