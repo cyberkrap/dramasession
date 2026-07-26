@@ -38,9 +38,14 @@ def template_asset(ctx, asset_path):
 
 @app.template_filter("asset_siteimg")
 def template_asset_siteimg(asset_path):
-	if SITE_NAME == "Obsession" and str(asset_path).lower() in {"coins.webp", "wishcoin.webp"}:
-		from files.helpers.wishcoin_asset import WISHCOIN_ASSET_URL
-		return WISHCOIN_ASSET_URL
+	if SITE_NAME == "Obsession":
+		asset_name = str(asset_path).lower()
+		if asset_name in {"coins.webp", "wishcoin.webp"}:
+			from files.helpers.wishcoin_asset import WISHCOIN_ASSET_URL
+			return WISHCOIN_ASSET_URL
+		if asset_name in {"marseybux.webp", "marseybux.png", "wishbux.webp"}:
+			from files.helpers.wishcoin_asset import WISHBUX_ASSET_URL
+			return WISHBUX_ASSET_URL
 	# TODO: Add hashing for these using files.helpers.assetcache
 	return f'/i/{SITE_NAME}/{asset_path}?v=3010'
 
