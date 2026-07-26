@@ -1,0 +1,38 @@
+/* Keep casino currency selection focused on the currency artwork, not a button box. */
+.casino-currency-choice-clean {
+	background: transparent !important;
+	background-image: none !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	outline-offset: 4px;
+	padding: 0 !important;
+	min-width: 0 !important;
+	min-height: 0 !important;
+}
+
+.casino-currency-choice-clean:hover,
+.casino-currency-choice-clean:active,
+.casino-currency-choice-clean:focus,
+.casino-currency-choice-clean:focus-visible,
+.casino-currency-choice-clean.active,
+.casino-currency-choice-clean[aria-checked="true"] {
+	background: transparent !important;
+	background-image: none !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	transform: none !important;
+}
+
+.casino-currency-choice-clean > span,
+.casino-currency-choice-clean > div {
+	background: transparent !important;
+	background-image: none !important;
+	border: 0 !important;
+	box-shadow: none !important;
+}
+
+.casino-currency-choice-clean img {
+	display: block;
+	object-fit: contain;
+}
