@@ -11,14 +11,14 @@ from files.helpers.lazy import lazy
 
 
 _OBSESSION_BADGE_ASSETS = {
-	16: "emoji-master.png",
-	17: "emoji-artisan.png",
-	21: "nikki-supporter.png",
-	22: "bear-insider.png",
-	23: "sandy-devoted.png",
-	24: "curry-obsession.png",
-	25: "ian-bankroller.png",
-	99: "sidebar.png",
+	16: "emoji-master.webp",
+	17: "emoji-artisan.webp",
+	21: "nikki-supporter.webp",
+	22: "bear-insider.webp",
+	23: "sandy-devoted.webp",
+	24: "curry-obsession.webp",
+	25: "ian-bankroller.webp",
+	99: "sidebar.webp",
 }
 _BADGE_ASSET_DIRECTORY = Path(__file__).resolve().parents[1] / "assets" / "images" / SITE_NAME / "badges"
 
@@ -43,7 +43,7 @@ class BadgeDef(Base):
 	def path(self):
 		asset_name = _OBSESSION_BADGE_ASSETS.get(self.id)
 		if asset_name and (_BADGE_ASSET_DIRECTORY / asset_name).is_file():
-			return f"/i/{SITE_NAME}/badges/{asset_name}?v=20260726"
+			return f"/i/{SITE_NAME}/badges/{asset_name}?v=20260726-webp"
 		if 20 < self.id < 28 or self.id == 222:
 			return f"/i/{SITE_NAME}/badges/{self.id}.webp"
 		return f"/i/badges/{self.id}.webp"
