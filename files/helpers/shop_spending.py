@@ -13,6 +13,9 @@ SPENDING_BADGE_THRESHOLDS = (
 	(500_000, 72),
 	(1_000_000, 73),
 )
+SPENDING_BADGE_IDS = tuple(
+	badge_id for _threshold, badge_id in SPENDING_BADGE_THRESHOLDS
+)
 
 
 def recorded_award_spend(db, user_id):
