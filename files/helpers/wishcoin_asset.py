@@ -7,8 +7,8 @@ from flask import redirect, request
 from files.helpers.config.const import SITE_NAME
 
 
-WISHCOIN_ASSET_PATH = "/i/Obsession/wishcoin2-optimize.gif"
-WISHCOIN_ASSET_URL = f"{WISHCOIN_ASSET_PATH}?v=20260726"
+WISHCOIN_ASSET_PATH = "/i/Obsession/wishcoin2-optimize.webp"
+WISHCOIN_ASSET_URL = f"{WISHCOIN_ASSET_PATH}?v=20260726-webp"
 
 _LEGACY_REQUEST_PATHS = {
 	"/i/Obsession/coins.webp",
@@ -33,7 +33,7 @@ _TEXT_MIMETYPES = {
 
 
 def install_wishcoin_asset(app):
-	"""Redirect legacy requests and rewrite rendered references to the uploaded GIF."""
+	"""Redirect legacy requests and rewrite rendered references to the uploaded WebP."""
 	if SITE_NAME != "Obsession" or getattr(app, "_obsession_wishcoin_asset_installed", False):
 		return
 
