@@ -37,6 +37,9 @@
             </div>
         {% elif paypal_ready and v %}
             <div class="support-payment-status support-payment-status-ready" role="status"><i class="fab fa-paypal" aria-hidden="true"></i><span><strong>Live PayPal checkout is ready.</strong><small>This creates a real recurring monthly subscription.</small></span></div>
+            {% if paypal_pending_subscription %}
+            <div class="support-payment-status" role="status"><i class="fas fa-rotate-right" aria-hidden="true"></i><span><strong>Your earlier checkout was not completed.</strong><small>The approval-pending attempt does not block you. Choose any tier below and try again.</small></span></div>
+            {% endif %}
         {% elif paypal_checkout_configured and not paypal_webhook_configured %}
             <div class="support-payment-status" role="status"><i class="fas fa-wrench" aria-hidden="true"></i><span><strong>Final live payment connection is being completed.</strong><small>The PayPal plans are configured, but checkout remains disabled until signed live payment notifications are connected.</small></span></div>
         {% else %}
