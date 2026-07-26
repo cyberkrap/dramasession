@@ -9,7 +9,7 @@ from files.helpers.contribution_badges import (
 )
 from files.helpers.get import get_user
 from files.helpers.lifetime_contributions import effective_contribution_cents
-from files.helpers.shop_spending import reconcile_award_spend
+from files.helpers.shop_spending import SPENDING_BADGE_IDS, reconcile_award_spend
 
 
 # Voting activity is public between users. Existing routes use this permission
@@ -18,6 +18,8 @@ from files.helpers.shop_spending import reconcile_award_spend
 PERMS['USER_VOTERS_VISIBLE'] = 0
 
 _CONTRIBUTION_BADGE_ID_SET = set(CONTRIBUTION_BADGE_IDS)
+_SPENDING_BADGE_ID_SET = set(SPENDING_BADGE_IDS)
+_MILESTONE_BADGE_ID_SET = _CONTRIBUTION_BADGE_ID_SET | _SPENDING_BADGE_ID_SET
 
 
 def _support_summary(user, *, sync_badges=False):
@@ -26,22 +28,33 @@ def _support_summary(user, *, sync_badges=False):
         sync_cumulative_contribution_badges(g.db, user, total_cents=lifetime_cents)
         g.db.flush()
 
-        # Refresh the relationship after removing badges above the effective
-        # total, then keep contribution milestones together in ascending order.
+        # Refresh after milestone reconciliation, then keep each milestone family
+        # together in ascending threshold order without disturbing other badges.
         g.db.expire(user, ['badges'])
         badges = list(user.badges)
         regular_badges = [
             badge for badge in badges
-            if badge.badge_id not in _CONTRIBUTION_BADGE_ID_SET
+            if badge.badge_id not in _MILESTONE_BADGE_ID_SET
         ]
         contribution_badges = sorted(
             (
                 badge for badge in badges
                 if badge.badge_id in _CONTRIBUTION_BADGE_ID_SET
             ),
-            key=lambda badge: badge.badge_id,
+            key=lambda badge: CONTRIBUTION_BADGE_IDS.index(badge.badge_id),
         )
-        set_committed_value(user, 'badges', regular_badges + contribution_badges)
+        spending_badges = sorted(
+            (
+                badge for badge in badges
+                if badge.badge_id in _SPENDING_BADGE_ID_SET
+            ),
+            key=lambda badge: SPENDING_BADGE_IDS.index(badge.badge_id),
+        )
+        set_committed_value(
+            user,
+            'badges',
+            regular_badges + contribution_badges + spending_badges,
+        )
 
     discount_percent = max(0, round((1 - float(user.discount)) * 100))
     return {
