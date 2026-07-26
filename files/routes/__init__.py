@@ -111,6 +111,7 @@ from files.helpers.default_user_background import install_default_user_backgroun
 from files.helpers.patron_branding import install_patron_branding
 from files.helpers.persistent_site_content import install_persistent_site_content
 from files.helpers.username_effects import install_username_effects
+from files.helpers.wishcoin_asset import install_wishcoin_asset
 install_ban_hat_support()
 install_board_branding(app)
 install_cumulative_contribution_badges()
@@ -119,6 +120,7 @@ install_default_user_background()
 install_patron_branding()
 install_persistent_site_content()
 install_username_effects(engine, User)
+install_wishcoin_asset(app)
 if FEATURES['ASSET_SUBMISSIONS']:
 	from files.helpers.emote_management import ensure_emote_directories, install_custom_emote_rendering
 	ensure_emote_directories()
