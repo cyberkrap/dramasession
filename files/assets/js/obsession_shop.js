@@ -50,25 +50,120 @@
 		if (!(shell instanceof Element) || shell.dataset.awardPurchasesReady === '1') return;
 		shell.dataset.awardPurchasesReady = '1';
 
-		for (const button of shell.querySelectorAll('[data-award-buy-url]')) {
-			button.addEventListener('click', () => {
-				if (button.disabled || button.dataset.purchasePending === '1') return;
+		const modal = shell.querySelector('[data-award-purchase-modal]');
+		const dialog = modal && modal.querySelector('.obs-purchase-modal__dialog');
+		const titleNode = modal && modal.querySelector('[data-award-confirm-title]');
+		const priceNode = modal && modal.querySelector('[data-award-confirm-price]');
+		const confirmButton = modal && modal.querySelector('[data-award-purchase-confirm]');
+		const closeButtons = modal ? Array.from(modal.querySelectorAll('[data-award-purchase-close]')) : [];
+		const buyButtons = Array.from(shell.querySelectorAll('[data-award-buy-url]'));
 
-				const title = String(button.dataset.awardTitle || 'this award').trim();
-				const price = String(button.dataset.awardPrice || '').trim();
-				const priceText = price ? ` for ${price} Wishbux` : '';
-				if (!window.confirm(`Are you sure you want to buy ${title}${priceText}?`)) return;
+		if (!(modal instanceof Element) || !(dialog instanceof Element) || !(confirmButton instanceof HTMLButtonElement)) return;
 
-				const url = String(button.dataset.awardBuyUrl || '').trim();
-				if (!url || typeof postToastReload !== 'function') {
-					showToast(false, 'This award cannot be purchased right now.');
-					return;
-				}
+		let triggerButton = null;
+		let purchaseUrl = '';
+		let purchasePending = false;
+		const confirmLabel = confirmButton.innerHTML;
 
-				button.dataset.purchasePending = '1';
-				postToastReload(button, url);
-			});
+		function focusableElements() {
+			return Array.from(dialog.querySelectorAll(
+				'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+			)).filter(element => element instanceof HTMLElement && element.offsetParent !== null);
 		}
+
+		function resetPendingState() {
+			purchasePending = false;
+			confirmButton.disabled = false;
+			confirmButton.removeAttribute('aria-busy');
+			confirmButton.innerHTML = confirmLabel;
+		}
+
+		function closeModal() {
+			if (purchasePending || modal.hidden) return;
+			modal.hidden = true;
+			modal.setAttribute('aria-hidden', 'true');
+			document.body.classList.remove('obs-shop-modal-open');
+			purchaseUrl = '';
+			const restoreTarget = triggerButton;
+			triggerButton = null;
+			if (restoreTarget instanceof HTMLElement && restoreTarget.isConnected) restoreTarget.focus();
+		}
+
+		function openModal(button) {
+			if (!(button instanceof HTMLButtonElement) || button.disabled || button.dataset.purchasePending === '1') return;
+
+			triggerButton = button;
+			purchaseUrl = String(button.dataset.awardBuyUrl || '').trim();
+			const title = String(button.dataset.awardTitle || 'Award').trim();
+			const price = String(button.dataset.awardPrice || '0').trim();
+
+			if (!purchaseUrl) {
+				showToast(false, 'This award cannot be purchased right now.');
+				return;
+			}
+
+			if (titleNode) titleNode.textContent = title;
+			if (priceNode) priceNode.textContent = price;
+			resetPendingState();
+			modal.hidden = false;
+			modal.setAttribute('aria-hidden', 'false');
+			document.body.classList.add('obs-shop-modal-open');
+			window.requestAnimationFrame(() => confirmButton.focus());
+		}
+
+		for (const button of buyButtons) {
+			button.addEventListener('click', () => openModal(button));
+		}
+
+		for (const button of closeButtons) {
+			button.addEventListener('click', closeModal);
+		}
+
+		confirmButton.addEventListener('click', () => {
+			if (purchasePending || !purchaseUrl || !(triggerButton instanceof HTMLButtonElement)) return;
+			if (typeof postToastReload !== 'function') {
+				showToast(false, 'This award cannot be purchased right now.');
+				return;
+			}
+
+			purchasePending = true;
+			triggerButton.dataset.purchasePending = '1';
+			confirmButton.disabled = true;
+			confirmButton.setAttribute('aria-busy', 'true');
+			confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1" aria-hidden="true"></i>Purchasing';
+			postToastReload(confirmButton, purchaseUrl);
+
+			window.setTimeout(() => {
+				if (!document.body.contains(confirmButton)) return;
+				if (triggerButton instanceof HTMLButtonElement) delete triggerButton.dataset.purchasePending;
+				resetPendingState();
+			}, 8000);
+		});
+
+		modal.addEventListener('keydown', event => {
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				closeModal();
+				return;
+			}
+
+			if (event.key !== 'Tab') return;
+			const focusable = focusableElements();
+			if (!focusable.length) {
+				event.preventDefault();
+				return;
+			}
+
+			const first = focusable[0];
+			const last = focusable[focusable.length - 1];
+			if (event.shiftKey && document.activeElement === first) {
+				event.preventDefault();
+				last.focus();
+			} else if (!event.shiftKey && document.activeElement === last) {
+				event.preventDefault();
+				first.focus();
+			}
+		});
 	}
 
 	function initializeEffectActions(shell) {
