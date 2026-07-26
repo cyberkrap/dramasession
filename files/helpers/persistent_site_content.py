@@ -187,6 +187,10 @@ def _normalize_obsession_sidebar_links(content):
 		"https://discord.gg/SnzRCwkJ3s",
 		"https://discord.gg/ymKWdNHSXq",
 	)
+	content = content.replace(
+		"Discord and Reddit chuds will be banned on sight.",
+		"WPD and rDrama chuds will be banned on sight.",
+	)
 	return "".join(
 		line for line in content.splitlines(keepends=True)
 		if "watchpeopledie.tv" not in line.lower()
