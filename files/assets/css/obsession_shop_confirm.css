@@ -1,0 +1,213 @@
+.obs-purchase-modal[hidden] {
+	display: none !important;
+}
+
+.obs-purchase-modal {
+	position: fixed;
+	z-index: 20050;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 20px;
+}
+
+.obs-purchase-modal__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, .74);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+}
+
+.obs-purchase-modal__dialog {
+	position: relative;
+	z-index: 1;
+	width: min(100%, 460px);
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, .14);
+	border-radius: 16px;
+	background:
+		radial-gradient(circle at 92% 4%, rgba(239, 35, 60, .19), transparent 34%),
+		linear-gradient(150deg, #171218, #0b0b0f 70%);
+	box-shadow: 0 28px 90px rgba(0, 0, 0, .62);
+	animation: obs-purchase-modal-in .18s ease-out;
+}
+
+.obs-purchase-modal__close {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	padding: 0;
+	color: #aaa4aa;
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 9px;
+	background: rgba(255, 255, 255, .04);
+	transition: color .16s ease, border-color .16s ease, background-color .16s ease;
+}
+
+.obs-purchase-modal__close:hover,
+.obs-purchase-modal__close:focus-visible {
+	color: #fff;
+	border-color: rgba(255, 255, 255, .22);
+	background: rgba(255, 255, 255, .08);
+}
+
+.obs-purchase-modal__body {
+	padding: 30px 30px 24px;
+}
+
+.obs-purchase-modal__mark {
+	display: grid;
+	place-items: center;
+	width: 54px;
+	height: 54px;
+	margin-bottom: 20px;
+	color: #fff;
+	font-size: 1.35rem;
+	border: 1px solid rgba(239, 35, 60, .42);
+	border-radius: 14px;
+	background: linear-gradient(145deg, #ef233c, #9b1028);
+	box-shadow: 0 12px 28px rgba(155, 16, 40, .32);
+}
+
+.obs-purchase-modal__eyebrow {
+	margin: 0 0 7px;
+	color: #ff8795;
+	font-size: .68rem;
+	font-weight: 850;
+	letter-spacing: .1em;
+	text-transform: uppercase;
+}
+
+.obs-purchase-modal h2 {
+	margin: 0;
+	color: #fff;
+	font-size: clamp(1.45rem, 4vw, 1.85rem);
+	font-weight: 850;
+	letter-spacing: -.025em;
+	line-height: 1.15;
+}
+
+.obs-purchase-modal__copy {
+	margin: 12px 0 0;
+	color: #bdb7bc;
+	font-size: .9rem;
+	line-height: 1.55;
+}
+
+.obs-purchase-modal__summary {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 14px;
+	align-items: center;
+	margin-top: 22px;
+	padding: 15px 16px;
+	border: 1px solid rgba(255, 255, 255, .09);
+	border-radius: 11px;
+	background: rgba(0, 0, 0, .24);
+}
+
+.obs-purchase-modal__summary span {
+	min-width: 0;
+	color: #f2eef1;
+	font-size: .92rem;
+	font-weight: 750;
+	overflow-wrap: anywhere;
+}
+
+.obs-purchase-modal__summary strong {
+	color: #fff;
+	font-size: .92rem;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.obs-purchase-modal__note {
+	display: flex;
+	gap: 9px;
+	align-items: flex-start;
+	margin: 14px 0 0;
+	color: #8f898e;
+	font-size: .75rem;
+	line-height: 1.45;
+}
+
+.obs-purchase-modal__note i {
+	margin-top: 2px;
+	color: #d86975;
+}
+
+.obs-purchase-modal__actions {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	padding: 16px 20px;
+	border-top: 1px solid rgba(255, 255, 255, .075);
+	background: rgba(0, 0, 0, .18);
+}
+
+.obs-purchase-modal__actions .btn {
+	min-width: 112px;
+	min-height: 42px;
+	font-weight: 800;
+}
+
+.obs-purchase-modal__confirm {
+	background: linear-gradient(135deg, #ef233c, #b41530) !important;
+	box-shadow: 0 8px 20px rgba(180, 21, 48, .24);
+}
+
+.obs-purchase-modal__confirm[disabled] {
+	cursor: wait;
+	opacity: .72;
+}
+
+body.obs-shop-modal-open {
+	overflow: hidden;
+}
+
+@keyframes obs-purchase-modal-in {
+	from {
+		opacity: 0;
+		transform: translateY(10px) scale(.985);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@media (max-width: 520px) {
+	.obs-purchase-modal {
+		align-items: end;
+		padding: 10px;
+	}
+
+	.obs-purchase-modal__dialog {
+		width: 100%;
+		border-radius: 15px;
+	}
+
+	.obs-purchase-modal__body {
+		padding: 26px 20px 21px;
+	}
+
+	.obs-purchase-modal__actions {
+		padding: 13px 14px 14px;
+	}
+
+	.obs-purchase-modal__actions .btn {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.obs-purchase-modal__dialog {
+		animation: none;
+	}
+}
