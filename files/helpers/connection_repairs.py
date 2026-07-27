@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import html
 import importlib
 import os
+import re
 import time
 from xml.etree import ElementTree
 
@@ -12,7 +14,8 @@ from flask import g
 from sqlalchemy import text
 
 
-_STEAM_IDENTITY_TTL = 6 * 60 * 60
+_STEAM_RESOLVED_TTL = 6 * 60 * 60
+_STEAM_UNRESOLVED_TTL = 5 * 60
 _HTTP_TIMEOUT = (3.5, 6.0)
 
 
@@ -29,7 +32,7 @@ def _steam_identity(steam_id: str) -> dict:
             response = requests.get(
                 "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/",
                 params={"key": api_key, "steamids": steam_id},
-                headers={"User-Agent": "Obsession-Connections/1.1"},
+                headers={"User-Agent": "Obsession-Connections/1.2"},
                 timeout=_HTTP_TIMEOUT,
             )
             if response.ok:
@@ -48,23 +51,45 @@ def _steam_identity(steam_id: str) -> dict:
         response = requests.get(
             profile_url,
             params={"xml": "1"},
-            headers={"User-Agent": "Obsession-Connections/1.1"},
+            headers={"User-Agent": "Obsession-Connections/1.2"},
+            timeout=_HTTP_TIMEOUT,
+        )
+        if response.ok:
+            root = ElementTree.fromstring(response.content)
+            display_name = (root.findtext("steamID") or "").strip()
+            avatar_url = (root.findtext("avatarFull") or root.findtext("avatarMedium") or "").strip()
+            custom_url = (root.findtext("customURL") or "").strip()
+            if custom_url:
+                profile_url = f"https://steamcommunity.com/id/{custom_url}"
+            if display_name:
+                return {
+                    "display_name": display_name,
+                    "profile_url": profile_url,
+                    "avatar_url": avatar_url or None,
+                }
+    except (requests.RequestException, ElementTree.ParseError, ValueError, TypeError):
+        pass
+
+    try:
+        response = requests.get(
+            profile_url,
+            headers={"User-Agent": "Obsession-Connections/1.2"},
             timeout=_HTTP_TIMEOUT,
         )
         if not response.ok:
             return {}
-        root = ElementTree.fromstring(response.content)
-        display_name = (root.findtext("steamID") or "").strip()
-        avatar_url = (root.findtext("avatarFull") or root.findtext("avatarMedium") or "").strip()
-        custom_url = (root.findtext("customURL") or "").strip()
-        if custom_url:
-            profile_url = f"https://steamcommunity.com/id/{custom_url}"
+        body = response.text
+        match = re.search(r'<span[^>]+class="actual_persona_name"[^>]*>(.*?)</span>', body, re.I | re.S)
+        if not match:
+            match = re.search(r'<title>\s*Steam Community\s*::\s*(.*?)\s*</title>', body, re.I | re.S)
+        display_name = html.unescape(re.sub(r"<[^>]+>", "", match.group(1))).strip() if match else ""
+        avatar_match = re.search(r'<meta[^>]+property="og:image"[^>]+content="([^"]+)"', body, re.I)
         return {
             "display_name": display_name,
             "profile_url": profile_url,
-            "avatar_url": avatar_url or None,
-        }
-    except (requests.RequestException, ElementTree.ParseError, ValueError, TypeError):
+            "avatar_url": html.unescape(avatar_match.group(1)).strip() if avatar_match else None,
+        } if display_name else {}
+    except (requests.RequestException, ValueError, TypeError):
         return {}
 
 
@@ -83,10 +108,11 @@ def _hydrate_steam_row(module, row, *, force: bool = False):
     now = int(time.time())
     last_checked = int(metadata.get("steam_identity_checked_utc") or 0)
     unresolved = _needs_steam_identity(hydrated)
+    ttl = _STEAM_UNRESOLVED_TTL if unresolved else _STEAM_RESOLVED_TTL
 
     if not force and not unresolved:
         return hydrated
-    if not force and last_checked > now - _STEAM_IDENTITY_TTL:
+    if not force and last_checked > now - ttl:
         return hydrated
 
     identity = _steam_identity(hydrated.get("provider_user_id"))
@@ -137,12 +163,52 @@ def install_connection_repairs():
     original_rows = module._connection_rows
     original_public = module._public_connection
     original_steam_callback = module._steam_callback
+    original_upsert = module._upsert_connection
+
+    def upsert_connection(**kwargs):
+        provider = str(kwargs.get("provider") or "").strip().lower()
+        source = str(kwargs.get("source") or "direct").strip().lower()
+        provider_user_id = str(kwargs.get("provider_user_id") or "").strip()
+        display_name = str(kwargs.get("display_name") or "").strip()
+        if provider == "steam" and source == "discord" and provider_user_id:
+            direct = g.db.execute(
+                text(
+                    """
+                    SELECT id, display_name FROM user_connections
+                    WHERE user_id=:user_id AND provider='steam'
+                      AND provider_user_id=:provider_user_id AND source='direct'
+                    """
+                ),
+                {"user_id": int(kwargs["user_id"]), "provider_user_id": provider_user_id},
+            ).mappings().first()
+            if direct:
+                current_name = str(direct.get("display_name") or "").strip()
+                if display_name and not display_name.isdigit() and (not current_name or current_name.isdigit() or current_name == provider_user_id):
+                    g.db.execute(
+                        text(
+                            """
+                            UPDATE user_connections
+                            SET display_name=:display_name,
+                                profile_url=COALESCE(:profile_url, profile_url),
+                                updated_utc=:updated_utc
+                            WHERE id=:id
+                            """
+                        ),
+                        {
+                            "display_name": display_name[:255],
+                            "profile_url": kwargs.get("profile_url"),
+                            "updated_utc": int(time.time()),
+                            "id": int(direct["id"]),
+                        },
+                    )
+                return
+        return original_upsert(**kwargs)
 
     def connection_rows(user_id, public_only=False):
         rows = original_rows(user_id, public_only=public_only)
         return [
             _hydrate_steam_row(module, row)
-            if row.get("provider") == "steam"
+            if dict(row).get("provider") == "steam"
             else row
             for row in rows
         ]
@@ -151,21 +217,23 @@ def install_connection_repairs():
         public = original_public(row)
         if public.get("provider") == "steam":
             name = str(public.get("display_name") or "").strip()
-            provider_id = str(row.get("provider_user_id") or "").strip()
+            provider_id = str(dict(row).get("provider_user_id") or "").strip()
             if not name or name == provider_id or name.isdigit():
                 public["display_name"] = "Steam account"
 
-        # Service marks are more reliable and visually consistent than remote
-        # profile images, which may expire or be blocked by a provider CDN.
+        # Provider marks are stable and consistent; remote profile images may
+        # expire or be blocked by provider CDNs.
         public["avatar_url"] = None
         return public
 
     def steam_callback(v):
         original_steam_callback(v)
         for row in original_rows(v.id):
-            if row.get("provider") == "steam" and row.get("source") == "direct":
-                _hydrate_steam_row(module, row, force=True)
+            row_data = dict(row)
+            if row_data.get("provider") == "steam" and row_data.get("source") == "direct":
+                _hydrate_steam_row(module, row_data, force=True)
 
+    module._upsert_connection = upsert_connection
     module._connection_rows = connection_rows
     module._public_connection = public_connection
     module._steam_callback = steam_callback
