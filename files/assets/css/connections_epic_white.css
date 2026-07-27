@@ -1,0 +1,5 @@
+/* Keep the white Epic Games asset white on dark profile backgrounds. */
+.connection-provider-epicgames .connection-brand-image,
+.connection-provider-epicgames .connection-epic-mark {
+	filter: none !important;
+}
