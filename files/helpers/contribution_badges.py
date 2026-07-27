@@ -1,14 +1,17 @@
-"""Active recurring-support badge fulfilment for verified PayPal subscriptions."""
+"""Active recurring-support badge fulfilment for verified and manual patrons."""
 
+from functools import wraps
 import importlib
 import threading
 import time
 
-from sqlalchemy import text
+from flask import g, request
+from sqlalchemy import Boolean, Column, inspect, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from files.__main__ import app, engine
 from files.classes import Badge, PaypalPayment, PaypalSubscription, User
+from files.helpers.get import get_user
 from files.helpers.support import PAYPAL_ACTIVE_PLAN_IDS, SUPPORT_TIER_BY_LEVEL
 
 
@@ -29,15 +32,52 @@ CONTRIBUTION_BADGE_IDS = ACTIVE_SUPPORT_BADGE_IDS + LEGACY_LIFETIME_BADGE_IDS
 
 _SYNC_LOCK = threading.Lock()
 _NEXT_GLOBAL_SYNC_UTC = 0
+_FLAG_INSTALLED = False
+_ADMIN_ROUTE_INSTALLED = False
+
+
+def _install_patron_badge_flag():
+    """Persist whether a manually granted patron must receive no donation badges."""
+    global _FLAG_INSTALLED
+    if _FLAG_INSTALLED:
+        return
+
+    if not hasattr(User, "patron_badges_disabled"):
+        User.patron_badges_disabled = Column(
+            Boolean,
+            nullable=False,
+            default=False,
+            server_default=text("FALSE"),
+        )
+
+    inspector = inspect(engine)
+    if inspector.has_table("users"):
+        existing = {column["name"] for column in inspector.get_columns("users")}
+        if "patron_badges_disabled" not in existing:
+            with engine.begin() as connection:
+                if engine.dialect.name == "postgresql":
+                    connection.exec_driver_sql(
+                        "ALTER TABLE users ADD COLUMN IF NOT EXISTS "
+                        "patron_badges_disabled BOOLEAN NOT NULL DEFAULT FALSE"
+                    )
+                else:
+                    connection.exec_driver_sql(
+                        "ALTER TABLE users ADD COLUMN "
+                        "patron_badges_disabled BOOLEAN NOT NULL DEFAULT FALSE"
+                    )
+    _FLAG_INSTALLED = True
 
 
 def sync_active_support_badges(db, user, level=None):
-    """Match cumulative badges to the user's currently entitled monthly tier."""
-    if level is None:
+    """Match cumulative badges to the user's entitled monthly tier."""
+    if bool(getattr(user, "patron_badges_disabled", False)):
+        level = 0
+    elif level is None:
         level = int(getattr(user, "patron", 0) or 0)
         expires = int(getattr(user, "patron_utc", 0) or 0)
         if expires and expires <= int(time.time()):
             level = 0
+
     level = max(0, min(5, int(level or 0)))
     desired = set(range(21, 21 + level))
 
@@ -117,6 +157,8 @@ def recalculate_paypal_patron(db, user_id):
         )
         user.patron = tier["level"]
         user.patron_utc = max(paid_until, now + 86400)
+        # A verified recurring payment always restores the proper paid badges.
+        user.patron_badges_disabled = False
 
     sync_active_support_badges(db, user, user.patron)
     user.__dict__.pop("_lazy", None)
@@ -125,20 +167,17 @@ def recalculate_paypal_patron(db, user_id):
     return user
 
 
-def _sync_existing_active_support_badges():
-    """Migrate existing badge ownership without resetting valid badge timestamps."""
-    if not PAYPAL_ACTIVE_PLAN_IDS:
-        return False
-
-    params = {"now": int(time.time())}
+def _entitlement_sql():
     placeholders = []
+    params = {"now": int(time.time())}
     for index, plan_id in enumerate(PAYPAL_ACTIVE_PLAN_IDS):
         key = f"plan_{index}"
         params[key] = plan_id
         placeholders.append(f":{key}")
-    plans = ", ".join(placeholders)
-    entitlement_sql = f"""
-        WITH eligible AS (
+    plans = ", ".join(placeholders) or "NULL"
+
+    sql = f"""
+        WITH paypal_eligible AS (
             SELECT ps.user_id, LEAST(MAX(ps.tier), 5) AS tier
             FROM paypal_subscriptions ps
             WHERE ps.plan_id IN ({plans})
@@ -159,15 +198,34 @@ def _sync_existing_active_support_badges():
                   )
               )
             GROUP BY ps.user_id
+        ), manual_eligible AS (
+            SELECT u.id AS user_id, LEAST(COALESCE(u.patron, 0), 5) AS tier
+            FROM users u
+            WHERE COALESCE(u.patron_badges_disabled, FALSE) = FALSE
+              AND COALESCE(u.patron, 0) > 0
+              AND (COALESCE(u.patron_utc, 0) = 0 OR u.patron_utc > :now)
+        ), eligible AS (
+            SELECT user_id, LEAST(MAX(tier), 5) AS tier
+            FROM (
+                SELECT user_id, tier FROM paypal_eligible
+                UNION ALL
+                SELECT user_id, tier FROM manual_eligible
+            ) entitlements
+            GROUP BY user_id
         ), desired AS (
             SELECT eligible.user_id, generate_series(21, 20 + eligible.tier) AS badge_id
             FROM eligible
         )
     """
+    return sql, params
 
+
+def _sync_existing_active_support_badges():
+    """Synchronize all active paid and explicitly non-free manual patrons."""
+    sql, params = _entitlement_sql()
     try:
         with engine.begin() as connection:
-            connection.execute(text(entitlement_sql + """
+            connection.execute(text(sql + """
                 DELETE FROM badges badge
                 WHERE badge.badge_id BETWEEN 21 AND 27
                   AND NOT EXISTS (
@@ -176,7 +234,7 @@ def _sync_existing_active_support_badges():
                         AND desired.badge_id = badge.badge_id
                   )
             """), params)
-            connection.execute(text(entitlement_sql + """
+            connection.execute(text(sql + """
                 INSERT INTO badges (user_id, badge_id, created_utc)
                 SELECT desired.user_id, desired.badge_id, :now
                 FROM desired
@@ -204,8 +262,53 @@ def _periodic_active_support_badge_sync():
         _SYNC_LOCK.release()
 
 
+def _install_admin_patron_badge_option():
+    """Apply the admin form's free-patron choice after the existing route runs."""
+    global _ADMIN_ROUTE_INSTALLED
+    if _ADMIN_ROUTE_INSTALLED:
+        return
+
+    endpoint = "manage_patron_from_admin_page"
+    original = app.view_functions.get(endpoint)
+    if original is None or getattr(original, "_free_patron_badge_option", False):
+        return
+
+    @wraps(original)
+    def manage_patron_with_badge_option(*args, **kwargs):
+        response = original(*args, **kwargs)
+        location = str(getattr(response, "location", "") or "")
+        if request.method != "POST" or "error=" in location:
+            return response
+
+        username = (request.form.get("username") or "").strip()
+        user = get_user(username, graceful=True)
+        if user is None:
+            return response
+
+        action = (request.form.get("action") or "set").strip().lower()
+        if action == "end":
+            user.patron_badges_disabled = False
+            sync_active_support_badges(g.db, user, 0)
+        else:
+            free_patron = request.form.get("free_patron") == "on"
+            user.patron_badges_disabled = free_patron
+            sync_active_support_badges(g.db, user, 0 if free_patron else None)
+
+        user.__dict__.pop("_lazy", None)
+        g.db.add(user)
+        g.db.flush()
+        return response
+
+    manage_patron_with_badge_option._free_patron_badge_option = True
+    app.view_functions[endpoint] = manage_patron_with_badge_option
+    _ADMIN_ROUTE_INSTALLED = True
+
+
 def install_cumulative_contribution_badges():
-    """Install active-subscription recalculation and migrate old badge ownership."""
+    """Install active-support recalculation, free patrons, and badge migration."""
+    _install_patron_badge_flag()
+    _install_admin_patron_badge_option()
+
     paypal_helpers = importlib.import_module("files.helpers.paypal")
     paypal_routes = importlib.import_module("files.routes.paypal")
     paypal_helpers.recalculate_paypal_patron = recalculate_paypal_patron
