@@ -29,6 +29,7 @@
 		<link rel="stylesheet" href="/{{u.id}}/profilecss">
 	{% endif %}
 	<link rel="stylesheet" href="{{'css/connections.css' | asset}}">
+	<link rel="stylesheet" href="{{'css/connections_fixes.css' | asset}}">
 {% endblock %}
 {% block content %}
 {%- include 'userpage/banner.html' -%}
@@ -48,7 +49,7 @@
 <script defer src="{{'js/userpage_v.js' | asset}}"></script>
 {% endif %}
 <script defer src="{{'js/userpage.js' | asset}}"></script>
-<script defer src="{{'js/connections.js' | asset}}"></script>
+<script defer src="{{'js/connections_v2.js' | asset}}"></script>
 {% if not IS_FISTMAS() or SITE_NAME == 'WPD' %}
 	<script defer src="{{'js/profile_song.js' | asset}}"></script>
 {% endif %}
