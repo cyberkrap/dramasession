@@ -28,6 +28,7 @@
 	{% if u and u.profilecss and not request.values.get('nocss') %}
 		<link rel="stylesheet" href="/{{u.id}}/profilecss">
 	{% endif %}
+	<link rel="stylesheet" href="{{'css/connections.css' | asset}}">
 {% endblock %}
 {% block content %}
 {%- include 'userpage/banner.html' -%}
@@ -41,12 +42,13 @@
 	{% endif %}
 {% endif %}
 
+<div id="username" class="d-none">{{u.username}}</div>
 {% if v %}
 <div id='tax' class="d-none">{% if v.patron or u.patron %}0{% else %}0.03{% endif %}</div>
 <script defer src="{{'js/userpage_v.js' | asset}}"></script>
-<div id="username" class="d-none">{{u.username}}</div>
 {% endif %}
 <script defer src="{{'js/userpage.js' | asset}}"></script>
+<script defer src="{{'js/connections.js' | asset}}"></script>
 {% if not IS_FISTMAS() or SITE_NAME == 'WPD' %}
 	<script defer src="{{'js/profile_song.js' | asset}}"></script>
 {% endif %}
