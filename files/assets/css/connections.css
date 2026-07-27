@@ -1,0 +1,494 @@
+/* Account connections and live profile activity. */
+.connections-page {
+	--connection-border: rgba(255, 255, 255, .1);
+	--connection-surface: rgba(15, 15, 19, .88);
+	--connection-surface-2: rgba(26, 25, 31, .9);
+	--connection-muted: rgba(235, 235, 241, .66);
+	display: grid;
+	gap: 1.5rem;
+	padding-bottom: 3rem;
+}
+
+.connections-heading,
+.connections-section-heading {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.connections-heading h1,
+.connections-section h2,
+.connections-privacy-note h2 {
+	margin: 0;
+	color: #f5f3f5;
+}
+
+.connections-heading > div > p:last-child,
+.connections-section-heading p,
+.connections-privacy-note p {
+	max-width: 720px;
+	margin: .35rem 0 0;
+	color: var(--connection-muted);
+}
+
+.connections-kicker {
+	margin: 0 0 .25rem;
+	color: #ef4a5e;
+	font-size: .76rem;
+	font-weight: 800;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+}
+
+.connections-section {
+	padding: 1.15rem;
+	border: 1px solid var(--connection-border);
+	border-radius: 12px;
+	background: linear-gradient(145deg, rgba(22, 20, 25, .94), rgba(10, 10, 13, .96));
+	box-shadow: 0 18px 45px rgba(0, 0, 0, .2);
+}
+
+.connections-section-heading {
+	align-items: center;
+	margin-bottom: 1rem;
+}
+
+.connections-section-heading h2 {
+	font-size: 1.08rem;
+}
+
+.connection-provider-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: .8rem;
+}
+
+.connection-provider-card {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: .85rem;
+	min-height: 92px;
+	padding: .9rem;
+	border: 1px solid var(--connection-border);
+	border-radius: 10px;
+	background: var(--connection-surface-2);
+	transition: border-color .16s ease, transform .16s ease, background .16s ease;
+}
+
+.connection-provider-card:not(.is-disabled):hover {
+	transform: translateY(-1px);
+	border-color: rgba(239, 74, 94, .42);
+	background: rgba(33, 30, 37, .96);
+}
+
+.connection-provider-card.is-disabled {
+	opacity: .62;
+}
+
+.connection-provider-icon {
+	display: inline-grid;
+	place-items: center;
+	width: 42px;
+	height: 42px;
+	flex: 0 0 42px;
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 11px;
+	background: #0a0a0d;
+	color: #f5f5f7;
+	font-size: 1.25rem;
+}
+
+.connection-provider-icon img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.connection-provider-spotify { color: #1ed760; }
+.connection-provider-github { color: #f5f5f5; }
+.connection-provider-discord { color: #7289da; }
+.connection-provider-steam { color: #9ed4ff; }
+.connection-provider-reddit { color: #ff5700; }
+.connection-provider-youtube { color: #ff0033; }
+.connection-provider-twitch { color: #a970ff; }
+.connection-provider-xbox { color: #52b043; }
+.connection-provider-playstation { color: #59a8ff; }
+.connection-provider-bluesky { color: #4ca5ff; }
+
+.connection-provider-copy h3,
+.connected-account-identity strong,
+.connected-account-name {
+	margin: 0;
+	color: #f1eff2;
+	font-size: .96rem;
+	font-weight: 800;
+}
+
+.connection-provider-copy p,
+.connection-provider-copy small,
+.connected-account-identity small {
+	display: block;
+	margin: .18rem 0 0;
+	color: var(--connection-muted);
+	font-size: .78rem;
+	line-height: 1.35;
+}
+
+.connected-account-list {
+	display: grid;
+	gap: .8rem;
+}
+
+.connected-account-card {
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(220px, .8fr) minmax(300px, 1.25fr);
+	gap: 1rem;
+	padding: 1rem;
+	border: 1px solid var(--connection-border);
+	border-radius: 11px;
+	background: var(--connection-surface-2);
+}
+
+.connected-account-main {
+	display: flex;
+	align-items: center;
+	gap: .8rem;
+	min-width: 0;
+}
+
+.connected-account-identity {
+	min-width: 0;
+}
+
+.connected-account-name {
+	display: flex;
+	align-items: center;
+	gap: .38rem;
+	min-width: 0;
+}
+
+.connected-account-name a,
+.connected-account-name span {
+	overflow: hidden;
+	color: #f4f2f4;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.connected-account-name a:hover {
+	color: #ff6878;
+}
+
+.connected-account-name .fa-badge-check {
+	color: #4ca5ff;
+}
+
+.connection-preferences {
+	display: grid;
+	gap: .55rem;
+}
+
+.connection-toggle {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: .75rem;
+	margin: 0;
+	padding: .45rem .6rem;
+	border-radius: 8px;
+	background: rgba(0, 0, 0, .18);
+	cursor: pointer;
+}
+
+.connection-toggle strong,
+.connection-toggle small {
+	display: block;
+}
+
+.connection-toggle strong {
+	color: #efedf0;
+	font-size: .82rem;
+}
+
+.connection-toggle small {
+	color: var(--connection-muted);
+	font-size: .72rem;
+}
+
+.connection-toggle input[type="checkbox"] {
+	width: 38px;
+	height: 21px;
+	accent-color: var(--primary);
+	cursor: pointer;
+}
+
+.connection-toggle.is-muted {
+	opacity: .48;
+	cursor: default;
+}
+
+.connection-card-actions {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.connection-disconnect-form {
+	position: absolute;
+	top: .25rem;
+	right: .35rem;
+}
+
+.discord-sync-form {
+	margin-top: 1rem;
+}
+
+.connections-empty {
+	display: grid;
+	place-items: center;
+	min-height: 190px;
+	padding: 2rem;
+	color: var(--connection-muted);
+	text-align: center;
+	border: 1px dashed rgba(255, 255, 255, .12);
+	border-radius: 10px;
+	background: rgba(0, 0, 0, .12);
+}
+
+.connections-empty > i {
+	margin-bottom: .7rem;
+	color: #ef4a5e;
+	font-size: 1.7rem;
+}
+
+.connections-empty h3,
+.connections-empty p {
+	margin: .15rem 0;
+}
+
+.connections-privacy-note {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: .9rem;
+	padding: 1rem 1.1rem;
+	border: 1px solid rgba(76, 165, 255, .2);
+	border-radius: 11px;
+	background: rgba(30, 54, 78, .18);
+}
+
+.connections-privacy-note > i {
+	margin-top: .15rem;
+	color: #4ca5ff;
+	font-size: 1.25rem;
+}
+
+.connections-privacy-note h2 {
+	font-size: .95rem;
+}
+
+.connection-modal {
+	border: 1px solid rgba(255, 255, 255, .12);
+	border-radius: 12px;
+	background: #141418;
+	box-shadow: 0 28px 80px rgba(0, 0, 0, .58);
+}
+
+.connection-modal .modal-header,
+.connection-modal .modal-footer {
+	border-color: rgba(255, 255, 255, .09);
+}
+
+.connection-modal label {
+	display: block;
+	margin: .85rem 0 .3rem;
+	font-weight: 700;
+}
+
+.connection-modal label:first-child {
+	margin-top: 0;
+}
+
+.connection-manual-warning {
+	margin: 1rem 0 0;
+	padding: .7rem .8rem;
+	color: rgba(238, 237, 241, .72);
+	font-size: .78rem;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, .05);
+}
+
+/* Profile card inserted by connections.js. */
+.profile-connections-panel .profile-panel__heading {
+	align-items: center;
+}
+
+.profile-connections-list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: .55rem;
+}
+
+.profile-connection-link {
+	display: flex;
+	align-items: center;
+	gap: .6rem;
+	min-width: 0;
+	padding: .62rem .7rem;
+	color: inherit;
+	text-decoration: none;
+	border: 1px solid rgba(255, 255, 255, .09);
+	border-radius: 9px;
+	background: rgba(255, 255, 255, .035);
+	transition: transform .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.profile-connection-link:hover {
+	transform: translateY(-1px);
+	color: inherit;
+	text-decoration: none;
+	border-color: rgba(239, 74, 94, .36);
+	background: rgba(255, 255, 255, .065);
+}
+
+.profile-connection-link .connection-provider-icon {
+	width: 34px;
+	height: 34px;
+	flex-basis: 34px;
+	font-size: 1rem;
+}
+
+.profile-connection-copy {
+	min-width: 0;
+}
+
+.profile-connection-copy strong,
+.profile-connection-copy small {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.profile-connection-copy strong {
+	color: #f4f2f4;
+	font-size: .83rem;
+}
+
+.profile-connection-copy small {
+	color: rgba(235, 235, 241, .58);
+	font-size: .7rem;
+}
+
+.profile-connection-verified {
+	margin-left: auto;
+	color: #4ca5ff;
+	font-size: .75rem;
+}
+
+.profile-live-activity {
+	display: grid;
+	grid-template-columns: 64px minmax(0, 1fr);
+	gap: .8rem;
+	margin-top: .8rem;
+	padding: .75rem;
+	border: 1px solid rgba(30, 215, 96, .2);
+	border-radius: 10px;
+	background: linear-gradient(135deg, rgba(30, 215, 96, .1), rgba(255, 255, 255, .025));
+}
+
+.profile-live-activity.is-steam {
+	border-color: rgba(89, 168, 255, .22);
+	background: linear-gradient(135deg, rgba(47, 112, 163, .15), rgba(255, 255, 255, .025));
+}
+
+.profile-live-art {
+	width: 64px;
+	height: 64px;
+	object-fit: cover;
+	border-radius: 8px;
+	background: #08080a;
+}
+
+.profile-live-copy {
+	min-width: 0;
+}
+
+.profile-live-label,
+.profile-live-title,
+.profile-live-subtitle {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.profile-live-label {
+	color: rgba(238, 237, 241, .58);
+	font-size: .68rem;
+	font-weight: 800;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+}
+
+.profile-live-title {
+	margin-top: .18rem;
+	color: #fff;
+	font-size: .9rem;
+	font-weight: 900;
+}
+
+.profile-live-subtitle {
+	color: rgba(238, 237, 241, .68);
+	font-size: .74rem;
+}
+
+.profile-live-progress {
+	height: 4px;
+	margin-top: .55rem;
+	overflow: hidden;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, .12);
+}
+
+.profile-live-progress > span {
+	display: block;
+	height: 100%;
+	width: 0;
+	border-radius: inherit;
+	background: #1ed760;
+}
+
+@media (max-width: 991.98px) {
+	.connection-provider-grid,
+	.profile-connections-list {
+		grid-template-columns: 1fr;
+	}
+	.connected-account-card {
+		grid-template-columns: 1fr;
+	}
+	.connection-disconnect-form {
+		position: static;
+		grid-column: 1 / -1;
+	}
+}
+
+@media (max-width: 575.98px) {
+	.connections-heading,
+	.connections-section-heading {
+		align-items: stretch;
+		flex-direction: column;
+	}
+	.connection-provider-card {
+		grid-template-columns: auto minmax(0, 1fr);
+	}
+	.connection-provider-card > .btn {
+		grid-column: 1 / -1;
+	}
+	.connections-section {
+		padding: .85rem;
+	}
+}
