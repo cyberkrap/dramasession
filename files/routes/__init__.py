@@ -67,6 +67,7 @@ from .posts import *
 from .inline_images import *
 from .search import *
 from .settings import *
+from .connections import *
 from .static import *
 from .site_banner import *
 from .paypal import *
