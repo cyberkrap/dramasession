@@ -37,7 +37,7 @@
 		<div class="admin-section-heading">
 			<div>
 				<h2>Patron management</h2>
-				<p class="text-muted">Grant, update, or end patron status for a member. Permanent status uses the highest community tier.</p>
+				<p class="text-muted">Grant, update, or end patron status for a member. Free patrons keep every patron perk but receive no monthly donation badges.</p>
 			</div>
 		</div>
 		<form action="/admin/patrons/manage" method="post" class="admin-patron-form">
@@ -47,6 +47,7 @@
 			<div><label for="patron-level">Level</label><select id="patron-level" name="level" class="form-control">{% for level in patron_tiers %}<option value="{{level}}"{% if level == 6 %} selected{% endif %}>Level {{level}}</option>{% endfor %}</select></div>
 			<div><label for="patron-duration">Duration (days)</label><input id="patron-duration" name="duration_days" class="form-control" type="number" min="1" max="3650" value="30"></div>
 			<label class="admin-patron-permanent"><input type="checkbox" name="permanent" checked> Permanent</label>
+			<label class="admin-patron-permanent"><input type="checkbox" name="free_patron"> Free patron <span class="text-muted">(all perks, no donation badges)</span></label>
 			<button type="submit" class="btn btn-primary">Apply patron status</button>
 		</form>
 	</section>
@@ -130,7 +131,7 @@
 											{% if permission_name not in currency_permissions %}
 												<label class="admin-permission-option"><input type="checkbox" name="permissions" value="{{permission_name}}" {% if admin.has_permission(permission_name) %}checked{% endif %}><span>{{permission_name.replace('_', ' ').title()}}</span><small>L{{permission_level}}</small></label>
 											{% endif %}
-									{% endfor %}
+										{% endfor %}
 									</div>
 									{% if v.has_all_admin_permissions %}
 										<div class="admin-economy-permissions">
