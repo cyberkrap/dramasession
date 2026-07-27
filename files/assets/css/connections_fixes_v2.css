@@ -1,0 +1,95 @@
+/* Final connection rendering repairs. */
+.connection-provider-icon {
+	overflow: hidden !important;
+}
+
+.connection-provider-icon > .connection-brand-icon,
+.connection-provider-icon > .connection-brand-font,
+.connection-provider-icon > .connection-brand-image {
+	display: block !important;
+	width: 22px !important;
+	height: 22px !important;
+	min-width: 22px;
+	font-size: 22px !important;
+	line-height: 1 !important;
+	object-fit: contain;
+}
+
+.connection-provider-icon > .connection-brand-font::before {
+	display: block;
+	line-height: 1 !important;
+}
+
+.profile-connections-mount {
+	width: 100%;
+}
+
+.profile-connections-panel {
+	margin: 1rem 0;
+	padding: 1.05rem;
+	border: 1px solid rgba(255, 255, 255, .11);
+	border-radius: 16px;
+	background: rgba(13, 13, 16, .94);
+	box-shadow: 0 14px 35px rgba(0, 0, 0, .16);
+}
+
+.profile-connections-panel .profile-panel__heading {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: .85rem;
+}
+
+.profile-connections-panel .profile-panel__heading h2 {
+	margin: 0;
+	color: #f5f3f5;
+	font-size: .82rem;
+	font-weight: 850;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+}
+
+.profile-connection-link .connection-provider-icon > .connection-brand-icon,
+.profile-connection-link .connection-provider-icon > .connection-brand-font,
+.profile-connection-link .connection-provider-icon > .connection-brand-image {
+	width: 20px !important;
+	height: 20px !important;
+	min-width: 20px;
+	font-size: 20px !important;
+}
+
+.connection-provider-badge > .connection-brand-icon,
+.connection-provider-badge > .connection-brand-font,
+.connection-provider-badge > .connection-brand-image {
+	width: 12px !important;
+	height: 12px !important;
+	min-width: 12px;
+	font-size: 12px !important;
+}
+
+.connected-account-name a,
+.connected-account-name span,
+.profile-connection-copy strong {
+	color: #f4f2f4 !important;
+}
+
+.connected-account-name a:hover,
+.profile-connection-link:hover .profile-connection-copy strong {
+	color: #fff !important;
+}
+
+.connection-provider-icon svg,
+.connection-provider-icon i,
+.connection-provider-icon span,
+.connection-provider-icon img {
+	margin: 0 !important;
+	transform: none !important;
+}
+
+@media (max-width: 575.98px) {
+	.profile-connections-panel {
+		padding: .85rem;
+		border-radius: 12px;
+	}
+}
