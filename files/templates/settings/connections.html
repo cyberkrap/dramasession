@@ -1,0 +1,148 @@
+{% extends "settings.html" %}
+{% block pagetitle %}Connections{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{'css/connections.css' | asset}}">
+
+<section class="connections-page" aria-labelledby="connections-title">
+	<div class="connections-heading">
+		<div>
+			<p class="connections-kicker">Profile integrations</p>
+			<h1 id="connections-title">Connections</h1>
+			<p>Link accounts, choose what appears publicly, and display supported live activity on your profile.</p>
+		</div>
+		<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#manualConnectionModal">
+			<i class="fas fa-plus mr-2"></i>Add manually
+		</button>
+	</div>
+
+	{% if error %}<div class="alert alert-danger" role="alert">{{error}}</div>{% endif %}
+	{% if msg %}<div class="alert alert-success" role="status">{{msg}}</div>{% endif %}
+
+	<section class="connections-section" aria-labelledby="available-connections-title">
+		<div class="connections-section-heading">
+			<div>
+				<h2 id="available-connections-title">Connect an account</h2>
+				<p>OAuth connections are verified by the provider. Obsession never receives your provider password.</p>
+			</div>
+		</div>
+		<div class="connection-provider-grid">
+			{% for provider in connection_providers %}
+			<article class="connection-provider-card{% if not provider.configured %} is-disabled{% endif %}">
+				<div class="connection-provider-icon connection-provider-{{provider.key}}"><i class="{{provider.icon}}"></i></div>
+				<div class="connection-provider-copy">
+					<h3>{{provider.label}}</h3>
+					<p>{% if provider.activity %}Verified profile and live activity where available.{% else %}Verified profile connection.{% endif %}</p>
+					{% if provider.key == 'steam' and not steam_activity_configured %}<small>Identity works now. A Steam Web API key enables live game status.</small>{% elif not provider.configured %}<small>Site setup required before members can connect.</small>{% endif %}
+				</div>
+				{% if provider.configured %}
+				<a class="btn btn-secondary btn-sm" href="/settings/connections/connect/{{provider.key}}">Connect</a>
+				{% else %}
+				<button class="btn btn-secondary btn-sm" type="button" disabled>Not configured</button>
+				{% endif %}
+			</article>
+			{% endfor %}
+		</div>
+	</section>
+
+	<section class="connections-section" aria-labelledby="connected-accounts-title">
+		<div class="connections-section-heading">
+			<div>
+				<h2 id="connected-accounts-title">Connected accounts</h2>
+				<p>Public display and activity are controlled separately for every connection.</p>
+			</div>
+		</div>
+
+		{% set state = namespace(discord=false) %}
+		{% if connections %}
+		<div class="connected-account-list">
+			{% for connection in connections %}
+				{% if connection.provider == 'discord' and connection.source == 'direct' %}{% set state.discord = true %}{% endif %}
+			<article class="connected-account-card">
+				<div class="connected-account-main">
+					<div class="connection-provider-icon connection-provider-{{connection.provider}}">
+						{% if connection.avatar_url %}<img src="{{connection.avatar_url}}" alt="" loading="lazy">{% else %}<i class="{{connection.icon}}"></i>{% endif %}
+					</div>
+					<div class="connected-account-identity">
+						<div class="connected-account-name">
+							{% if connection.profile_url %}<a href="{{connection.profile_url}}" rel="nofollow noopener" target="_blank">{{connection.display_name}}</a>{% else %}<span>{{connection.display_name}}</span>{% endif %}
+							{% if connection.verified %}<i class="fas fa-badge-check" title="Verified connection"></i>{% endif %}
+						</div>
+						<small>{{connection.provider_label}} · {% if connection.source == 'discord' %}Imported from Discord{% elif connection.source == 'manual' %}Manually added{% else %}Direct connection{% endif %}</small>
+					</div>
+				</div>
+
+				<form action="/settings/connections/{{connection.id}}/update" method="post" class="connection-preferences">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<label class="connection-toggle">
+						<span><strong>Display on profile</strong><small>Show this account to profile visitors.</small></span>
+						<input type="checkbox" name="display_on_profile" {% if connection.display_on_profile %}checked{% endif %}>
+					</label>
+					<label class="connection-toggle{% if connection.provider not in ('spotify','steam') %} is-muted{% endif %}">
+						<span><strong>Show live activity</strong><small>{% if connection.provider in ('spotify','steam') %}Show listening or game activity when available.{% else %}This provider does not expose live activity here.{% endif %}</small></span>
+						<input type="checkbox" name="show_activity" {% if connection.show_activity %}checked{% endif %} {% if connection.provider not in ('spotify','steam') %}disabled{% endif %}>
+					</label>
+					<div class="connection-card-actions">
+						<button type="submit" class="btn btn-primary btn-sm">Save</button>
+					</div>
+				</form>
+				<form action="/settings/connections/{{connection.id}}/disconnect" method="post" class="connection-disconnect-form">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<button type="submit" class="btn btn-link text-danger btn-sm">Remove</button>
+				</form>
+			</article>
+			{% endfor %}
+		</div>
+		{% else %}
+		<div class="connections-empty">
+			<i class="fas fa-link"></i>
+			<h3>No connected accounts yet</h3>
+			<p>Connect Spotify, GitHub, Discord or Steam above, or add a public profile manually.</p>
+		</div>
+		{% endif %}
+
+		{% if state.discord %}
+		<form action="/settings/connections/discord/sync" method="post" class="discord-sync-form">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<button type="submit" class="btn btn-secondary btn-sm"><i class="fab fa-discord mr-2"></i>Sync public Discord connections</button>
+		</form>
+		{% endif %}
+	</section>
+
+	<section class="connections-privacy-note">
+		<i class="fas fa-shield-alt"></i>
+		<div>
+			<h2>Privacy and account safety</h2>
+			<p>Provider tokens are encrypted before storage. Disconnecting removes the stored connection and its cached activity. Obsession requests identity and activity-read permissions only.</p>
+		</div>
+	</section>
+</section>
+
+<div class="modal fade" id="manualConnectionModal" tabindex="-1" aria-labelledby="manualConnectionTitle" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content connection-modal">
+			<div class="modal-header">
+				<h2 class="modal-title" id="manualConnectionTitle">Add a public connection</h2>
+				<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			</div>
+			<form action="/settings/connections/manual" method="post">
+				<input type="hidden" name="formkey" value="{{v|formkey}}">
+				<div class="modal-body">
+					<label for="manual-provider">Provider</label>
+					<select id="manual-provider" name="provider" class="form-control" required>
+						{% for provider in manual_connection_providers %}<option value="{{provider.key}}">{{provider.label}}</option>{% endfor %}
+					</select>
+					<label for="manual-handle">Account name or handle</label>
+					<input id="manual-handle" name="handle" class="form-control" maxlength="100" required>
+					<label for="manual-url">Profile URL <span class="text-muted">(optional for services without a standard public URL)</span></label>
+					<input id="manual-url" name="profile_url" class="form-control" type="url" maxlength="500" placeholder="https://">
+					<p class="connection-manual-warning"><i class="fas fa-info-circle"></i>Manual connections are labelled as unverified. OAuth and Discord-imported accounts receive a verification mark.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="submit" class="btn btn-primary">Add connection</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}
