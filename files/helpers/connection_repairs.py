@@ -206,6 +206,10 @@ def install_connection_repairs():
 
     def connection_rows(user_id, public_only=False):
         rows = original_rows(user_id, public_only=public_only)
+        # Public profile requests must never wait on external Steam lookups.
+        # Identity hydration still runs on the management page and callbacks.
+        if public_only:
+            return rows
         return [
             _hydrate_steam_row(module, row)
             if dict(row).get("provider") == "steam"
