@@ -21,6 +21,10 @@
 	line-height: 1 !important;
 }
 
+.connection-provider-steam {
+	color: #fff !important;
+}
+
 .connection-epic-mark {
 	clip-path: none !important;
 	color: transparent !important;
