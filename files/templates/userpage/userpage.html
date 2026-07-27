@@ -29,12 +29,13 @@
 		<link rel="stylesheet" href="/{{u.id}}/profilecss">
 	{% endif %}
 	<link rel="stylesheet" href="{{'css/connections.css' | asset}}">
-	<link rel="stylesheet" href="{{'css/connections_fixes.css' | asset}}">
+	<link rel="stylesheet" href="{{'css/connections_fixes_v2.css' | asset}}">
 {% endblock %}
 {% block content %}
 {%- include 'userpage/banner.html' -%}
 {%- include 'userpage/header.html' -%}
 {% block userpage_content required %}{% endblock %}
+<div id="profile-connections-mount" class="profile-connections-mount" aria-live="polite"></div>
 {% if FEATURES['USERS_PROFILE_SONG'] and u.song %}
 	{% if v and v.id == u.id %}
 		<div id="v_username" class="d-none">{{v.username}}</div>
@@ -49,7 +50,7 @@
 <script defer src="{{'js/userpage_v.js' | asset}}"></script>
 {% endif %}
 <script defer src="{{'js/userpage.js' | asset}}"></script>
-<script defer src="{{'js/connections_v2.js' | asset}}"></script>
+<script defer src="{{'js/connections_v3.js' | asset}}"></script>
 {% if not IS_FISTMAS() or SITE_NAME == 'WPD' %}
 	<script defer src="{{'js/profile_song.js' | asset}}"></script>
 {% endif %}
