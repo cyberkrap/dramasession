@@ -98,6 +98,10 @@ from .report_fixes import *
 from .special import *
 from .push_notifs import *
 
+# Patch connection identity hydration after connection routes are registered.
+from files.helpers.connection_repairs import install_connection_repairs
+install_connection_repairs()
+
 # Replace the legacy alt handlers only after the original endpoints exist.
 from .alt_link_fixes import install_alt_link_fixes
 install_alt_link_fixes()
