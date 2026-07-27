@@ -1,6 +1,7 @@
 beautifulsoup4
 bleach
 bleach[css]
+cryptography
 dkimpy
 Flask
 Flask-Caching
