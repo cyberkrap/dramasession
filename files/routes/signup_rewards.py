@@ -50,7 +50,9 @@ def signup_reward_claim(v):
 	send_notification(
 		v.id,
 		f'{reward["coins"]:,} Wishcoins have been added to your account. '
-		'Wishcoins are hard to earn and valuable, so be careful what you spend them on!',
+		'You can spend them here in [Shop Awards, Hats, or Effects](https://theobsessionclub.com/shop), '
+		'or risk it at the [Casino](https://theobsessionclub.com/casino). '
+		'Or save and collect them for your future!',
 	)
 	badge_grant(user=v, badge_id=ALPHA_BADGE_ID, notify=True)
 	mark_signup_reward_claimed(v.id)
