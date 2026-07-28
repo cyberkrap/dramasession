@@ -1,5 +1,64 @@
 (() => {
+	function makeAccountLink({href, label, icon, marker}) {
+		const link = document.createElement('a');
+		link.className = 'dropdown-item';
+		link.href = href;
+		if (marker) link.dataset.accountActivityLink = marker;
+		link.innerHTML = `<i class="${icon} fa-fw mr-3" aria-hidden="true"></i>${label}`;
+		return link;
+	}
+
+	function ensureAccountMenuLinks() {
+		const menu = document.querySelector('#header--dropdown-menu > .px-2');
+		if (!menu) return;
+
+		const profile = menu.querySelector('a.dropdown-item[href^="/@"]');
+		if (profile) {
+			const base = profile.getAttribute('href').replace(/\/$/, '');
+			let anchor = profile;
+			const activityLinks = [
+				{href: `${base}/posts`, label: 'My posts', icon: 'fas fa-file', marker: 'posts'},
+				{href: `${base}/comments`, label: 'My comments', icon: 'fas fa-comments', marker: 'comments'},
+			];
+
+			for (const item of activityLinks) {
+				let link = menu.querySelector(`a[href="${item.href}"]`);
+				if (!link) {
+					link = makeAccountLink(item);
+					anchor.insertAdjacentElement('afterend', link);
+				}
+				anchor = link;
+			}
+		}
+
+		let threadAnchor = menu.querySelector('a[href="/directory"]');
+		const communityLinks = [
+			{
+				href: '/post/11/changelog-and-site-updates-megathread',
+				label: 'Changelog',
+				icon: 'fas fa-clipboard-list',
+			},
+			{
+				href: '/post/10/bugs-and-suggestions-megathread',
+				label: 'Bugs & Suggestions',
+				icon: 'fas fa-bug',
+			},
+		];
+
+		for (const item of communityLinks) {
+			let link = menu.querySelector(`a[href="${item.href}"]`);
+			if (!link) {
+				link = makeAccountLink(item);
+				if (threadAnchor) threadAnchor.insertAdjacentElement('afterend', link);
+				else menu.append(link);
+			}
+			threadAnchor = link;
+		}
+	}
+
 	const init = () => {
+		ensureAccountMenuLinks();
+
 		const toggle = document.getElementById('mobile-menu-toggle');
 		const drawer = document.getElementById('navbarResponsive');
 		const backdrop = document.getElementById('mobile-drawer-backdrop');
