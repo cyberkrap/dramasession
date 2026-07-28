@@ -2,13 +2,15 @@
 	'use strict';
 
 	const ASSET_ROOT = '/assets/images/username_effects/';
-	const ASSET_VERSION = '9';
+	const ASSET_VERSION = '14';
 	const CYCLE_INTERVAL = 40000;
 	const groups = new Map();
 	const registrations = new WeakMap();
 	const assetCache = new Map();
 	const previewElements = new Set();
+	const pendingRoots = new Set();
 	let cycleTimer = 0;
+	let scanFrame = 0;
 
 	function cleanEffects(value) {
 		const seen = new Set();
@@ -47,6 +49,13 @@
 
 	function isPatronPlate(element) {
 		return element instanceof Element && element.classList.contains('patron');
+	}
+
+	function isDistinguished(host, element) {
+		return Boolean(
+			(host instanceof Element && host.matches('.mod, .mod-rdrama')) ||
+			(element instanceof Element && element.matches('.mod, .mod-rdrama'))
+		);
 	}
 
 	function renderedAsset(effect, element) {
@@ -113,17 +122,39 @@
 		}
 	}
 
-	function clearVisual(element) {
+	function clearVisual(element, removeClasses = false) {
 		if (!(element instanceof Element)) return;
 		element.classList.remove('username-effect--ready');
 		element.style.removeProperty('--username-effect-image');
+		element.style.removeProperty('background-image');
 		delete element.dataset.usernameEffectCurrent;
+		delete element.dataset.usernameEffectRequest;
+		if (removeClasses) {
+			element.classList.remove(
+				'username-effect-host',
+				'username-effect',
+				'username-effect-text',
+				'username-effect-plate'
+			);
+			element.style.removeProperty('--username-effect-text-color');
+		}
 	}
 
 	async function applyEffect(element, effect) {
 		if (!(element instanceof Element) || !effect || !element.isConnected) return;
+		if (isDistinguished(element, element)) {
+			unregister(element);
+			clearVisual(element, true);
+			return;
+		}
 		const asset = renderedAsset(effect, element);
-		if (element.dataset.usernameEffectCurrent === asset && element.classList.contains('username-effect--ready')) return;
+		const expectedUrl = assetUrl(asset);
+		const currentImage = element.style.getPropertyValue('background-image');
+		if (
+			element.dataset.usernameEffectCurrent === asset &&
+			element.classList.contains('username-effect--ready') &&
+			currentImage.includes(expectedUrl)
+		) return;
 		const token = `${asset}:${performance.now()}:${Math.random()}`;
 		element.dataset.usernameEffectRequest = token;
 		const loaded = await preloadEffect(asset);
@@ -132,7 +163,11 @@
 			clearVisual(element);
 			return;
 		}
-		element.style.setProperty('--username-effect-image', `url("${assetUrl(asset)}")`);
+		const image = `url("${expectedUrl}")`;
+		element.style.setProperty('--username-effect-image', image);
+		// Post and comment styles use background shorthands. Applying only the CSS
+		// variable lets those rules overwrite the texture, so pin the image itself.
+		element.style.setProperty('background-image', image, 'important');
 		element.dataset.usernameEffectCurrent = asset;
 		element.classList.add('username-effect--ready');
 	}
@@ -168,10 +203,20 @@
 	}
 
 	function register(host, userId, effectsValue, options = {}) {
-		const effects = cleanEffects(effectsValue);
-		if (!effects.length) return;
 		const element = resolveTarget(host, Boolean(options.profile));
 		if (!element) return;
+		if (isDistinguished(host, element)) {
+			unregister(element);
+			clearVisual(element, true);
+			return;
+		}
+
+		const effects = cleanEffects(effectsValue);
+		if (!effects.length) {
+			unregister(element);
+			clearVisual(element, true);
+			return;
+		}
 
 		const userValue = String(userId || element.dataset.usernameEffectUser || 'anonymous');
 		const effectsString = effects.join(',');
@@ -248,10 +293,25 @@
 		enhanceMarkers(root);
 	}
 
+	function queueScan(root) {
+		if (!(root instanceof Element)) return;
+		pendingRoots.add(root);
+		if (scanFrame) return;
+		scanFrame = requestAnimationFrame(() => {
+			scanFrame = 0;
+			const roots = Array.from(pendingRoots);
+			pendingRoots.clear();
+			roots.forEach(scan);
+		});
+	}
+
 	function cycleAll() {
 		for (const [key, state] of groups) {
 			for (const element of Array.from(state.elements)) {
-				if (!element.isConnected) unregister(element);
+				if (!element.isConnected || element.matches('.mod, .mod-rdrama')) {
+					unregister(element);
+					if (element.matches?.('.mod, .mod-rdrama')) clearVisual(element, true);
+				}
 			}
 			if (!state.elements.size) {
 				groups.delete(key);
@@ -276,10 +336,12 @@
 	function initialize() {
 		scan(document);
 		const observer = new MutationObserver(mutations => {
-			mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
-				if (node instanceof Element) scan(node);
-			}));
+			for (const mutation of mutations) {
+				for (const node of mutation.addedNodes) queueScan(node);
+			}
 		});
+		// Child insertion only. Never observe class/style attributes because this
+		// renderer changes those itself and would otherwise create a feedback loop.
 		observer.observe(document.body, {childList: true, subtree: true});
 		scheduleCycle();
 	}
@@ -303,6 +365,7 @@
 		if (!document.hidden) cycleAll();
 	});
 	window.addEventListener('resize', () => previewElements.forEach(fitPreview), {passive: true});
+	window.ObsessionUsernameEffects = {scan, register};
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', initialize, {once: true});
