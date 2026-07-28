@@ -83,6 +83,7 @@ from .feeds import *
 if FEATURES['AWARDS']:
 	from .awards import *
 from .username_effects import *
+from .username_effect_hydration import *
 from .giphy import *
 from .subs import *
 if FEATURES['GAMBLING']:
