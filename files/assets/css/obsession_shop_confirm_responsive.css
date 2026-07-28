@@ -1,0 +1,86 @@
+.obs-purchase-modal {
+	box-sizing: border-box;
+	width: 100vw;
+	height: 100vh;
+	height: 100dvh;
+	min-height: 100vh;
+	min-height: 100dvh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding:
+		max(16px, env(safe-area-inset-top))
+		max(16px, env(safe-area-inset-right))
+		max(16px, env(safe-area-inset-bottom))
+		max(16px, env(safe-area-inset-left));
+}
+
+.obs-purchase-modal__dialog {
+	flex: 0 1 460px;
+	width: min(100%, 460px);
+	max-height: calc(100vh - 32px);
+	max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+	margin: auto;
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.obs-purchase-modal__actions {
+	position: sticky;
+	bottom: 0;
+	z-index: 2;
+}
+
+@media (max-height: 700px) {
+	.obs-purchase-modal {
+		align-items: flex-start;
+		padding-top: max(10px, env(safe-area-inset-top));
+		padding-bottom: max(10px, env(safe-area-inset-bottom));
+	}
+
+	.obs-purchase-modal__dialog {
+		max-height: calc(100vh - 20px);
+		max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+	}
+
+	.obs-purchase-modal__body {
+		padding-top: 22px;
+		padding-bottom: 18px;
+	}
+
+	.obs-purchase-modal__mark {
+		width: 44px;
+		height: 44px;
+		margin-bottom: 14px;
+	}
+
+	.obs-purchase-modal__summary {
+		margin-top: 16px;
+	}
+}
+
+@media (max-width: 520px) {
+	.obs-purchase-modal {
+		align-items: flex-end;
+		padding: 8px max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+	}
+
+	.obs-purchase-modal__dialog {
+		flex-basis: 100%;
+		max-height: calc(100vh - 8px);
+		max-height: calc(100dvh - 8px - env(safe-area-inset-bottom));
+	}
+
+	.obs-purchase-modal__summary {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 5px;
+	}
+
+	.obs-purchase-modal__summary strong {
+		white-space: normal;
+	}
+}
