@@ -2,7 +2,7 @@
 	'use strict';
 
 	const ASSET_ROOT = '/assets/images/username_effects/';
-	const ASSET_VERSION = '12';
+	const ASSET_VERSION = '13';
 	const CYCLE_INTERVAL = 40000;
 	const states = new Map();
 	const pendingIds = new Set();
@@ -112,7 +112,13 @@
 		prepareTarget(target, color);
 		const patron = target.classList.contains('patron');
 		const asset = effect === 'siren' && patron ? 'siren_patron' : effect;
-		if (target.dataset.usernameEffectCurrent === asset && target.classList.contains('username-effect--ready')) return;
+		const expectedUrl = assetUrl(asset);
+		const inlineImage = target.style.getPropertyValue('background-image');
+		if (
+			target.dataset.usernameEffectCurrent === asset &&
+			target.classList.contains('username-effect--ready') &&
+			inlineImage.includes(expectedUrl)
+		) return;
 		const requestToken = `${asset}:${performance.now()}:${Math.random()}`;
 		target.dataset.usernameEffectHydrationRequest = requestToken;
 		const loaded = await preload(asset);
@@ -121,7 +127,7 @@
 			clearTarget(target);
 			return;
 		}
-		const image = `url("${assetUrl(asset)}")`;
+		const image = `url("${expectedUrl}")`;
 		target.style.setProperty('--username-effect-image', image);
 		// Post/comment styles contain several background shorthands. An inline
 		// important image keeps those rules from wiping out the equipped artwork.
