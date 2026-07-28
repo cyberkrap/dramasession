@@ -14,6 +14,30 @@
 		const currencyNode = modal.querySelector('[data-award-confirm-currency]');
 		const noteNode = modal.querySelector('[data-award-confirm-note]');
 		const dialog = modal.querySelector('.obs-purchase-modal__dialog');
+		const confirmButton = modal.querySelector('[data-award-purchase-confirm]');
+
+		function forceClose() {
+			modal.hidden = true;
+			modal.setAttribute('aria-hidden', 'true');
+			document.body.classList.remove('obs-shop-modal-open');
+			document.querySelectorAll('[data-award-buy-url][data-purchase-pending]').forEach(button => {
+				delete button.dataset.purchasePending;
+			});
+			if (confirmButton instanceof HTMLButtonElement) {
+				confirmButton.disabled = false;
+				confirmButton.removeAttribute('aria-busy');
+				confirmButton.innerHTML = '<i class="fas fa-shopping-cart mr-1" aria-hidden="true"></i>Buy award';
+			}
+		}
+
+		// The legacy modal refused to close while a failed request was still marked
+		// pending. Always let Cancel, X, backdrop, and Escape release the page.
+		modal.querySelectorAll('[data-award-purchase-close]').forEach(button => {
+			button.addEventListener('click', forceClose);
+		});
+		modal.addEventListener('keydown', event => {
+			if (event.key === 'Escape') forceClose();
+		});
 
 		for (const button of document.querySelectorAll('[data-award-buy-url]')) {
 			button.addEventListener('click', () => {
