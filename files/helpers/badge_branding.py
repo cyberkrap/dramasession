@@ -3,11 +3,15 @@
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from files.helpers.config.const import discounts
 from files.helpers.support import (
     CONTRIBUTION_BADGE_DESCRIPTIONS,
     CONTRIBUTION_BADGE_NAMES,
 )
 
+
+# Alpha User keeps its original permanent award discount.
+discounts[1] = 0.03
 
 # These are recurring support badges, not lifetime donation milestones. Mutating
 # the shared dictionary also keeps the PayPal fulfilment helper consistent.
