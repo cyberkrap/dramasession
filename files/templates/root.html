@@ -84,6 +84,9 @@
 		{% block stylesheets_after %}{% endblock %}
 		<script defer src="{{'js/bottom.js' | asset}}"></script>
 		<script defer src="{{'js/award_modal_guard.js' | asset}}"></script>
+		{% if SITE_NAME == 'Obsession' %}
+		<script defer src="{{'js/username_effect_content_hydration.js' | asset}}"></script>
+		{% endif %}
 		{% if request.path == '/settings/personal' and v %}
 		<script>
 			document.addEventListener('DOMContentLoaded', function () {
