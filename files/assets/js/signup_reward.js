@@ -4,7 +4,7 @@
 	const DISMISSED_KEY = 'obsession-signup-reward-dismissed';
 
 	function number(value) {
-		return Number(value || 0).toLocaleString('en-US');
+		return Number(value || 0).toLocaleString('en-GB');
 	}
 
 	function burst(origin) {
@@ -30,8 +30,8 @@
 	}
 
 	function applyReward(modal, reward) {
-		modal.querySelector('#signupRewardIntro').textContent = `You are one of ${reward.audience_label} in the launch promotion.`;
-		modal.querySelector('#signupRewardPosition').textContent = `Reward spot #${reward.slot} of 200`;
+		modal.querySelector('#signupRewardIntro').textContent = `You are one of ${reward.audience_label} in the signup campaign.`;
+		modal.querySelector('#signupRewardPosition').textContent = `#${reward.slot} of 200`;
 		modal.querySelector('#signupRewardCoins').textContent = `${reward.coins_formatted || number(reward.coins)} Wishcoins`;
 		modal.querySelector('#signupRewardValue').textContent = `${reward.value_label} worth of site currency`;
 	}
@@ -40,6 +40,7 @@
 		const response = await fetch('/api/signup-reward', {
 			headers: {'xhr': 'xhr'},
 			credentials: 'same-origin',
+			cache: 'no-store',
 		});
 		if (!response.ok) return null;
 		return response.json();
@@ -68,15 +69,17 @@
 
 			modal.classList.add('is-claimed');
 			modal.querySelector('.signup-reward-kicker').textContent = 'Reward claimed';
-			modal.querySelector('#signupRewardTitle').textContent = 'Your launch rewards are ready';
+			modal.querySelector('#signupRewardTitle').textContent = 'You’re all set';
 			modal.querySelector('#signupRewardIntro').textContent = data.message;
-			modal.querySelector('#signupRewardPosition').textContent = `Claimed reward spot #${data.slot}`;
+			modal.querySelector('#signupRewardPosition').textContent = `Claimed spot #${data.slot}`;
 			modal.querySelector('.signup-reward-mark i').className = 'fas fa-check';
-			modal.querySelector('#signupRewardLater').remove();
+			const laterButton = modal.querySelector('#signupRewardLater');
+			if (laterButton) laterButton.remove();
+			modal.querySelector('#signupRewardActions')?.classList.add('is-single');
 			claimButton.textContent = 'Start exploring';
 			claimButton.disabled = false;
 			claimButton.setAttribute('data-bs-dismiss', 'modal');
-			feedback.textContent = 'AutoJanny sent both reward notifications to your inbox.';
+			feedback.textContent = '';
 			sessionStorage.removeItem(DISMISSED_KEY);
 			burst(claimButton);
 		} catch (error) {
