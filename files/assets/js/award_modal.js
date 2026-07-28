@@ -101,21 +101,33 @@ function vote(type, id, dir) {
 }
 
 let selectedAwardCurrency = "marseybux";
+let selectedAwardOwned = 0;
+let selectedAwardPrice = 0;
 
-function pick(kind, price, coins, marseybux, unlimitedSpending = false, currency = "marseybux") {
-	price = parseInt(price);
-	coins = parseInt(coins);
-	marseybux = parseInt(marseybux);
+function pick(kind, price, coins, marseybux, unlimitedSpending = false, currency = "marseybux", owned = 0) {
+	price = parseInt(price, 10) || 0;
+	coins = parseInt(coins, 10) || 0;
+	marseybux = parseInt(marseybux, 10) || 0;
+	owned = parseInt(owned, 10) || 0;
+	unlimitedSpending = unlimitedSpending === true || unlimitedSpending === 'true';
 	selectedAwardCurrency = currency;
+	selectedAwardOwned = owned;
+	selectedAwardPrice = price;
 	document.getElementById('kind').value = kind;
 	for (const choice of document.querySelectorAll('.award-choice.picked')) choice.classList.remove('picked');
-	document.getElementById(kind).classList.add('picked');
+	const choice = document.getElementById(kind);
+	choice.classList.add('picked');
 	const balance = currency === 'marseybux' ? marseybux : coins;
-	const canGive = unlimitedSpending || balance >= price;
+	const usesInventory = owned > 0;
+	const canGive = usesInventory || unlimitedSpending || balance >= price;
 	const button = document.getElementById('giveaward');
 	button.disabled = !canGive;
-	button.textContent = `Give Award - ${price.toLocaleString()} ${currency === 'marseybux' ? 'Wishbux' : 'Wishcoins'}`;
-	document.getElementById('award-price-summary').textContent = canGive ? 'Ready to apply' : `Needs ${price.toLocaleString()} ${currency === 'marseybux' ? 'Wishbux' : 'Wishcoins'}`;
+	button.textContent = usesInventory
+		? 'Give Award'
+		: `Give Award - ${price.toLocaleString('en-GB')} ${currency === 'marseybux' ? 'Wishbux' : 'Wishcoins'}`;
+	document.getElementById('award-price-summary').textContent = usesInventory
+		? `Uses 1 owned award · x${owned} available`
+		: (canGive ? 'Ready to purchase and apply' : `Needs ${price.toLocaleString('en-GB')} ${currency === 'marseybux' ? 'Wishbux' : 'Wishcoins'}`);
 	if (kind === "flairlock") {
 		document.getElementById('notelabel').textContent = "New flair:";
 		document.getElementById('note').placeholder = "Insert new flair here, or leave empty to extend the current flair.";
@@ -127,14 +139,30 @@ function pick(kind, price, coins, marseybux, unlimitedSpending = false, currency
 	}
 }
 
+function updateOwnedAwardDisplay(kind) {
+	if (selectedAwardOwned <= 0) return;
+	const choice = document.getElementById(kind);
+	if (!choice) return;
+	selectedAwardOwned = Math.max(0, selectedAwardOwned - 1);
+	choice.dataset.owned = String(selectedAwardOwned);
+	const label = choice.querySelector('.award-price');
+	if (label) {
+		label.textContent = selectedAwardOwned > 0
+			? `x${selectedAwardOwned} owned`
+			: `Price: ${selectedAwardPrice.toLocaleString('en-GB')}`;
+	}
+}
+
 function giveaward(t) {
 	const kind = document.getElementById('kind').value;
+	const usedOwnedAward = selectedAwardOwned > 0;
 	postToast(t, t.dataset.action, {
 		kind: kind,
 		note: document.getElementById('note').value,
 		currency: selectedAwardCurrency
 	}, () => {
-		document.getElementById('award-price-summary').textContent = 'Award applied';
+		if (usedOwnedAward) updateOwnedAwardDisplay(kind);
+		document.getElementById('award-price-summary').textContent = usedOwnedAward ? 'Owned award used' : 'Award purchased and applied';
 	});
 }
 const data_url = document.querySelectorAll('[data-url]');
