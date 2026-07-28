@@ -2,7 +2,7 @@
 	'use strict';
 
 	const ASSET_ROOT = '/assets/images/username_effects/';
-	const ASSET_VERSION = '11';
+	const ASSET_VERSION = '12';
 	const CYCLE_INTERVAL = 40000;
 	const states = new Map();
 	const pendingIds = new Set();
@@ -103,6 +103,7 @@
 		if (!(target instanceof Element)) return;
 		target.classList.remove('username-effect--ready');
 		target.style.removeProperty('--username-effect-image');
+		target.style.removeProperty('background-image');
 		delete target.dataset.usernameEffectCurrent;
 	}
 
@@ -120,7 +121,11 @@
 			clearTarget(target);
 			return;
 		}
-		target.style.setProperty('--username-effect-image', `url("${assetUrl(asset)}")`);
+		const image = `url("${assetUrl(asset)}")`;
+		target.style.setProperty('--username-effect-image', image);
+		// Post/comment styles contain several background shorthands. An inline
+		// important image keeps those rules from wiping out the equipped artwork.
+		target.style.setProperty('background-image', image, 'important');
 		target.dataset.usernameEffectCurrent = asset;
 		target.classList.add('username-effect--ready');
 	}
