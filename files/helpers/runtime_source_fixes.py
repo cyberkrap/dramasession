@@ -83,7 +83,7 @@ def patch_youtube_anthem_source():
 
 
 def patch_award_currency_source():
-	"""Make award purchases Wishbux-only and track every purchase cumulatively."""
+	"""Make award purchases Wishbux-only, track spending, and consume inventory first."""
 	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
 		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
 		source = _AWARDS_PATH.read_text(encoding="utf-8")
@@ -110,6 +110,13 @@ def patch_award_currency_source():
 				raise RuntimeError("Could not locate the award shop currency block")
 			source = source.replace(old_buy_block, new_buy_block, 1)
 
+		old_inventory_block = '''\taward = g.db.query(AwardRelationship).filter(\n\t\tAwardRelationship.kind == kind,\n\t\tAwardRelationship.user_id == v.id,\n\t\tAwardRelationship.submission_id == None,\n\t\tAwardRelationship.comment_id == None\n\t).first()\n\tpurchased_directly = award is None\n'''
+		new_inventory_block = '''\taward = g.db.query(AwardRelationship).filter(\n\t\tAwardRelationship.kind == kind,\n\t\tAwardRelationship.user_id == v.id,\n\t\tAwardRelationship.submission_id == None,\n\t\tAwardRelationship.comment_id == None\n\t).order_by(AwardRelationship.id.asc()).with_for_update().first()\n\tpurchased_directly = award is None\n'''
+		if new_inventory_block not in source:
+			if old_inventory_block not in source:
+				raise RuntimeError("Could not locate the owned award inventory block")
+			source = source.replace(old_inventory_block, new_inventory_block, 1)
+
 		old_direct_block = '''\tif purchased_directly:\n\t\tprice = int(AWARDS[kind]['price'] * v.discount)\n\t\tcurrency = 'marseybux' if kind == 'benefactor' else 'coins'\n\t\tif not v.charge_account(currency, price):\n\t\t\tabort(400, f"Not enough {currency}!" )\n\t\tif currency == 'coins':\n\t\t\tv.coins_spent += price\n\t\taward = AwardRelationship(user_id=v.id, kind=kind, price_paid=price)\n\t\tg.db.add(v)\n'''
 		new_direct_block = '''\tif purchased_directly:\n\t\tprice = int(AWARDS[kind]['price'] * v.discount)\n\t\tif not v.charge_account("marseybux", price):\n\t\t\tabort(400, "Not enough Wishbux!")\n\t\trecord_award_spend(g.db, v, price)\n\t\taward = AwardRelationship(user_id=v.id, kind=kind, price_paid=price)\n\t\tg.db.add(v)\n'''
 		if new_direct_block not in source:
@@ -117,7 +124,13 @@ def patch_award_currency_source():
 				raise RuntimeError("Could not locate the direct award currency block")
 			source = source.replace(old_direct_block, new_direct_block, 1)
 
-		if import_line not in source or new_shop_block not in source or new_buy_block not in source or new_direct_block not in source:
+		if (
+			import_line not in source
+			or new_shop_block not in source
+			or new_buy_block not in source
+			or new_inventory_block not in source
+			or new_direct_block not in source
+		):
 			raise RuntimeError("Award shop source repair did not produce the expected structure")
 
 		if source != original:
