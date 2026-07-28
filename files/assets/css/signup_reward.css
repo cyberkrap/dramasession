@@ -1,1 +1,292 @@
-.signup-reward-modal .modal-dialog{width:min(540px,calc(100vw - 24px));max-width:540px;margin-inline:auto}.signup-reward-shell{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:linear-gradient(155deg,#171217 0%,#0d0b0e 58%,#080708 100%);box-shadow:0 30px 90px rgba(0,0,0,.72),0 0 0 1px rgba(194,27,55,.08)}.signup-reward-shell::before{position:absolute;inset:0 0 auto;height:3px;content:"";background:linear-gradient(90deg,#7b1127,#ef233c 46%,#d29a3a 76%,#7b1127)}.signup-reward-glow{position:absolute;top:-180px;left:50%;width:430px;height:310px;transform:translateX(-50%);pointer-events:none;background:radial-gradient(circle,rgba(239,35,60,.21),rgba(154,30,52,.08) 38%,transparent 70%)}.signup-reward-body{position:relative;z-index:1;padding:30px 32px 27px;text-align:center}.signup-reward-kicker{margin-bottom:13px;color:#e9a8b5;font-size:.7rem;font-weight:850;letter-spacing:.16em;text-transform:uppercase}.signup-reward-mark{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 16px;color:#ffd78a;font-size:1.3rem;border:1px solid rgba(255,215,138,.24);border-radius:50%;background:linear-gradient(145deg,rgba(239,35,60,.19),rgba(255,215,138,.08));box-shadow:0 10px 30px rgba(0,0,0,.34),0 0 28px rgba(239,35,60,.12)}.signup-reward-body h2{margin:0;color:#fff;font-size:1.55rem;font-weight:880;letter-spacing:-.025em}.signup-reward-intro{max-width:400px;margin:9px auto 0;color:#bcb8bf;font-size:.91rem;line-height:1.5}.signup-reward-position{display:inline-flex;align-items:center;justify-content:center;min-height:29px;margin-top:16px;padding:5px 11px;color:#f5d9de;font-size:.72rem;font-weight:800;border:1px solid rgba(239,35,60,.24);border-radius:999px;background:rgba(239,35,60,.08)}.signup-reward-benefits{margin-top:25px;text-align:left;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1)}.signup-reward-benefit{display:grid;grid-template-columns:48px minmax(0,1fr);gap:13px;align-items:center;padding:15px 2px}.signup-reward-benefit img{display:block;width:44px;height:44px;object-fit:contain}.signup-reward-benefit strong{display:block;color:#f8f7f8;font-size:.92rem;font-weight:830;line-height:1.25}.signup-reward-benefit span{display:block;margin-top:3px;color:#929096;font-size:.76rem;line-height:1.35}.signup-reward-divider{height:1px;background:rgba(255,255,255,.075)}.signup-reward-note{margin:17px 0 0;color:#8f8c92;font-size:.73rem}.signup-reward-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:10px;margin-top:22px}.signup-reward-actions .btn{min-height:45px;border-radius:10px;font-size:.86rem;font-weight:820}.signup-reward-later{color:#c3c0c5;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.04)}.signup-reward-later:hover,.signup-reward-later:focus{color:#fff;border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.075)}.signup-reward-claim{border-color:rgba(255,255,255,.13)!important;background:linear-gradient(135deg,#ef233c,#a50f2b 65%,#741126)!important;box-shadow:0 10px 28px rgba(181,18,47,.28)!important}.signup-reward-claim:disabled{opacity:.7;transform:none!important}.signup-reward-feedback{min-height:20px;margin-top:10px;color:#d8d5d9;font-size:.78rem}.signup-reward-feedback.is-error{color:#ff8da0}.signup-reward-modal.is-claimed .signup-reward-mark{color:#fff;background:linear-gradient(145deg,#198754,#0f5f3c);border-color:rgba(91,230,157,.32)}.signup-reward-modal.is-claimed .signup-reward-position{color:#bff4d8;border-color:rgba(61,220,151,.25);background:rgba(61,220,151,.08)}.signup-reward-spark{position:fixed;z-index:1000000;width:6px;height:12px;border-radius:2px;background:currentColor;pointer-events:none;animation:signupRewardSpark .9s cubic-bezier(.2,.7,.3,1) forwards}@keyframes signupRewardSpark{from{opacity:1;transform:translate3d(0,0,0) rotate(0)}to{opacity:0;transform:translate3d(var(--spark-x),var(--spark-y),0) rotate(var(--spark-r))}}@media(max-width:575.98px){.signup-reward-body{padding:26px 20px 22px}.signup-reward-body h2{font-size:1.3rem}.signup-reward-actions{grid-template-columns:1fr}.signup-reward-later{order:2}.signup-reward-claim{order:1}}@media(prefers-reduced-motion:reduce){.signup-reward-spark{display:none}.signup-reward-mark{box-shadow:none}}
+.signup-reward-modal .modal-dialog {
+	width: min(560px, calc(100vw - 24px));
+	max-width: 560px;
+	margin-inline: auto;
+}
+
+.signup-reward-shell {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, .13);
+	border-radius: 14px;
+	background: #0d0d10;
+	box-shadow: 0 28px 80px rgba(0, 0, 0, .68);
+}
+
+.signup-reward-shell::before {
+	position: absolute;
+	inset: 0 0 auto;
+	height: 3px;
+	content: "";
+	background: linear-gradient(90deg, #741126, #ef233c 52%, #9b182d);
+}
+
+.signup-reward-body {
+	position: relative;
+	padding: 30px;
+	color: #f5f3f4;
+}
+
+.signup-reward-header {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	text-align: left;
+}
+
+.signup-reward-mark {
+	display: grid;
+	flex: 0 0 52px;
+	place-items: center;
+	width: 52px;
+	height: 52px;
+	color: #ffd58a;
+	font-size: 1.18rem;
+	border: 1px solid rgba(255, 213, 138, .25);
+	border-radius: 12px;
+	background: rgba(239, 35, 60, .1);
+}
+
+.signup-reward-heading {
+	min-width: 0;
+}
+
+.signup-reward-kicker {
+	margin-bottom: 5px;
+	color: #e79aaa;
+	font-size: .68rem;
+	font-weight: 800;
+	letter-spacing: .14em;
+	text-transform: uppercase;
+}
+
+.signup-reward-body h2 {
+	margin: 0;
+	color: #fff;
+	font-size: 1.45rem;
+	font-weight: 850;
+	line-height: 1.18;
+	letter-spacing: -.02em;
+}
+
+.signup-reward-intro {
+	margin: 6px 0 0;
+	color: #aaa6ac;
+	font-size: .87rem;
+	line-height: 1.45;
+}
+
+.signup-reward-position-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-top: 24px;
+	padding: 12px 14px;
+	border: 1px solid rgba(239, 35, 60, .2);
+	border-radius: 8px;
+	background: rgba(239, 35, 60, .055);
+}
+
+.signup-reward-position-row span {
+	color: #a9a5aa;
+	font-size: .76rem;
+}
+
+.signup-reward-position-row strong {
+	color: #f3d6dc;
+	font-size: .78rem;
+	font-weight: 800;
+	text-align: right;
+}
+
+.signup-reward-benefits {
+	margin-top: 18px;
+	border-top: 1px solid rgba(255, 255, 255, .09);
+	border-bottom: 1px solid rgba(255, 255, 255, .09);
+}
+
+.signup-reward-benefit {
+	display: grid;
+	grid-template-columns: 48px minmax(0, 1fr);
+	gap: 14px;
+	align-items: center;
+	padding: 15px 4px;
+	text-align: left;
+}
+
+.signup-reward-benefit + .signup-reward-benefit {
+	border-top: 1px solid rgba(255, 255, 255, .07);
+}
+
+.signup-reward-benefit img {
+	display: block;
+	width: 44px;
+	height: 44px;
+	object-fit: contain;
+}
+
+.signup-reward-benefit strong {
+	display: block;
+	color: #f7f5f6;
+	font-size: .92rem;
+	font-weight: 800;
+	line-height: 1.25;
+}
+
+.signup-reward-benefit span {
+	display: block;
+	margin-top: 3px;
+	color: #8f8b91;
+	font-size: .76rem;
+	line-height: 1.35;
+}
+
+.signup-reward-note {
+	margin: 16px 0 0;
+	color: #918d93;
+	font-size: .74rem;
+	text-align: center;
+}
+
+.signup-reward-actions {
+	display: grid;
+	grid-template-columns: 1fr 1.3fr;
+	gap: 10px;
+	margin-top: 20px;
+}
+
+.signup-reward-actions.is-single {
+	display: flex;
+	justify-content: center;
+}
+
+.signup-reward-actions.is-single .signup-reward-claim {
+	width: min(240px, 100%);
+}
+
+.signup-reward-actions .btn {
+	min-height: 44px;
+	border-radius: 8px !important;
+	font-size: .84rem;
+	font-weight: 800;
+}
+
+.signup-reward-later {
+	color: #c7c3c8 !important;
+	border: 1px solid rgba(255, 255, 255, .12) !important;
+	background: #17171b !important;
+}
+
+.signup-reward-later:hover,
+.signup-reward-later:focus {
+	color: #fff !important;
+	border-color: rgba(255, 255, 255, .22) !important;
+	background: #202025 !important;
+}
+
+.signup-reward-claim {
+	border-color: rgba(255, 255, 255, .12) !important;
+	background: linear-gradient(135deg, #ef233c, #a50f2b) !important;
+	box-shadow: 0 8px 22px rgba(181, 18, 47, .24) !important;
+}
+
+.signup-reward-claim:disabled {
+	opacity: .68;
+	transform: none !important;
+}
+
+.signup-reward-feedback {
+	margin-top: 10px;
+	color: #d8d5d9;
+	font-size: .78rem;
+	text-align: center;
+}
+
+.signup-reward-feedback:empty {
+	display: none;
+}
+
+.signup-reward-feedback.is-error {
+	display: block;
+	color: #ff8da0;
+}
+
+.signup-reward-modal.is-claimed .signup-reward-mark {
+	color: #d8ffe9;
+	border-color: rgba(61, 220, 151, .28);
+	background: rgba(32, 142, 91, .14);
+}
+
+.signup-reward-modal.is-claimed .signup-reward-position-row {
+	border-color: rgba(61, 220, 151, .2);
+	background: rgba(61, 220, 151, .055);
+}
+
+.signup-reward-modal.is-claimed .signup-reward-position-row strong {
+	color: #bff4d8;
+}
+
+.signup-reward-spark {
+	position: fixed;
+	z-index: 1000000;
+	width: 6px;
+	height: 12px;
+	border-radius: 2px;
+	background: currentColor;
+	pointer-events: none;
+	animation: signupRewardSpark .9s cubic-bezier(.2, .7, .3, 1) forwards;
+}
+
+@keyframes signupRewardSpark {
+	from {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) rotate(0);
+	}
+	to {
+		opacity: 0;
+		transform: translate3d(var(--spark-x), var(--spark-y), 0) rotate(var(--spark-r));
+	}
+}
+
+@media (max-width: 575.98px) {
+	.signup-reward-body {
+		padding: 25px 20px 22px;
+	}
+
+	.signup-reward-header {
+		align-items: flex-start;
+	}
+
+	.signup-reward-body h2 {
+		font-size: 1.23rem;
+	}
+
+	.signup-reward-position-row {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.signup-reward-position-row strong {
+		text-align: left;
+	}
+
+	.signup-reward-actions {
+		grid-template-columns: 1fr;
+	}
+
+	.signup-reward-later {
+		order: 2;
+	}
+
+	.signup-reward-claim {
+		order: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.signup-reward-spark {
+		display: none;
+	}
+}
