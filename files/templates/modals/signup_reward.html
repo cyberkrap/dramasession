@@ -2,37 +2,42 @@
 <div class="modal fade signup-reward-modal" id="signupRewardModal" tabindex="-1" aria-labelledby="signupRewardTitle" aria-hidden="true" data-formkey="{{v|formkey}}">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content signup-reward-shell">
-			<div class="signup-reward-glow" aria-hidden="true"></div>
 			<div class="modal-body signup-reward-body">
-				<div class="signup-reward-kicker">Founding member reward</div>
-				<div class="signup-reward-mark" aria-hidden="true">
-					<i class="fas fa-sparkles"></i>
+				<div class="signup-reward-header">
+					<div class="signup-reward-mark" aria-hidden="true">
+						<i class="fas fa-sparkles"></i>
+					</div>
+					<div class="signup-reward-heading">
+						<div class="signup-reward-kicker">Early member reward</div>
+						<h2 id="signupRewardTitle">Congratulations, @{{v.username}}</h2>
+						<p id="signupRewardIntro" class="signup-reward-intro">You secured one of the limited signup rewards.</p>
+					</div>
 				</div>
-				<h2 id="signupRewardTitle">Congratulations, @{{v.username}}</h2>
-				<p id="signupRewardIntro" class="signup-reward-intro">You secured one of the launch reward spots.</p>
 
-				<div class="signup-reward-position" id="signupRewardPosition">Spot reserved</div>
+				<div class="signup-reward-position-row">
+					<span>Your reserved place</span>
+					<strong id="signupRewardPosition">Reward spot reserved</strong>
+				</div>
 
 				<div class="signup-reward-benefits" aria-label="Signup reward benefits">
 					<div class="signup-reward-benefit">
 						<img class="signup-reward-coin" src="{{'wishcoin2-optimize.webp'|asset_siteimg}}" alt="">
 						<div>
 							<strong id="signupRewardCoins">Wishcoins</strong>
-							<span id="signupRewardValue">Launch currency reward</span>
+							<span id="signupRewardValue">Limited currency reward</span>
 						</div>
 					</div>
-					<div class="signup-reward-divider" aria-hidden="true"></div>
 					<div class="signup-reward-benefit">
 						<img class="signup-reward-badge" src="/i/badges/1.webp" alt="Alpha User badge">
 						<div>
 							<strong>Alpha User badge</strong>
-							<span>Limited launch badge for rewarded signups</span>
+							<span>Joined during open alpha</span>
 						</div>
 					</div>
 				</div>
 
-				<p class="signup-reward-note">Wishcoins are difficult to earn. Spend them carefully.</p>
-				<div class="signup-reward-actions">
+				<p class="signup-reward-note">Wishcoins are valueable. Spend them carefully.</p>
+				<div class="signup-reward-actions" id="signupRewardActions">
 					<button type="button" class="btn signup-reward-later" id="signupRewardLater" data-bs-dismiss="modal">Claim later</button>
 					<button type="button" class="btn btn-primary signup-reward-claim" id="signupRewardClaim">Claim now</button>
 				</div>
