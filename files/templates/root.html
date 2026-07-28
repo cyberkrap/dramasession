@@ -85,7 +85,7 @@
 		<script defer src="{{'js/bottom.js' | asset}}"></script>
 		<script defer src="{{'js/award_modal_guard.js' | asset}}"></script>
 		{% if SITE_NAME == 'Obsession' %}
-		<script defer src="{{'js/username_effect_content_hydration.js' | asset}}"></script>
+		<script id="username-effect-content-hydration" src="{{'js/username_effect_content_hydration.js' | asset}}"></script>
 		{% endif %}
 		{% if request.path == '/settings/personal' and v %}
 		<script>
