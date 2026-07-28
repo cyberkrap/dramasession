@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="{{'css/obsession_comment_refinement.css' | asset}}">
 <link rel="stylesheet" href="{{'css/emoji_modal_refinement.css' | asset}}">
 <link rel="stylesheet" href="{{'css/casino_currency_cleanup.css' | asset}}">
+<link rel="stylesheet" href="{{'css/signup_reward.css' | asset}}">
 {% block banner %}
 	{% include "modals/expanded_image.html" %}
 	{% if err or '@' not in request.path %}
@@ -55,6 +56,7 @@
 {% block reportCommentModal %}{% endblock %}
 {% block GIFtoast %}{% endblock %}
 {% block GIFpicker %}{% endblock %}
+{% include "modals/signup_reward.html" %}
 <div class="toast clipboard" id="toast-success" data-bs-animation="true" data-bs-autohide="true" data-bs-delay="5000">
 	<div class="toast-body text-center">
 		<i class="fas fa-check-circle text-success mr-2"></i>Link copied to clipboard
@@ -77,6 +79,7 @@
 <script defer src="{{'js/relationship_counts.js' | asset}}"></script>
 <script defer src="{{'js/header_community_threads.js' | asset}}"></script>
 <script defer src="{{'js/casino_currency_cleanup.js' | asset}}"></script>
+<script defer src="{{'js/signup_reward.js' | asset}}"></script>
 {% if not err and v and v.spider %}
 	<script defer src="{{'js/vendor/critters.js' | asset}}"></script>
 	<script defer src="{{'js/spider.js' | asset}}"></script>
