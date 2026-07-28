@@ -1,7 +1,7 @@
 from flask import abort, g, has_request_context, request
 from sqlalchemy import Boolean, Column, inspect, text
 
-from files.classes import Comment, Submission
+from files.classes import Submission
 from files.helpers.config.const import PERMS
 
 
@@ -54,19 +54,19 @@ def _install_database_column(engine):
 			)
 
 
-def _submission_id_from_comment_request():
+def _top_level_submission_id_from_comment_request():
+	"""Return a post ID only when the request creates a top-level comment.
+
+	Replies use a c_<id> parent and must remain available to regular members even
+	when the post itself is restricted to admin-created top-level comments.
+	"""
 	parent_fullname = str(request.values.get('parent_fullname') or '').strip()
-	if len(parent_fullname) < 3:
+	if not parent_fullname.startswith('p_'):
 		return None
 	identifier = parent_fullname[2:]
 	if not identifier.isdigit():
 		return None
-	identifier = int(identifier)
-	if parent_fullname.startswith('p_'):
-		return identifier
-	if parent_fullname.startswith('c_'):
-		return g.db.query(Comment.parent_submission).filter(Comment.id == identifier).scalar()
-	return None
+	return int(identifier)
 
 
 def install_submission_comment_permissions(app, engine):
@@ -80,7 +80,7 @@ def install_submission_comment_permissions(app, engine):
 		if request.method != 'POST' or request.path != '/comment':
 			return None
 		user = _current_user()
-		submission_id = _submission_id_from_comment_request()
+		submission_id = _top_level_submission_id_from_comment_request()
 		if not submission_id:
 			return None
 		locked = g.db.query(Submission.admin_only_comments).filter(
@@ -89,7 +89,7 @@ def install_submission_comment_permissions(app, engine):
 		if not locked:
 			return None
 		if not user or user.admin_level < PERMS['POST_COMMENT_MODERATION']:
-			abort(403, 'Only admins can comment on this post!')
+			abort(403, 'Only admins can make top-level comments on this post!')
 		return None
 
 	app._submission_comment_permissions_installed = True
