@@ -52,7 +52,7 @@
             {% elif can_pay_bux %}
                 {% set can_buy = true %}
                 {% set purchase_currency = 'Wishbux' %}
-                {% set purchase_url = '/buy/' ~ kind ~ '?currency=marseybux' %}
+                {% set purchase_url = '/buy/' ~ kind ~ '?mb=true&currency=marseybux' %}
             {% elif can_pay_coins %}
                 {% set can_buy = true %}
                 {% set purchase_currency = 'Wishcoins' %}
