@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from files.helpers.config.const import SITE_NAME
 
 
-CAMPAIGN_KEY = "obsession-launch-signups-v1"
+CAMPAIGN_KEY = "obsession-launch-signups-v2"
 ALPHA_BADGE_ID = 1
 MAX_REWARDED_SIGNUPS = 200
 
