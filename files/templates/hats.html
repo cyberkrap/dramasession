@@ -76,9 +76,8 @@
                             id="buy1-hat-{{hat.id}}"
                             class="btn btn-primary"
                             {% if not v.can_spend('coins', hat.price) %}disabled{% endif %}
-                            data-areyousure="postToastReload(this,'/buy_hat/{{hat.id}}')"
                             data-nonce="{{g.nonce}}"
-                            data-onclick="areyousure(this)">
+                            data-onclick="postToastReload(this,'/buy_hat/{{hat.id}}')">
                             <i class="fas fa-coins mr-1" aria-hidden="true"></i>Wishcoins
                         </button>
                         {% if FEATURES['MARSEYBUX'] %}
@@ -86,9 +85,8 @@
                             id="buy2-hat-{{hat.id}}"
                             class="btn btn-secondary"
                             {% if not v.can_spend('marseybux', hat.price) %}disabled{% endif %}
-                            data-areyousure="postToastReload(this,'/buy_hat/{{hat.id}}?mb=true')"
                             data-nonce="{{g.nonce}}"
-                            data-onclick="areyousure(this)">
+                            data-onclick="postToastReload(this,'/buy_hat/{{hat.id}}?mb=true')">
                             <i class="fas fa-money-bill-wave mr-1" aria-hidden="true"></i>Wishbux
                         </button>
                         {% endif %}
