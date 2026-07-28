@@ -25,7 +25,7 @@ CONTRIBUTION_BADGE_DESCRIPTIONS.update({
 BADGE_BRANDING = {
     1: (
         "Alpha User",
-        "Joined during The Obsession Club launch promotion.",
+        "Joined during open alpha (owning this badge gives you an extra 3% award discount permanently)",
     ),
     16: (
         "Emoji Master",
