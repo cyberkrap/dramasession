@@ -85,7 +85,26 @@
 		<script defer src="{{'js/bottom.js' | asset}}"></script>
 		<script defer src="{{'js/award_modal_guard.js' | asset}}"></script>
 		{% if SITE_NAME == 'Obsession' %}
+		<script>
+			// The content effect script only needs to watch newly inserted posts and
+			// comments. Watching every class mutation made its own class updates feed
+			// back into the observer and could lock the browser's main thread.
+			window.__obsessionMutationObserver = window.MutationObserver;
+			window.MutationObserver = class extends window.__obsessionMutationObserver {
+				observe(target, options) {
+					if (target === document.body && options && options.attributeFilter && options.attributeFilter.includes('class')) {
+						options = Object.assign({}, options, {attributes: false});
+						delete options.attributeFilter;
+					}
+					return super.observe(target, options);
+				}
+			};
+		</script>
 		<script id="username-effect-content-hydration" src="{{'js/username_effect_content_hydration.js' | asset}}"></script>
+		<script>
+			window.MutationObserver = window.__obsessionMutationObserver;
+			delete window.__obsessionMutationObserver;
+		</script>
 		{% endif %}
 		{% if request.path == '/settings/personal' and v %}
 		<script>
