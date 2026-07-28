@@ -2,7 +2,7 @@
 	'use strict';
 
 	const ASSET_ROOT = '/assets/images/username_effects/';
-	const ASSET_VERSION = '10';
+	const ASSET_VERSION = '11';
 	const CYCLE_INTERVAL = 40000;
 	const states = new Map();
 	const pendingIds = new Set();
@@ -111,6 +111,7 @@
 		prepareTarget(target, color);
 		const patron = target.classList.contains('patron');
 		const asset = effect === 'siren' && patron ? 'siren_patron' : effect;
+		if (target.dataset.usernameEffectCurrent === asset && target.classList.contains('username-effect--ready')) return;
 		const requestToken = `${asset}:${performance.now()}:${Math.random()}`;
 		target.dataset.usernameEffectHydrationRequest = requestToken;
 		const loaded = await preload(asset);
@@ -137,6 +138,22 @@
 		state.elements.forEach(target => applyTarget(target, effect, state.color));
 	}
 
+	function embeddedState(host, target) {
+		const popover = host.matches?.('.user-name[data-pop-info]') ? popoverData(host) : {};
+		const effects = cleanEffects(
+			target.dataset.usernameEffects ||
+			host.dataset.usernameEffects ||
+			popover.username_effects ||
+			[]
+		);
+		const color = cleanColor(
+			target.dataset.usernameEffectColor ||
+			host.dataset.usernameEffectColor ||
+			popover.username_effect_color
+		);
+		return {effects, color};
+	}
+
 	function track(host) {
 		const identity = identifyHost(host);
 		if (!identity || !/^\d+$/.test(identity.userId)) return;
@@ -148,7 +165,16 @@
 			state = {effects: [], color: 'ffffff', index: 0, elements: new Set()};
 			states.set(identity.userId, state);
 		}
+
+		const embedded = embeddedState(identity.host, target);
+		if (embedded.effects.length) {
+			state.effects = embedded.effects;
+			state.color = embedded.color;
+			state.effects.forEach(preload);
+		}
+
 		state.elements.add(target);
+		if (state.effects.length) applyState(state);
 		pendingIds.add(identity.userId);
 		scheduleFetch();
 	}
@@ -162,6 +188,7 @@
 	async function fetchChunk(ids) {
 		const response = await fetch(`/api/username-effects?ids=${encodeURIComponent(ids.join(','))}`, {
 			credentials: 'same-origin',
+			cache: 'no-store',
 			headers: {'Accept': 'application/json'},
 		});
 		if (!response.ok) throw new Error(`Username effect hydration failed: ${response.status}`);
