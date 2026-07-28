@@ -16,23 +16,11 @@
 					<div class="awards-wrapper award-panel{% if panel != 'content' %} d-none{% endif %}" data-award-panel="{{panel}}">
 						{% for award in v.user_awards if award.cosmetic == cosmetic %}
 							{% set price = (award.price*v.discount)|int %}
-							{% if award.kind == 'benefactor' %}
-								{% set currency = 'marseybux' %}
-							{% elif award.kind == 'grass' %}
-								{% set currency = 'coins' %}
-							{% elif v.can_spend('marseybux', price) %}
-								{% set currency = 'marseybux' %}
-							{% elif v.can_spend('coins', price) %}
-								{% set currency = 'coins' %}
-							{% elif v.marseybux > 0 %}
-								{% set currency = 'marseybux' %}
-							{% else %}
-								{% set currency = 'coins' %}
-							{% endif %}
-							<button type="button" class="award-choice" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-container="body" title="{{award.title}} — {{award.description or 'A community effect from the Obsession collection.'}}" id="{{award.kind}}" data-price="{{price}}" data-currency="{{currency}}" data-nonce="{{g.nonce}}" data-onclick="pick('{{award.kind}}', {{price}}, {{v.coins}}, {{v.marseybux}}, {{'true' if v.has_unlimited_spending else 'false'}}, '{{currency}}')">
+							{% set owned = award.owned|default(0)|int %}
+							<button type="button" class="award-choice" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-container="body" title="{{award.title}} — {{award.description or 'A community effect from the Obsession collection.'}}" id="{{award.kind}}" data-price="{{price}}" data-owned="{{owned}}" data-currency="marseybux" data-nonce="{{g.nonce}}" data-onclick="pick('{{award.kind}}', {{price}}, {{v.coins}}, {{v.marseybux}}, {{'true' if v.has_unlimited_spending else 'false'}}, 'marseybux', {{owned}})">
 								<i class="{{award.icon}} {{award.color}}"></i>
 								<span class="award-name">{{award.title}}</span>
-								<span class="award-price">{{price|number}} {{'Wishbux' if currency == 'marseybux' else 'Wishcoins'}}</span>
+								<span class="award-price">{% if owned > 0 %}x{{owned}} owned{% else %}Price: {{price|number}}{% endif %}</span>
 							</button>
 						{% endfor %}
 					</div>
