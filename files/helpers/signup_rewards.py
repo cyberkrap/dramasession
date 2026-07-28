@@ -14,8 +14,8 @@ MAX_REWARDED_SIGNUPS = 200
 
 # Slot upper bound, Wishcoins, advertised value, audience label.
 REWARD_TIERS = (
-	(10, 24000, "$20", "the first 10 members"),
-	(100, 12000, "$10", "the next 90 members"),
+	(20, 24000, "$20", "the first 20 members"),
+	(100, 12000, "$10", "the next 80 members"),
 	(200, 6000, "$5", "the next 100 members"),
 )
 
