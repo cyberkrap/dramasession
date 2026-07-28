@@ -70,7 +70,7 @@
 	{% if p.is_bot %} <i class="fas fa-robot text-info" data-bs-toggle="tooltip" data-bs-placement="bottom"	title="Bot"></i>{% endif %}
 	{% if p.is_blocking and not p.ghost %}<i class="fas fa-user-minus text-warning" data-bs-toggle="tooltip" data-bs-placement="bottom" title="You're blocking this user, but you can see this post because you're an admin."></i>{% endif %}
 	{% if p.is_blocked and not p.ghost %}<i class="fas fa-user-minus text-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="This user is blocking you."></i>{% endif %}
-	{% if p.private %}<span class="badge border-warning border-1 text-small-extra">Draft</span>{% endif %}
+	{% if p.private %}<span class="badge border-warning border-1 text-small-extra mr-1">Draft</span>{% endif %}
 	{% if p.active_flags(v) %}<button type="button" class="btn btn-primary" style="padding:1px 5px; font-size:10px" data-nonce="{{g.nonce}}" data-toggleelement="flaggers-{{p.id}}" data-toggleattr="d-none">{{p.active_flags(v)}} Report{{plural(p.active_flags(v))}}</button>{% endif %}
 
 	{% if p.ghost %}
@@ -93,7 +93,7 @@
 					<img class="profile-pic-30-hat hat" loading="lazy" src="{{p.author.hat_active(v)[0]}}?h=7" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{p.author.hat_active(v)[1]}}">
 				{%- endif %}
 			</div>
-			<span {% if p.author.active_patron and not p.distinguish_level %}class="patron" style="background-color:#{{p.author.name_color}};"{% elif p.distinguish_level %}class="mod {% if SITE_NAME == 'rDrama' %}mod-rdrama{% endif %}"{% endif %}>{{p.author_name}}</span>
+			<span data-username-effect-user="{{p.author.id}}" data-username-effects="{{p.author.active_username_effects|join(',')}}" data-username-effect-color="{{p.author.username_effect_text_color}}" {% if p.author.active_patron and not p.distinguish_level %}class="patron" style="background-color:#{{p.author.name_color}};"{% elif p.distinguish_level %}class="mod {% if SITE_NAME == 'rDrama' %}mod-rdrama{% endif %}"{% endif %}>{{p.author_name}}</span>
 		</a>
 		{% if FEATURES['PRONOUNS'] %}
 			<span class="pronouns" style="color:#{{p.author.titlecolor}};border-color:#{{p.author.titlecolor}}">{{p.author.pronouns}}</span>
@@ -115,7 +115,7 @@
 	{% if v %}
 		<div id="comment-form-space-{{target_fullname}}" class="comment-write {{subwrapper_css_classes}}">
 			<input hidden name="formkey" value="{{v|formkey}}">
-			<input hidden name="parent_fullname" value="{target_fullname}}">
+			<input hidden name="parent_fullname" value="{target_fullname}">
 			<textarea required autocomplete="off" {% if not (p and p.id in ADMIGGER_THREADS) %}{% if v.longpost %}minlength="280"{% elif v.bird %}maxlength="140"{% endif %}{% endif %} minlength="1" maxlength="10000" data-preview="form-preview-{{target_fullname}}" data-nonce="{{g.nonce}}" data-oninput="markdown(this);charLimit('reply-form-body-{{target_fullname}}','charcount-{{target_fullname}}')" id="reply-form-body-{{target_fullname}}" data-fullname="{{target_fullname}}" class="comment-box form-control rounded" name="body" form="reply-to-{{target_fullname}}" placeholder="Add your comment..." rows="3"></textarea>
 
 			<div class="text-small font-weight-bold mt-1" id="charcount-{{target_fullname}}" style="right: 1rem; bottom: 0.5rem; z-index: 3;"></div>
