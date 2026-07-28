@@ -44,39 +44,46 @@
 		const toolbar = wrapper?.querySelector('.comment-format');
 		if (!(wrapper instanceof Element) || !(form instanceof HTMLFormElement) || !(toolbar instanceof Element)) return;
 		initialized.add(textarea);
+		toolbar.classList.add('obs-post-edit-toolbar');
 
-		const editorId = textarea.id || `post-edit-${Math.random().toString(36).slice(2)}`;
-		const uploadId = `${editorId}-inline-image-upload`;
-		const uploadLabel = document.createElement('label');
-		uploadLabel.className = 'format btn btn-secondary m-0 ml-2 d-inline-block';
-		uploadLabel.htmlFor = uploadId;
-		uploadLabel.title = 'Upload images at the cursor';
-		uploadLabel.innerHTML = `<span aria-hidden="true"><i class="fas fa-images"></i></span><span class="sr-only">Upload images</span>`;
+		const uploadInput = toolbar.querySelector('input[type="file"][id^="file-upload-edit-"]');
+		const uploadLabel = uploadInput ? toolbar.querySelector(`label[for="${CSS.escape(uploadInput.id)}"]`) : null;
+		if (!(uploadInput instanceof HTMLInputElement) || !(uploadLabel instanceof HTMLLabelElement)) return;
 
-		const uploadInput = document.createElement('input');
-		uploadInput.id = uploadId;
-		uploadInput.type = 'file';
+		// Reuse the original attachment control instead of adding a duplicate button.
 		uploadInput.accept = 'image/*';
 		uploadInput.multiple = true;
-		uploadInput.hidden = true;
-		uploadLabel.appendChild(uploadInput);
+		uploadInput.removeAttribute('name');
+		uploadInput.removeAttribute('data-onchange');
+		uploadLabel.className = 'format btn btn-secondary obs-post-edit-tool';
+		uploadLabel.title = 'Upload images at the cursor';
+		uploadLabel.setAttribute('aria-label', 'Upload images');
+		uploadLabel.replaceChildren();
+		const uploadIcon = document.createElement('i');
+		uploadIcon.className = 'fas fa-images';
+		uploadIcon.setAttribute('aria-hidden', 'true');
+		uploadLabel.append(uploadIcon, uploadInput);
+
+		const hiddenLink = toolbar.querySelector('small.format.d-none');
+		if (hiddenLink) hiddenLink.remove();
 
 		const urlButton = document.createElement('button');
 		urlButton.type = 'button';
-		urlButton.className = 'format btn btn-secondary m-0 ml-2 d-inline-block';
+		urlButton.className = 'format btn btn-secondary obs-post-edit-tool obs-post-edit-url';
 		urlButton.title = 'Import an image URL at the cursor';
-		urlButton.innerHTML = '<i class="fas fa-link" aria-hidden="true"></i> Image URL';
+		urlButton.innerHTML = '<i class="fas fa-link" aria-hidden="true"></i><span>Image URL</span>';
+		toolbar.append(urlButton);
 
+		const info = document.createElement('div');
+		info.className = 'obs-post-edit-upload-info';
 		const status = document.createElement('span');
-		status.className = 'text-small ml-2';
+		status.className = 'obs-post-edit-upload-status';
 		status.setAttribute('aria-live', 'polite');
-
-		const help = document.createElement('div');
-		help.className = 'form-text text-small mt-1';
-		help.textContent = 'Images upload immediately and are inserted where your cursor is. You can also paste or drop images into the text box.';
-
-		toolbar.append(uploadLabel, urlButton, status);
-		toolbar.insertAdjacentElement('afterend', help);
+		const help = document.createElement('span');
+		help.className = 'obs-post-edit-upload-help';
+		help.textContent = 'Paste, drop, upload, or import images. They are inserted at your cursor.';
+		info.append(status, help);
+		toolbar.insertAdjacentElement('afterend', info);
 
 		const formkey = form.querySelector('input[name="formkey"]');
 		const saveButton = form.querySelector('button[type="submit"]');
@@ -87,16 +94,13 @@
 			status.textContent = message;
 			status.classList.toggle('text-danger', error);
 			status.classList.toggle('text-success', !error && Boolean(message));
+			info.classList.toggle('has-status', Boolean(message));
 		}
 
 		function setPending(delta) {
-			if (pending === 0 && delta > 0 && saveButton instanceof HTMLButtonElement) {
-				saveWasDisabled = saveButton.disabled;
-			}
+			if (pending === 0 && delta > 0 && saveButton instanceof HTMLButtonElement) saveWasDisabled = saveButton.disabled;
 			pending = Math.max(0, pending + delta);
-			if (saveButton instanceof HTMLButtonElement) {
-				saveButton.disabled = pending > 0 || saveWasDisabled;
-			}
+			if (saveButton instanceof HTMLButtonElement) saveButton.disabled = pending > 0 || saveWasDisabled;
 		}
 
 		async function upload({files = [], urls = [], start = null, end = null, fallbackText = ''}) {
