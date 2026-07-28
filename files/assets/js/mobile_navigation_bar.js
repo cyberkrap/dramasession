@@ -1,64 +1,103 @@
 (() => {
-	function makeAccountLink({href, label, icon, marker}) {
-		const link = document.createElement('a');
-		link.className = 'dropdown-item';
-		link.href = href;
-		if (marker) link.dataset.accountActivityLink = marker;
-		link.innerHTML = `<i class="${icon} fa-fw mr-3" aria-hidden="true"></i>${label}`;
+	const activityItems = [
+		{suffix: '/posts', label: 'My posts', icon: 'fas fa-file', marker: 'posts'},
+		{suffix: '/comments', label: 'My comments', icon: 'fas fa-comments', marker: 'comments'},
+	];
+
+	const communityItems = [
+		{
+			href: '/post/11/changelog-and-site-updates-megathread',
+			label: 'Changelog',
+			icon: 'fas fa-history',
+		},
+		{
+			href: '/post/10/bugs-and-suggestions-megathread',
+			label: 'Bugs & Suggestions',
+			icon: 'fas fa-bug',
+		},
+	];
+
+	function prepareLink(link, item, mobile = false) {
+		link.className = mobile ? 'nav-link mobile-drawer-link' : 'dropdown-item';
+		link.href = item.href;
+		if (item.marker) link.dataset.accountActivityLink = item.marker;
+
+		const icon = document.createElement('i');
+		icon.className = `${item.icon} fa-fw mr-3`;
+		icon.setAttribute('aria-hidden', 'true');
+		link.replaceChildren(icon, document.createTextNode(item.label));
 		return link;
 	}
 
-	function ensureAccountMenuLinks() {
+	function getOrCreateLink(root, item, mobile = false) {
+		const link = root.querySelector(`a[href="${item.href}"]`) || document.createElement('a');
+		return prepareLink(link, item, mobile);
+	}
+
+	function removeFeedbackLinks(root) {
+		root.querySelectorAll('a[href="/contact"]').forEach((link) => {
+			if (link.textContent.trim().toLowerCase() === 'feedback') link.remove();
+		});
+	}
+
+	function installDesktopMenu() {
 		const menu = document.querySelector('#header--dropdown-menu > .px-2');
 		if (!menu) return;
+
+		removeFeedbackLinks(menu);
 
 		const profile = menu.querySelector('a.dropdown-item[href^="/@"]');
 		if (profile) {
 			const base = profile.getAttribute('href').replace(/\/$/, '');
 			let anchor = profile;
-			const activityLinks = [
-				{href: `${base}/posts`, label: 'My posts', icon: 'fas fa-file', marker: 'posts'},
-				{href: `${base}/comments`, label: 'My comments', icon: 'fas fa-comments', marker: 'comments'},
-			];
-
-			for (const item of activityLinks) {
-				let link = menu.querySelector(`a[href="${item.href}"]`);
-				if (!link) {
-					link = makeAccountLink(item);
-					anchor.insertAdjacentElement('afterend', link);
-				}
+			for (const item of activityItems) {
+				const link = getOrCreateLink(menu, {...item, href: `${base}${item.suffix}`});
+				anchor.insertAdjacentElement('afterend', link);
 				anchor = link;
 			}
 		}
 
-		let threadAnchor = menu.querySelector('a[href="/directory"]');
-		const communityLinks = [
-			{
-				href: '/post/11/changelog-and-site-updates-megathread',
-				label: 'Changelog',
-				icon: 'fas fa-clipboard-list',
-			},
-			{
-				href: '/post/10/bugs-and-suggestions-megathread',
-				label: 'Bugs & Suggestions',
-				icon: 'fas fa-bug',
-			},
-		];
-
-		for (const item of communityLinks) {
-			let link = menu.querySelector(`a[href="${item.href}"]`);
-			if (!link) {
-				link = makeAccountLink(item);
-				if (threadAnchor) threadAnchor.insertAdjacentElement('afterend', link);
-				else menu.append(link);
-			}
-			threadAnchor = link;
+		let anchor = menu.querySelector('a[href="/directory"]') || menu.querySelector('button.copy-link');
+		for (const item of communityItems) {
+			const link = getOrCreateLink(menu, item);
+			if (anchor) anchor.insertAdjacentElement('afterend', link);
+			else menu.append(link);
+			anchor = link;
 		}
 	}
 
-	const init = () => {
-		ensureAccountMenuLinks();
+	function installMobileMenu() {
+		const section = document.querySelector('.mobile-drawer-section');
+		if (!section) return;
 
+		removeFeedbackLinks(section);
+
+		const profile = section.querySelector('a.mobile-drawer-link[href^="/@"]');
+		if (profile) {
+			const base = profile.getAttribute('href').replace(/\/$/, '');
+			let anchor = profile;
+			for (const item of activityItems) {
+				const link = getOrCreateLink(section, {...item, href: `${base}${item.suffix}`}, true);
+				anchor.insertAdjacentElement('afterend', link);
+				anchor = link;
+			}
+		}
+
+		let anchor = section.querySelector('a[href="/directory"]') || section.querySelector('button.copy-link');
+		for (const item of communityItems) {
+			const link = getOrCreateLink(section, item, true);
+			if (anchor) anchor.insertAdjacentElement('afterend', link);
+			else section.append(link);
+			anchor = link;
+		}
+	}
+
+	function installMenus() {
+		installDesktopMenu();
+		installMobileMenu();
+	}
+
+	function installDrawer() {
 		const toggle = document.getElementById('mobile-menu-toggle');
 		const drawer = document.getElementById('navbarResponsive');
 		const backdrop = document.getElementById('mobile-drawer-backdrop');
@@ -67,11 +106,8 @@
 		toggle.dataset.mobileNavigationReady = 'true';
 
 		const syncDrawerState = () => {
-			if (window.innerWidth >= 768) {
-				drawer.setAttribute('aria-hidden', 'false');
-			} else if (!drawer.classList.contains('is-open')) {
-				drawer.setAttribute('aria-hidden', 'true');
-			}
+			if (window.innerWidth >= 768) drawer.setAttribute('aria-hidden', 'false');
+			else if (!drawer.classList.contains('is-open')) drawer.setAttribute('aria-hidden', 'true');
 		};
 
 		let lastFocused = null;
@@ -117,11 +153,13 @@
 			syncDrawerState();
 			if (window.innerWidth >= 768 && drawer.classList.contains('is-open')) closeDrawer();
 		});
-	};
-
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', init, {once: true});
-	} else {
-		init();
 	}
+
+	function init() {
+		installMenus();
+		installDrawer();
+	}
+
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once: true});
+	else init();
 })();
