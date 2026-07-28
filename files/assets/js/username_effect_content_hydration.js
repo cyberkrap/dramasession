@@ -2,7 +2,7 @@
 	'use strict';
 
 	const ASSET_ROOT = '/assets/images/username_effects/';
-	const ASSET_VERSION = '13';
+	const ASSET_VERSION = '12';
 	const CYCLE_INTERVAL = 40000;
 	const states = new Map();
 	const pendingIds = new Set();
@@ -81,6 +81,13 @@
 		return spans[spans.length - 1] || null;
 	}
 
+	function isDistinguished(host, target) {
+		return Boolean(
+			(host instanceof Element && host.matches('.mod, .mod-rdrama')) ||
+			(target instanceof Element && target.matches('.mod, .mod-rdrama'))
+		);
+	}
+
 	function currentIndex(length) {
 		return length > 1 ? Math.floor(Date.now() / CYCLE_INTERVAL) % length : 0;
 	}
@@ -105,10 +112,28 @@
 		target.style.removeProperty('--username-effect-image');
 		target.style.removeProperty('background-image');
 		delete target.dataset.usernameEffectCurrent;
+		delete target.dataset.usernameEffectHydrationRequest;
+	}
+
+	function clearDistinguishedTarget(target) {
+		if (!(target instanceof Element)) return;
+		clearTarget(target);
+		target.classList.remove(
+			'username-effect-host',
+			'username-effect',
+			'username-effect-text',
+			'username-effect-plate'
+		);
+		target.style.removeProperty('--username-effect-text-color');
+		states.forEach(state => state.elements.delete(target));
 	}
 
 	async function applyTarget(target, effect, color) {
 		if (!(target instanceof Element) || !target.isConnected || !effect) return;
+		if (target.matches('.mod, .mod-rdrama')) {
+			clearDistinguishedTarget(target);
+			return;
+		}
 		prepareTarget(target, color);
 		const patron = target.classList.contains('patron');
 		const asset = effect === 'siren' && patron ? 'siren_patron' : effect;
@@ -138,7 +163,10 @@
 
 	function applyState(state) {
 		for (const target of Array.from(state.elements)) {
-			if (!target.isConnected) state.elements.delete(target);
+			if (!target.isConnected || target.matches('.mod, .mod-rdrama')) {
+				if (target.matches?.('.mod, .mod-rdrama')) clearDistinguishedTarget(target);
+				state.elements.delete(target);
+			}
 		}
 		if (!state.effects.length) {
 			state.elements.forEach(clearTarget);
@@ -170,6 +198,10 @@
 		if (!identity || !/^\d+$/.test(identity.userId)) return;
 		const target = resolveTarget(identity.host);
 		if (!target) return;
+		if (isDistinguished(identity.host, target)) {
+			clearDistinguishedTarget(target);
+			return;
+		}
 
 		let state = states.get(identity.userId);
 		if (!state) {
@@ -252,11 +284,20 @@
 	function initialize() {
 		scan(document);
 		const observer = new MutationObserver(mutations => {
-			mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
-				if (node instanceof Element) scan(node);
-			}));
+			mutations.forEach(mutation => {
+				if (mutation.type === 'attributes' && mutation.target instanceof Element) {
+					const host = mutation.target.matches('[data-username-effect-user], .user-name[data-pop-info]')
+						? mutation.target
+						: mutation.target.closest('.user-name[data-pop-info]');
+					if (host) track(host);
+					return;
+				}
+				mutation.addedNodes.forEach(node => {
+					if (node instanceof Element) scan(node);
+				});
+			});
 		});
-		observer.observe(document.body, {childList: true, subtree: true});
+		observer.observe(document.body, {childList: true, subtree: true, attributes: true, attributeFilter: ['class']});
 		scheduleCycle();
 	}
 
