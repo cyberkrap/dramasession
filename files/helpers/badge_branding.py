@@ -23,6 +23,10 @@ CONTRIBUTION_BADGE_DESCRIPTIONS.update({
 
 
 BADGE_BRANDING = {
+    1: (
+        "Alpha User",
+        "Joined during The Obsession Club launch promotion.",
+    ),
     16: (
         "Emoji Master",
         "Made major contributions to the site's emoji collection.",
