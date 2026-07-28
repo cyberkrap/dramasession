@@ -7,7 +7,7 @@ from files.helpers.username_effects import (
 	normalize_username_effect_color,
 	normalize_username_effects,
 )
-from files.routes.wrappers import get_ID
+from files.routes.wrappers import auth_desired, get_ID
 
 
 _MAX_USER_IDS = 100
@@ -15,12 +15,13 @@ _MAX_USER_IDS = 100
 
 @app.get('/api/username-effects')
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
-def username_effect_hydration():
+@auth_desired
+def username_effect_hydration(v):
 	"""Return current public username effects directly from the users table.
 
-	Post and comment cards can outlive the author object that originally rendered
-	them. Reading the effect columns here prevents cached author metadata from
-	leaving those names stuck on an old or empty effect state.
+	The auth wrapper is intentional even though this endpoint is public: it opens
+	the request-scoped database session used through g.db. Without it, this route
+	failed before returning any effect data, leaving post and comment names plain.
 	"""
 	raw_ids = str(request.args.get('ids') or '')
 	user_ids = []
