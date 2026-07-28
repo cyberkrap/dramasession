@@ -50,6 +50,9 @@ try:
 	patch_custom_emote_sources()
 	patch_live_banner_source()
 	patch_marseys_source()
+except RuntimeError:
+	pass
+try:
 	patch_comment_username_effects_source()
 except RuntimeError:
 	pass
