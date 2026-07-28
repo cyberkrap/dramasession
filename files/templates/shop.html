@@ -38,6 +38,29 @@
         <div class="obs-shop-grid obs-shop-grid--awards">
         {% for a in awards %}
             {% set kind = a['kind'] %}
+            {% set can_pay_bux = v.can_spend('marseybux', a['price']) %}
+            {% set can_pay_coins = v.can_spend('coins', a['price']) %}
+            {% if kind == 'benefactor' %}
+                {% set can_buy = can_pay_bux %}
+                {% set purchase_currency = 'Wishbux' %}
+                {% set purchase_url = '/buy/' ~ kind ~ '?mb=true&currency=marseybux' %}
+            {% elif kind == 'grass' %}
+                {% set can_buy = can_pay_coins %}
+                {% set purchase_currency = 'Wishcoins' %}
+                {% set purchase_url = '/buy/' ~ kind ~ '?currency=coins' %}
+            {% elif can_pay_bux %}
+                {% set can_buy = true %}
+                {% set purchase_currency = 'Wishbux' %}
+                {% set purchase_url = '/buy/' ~ kind ~ '?currency=marseybux' %}
+            {% elif can_pay_coins %}
+                {% set can_buy = true %}
+                {% set purchase_currency = 'Wishcoins' %}
+                {% set purchase_url = '/buy/' ~ kind ~ '?currency=coins' %}
+            {% else %}
+                {% set can_buy = false %}
+                {% set purchase_currency = 'Wishbux or Wishcoins' %}
+                {% set purchase_url = '/buy/' ~ kind ~ '?currency=auto' %}
+            {% endif %}
             <article class="obs-shop-card obs-award-card"
                 data-shop-card
                 data-search="{{(a['title'] ~ ' ' ~ (a['description'] or '') ~ ' ' ~ kind)|lower}}">
@@ -53,16 +76,17 @@
                     <div class="obs-shop-price">
                         {% if a['baseprice'] != a['price'] %}<del>{{a['baseprice']|number}}</del>{% endif %}
                         <strong>{{a['price']|number}}</strong>
-                        <span>Wishbux each</span>
+                        <span>{{purchase_currency}} each</span>
                     </div>
                     <div class="obs-shop-actions">
                         <button type="button"
                             id="buy-award-{{kind}}"
                             class="btn btn-primary"
-                            {% if not v.can_spend('marseybux', a['price']) %}disabled{% endif %}
-                            data-award-buy-url="/buy/{{kind}}?mb=true"
+                            {% if not can_buy %}disabled{% endif %}
+                            data-award-buy-url="{{purchase_url}}"
                             data-award-title="{{a['title']}}"
-                            data-award-price="{{a['price']|number}}">
+                            data-award-price="{{a['price']|number}}"
+                            data-award-currency="{{purchase_currency}}">
                             <i class="fas fa-shopping-cart mr-1" aria-hidden="true"></i>Buy
                         </button>
                     </div>
@@ -86,9 +110,9 @@
                 <p class="obs-purchase-modal__copy" id="award-purchase-copy">Review the purchase before it is added to your inventory.</p>
                 <div class="obs-purchase-modal__summary">
                     <span data-award-confirm-title>Award</span>
-                    <strong><span data-award-confirm-price>0</span> Wishbux</strong>
+                    <strong><span data-award-confirm-price>0</span> <span data-award-confirm-currency>Wishbux</span></strong>
                 </div>
-                <p class="obs-purchase-modal__note"><i class="fas fa-info-circle" aria-hidden="true"></i><span>The amount will be deducted from your Wishbux balance immediately.</span></p>
+                <p class="obs-purchase-modal__note"><i class="fas fa-info-circle" aria-hidden="true"></i><span data-award-confirm-note>Wishbux is used first. If it cannot cover the price, Wishcoins are used instead.</span></p>
             </div>
             <div class="obs-purchase-modal__actions">
                 <button type="button" class="btn btn-secondary" data-award-purchase-close>Cancel</button>
