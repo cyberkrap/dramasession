@@ -68,6 +68,7 @@ from .inline_images import *
 from .search import *
 from .settings import *
 from .connections import *
+from .signup_rewards import *
 from .static import *
 from .site_banner import *
 from .paypal import *
@@ -116,6 +117,7 @@ from files.helpers.default_follow import install_default_following
 from files.helpers.default_user_background import install_default_user_background
 from files.helpers.patron_branding import install_patron_branding
 from files.helpers.persistent_site_content import install_persistent_site_content
+from files.helpers.signup_rewards import install_signup_rewards
 from files.helpers.username_effects import install_username_effects
 from files.helpers.wishcoin_asset import install_wishcoin_asset
 install_badge_branding(engine)
@@ -126,6 +128,8 @@ install_default_following(app, engine)
 install_default_user_background()
 install_patron_branding()
 install_persistent_site_content()
+install_signup_rewards(engine)
+install_signup_reward_signup_hook()
 install_username_effects(engine, User)
 install_wishcoin_asset(app)
 if FEATURES['ASSET_SUBMISSIONS']:
