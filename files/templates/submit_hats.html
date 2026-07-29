@@ -1,102 +1,138 @@
 {% extends "default.html" %}
 {% block pagetitle %}Submit Hats{% endblock %}
 {% block pagetype %}message{% endblock %}
+{% block head_final %}
+{% include "asset_submission_styles.html" %}
+{% endblock %}
 {% block content %}
+<div class="asset-submit-page">
 	{% if error %}{{macros.alert(error, true)}}{% endif %}
 	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
 
-	<div class="mx-4">
-		<h2 class="mt-5">Submit Hat</h2>
-			<div class="settings-section rounded">
-				<div class="d-lg-flex">
-					<div class="body w-lg-100">
-						<form action="/submit/hats" method="post" enctype="multipart/form-data">
-							<input hidden name="formkey" value="{{v|formkey}}">
+	<header class="asset-submit-header">
+		<h1>Submit a Hat</h1>
+		<p>Create an avatar overlay using the official canvas and credit the person who actually made it.</p>
+	</header>
 
-							<div id="image-upload-block">
-								<div><label class="mt-3">Image</label></div>
+	<div class="asset-submit-layout">
+		<aside class="asset-submit-panel asset-submit-guidelines">
+			<h2>Submission rules</h2>
+			<p>Hats are small overlays, so technical accuracy matters.</p>
+			<ol class="asset-submit-rules">
+				<li>Start with the <a href="/i/hat-template.png" class="font-weight-bold">100 x 130 hat template</a>. Do not submit an image larger than 100 x 130 pixels.</li>
+				<li>The circle in the template represents the profile picture. Do not include that circle in the final image.</li>
+				<li>Use a transparent background. A solid rectangle covering the avatar will be rejected.</li>
+				<li>Keep the important artwork inside the canvas and test that it still reads clearly over a profile picture.</li>
+				<li><strong>No AI-generated or AI-edited submissions.</strong> Do not submit stolen artwork or another user's work without permission.</li>
+				<li>Use a clear name and a short description that explains what the hat is, not a joke or unrelated message.</li>
+				<li>Credit the actual creator. Your account is filled in automatically, but you may change it when submitting for someone else.</li>
+				<li>Moderators may adjust the name, description, or price, and may reject duplicate, broken, unsafe, or low-quality submissions.</li>
+			</ol>
+		</aside>
 
-								<img loading="lazy" id="image-preview" class="d-none" style="max-width:50%;border:5px white solid">
-								<label class="btn btn-secondary m-0" for="file-upload">
-									<div id="filename-show">Select Image</div>
-									<input autocomplete="off" id="file-upload" accept="image/*" type="file" name="image" {% if g.is_tor %}disabled{% endif %} hidden>
-								</label>
-							</div>
+		<section class="asset-submit-panel asset-submit-form">
+			<h2>Hat details</h2>
+			<p>Use the preview to check the transparent canvas before submitting.</p>
+			<form action="/submit/hats" method="post" enctype="multipart/form-data">
+				<input hidden name="formkey" value="{{v|formkey}}">
 
-							<div id="hat-design-reference-block" class="mt-3">
-								<a href="/i/hat-template.png" class="font-weight-bold">Hat Template</a> &mdash; 100x130px (do not resize), circle is profile picture, do not include circle in final submission.
-							</div>
-
-							<label class="mt-3" for="name">Name</label>
-							<input autocomplete="off" type="text" id="name" class="form-control" name="name" maxlength="50" pattern='[a-zA-Z0-9\-() ,_]{1,50}' placeholder="Required" value="{{name}}" required>
-
-							<label class="mt-3" for="author">Author</label>
-							<input autocomplete="off" type="text" id="author" class="form-control" name="author" maxlength="30" pattern='[a-zA-Z0-9_\-]{3,30}' placeholder="Required" value="{{username}}" required>
-
-							<label class="mt-3" for="description">Description</label>
-							<input autocomplete="off" type="text" id="description" class="form-control" name="description" maxlength="300" pattern='[^<>&\n\t]{1,300}' placeholder="Required" value="{{description}}" required>
-
-							<div class="footer mt-5">
-								<div class="d-flex">
-									<input id="submit-hat" disabled type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary ml-auto" value="Submit Hat">
-								</div>
-							</div>
-						</form>
+				<div class="asset-upload-row" id="image-upload-block">
+					<div class="asset-preview asset-preview--hat">
+						<img loading="lazy" id="image-preview" class="d-none" alt="Selected hat preview">
+					</div>
+					<div class="asset-upload-copy">
+						<strong>Image</strong>
+						<p>Upload the completed transparent hat image. Maximum dimensions: 100 x 130 pixels.</p>
+						<label class="btn btn-secondary m-0" for="file-upload">
+							<span id="filename-show">Select image</span>
+							<input autocomplete="off" id="file-upload" accept="image/*" type="file" name="image" {% if g.is_tor %}disabled{% endif %} hidden>
+						</label>
+						<a href="/i/hat-template.png" class="d-block mt-2 small font-weight-bold">Open hat template</a>
 					</div>
 				</div>
-			</div>
+
+				<div class="asset-form-grid">
+					<div class="asset-form-field">
+						<label for="name">Name</label>
+						<input autocomplete="off" type="text" id="name" class="form-control" name="name" maxlength="50" pattern='[a-zA-Z0-9\-() ,_]{1,50}' placeholder="Required" value="{{name}}" required>
+					</div>
+					<div class="asset-form-field">
+						<label for="author">Author</label>
+						<input autocomplete="off" type="text" id="author" class="form-control" name="author" maxlength="30" pattern='[a-zA-Z0-9_\-]{3,30}' placeholder="Required" value="{{username or v.username}}" required>
+					</div>
+					<div class="asset-form-field asset-form-field--wide">
+						<label for="description">Description</label>
+						<input autocomplete="off" type="text" id="description" class="form-control" name="description" maxlength="300" pattern='[^<>&\n\t]{1,300}' placeholder="What does this hat depict?" value="{{description}}" required>
+						<small class="asset-field-help">Keep it factual and brief. This text may appear in the hat shop.</small>
+					</div>
+				</div>
+
+				<div class="asset-submit-actions">
+					<input id="submit-hat" disabled type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary" value="Submit Hat">
+				</div>
+			</form>
+		</section>
 	</div>
 
 	<input hidden id="IMAGE_FORMATS" value="{{IMAGE_FORMATS}}">
-
 	<script defer src="{{'js/submit_hats.js' | asset}}"></script>
 
-	<h2 class="mt-5 mx-4">Pending Approval</h2>
-	<div class="row mt-5 mx-4">
-		<div class="col px-0">
-			<div class="settings">
-				{% for hat in hats %}
-					<div id="{{hat.name}}-hat" class="settings-section rounded">
-						<div class="d-lg-flex">
-							<div class="body w-lg-100">
-								<input hidden name="formkey" value="{{v|formkey}}">
-
-								<div><label class="mt-3">Image</label></div>
-								<img loading="lazy" src="/asset_submissions/hats/{{hat.name}}.webp?s={{range(1, 10000000)|random}}" style="max-width:50%;border:5px white solid">
-
-								<div class="profile-pic-100-wrapper ml-4 mt-4">
-									<img loading="lazy" alt="avatar" src="{{v.profile_url}}" class="profile-pic-100">
-									<img loading="lazy" class="profile-pic-100-hat" src="/asset_submissions/hats/{{hat.name}}.webp?s={{range(1, 10000000)|random}}">
-								</div>
-
-								<div><label class="mt-3" for="{{hat.name}}-submitter">Submitter</label></div>
-								<input autocomplete="off" type="text" id="{{hat.name}}-submitter" class="form-control" maxlength="30" value="{{hat.submitter.username}}" readonly>
-
-								<label class="mt-3" for="{{hat.name}}-author">Author</label>
-								<input autocomplete="off" type="text" id="{{hat.name}}-author" class="form-control" maxlength="30" value="{{hat.author.username}}" readonly>
-
-								<label class="mt-3" for="{{hat.name}}-name">Name</label>
-								<input autocomplete="off" type="text" id="{{hat.name}}-name" class="form-control" name="name" maxlength="30" value="{{hat.name}}" pattern='hat[a-zA-Z0-9]{1,24}' placeholder="Required" required {% if v.admin_level < PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] %}readonly{% endif %}>
->
-
-								<label class="mt-3" for="{{hat.name}}-description">Description</label>
-								<input autocomplete="off" type="text" id="{{hat.name}}-description" class="form-control" name="description" maxlength="300" value="{{hat.description}}" pattern='[^<>&\n\t]{1,300}' placeholder="Required" required {% if v.admin_level < PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] %}readonly{% endif %}>
-
-								<div><label class="mt-3" for="{{hat.name}}-price">Price</label></div>
-								<input autocomplete="off" type="number" id="{{hat.name}}-price" class="form-control" name="price" min="0" value="{{hat.price}}" placeholder="Required" required {% if v.admin_level < PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] %}readonly{% endif %}>
-							</div>
+	<section class="asset-pending-section">
+		<div class="asset-pending-heading">
+			<h2>Pending approval</h2>
+			<span>{{hats|length}} pending</span>
+		</div>
+		<div class="asset-pending-grid">
+		{% for hat in hats %}
+			<article id="{{hat.name}}-hat" class="asset-pending-card">
+				<div class="asset-pending-media">
+					<img loading="lazy" src="/asset_submissions/hats/{{hat.name}}.webp?s={{range(1, 10000000)|random}}" alt="{{hat.name}}">
+					<div class="hat-profile-preview">
+						<div class="profile-pic-100-wrapper">
+							<img loading="lazy" alt="Profile preview" src="{{v.profile_url}}" class="profile-pic-100">
+							<img loading="lazy" class="profile-pic-100-hat" src="/asset_submissions/hats/{{hat.name}}.webp?s={{range(1, 10000000)|random}}" alt="">
 						</div>
-						{% if v.admin_level >= PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] or v.id == hat.submitter_id %}
-							<div class="d-flex my-4 mx-3">
-								<button type="button" class="btn btn-primary ml-auto" data-nonce="{{g.nonce}}" data-onclick="remove_hat(this, '{{hat.name}}')">Remove</button>
-								{% if v.admin_level >= PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] %}
-									<button type="button" class="btn btn-primary ml-3" data-nonce="{{g.nonce}}" data-onclick="approve_hat(this, '{{hat.name}}')">Approve</button>
-								{% endif %}
-							</div>
+					</div>
+				</div>
+				<div>
+					<input hidden name="formkey" value="{{v|formkey}}">
+					<h3 class="asset-pending-title">{{hat.name}}</h3>
+					<div class="asset-pending-fields">
+						<div class="asset-form-field">
+							<label for="{{hat.name}}-submitter">Submitter</label>
+							<input autocomplete="off" type="text" id="{{hat.name}}-submitter" class="form-control" value="{{hat.submitter.username}}" readonly>
+						</div>
+						<div class="asset-form-field">
+							<label for="{{hat.name}}-author">Author</label>
+							<input autocomplete="off" type="text" id="{{hat.name}}-author" class="form-control" value="{{hat.author.username}}" readonly>
+						</div>
+						<div class="asset-form-field">
+							<label for="{{hat.name}}-name">Name</label>
+							<input autocomplete="off" type="text" id="{{hat.name}}-name" class="form-control" name="name" maxlength="50" value="{{hat.name}}" pattern='[a-zA-Z0-9\-() ,_]{1,50}' required {% if v.admin_level < PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] %}readonly{% endif %}>
+						</div>
+						<div class="asset-form-field">
+							<label for="{{hat.name}}-price">Price</label>
+							<input autocomplete="off" type="number" id="{{hat.name}}-price" class="form-control" name="price" min="0" value="{{hat.price}}" required {% if v.admin_level < PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] %}readonly{% endif %}>
+						</div>
+						<div class="asset-form-field asset-form-field--wide">
+							<label for="{{hat.name}}-description">Description</label>
+							<input autocomplete="off" type="text" id="{{hat.name}}-description" class="form-control" name="description" maxlength="300" value="{{hat.description}}" pattern='[^<>&\n\t]{1,300}' required {% if v.admin_level < PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] %}readonly{% endif %}>
+						</div>
+					</div>
+					{% if v.admin_level >= PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] or v.id == hat.submitter_id %}
+					<div class="asset-pending-actions">
+						<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="remove_hat(this, '{{hat.name}}')">Remove</button>
+						{% if v.admin_level >= PERMS['MODERATE_PENDING_SUBMITTED_ASSETS'] %}
+						<button type="button" class="btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="approve_hat(this, '{{hat.name}}')">Approve</button>
 						{% endif %}
 					</div>
-				{% endfor %}
-			</div>
+					{% endif %}
+				</div>
+			</article>
+		{% else %}
+			<div class="asset-empty-state">No hats are waiting for approval.</div>
+		{% endfor %}
 		</div>
-	</div>
+	</section>
+</div>
 {% endblock %}
