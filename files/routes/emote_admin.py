@@ -38,6 +38,8 @@ def _search_tags(name, existing_tags=None, marsey=None, author=None):
 			tags.append(value)
 
 	add(name)
+	if isinstance(existing_tags, str):
+		existing_tags = existing_tags.split()
 	for tag in existing_tags or ():
 		add(tag)
 	if marsey and marsey.tags:
