@@ -33,6 +33,13 @@
 	height: 100%;
 	object-fit: contain;
 }
+.community-art-submission-preview.is-missing::after {
+	content: "Preview unavailable";
+	padding: 20px;
+	color: var(--muted, #aaa);
+	font-size: .82rem;
+	text-align: center;
+}
 .community-art-submission-copy {
 	min-width: 0;
 }
@@ -111,6 +118,17 @@
 </div>
 <script nonce="{{g.nonce}}">
 (() => {
+	document.querySelectorAll('.community-art-submission-preview img').forEach((image) => {
+		const markMissing = () => {
+			const preview = image.parentElement;
+			if (!preview) return;
+			image.remove();
+			preview.classList.add('is-missing');
+		};
+		if (image.complete && image.naturalWidth === 0) markMissing();
+		else image.addEventListener('error', markMissing, {once: true});
+	});
+
 	const input = document.getElementById('art-image');
 	const help = document.getElementById('art-image-help');
 	if (!input || !help) return;
