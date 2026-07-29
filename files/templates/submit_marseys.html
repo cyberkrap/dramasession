@@ -23,6 +23,19 @@ img.emote-submission-preview {
 	display: block;
 	padding: 10px;
 }
+.emote-tag-rule {
+	margin-top: 12px;
+	padding: 13px 15px;
+	color: #e8e4e6;
+	font-size: .9rem;
+	line-height: 1.55;
+	background: rgba(239, 35, 60, .08);
+	border: 1px solid rgba(239, 35, 60, .24);
+	border-radius: 10px;
+}
+.emote-tag-rule strong {
+	color: #fff;
+}
 @media (max-width: 600px) {
 	.emote-submission-preview {
 		width: 140px;
@@ -60,6 +73,9 @@ img.emote-submission-preview {
 
 							<label class="mt-3" for="tags">Tags (must be separated by spaces)</label>
 							<input autocomplete="off" type="text" id="tags" class="form-control" name="tags" maxlength="200" pattern='[a-zA-Z0-9: ]{1,200}' placeholder="Required" value="{{tags}}" required>
+							<div class="emote-tag-rule" role="note">
+								<strong>DO NOT include your username as a tag.</strong> You are credited with the emoji in the first place and by searching <code>@James-Doakes</code>, all of your work appears as it is. Adding it as a tag just makes work for us having to remove it, or reject it if you're really annoying. It also slows down the emoji picker.
+							</div>
 
 							<div class="footer mt-5">
 								<div class="d-flex">

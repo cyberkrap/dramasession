@@ -3,7 +3,7 @@ from pathlib import Path
 from flask import abort, g, send_file
 
 from files.__main__ import app, limiter
-from files.classes import Marsey
+from files.classes import Marsey, User
 from files.helpers.config.const import PERMS
 from files.helpers.emote_management import (
 	approved_webp_path,
@@ -19,22 +19,81 @@ from files.routes.wrappers import auth_required
 
 FILES_ROOT = Path(__file__).resolve().parents[1]
 STATIC_EMOTE_DIR = FILES_ROOT / 'assets' / 'images' / 'emojis'
+RDRAMA_EMOTE_CATEGORY = 'rDrama Emotes'
+RDRAMA_EMOTE_PREFIXES = ('marsey', 'capy', 'carp', 'platy', 'wolf')
+
+
+def _is_rdrama_emote(name):
+	return str(name or '').lower().startswith(RDRAMA_EMOTE_PREFIXES)
+
+
+def _search_tags(name, existing_tags=None, marsey=None, author=None):
+	tags = []
+	seen = set()
+
+	def add(value):
+		value = str(value or '').strip().lower()
+		if value and value not in seen:
+			seen.add(value)
+			tags.append(value)
+
+	add(name)
+	if isinstance(existing_tags, str):
+		existing_tags = existing_tags.split()
+	for tag in existing_tags or ():
+		add(tag)
+	if marsey and marsey.tags:
+		for tag in marsey.tags.split():
+			add(tag)
+	if author:
+		add(author)
+		add(f'author:{author}')
+		add(f'@{author}')
+	return tags
 
 
 def enhanced_emoji_list():
-	items = list(get_emojis(g.db))
-	known = {item.get('name') for item in items}
-	for marsey in g.db.query(Marsey).filter(Marsey.submitter_id == None).order_by(Marsey.name).all():
-		if marsey.name in known:
+	metadata = {}
+	rows = (g.db.query(Marsey, User.username)
+		.outerjoin(User, Marsey.author_id == User.id)
+		.filter(Marsey.submitter_id == None)
+		.order_by(Marsey.name).all())
+	for marsey, author in rows:
+		metadata[marsey.name] = (marsey, author)
+
+	items = []
+	known = set()
+	for raw_item in get_emojis(g.db):
+		item = dict(raw_item)
+		name = str(item.get('name') or '').strip().lower()
+		if not name:
 			continue
-		if not custom_emote_exists(marsey.name) and not (STATIC_EMOTE_DIR / f'{marsey.name}.webp').is_file():
+		item['name'] = name
+		known.add(name)
+
+		marsey, author = metadata.get(name, (None, item.get('author')))
+		if marsey:
+			item['count'] = int(marsey.count or 0)
+		if author:
+			item['author'] = author
+		item['tags'] = _search_tags(name, item.get('tags'), marsey, item.get('author'))
+
+		if _is_rdrama_emote(name):
+			item['class'] = RDRAMA_EMOTE_CATEGORY
+		items.append(item)
+
+	for name, (marsey, author) in metadata.items():
+		if name in known:
+			continue
+		if not custom_emote_exists(name) and not (STATIC_EMOTE_DIR / f'{name}.webp').is_file():
 			continue
 		items.append({
-			'name': marsey.name,
-			'tags': marsey.tags_list(),
-			'count': marsey.count,
-			'class': category_for_emote(marsey.name),
-			'url': custom_emote_url(marsey.name) if custom_emote_exists(marsey.name) else f'/e/{marsey.name}.webp',
+			'name': name,
+			'author': author,
+			'tags': _search_tags(name, (), marsey, author),
+			'count': int(marsey.count or 0),
+			'class': RDRAMA_EMOTE_CATEGORY if _is_rdrama_emote(name) else category_for_emote(name),
+			'url': custom_emote_url(name) if custom_emote_exists(name) else f'/e/{name}.webp',
 		})
 	return items
 

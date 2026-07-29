@@ -16,7 +16,7 @@
 			</div>
 
 			<div class="px-3">
-				<input disabled autocomplete="off" class="form-control px-2" type="text" id="emoji_search" placeholder="Search.." data-nonce="{{g.nonce}}" data-onchange="start_search()" {% if not (v and v.poor) %}data-oninput="start_search()"{% endif %}>
+				<input disabled autocomplete="off" class="form-control px-2" type="text" id="emoji_search" placeholder="Search name, tag, author:username, or @username" data-nonce="{{g.nonce}}" data-onchange="start_search()" {% if not (v and v.poor) %}data-oninput="start_search()"{% endif %}>
 			</div>
 			<div class="px-3 d-flex flex-row">
 				<fieldset class="py-2 pr-2 pl-1">
