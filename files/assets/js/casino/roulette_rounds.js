@@ -2,6 +2,7 @@
 	const legacyHandleResponse = window.handleRouletteResponse;
 	if (typeof legacyHandleResponse !== "function") return;
 
+	let roundStateKnown = false;
 	let roundActive = false;
 	let nextSpinUtc = null;
 	let recentlySettledUntil = 0;
@@ -14,6 +15,8 @@
 	}
 
 	function renderRoundStatus() {
+		if (!roundStateKnown) return;
+
 		const settledPrefix = Date.now() < recentlySettledUntil ? "Previous round settled. " : "";
 		if (!roundActive || !nextSpinUtc) {
 			updateResult(`${settledPrefix}The five-minute timer starts when the first bet is placed.`, "success");
@@ -47,6 +50,7 @@
 		legacyHandleResponse(xhr);
 
 		if (succeeded && response.round) {
+			roundStateKnown = true;
 			roundActive = Boolean(response.round.active);
 			nextSpinUtc = response.round.next_spin_utc || null;
 			if (response.round.rolled) recentlySettledUntil = Date.now() + 10000;
@@ -76,4 +80,5 @@
 	document.addEventListener("visibilitychange", () => {
 		if (!document.hidden) pollRouletteBets();
 	});
+	pollRouletteBets();
 })();
