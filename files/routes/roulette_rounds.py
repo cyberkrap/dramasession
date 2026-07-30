@@ -1,3 +1,4 @@
+import json
 import time
 from functools import wraps
 
@@ -84,14 +85,32 @@ def settle_due_roulette_request():
 		g.roulette_round_rolled = settle_roulette_if_due()
 
 
+def _round_response_payload():
+	round_state = get_roulette_round_state()
+	round_state["rolled"] = bool(getattr(g, "roulette_round_rolled", False))
+	return round_state
+
+
 def _augment_roulette_response(handler):
 	@wraps(handler)
 	def wrapped(*args, **kwargs):
 		response = handler(*args, **kwargs)
+
 		if isinstance(response, dict):
-			response["round"] = get_roulette_round_state()
-			response["round"]["rolled"] = bool(getattr(g, "roulette_round_rolled", False))
+			response["round"] = _round_response_payload()
+			return response
+
+		# auth_required calls make_response(), so the normal roulette handlers
+		# reach this wrapper as JSON Response objects rather than raw dictionaries.
+		if getattr(response, "is_json", False):
+			payload = response.get_json(silent=True)
+			if isinstance(payload, dict) and response.status_code < 400:
+				payload["round"] = _round_response_payload()
+				response.set_data(json.dumps(payload))
+				response.content_type = "application/json"
+
 		return response
+
 	wrapped._roulette_round_state = True
 	return wrapped
 
