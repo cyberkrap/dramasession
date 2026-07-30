@@ -1,4 +1,4 @@
-{% extends "casino/game_screen.html" %} {% block result %} N/A {% endblock %}
+{% extends "casino/game_screen.html" %} {% block result %}Loading round timer...{% endblock %}
 
 {% block script %}
 	<script defer src="{{'js/casino/roulette_screen.js' | asset}}"></script>
@@ -17,24 +17,8 @@ Bets
 
 {% block actions %}
 <div id="roulette-bets">
-	<div class="roulette-bet-summary">
-		<div class="roulette-bet-summary--heading">
-			<div class="roulette-poker-chip">
-				<img loading="lazy" src="/i/pokerchip.webp" width="40" height="40">
-				<img loading="lazy" src="/i/Obsession/icon.webp" width="40" height="40">
-			</div>
-			<p>111 is betting 4 and 4:
-			</p>
-		</div>
-		<ul class="roulette-bet-summary--list">
-			<li>2 <img loading="lazy" src="{{'coins.webp' | asset_siteimg}}" alt="coin" width="32" data-bs-toggle="tooltip"
-					data-bs-placement="bottom" title="Coin"> that
-				the number will be black.</li>
-			<li>2 <img loading="lazy" src="{{'coins.webp' | asset_siteimg}}" alt="coin" width="32" data-bs-toggle="tooltip"
-					data-bs-placement="bottom" title="Coin"> that
-				the number will be even.</li>
-		</ul>
-	</div>
+	<small class="roulette-total-bets">Loading bets...</small>
+	<hr>
 </div>
 
 <div class="game_screen-title">
