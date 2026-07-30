@@ -18,6 +18,15 @@ ROULETTE_ENDPOINTS = {
 }
 
 
+def _ensure_db():
+	"""Ensure roulette hooks have a request/app-scoped database session."""
+	db = getattr(g, "db", None)
+	if db is None:
+		db = db_session()
+		g.db = db
+	return db
+
+
 def _round_started_utc(active_games):
 	started = []
 	for game in active_games:
@@ -29,6 +38,9 @@ def _round_started_utc(active_games):
 
 
 def get_roulette_round_state():
+	# This module's before_request hook can run before the global request hook
+	# that normally assigns g.db, so make the dependency explicit here.
+	_ensure_db()
 	active_games = get_active_roulette_games()
 	started_utc = _round_started_utc(active_games)
 	if started_utc is None:
@@ -50,10 +62,11 @@ def get_roulette_round_state():
 
 
 def _try_round_lock():
-	bind = g.db.get_bind()
+	db = _ensure_db()
+	bind = db.get_bind()
 	if bind.dialect.name != "postgresql":
 		return True
-	return bool(g.db.execute(
+	return bool(db.execute(
 		text("SELECT pg_try_advisory_xact_lock(:lock_id)"),
 		{"lock_id": ROULETTE_LOCK_ID},
 	).scalar())
