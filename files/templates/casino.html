@@ -6,13 +6,13 @@ Icon (fa-foo-bar), Color (#ff0000), URL (/post/12345/) #}
 	(
 		'Roulette',
 		'Round and round the wheel of fate turns',
-		'fa-circle', '#777',
+		'casino-icon-roulette', '#777',
 		'/casino/roulette',
 	),
 	(
 		'Slots',
 		'Today\'s your lucky day',
-		'fa-dollar-sign', '#777',
+		'casino-icon-slots', '#777',
 		'/casino/slots',
 	),
 	(
@@ -29,13 +29,87 @@ Icon (fa-foo-bar), Color (#ff0000), URL (/post/12345/) #}
 	)
 ]-%}
 
+{% block head_final %}
+<style nonce="{{g.nonce}}">
+.casino-custom-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 42px;
+	height: 42px;
+	margin-bottom: 9px;
+	color: #777;
+}
+.casino-icon-roulette {
+	position: relative;
+	width: 34px;
+	height: 34px;
+	transform: rotate(-8deg);
+	border: 3px solid currentColor;
+	border-radius: 50%;
+}
+.casino-icon-roulette::before {
+	content: "";
+	position: absolute;
+	inset: 5px;
+	border: 2px dashed currentColor;
+	border-radius: 50%;
+}
+.casino-icon-roulette::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 7px;
+	height: 7px;
+	transform: translate(-50%, -50%);
+	background: currentColor;
+	border-radius: 50%;
+	box-shadow: 0 -12px 0 -1px currentColor, 0 12px 0 -1px currentColor, 12px 0 0 -1px currentColor, -12px 0 0 -1px currentColor;
+}
+.casino-icon-slots {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 37px;
+	height: 27px;
+	padding: 0 4px;
+	border: 3px solid currentColor;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 900;
+	letter-spacing: -1px;
+	line-height: 1;
+}
+.casino-icon-slots::before {
+	content: "777";
+}
+.casino-icon-slots::after {
+	content: "";
+	position: absolute;
+	right: -8px;
+	top: 5px;
+	width: 5px;
+	height: 14px;
+	border-right: 3px solid currentColor;
+	border-top: 3px solid currentColor;
+	border-radius: 0 5px 0 0;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <h2 style="text-transform: uppercase; text-align: center; letter-spacing: 3px; margin-top: 2rem;">Casino</h2>
 <div id="directory--wrapper">
 	{% for game in GAME_INDEX %}
 	<a class="directory--link" href="{{game[4]}}">
 		<div class="directory--link-content">
+			{% if game[2].startswith('casino-icon-') %}
+			<span class="directory--link--icon casino-custom-icon {{game[2]}}" style="color:{{game[3]}}" aria-hidden="true"></span>
+			{% else %}
 			<i class="directory--link--icon fas {{game[2]}}" style="color:{{game[3]}}"></i>
+			{% endif %}
 			<div class="directory--link--title">{{game[0]|safe}}</div>
 			<div class="directory--link--description">{{game[1]|safe}}</div>
 		</div>
