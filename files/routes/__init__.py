@@ -92,6 +92,7 @@ from .subs import *
 if FEATURES['GAMBLING']:
 	from .lottery import *
 	from .casino import *
+	from .roulette_bet_fixes import *
 	from .roulette_rounds import *
 from .polls import *
 from .notifications import *
