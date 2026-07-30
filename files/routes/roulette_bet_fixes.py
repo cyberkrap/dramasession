@@ -11,6 +11,9 @@ from files.helpers.roulette import RouletteAction, get_active_roulette_games, ge
 from files.routes.wrappers import auth_required, get_ID
 
 
+ROULETTE_BET_PATH = "/casino/roulette/place-bet"
+
+
 def _currency_name(currency, amount):
 	if currency == "coins":
 		return "Wishcoin" if amount == 1 else "Wishcoins"
@@ -19,6 +22,17 @@ def _currency_name(currency, amount):
 
 def _available_balance(user, currency):
 	return user.coins if currency == "coins" else user.marseybux
+
+
+def _round_payload():
+	try:
+		from files.routes.roulette_rounds import get_roulette_round_state
+		state = get_roulette_round_state()
+		state["rolled"] = bool(getattr(g, "roulette_round_rolled", False))
+		return state
+	except Exception:
+		app.logger.exception("Unable to attach roulette round state to bet response")
+		return None
 
 
 @limiter.limit("100/minute;2000/hour;12000/day")
@@ -69,13 +83,14 @@ def fixed_roulette_player_placed_bet(v: User):
 
 	try:
 		active_games = get_active_roulette_games()
-		if active_games:
-			parent_id = min(
-				int(game.game_state_json.get("parent_id", game.created_utc))
-				for game in active_games
-			)
-		else:
-			parent_id = int(time.time())
+		parent_ids = []
+		for game in active_games:
+			try:
+				state = game.game_state_json
+				parent_ids.append(int(state.get("parent_id") or game.created_utc))
+			except (AttributeError, TypeError, ValueError):
+				parent_ids.append(int(game.created_utc))
+		parent_id = min(parent_ids) if parent_ids else int(time.time())
 
 		if not v.charge_account(currency, amount):
 			fresh_user = g.db.query(User).filter(User.id == v.id).one()
@@ -104,11 +119,15 @@ def fixed_roulette_player_placed_bet(v: User):
 
 		bets = get_roulette_bets()
 		g.db.expire(v, ["coins", "marseybux"])
-		return {
+		response = {
 			"success": True,
 			"bets": bets,
 			"gambler": {"coins": v.coins, "marseybux": v.marseybux},
 		}
+		round_payload = _round_payload()
+		if round_payload is not None:
+			response["round"] = round_payload
+		return response
 	except HTTPException:
 		raise
 	except Exception:
@@ -124,8 +143,21 @@ def fixed_roulette_player_placed_bet(v: User):
 		abort(500, "Roulette could not save the bet. Your balance was not charged. Reload and try again.")
 
 
-# The legacy route is already registered in files.routes.casino. Replace only its
-# view function so the original URL remains unchanged, then let roulette_rounds
-# wrap this corrected handler with round-state metadata.
 fixed_roulette_player_placed_bet.__name__ = "roulette_player_placed_bet"
-app.view_functions["roulette_player_placed_bet"] = fixed_roulette_player_placed_bet
+
+
+def install_fixed_roulette_bet_handler():
+	for rule in app.url_map.iter_rules():
+		if rule.rule.rstrip("/") == ROULETTE_BET_PATH and "POST" in rule.methods:
+			app.view_functions[rule.endpoint] = fixed_roulette_player_placed_bet
+			return rule.endpoint
+	raise RuntimeError("Roulette place-bet route was not registered")
+
+
+@app.before_request
+def ensure_fixed_roulette_bet_handler():
+	if request.method == "POST" and request.path.rstrip("/") == ROULETTE_BET_PATH:
+		install_fixed_roulette_bet_handler()
+
+
+install_fixed_roulette_bet_handler()
