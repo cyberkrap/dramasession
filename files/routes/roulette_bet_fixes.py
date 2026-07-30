@@ -7,9 +7,8 @@ from werkzeug.exceptions import HTTPException
 from files.__main__ import app, limiter
 from files.classes.casino_game import CasinoGame
 from files.classes.user import User
-from files.helpers.get import get_ID
 from files.helpers.roulette import RouletteAction, get_active_roulette_games, get_roulette_bets
-from files.routes.wrappers import auth_required
+from files.routes.wrappers import auth_required, get_ID
 
 
 def _currency_name(currency, amount):
@@ -33,6 +32,9 @@ def fixed_roulette_player_placed_bet(v: User):
 	which = (request.values.get("which") or "").strip()
 	currency = (request.values.get("currency") or "").strip().lower()
 
+	if currency not in {"coins", "marseybux"}:
+		abort(400, "Choose Wishcoins or Wishbux before placing the bet.")
+
 	try:
 		amount = int(request.values.get("wager"))
 	except (TypeError, ValueError):
@@ -40,9 +42,6 @@ def fixed_roulette_player_placed_bet(v: User):
 
 	if amount < 5:
 		abort(400, f"Minimum roulette wager is 5 {_currency_name(currency, 5)}.")
-
-	if currency not in {"coins", "marseybux"}:
-		abort(400, "Choose Wishcoins or Wishbux before placing the bet.")
 
 	try:
 		bet_type = RouletteAction(bet_raw)
