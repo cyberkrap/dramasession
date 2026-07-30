@@ -6,6 +6,7 @@
 	let roundActive = false;
 	let nextSpinUtc = null;
 	let recentlySettledUntil = 0;
+	let errorVisibleUntil = 0;
 	let pollInFlight = false;
 
 	function formatCountdown(seconds) {
@@ -39,6 +40,8 @@
 	}
 
 	function renderRoundStatus() {
+		if (Date.now() < errorVisibleUntil) return;
+
 		if (!roundStateKnown) {
 			setRoundStatus("ROUND TIMER", "--:--", "Loading the current roulette round...");
 			return;
@@ -77,12 +80,20 @@
 		});
 	}
 
+	function getResponseError(response, xhr) {
+		if (response) {
+			return response.details || response.description || response.error || "The roulette request was rejected.";
+		}
+		if (xhr.status === 0) return "The request could not reach the server. Check your connection and try again.";
+		return `Roulette request failed with status ${xhr.status}.`;
+	}
+
 	window.handleRouletteResponse = function handleRouletteRoundResponse(xhr) {
 		let response = null;
 		try {
 			response = JSON.parse(xhr.response);
 		} catch (error) {
-			// The legacy handler displays the request failure.
+			// A readable fallback is shown below when the response is not JSON.
 		}
 
 		const succeeded = xhr.status >= 200 && xhr.status < 300 && response && !response.error;
@@ -95,7 +106,23 @@
 		legacyHandleResponse(xhr);
 		normaliseWishcoinTooltips();
 
-		if (succeeded && response.round) {
+		if (!succeeded) {
+			const isBetRequest = (xhr.responseURL || "").includes("/casino/roulette/place-bet");
+			errorVisibleUntil = Date.now() + 8000;
+			setRoundStatus(
+				isBetRequest ? "BET REJECTED" : "ROULETTE ERROR",
+				"×",
+				getResponseError(response, xhr),
+				"danger"
+			);
+			return;
+		}
+
+		if ((xhr.responseURL || "").includes("/casino/roulette/place-bet")) {
+			errorVisibleUntil = 0;
+		}
+
+		if (response.round) {
 			roundStateKnown = true;
 			roundActive = Boolean(response.round.active);
 			nextSpinUtc = response.round.next_spin_utc || null;
