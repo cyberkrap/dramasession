@@ -7,7 +7,11 @@ from flask import g, request
 from sqlalchemy import text
 
 from files.__main__ import app, db_session
-from files.helpers.roulette import get_active_roulette_games, spin_roulette_wheel
+from files.helpers.roulette import (
+	get_active_roulette_games,
+	get_recent_roulette_results,
+	spin_roulette_wheel,
+)
 
 
 ROULETTE_ROUND_SECONDS = 300
@@ -51,8 +55,6 @@ def get_roulette_round_state():
 	now = int(time.time())
 	started_utc = _round_started_utc(active_games)
 
-	# The roulette clock keeps moving even when nobody has bet. A wager made at
-	# 04:04 belongs to the 04:00-04:05 round, not a private five-minute timer.
 	if started_utc is None:
 		started_utc = _clock_round_start(now)
 
@@ -79,30 +81,32 @@ def _try_round_lock():
 def settle_roulette_if_due():
 	state = get_roulette_round_state()
 	if not state["active"] or state["seconds_remaining"] > 0:
-		return False
+		return None
 
 	if not _try_round_lock():
-		return False
+		return None
 
 	g.db.expire_all()
 	state = get_roulette_round_state()
 	if not state["active"] or state["seconds_remaining"] > 0:
-		return False
+		return None
 
-	spin_roulette_wheel()
-	return True
+	return spin_roulette_wheel()
 
 
 @app.before_request
 def settle_due_roulette_request():
 	path = request.path.rstrip("/") or "/"
 	if path in ROULETTE_ENDPOINTS:
-		g.roulette_round_rolled = settle_roulette_if_due()
+		g.roulette_round_result = settle_roulette_if_due()
 
 
-def _round_response_payload():
+def get_roulette_round_payload():
 	round_state = get_roulette_round_state()
-	round_state["rolled"] = bool(getattr(g, "roulette_round_rolled", False))
+	result = getattr(g, "roulette_round_result", None)
+	round_state["rolled"] = bool(result)
+	round_state["result"] = result
+	round_state["recent_results"] = get_recent_roulette_results(24)
 	return round_state
 
 
@@ -112,13 +116,13 @@ def _augment_roulette_response(handler):
 		response = handler(*args, **kwargs)
 
 		if isinstance(response, dict):
-			response["round"] = _round_response_payload()
+			response["round"] = get_roulette_round_payload()
 			return response
 
 		if getattr(response, "is_json", False):
 			payload = response.get_json(silent=True)
 			if isinstance(payload, dict) and response.status_code < 400:
-				payload["round"] = _round_response_payload()
+				payload["round"] = get_roulette_round_payload()
 				response.set_data(json.dumps(payload))
 				response.content_type = "application/json"
 
