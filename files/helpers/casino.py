@@ -35,16 +35,32 @@ def get_game_leaderboard(game, db:scoped_session):
 	timestamp_all_time = CASINO_RELEASE_DAY # "All Time" starts on release day
 
 	biggest_win_all_time = db.query(CasinoGame.user_id, User.username, CasinoGame.currency, CasinoGame.winnings).select_from(
-		CasinoGame).join(User).order_by(CasinoGame.winnings.desc()).filter(CasinoGame.kind == game, CasinoGame.created_utc > timestamp_all_time).limit(1).one_or_none()
+		CasinoGame).join(User).order_by(CasinoGame.winnings.desc()).filter(
+			CasinoGame.kind == game,
+			CasinoGame.winnings > 0,
+			CasinoGame.created_utc > timestamp_all_time
+		).limit(1).one_or_none()
 
 	biggest_win_last_24h = db.query(CasinoGame.user_id, User.username, CasinoGame.currency, CasinoGame.winnings).select_from(
-		CasinoGame).join(User).order_by(CasinoGame.winnings.desc()).filter(CasinoGame.kind == game, CasinoGame.created_utc > timestamp_24h_ago).limit(1).one_or_none()
+		CasinoGame).join(User).order_by(CasinoGame.winnings.desc()).filter(
+			CasinoGame.kind == game,
+			CasinoGame.winnings > 0,
+			CasinoGame.created_utc > timestamp_24h_ago
+		).limit(1).one_or_none()
 
 	biggest_loss_all_time = db.query(CasinoGame.user_id, User.username, CasinoGame.currency, CasinoGame.winnings).select_from(
-		CasinoGame).join(User).order_by(CasinoGame.winnings.asc()).filter(CasinoGame.kind == game, CasinoGame.created_utc > timestamp_all_time).limit(1).one_or_none()
+		CasinoGame).join(User).order_by(CasinoGame.winnings.asc()).filter(
+			CasinoGame.kind == game,
+			CasinoGame.winnings < 0,
+			CasinoGame.created_utc > timestamp_all_time
+		).limit(1).one_or_none()
 
 	biggest_loss_last_24h = db.query(CasinoGame.user_id, User.username, CasinoGame.currency, CasinoGame.winnings).select_from(
-		CasinoGame).join(User).order_by(CasinoGame.winnings.asc()).filter(CasinoGame.kind == game, CasinoGame.created_utc > timestamp_24h_ago).limit(1).one_or_none()
+		CasinoGame).join(User).order_by(CasinoGame.winnings.asc()).filter(
+			CasinoGame.kind == game,
+			CasinoGame.winnings < 0,
+			CasinoGame.created_utc > timestamp_24h_ago
+		).limit(1).one_or_none()
 
 	if not biggest_win_all_time:
 		biggest_win_all_time = [None, None, None, 0]
@@ -57,7 +73,6 @@ def get_game_leaderboard(game, db:scoped_session):
 
 	if not biggest_loss_last_24h:
 		biggest_loss_last_24h = [None, None, None, 0]
-
 
 	return {
 		"all_time": {
