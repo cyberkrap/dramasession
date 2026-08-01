@@ -10,10 +10,12 @@
 				<path d="m4 8 4 3 4-6 4 6 4-3-1.5 10h-13L4 8Z"/>
 				<path d="M6 21h12"/>
 			</svg>`,
-		down: `
+		crackedTrophy: `
 			<svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-				<path d="M12 4v13M6.5 12.5 12 18l5.5-5.5"/>
-				<path d="M5 21h14"/>
+				<path d="M7 4h10v4.5c0 3.1-2.1 5.7-5 6.5-2.9-.8-5-3.4-5-6.5V4Z"/>
+				<path d="M7 6H4v1.5c0 2.4 1.7 4.4 4 4.9M17 6h3v1.5c0 2.4-1.7 4.4-4 4.9"/>
+				<path d="m13 4-2.2 4.1 2.4 2-2.8 4.6"/>
+				<path d="M12 15v4M8.5 20h7"/>
 			</svg>`,
 		skull: `
 			<svg viewBox="0 0 24 24" role="img" aria-hidden="true">
@@ -40,7 +42,7 @@
 			label: "Biggest Loser (Last 24h)",
 			path: ["last_24h", "biggest_loss"],
 			tone: "loser",
-			icon: "down",
+			icon: "crackedTrophy",
 		},
 		{
 			label: "Biggest Loser (All Time)",
