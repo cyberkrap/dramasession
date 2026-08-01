@@ -2,32 +2,29 @@
 	function installRouletteRoundEnhancements() {
 		if (window.__rouletteRoundsInstalled) return;
 
-		const legacyHandleResponse = window.handleRouletteResponse;
-		if (typeof legacyHandleResponse !== "function") {
+		const baseHandleResponse = window.handleRouletteResponse;
+		if (typeof baseHandleResponse !== "function") {
 			window.setTimeout(installRouletteRoundEnhancements, 25);
 			return;
 		}
-
 		window.__rouletteRoundsInstalled = true;
 
-		let roundStateKnown = false;
-		let roundActive = false;
 		let nextSpinUtc = null;
-		let recentlySettledUntil = 0;
 		let errorVisibleUntil = 0;
+		let landingVisibleUntil = 0;
+		let latestLanding = null;
+		let lastSeenRoundId = null;
 		let pollInFlight = false;
 
 		function formatCountdown(seconds) {
-			const minutes = String(Math.floor(seconds / 60)).padStart(1, "0");
+			const minutes = Math.floor(seconds / 60);
 			const remainder = String(seconds % 60).padStart(2, "0");
 			return `${minutes}:${remainder}`;
 		}
 
-		function setRoundStatus(label, value, detail, tone = "success") {
+		function setRoundStatus(label, value, tone = "success") {
 			const result = document.getElementById("casinoGameResult");
 			if (!result) return;
-
-			result.style.visibility = "visible";
 			result.classList.remove("alert-success", "alert-danger", "alert-warning");
 			result.classList.add(`alert-${tone}`, "roulette-round-status");
 			result.replaceChildren();
@@ -39,83 +36,93 @@
 			const valueNode = document.createElement("strong");
 			valueNode.className = "roulette-round-status__value";
 			valueNode.textContent = value;
-
-			const detailNode = document.createElement("small");
-			detailNode.className = "roulette-round-status__detail";
-			detailNode.textContent = detail;
-
-			result.append(labelNode, valueNode, detailNode);
+			result.append(labelNode, valueNode);
 		}
 
 		function renderRoundStatus() {
-			if (Date.now() < errorVisibleUntil) return;
+			const nowMs = Date.now();
+			if (nowMs < errorVisibleUntil) return;
 
-			if (!roundStateKnown || !nextSpinUtc) {
-				setRoundStatus("NEXT SPIN IN", "--:--", "Loading the roulette clock...");
+			if (latestLanding && nowMs < landingVisibleUntil) {
+				setRoundStatus(
+					"Ball landed on",
+					`${latestLanding.number} (${String(latestLanding.color).toUpperCase()})`,
+					latestLanding.color === "red" ? "danger" : "success",
+				);
+				return;
+			}
+
+			if (!nextSpinUtc) {
+				setRoundStatus("Next spin in", "--:--");
 				return;
 			}
 
 			const remaining = Math.max(0, nextSpinUtc - Math.floor(Date.now() / 1000));
 			if (remaining === 0) {
-				setRoundStatus("SPINNING", "0:00", "Settling the current clock round...");
+				setRoundStatus("Spinning", "0:00", "warning");
+				return;
+			}
+			setRoundStatus("Next spin in", formatCountdown(remaining));
+		}
+
+		function highlightWinningNumber(result) {
+			document.querySelectorAll("#roulette-table .roulette-winning-number").forEach((cell) => {
+				cell.classList.remove("roulette-winning-number");
+			});
+			if (!result) return;
+			const cell = document.getElementById(`STRAIGHT_UP_BET#${result.number_value}`);
+			if (cell) cell.classList.add("roulette-winning-number");
+		}
+
+		function renderRecentResults(results) {
+			const container = document.getElementById("roulette-recent-results");
+			if (!container) return;
+			container.replaceChildren();
+
+			if (!Array.isArray(results) || results.length === 0) {
+				const empty = document.createElement("span");
+				empty.className = "roulette-history-empty";
+				empty.textContent = "No recorded landings yet.";
+				container.appendChild(empty);
 				return;
 			}
 
-			const justSettled = Date.now() < recentlySettledUntil;
-			setRoundStatus(
-				justSettled ? "NEXT SPIN IN" : "NEXT SPIN IN",
-				formatCountdown(remaining),
-				roundActive
-					? "Bets close when the real-world five-minute clock reaches zero."
-					: "Spins are aligned to :00, :05, :10, :15 and every five minutes after."
-			);
-		}
-
-		function normaliseCurrencyAssets() {
-			const wishcoinSource = document.querySelector('label[for="wagerCoins"] img')?.src;
-			const wishbuxSource = document.querySelector('label[for="wagerMarseybux"] img')?.src;
-
-			document.querySelectorAll('img[alt="coin"], img[alt="Wishcoin"]').forEach((image) => {
-				if (wishcoinSource) image.src = wishcoinSource;
-				image.alt = "Wishcoin";
-				image.title = "Wishcoin";
-				image.setAttribute("data-bs-original-title", "Wishcoin");
-				image.classList.add("roulette-currency-icon");
-			});
-
-			document.querySelectorAll('img[alt="marseybux"], img[alt="Wishbux"]').forEach((image) => {
-				if (wishbuxSource) image.src = wishbuxSource;
-				image.alt = "Wishbux";
-				image.title = "Wishbux";
-				image.setAttribute("data-bs-original-title", "Wishbux");
-				image.classList.add("roulette-currency-icon");
+			results.forEach((result, index) => {
+				const landing = document.createElement("span");
+				landing.className = `roulette-history-ball roulette-history-ball--${result.color}`;
+				if (index === 0) landing.classList.add("roulette-history-ball--latest");
+				landing.textContent = result.number;
+				landing.title = `${result.number} (${result.color})`;
+				container.appendChild(landing);
 			});
 		}
 
-		function clearRenderedRouletteChips() {
-			const table = document.getElementById("roulette-table");
-			if (!table) return;
+		function processRound(round) {
+			if (!round) return;
+			nextSpinUtc = round.next_spin_utc || null;
 
-			table.querySelectorAll(".roulette-poker-chip").forEach((chip) => {
-				const wrapper = chip.parentElement;
-				if (wrapper && wrapper.parentElement && wrapper.parentElement.closest("#roulette-table")) {
-					wrapper.remove();
-				} else {
-					chip.remove();
+			const results = Array.isArray(round.recent_results) ? round.recent_results : [];
+			renderRecentResults(results);
+			const newest = round.result || results[0] || null;
+			if (newest) {
+				highlightWinningNumber(newest);
+				const isNewLanding = lastSeenRoundId !== null && newest.round_id !== lastSeenRoundId;
+				if (round.rolled || isNewLanding) {
+					latestLanding = newest;
+					landingVisibleUntil = Date.now() + 8000;
 				}
-			});
-
-			table.querySelectorAll("[data-count]").forEach((cell) => {
-				cell.removeAttribute("data-count");
-			});
+				lastSeenRoundId = newest.round_id;
+			}
+			renderRoundStatus();
 		}
 
-		function getResponseError(response, xhr) {
-			if (response) {
-				return response.details || response.description || response.error || "The roulette request was rejected.";
-			}
-			if (xhr.status === 0) return "The request could not reach the server. Check your connection and try again.";
-			return `Roulette request failed with status ${xhr.status}.`;
+		function responseError(response, xhr) {
+			return response?.details
+				|| response?.description
+				|| response?.error
+				|| (xhr.status === 0
+					? "The request could not reach the server."
+					: `Roulette request failed with status ${xhr.status}.`);
 		}
 
 		window.handleRouletteResponse = function handleRouletteRoundResponse(xhr) {
@@ -123,38 +130,24 @@
 			try {
 				response = JSON.parse(xhr.response);
 			} catch (error) {
-				// A readable fallback is shown below when the response is not JSON.
+				console.error("Roulette returned invalid JSON", error);
 			}
 
 			const succeeded = xhr.status >= 200 && xhr.status < 300 && response && !response.error;
-			if (succeeded) clearRenderedRouletteChips();
-
-			legacyHandleResponse(xhr);
-			normaliseCurrencyAssets();
+			baseHandleResponse(xhr);
 
 			if (!succeeded) {
-				const isBetRequest = (xhr.responseURL || "").includes("/casino/roulette/place-bet");
 				errorVisibleUntil = Date.now() + 10000;
 				setRoundStatus(
-					isBetRequest ? "BET REJECTED" : "ROULETTE ERROR",
-					"×",
-					getResponseError(response, xhr),
-					"danger"
+					(xhr.responseURL || "").includes("/place-bet") ? "Bet rejected" : "Roulette error",
+					responseError(response, xhr),
+					"danger",
 				);
 				return;
 			}
 
-			if ((xhr.responseURL || "").includes("/casino/roulette/place-bet")) {
-				errorVisibleUntil = 0;
-			}
-
-			if (response.round) {
-				roundStateKnown = true;
-				roundActive = Boolean(response.round.active);
-				nextSpinUtc = response.round.next_spin_utc || null;
-				if (response.round.rolled) recentlySettledUntil = Date.now() + 8000;
-				renderRoundStatus();
-			}
+			errorVisibleUntil = 0;
+			processRound(response.round);
 		};
 
 		function pollRouletteBets() {
@@ -162,7 +155,7 @@
 			pollInFlight = true;
 
 			const xhr = new XMLHttpRequest();
-			xhr.open("get", "/casino/roulette/bets");
+			xhr.open("GET", "/casino/roulette/bets");
 			xhr.setRequestHeader("xhr", "xhr");
 			xhr.onload = () => {
 				pollInFlight = false;
@@ -174,10 +167,9 @@
 			xhr.send();
 		}
 
-		normaliseCurrencyAssets();
 		renderRoundStatus();
 		window.setInterval(renderRoundStatus, 1000);
-		window.setInterval(pollRouletteBets, 5000);
+		window.setInterval(pollRouletteBets, 2500);
 		document.addEventListener("visibilitychange", () => {
 			if (!document.hidden) pollRouletteBets();
 		});
