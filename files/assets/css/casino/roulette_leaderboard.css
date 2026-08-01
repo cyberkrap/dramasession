@@ -30,8 +30,18 @@
 	height: 62px;
 	border: 2px solid currentColor;
 	border-radius: 50%;
-	font-size: 1.8rem;
 	background: rgba(0, 0, 0, .22);
+}
+
+.roulette-leader-icon svg {
+	width: 34px;
+	height: 34px;
+	overflow: visible;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.9;
+	stroke-linecap: round;
+	stroke-linejoin: round;
 }
 
 .roulette-leader--winner .roulette-leader-icon {
@@ -101,6 +111,10 @@
 	text-transform: uppercase;
 }
 
+.casino-game-leaders.roulette-leaders {
+	margin-top: 0;
+}
+
 @media (max-width: 560px) {
 	.roulette-leader {
 		grid-template-columns: 52px minmax(0, 1fr);
@@ -112,7 +126,11 @@
 	.roulette-leader-icon {
 		width: 46px;
 		height: 46px;
-		font-size: 1.25rem;
+	}
+
+	.roulette-leader-icon svg {
+		width: 26px;
+		height: 26px;
 	}
 
 	.roulette-leader-label {

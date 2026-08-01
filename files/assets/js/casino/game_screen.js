@@ -118,27 +118,15 @@ function handleFeedResponse(xhr) {
 
 function updateLeaderboard() {
 	const leaderboardContainer = document.getElementById("gameLeaderboard");
-	const leaderboardData = JSON.parse(leaderboardContainer.dataset.leaderboard);
-	const [biggestWinnerAllTime, biggestWinner24h, biggestLoser24h, biggestLoserAllTime] = [
-		'biggestWinnerAllTime', 'biggestWinner24h', 'biggestLoser24h', 'biggestLoserAllTime'
-	].map(id => document.getElementById(id));
-	const formatLocalCurrencyName = currency => ({ coins: 'coins', marseybux: 'marseybux' })[currency];
+	if (!leaderboardContainer) return;
 
-	biggestWinnerAllTime.innerHTML = `
-		<a href="/@${leaderboardData.all_time.biggest_win.user}">${leaderboardData.all_time.biggest_win.user}</a> <br><small>${formatNumber(leaderboardData.all_time.biggest_win.amount)} ${formatLocalCurrencyName(leaderboardData.all_time.biggest_win.currency)}</small>
-	`;
+	if (typeof window.renderCasinoLeaderboard === "function") {
+		window.renderCasinoLeaderboard(leaderboardContainer);
+		return;
+	}
 
-	biggestWinner24h.innerHTML = `
-		<a href="/@${leaderboardData.last_24h.biggest_win.user}">${leaderboardData.last_24h.biggest_win.user}</a> <br> <small>${formatNumber(leaderboardData.last_24h.biggest_win.amount)} ${formatLocalCurrencyName(leaderboardData.last_24h.biggest_win.currency)}</small>
-	`;
-
-	biggestLoser24h.innerHTML = `
-		<a href="/@${leaderboardData.last_24h.biggest_loss.user}">${leaderboardData.last_24h.biggest_loss.user}</a> <br> <small>${formatNumber(leaderboardData.last_24h.biggest_loss.amount)} ${formatLocalCurrencyName(leaderboardData.last_24h.biggest_loss.currency)}</small>
-	`;
-
-	biggestLoserAllTime.innerHTML = `
-		<a href="/@${leaderboardData.all_time.biggest_loss.user}">${leaderboardData.all_time.biggest_loss.user}</a> <br> <small>${formatNumber(leaderboardData.all_time.biggest_loss.amount)} ${formatLocalCurrencyName(leaderboardData.all_time.biggest_loss.currency)}</small>
-	`;
+	const list = leaderboardContainer.querySelector(".roulette-leader-list");
+	if (list) list.textContent = "Casino records are temporarily unavailable.";
 }
 
 function getRandomInt(min, max) {
