@@ -7,11 +7,12 @@ from werkzeug.exceptions import HTTPException
 from files.__main__ import app, limiter
 from files.classes.casino_game import CasinoGame
 from files.classes.user import User
-from files.helpers.roulette import RouletteAction, get_active_roulette_games, get_roulette_bets
+from files.helpers.roulette import RouletteAction, get_roulette_bets
 from files.routes.wrappers import auth_required, get_ID
 
 
 ROULETTE_BET_PATH = "/casino/roulette/place-bet"
+ROULETTE_ROUND_SECONDS = 300
 
 
 def _currency_name(currency, amount):
@@ -22,6 +23,11 @@ def _currency_name(currency, amount):
 
 def _available_balance(user, currency):
 	return user.coins if currency == "coins" else user.marseybux
+
+
+def _current_round_start():
+	now = int(time.time())
+	return now // ROULETTE_ROUND_SECONDS * ROULETTE_ROUND_SECONDS
 
 
 def _round_payload():
@@ -82,16 +88,6 @@ def fixed_roulette_player_placed_bet(v: User):
 		)
 
 	try:
-		active_games = get_active_roulette_games()
-		parent_ids = []
-		for game in active_games:
-			try:
-				state = game.game_state_json
-				parent_ids.append(int(state.get("parent_id") or game.created_utc))
-			except (AttributeError, TypeError, ValueError):
-				parent_ids.append(int(game.created_utc))
-		parent_id = min(parent_ids) if parent_ids else int(time.time())
-
 		if not v.charge_account(currency, amount):
 			fresh_user = g.db.query(User).filter(User.id == v.id).one()
 			available = _available_balance(fresh_user, currency)
@@ -108,7 +104,7 @@ def fixed_roulette_player_placed_bet(v: User):
 			winnings=0,
 			kind="roulette",
 			game_state=json.dumps({
-				"parent_id": parent_id,
+				"parent_id": _current_round_start(),
 				"bet": bet_type.value,
 				"which": which,
 			}),

@@ -27,34 +27,38 @@ def _ensure_db():
 	return db
 
 
+def _clock_round_start(timestamp=None):
+	"""Return the UTC start of the wall-clock five-minute interval."""
+	if timestamp is None:
+		timestamp = int(time.time())
+	return int(timestamp) // ROULETTE_ROUND_SECONDS * ROULETTE_ROUND_SECONDS
+
+
 def _round_started_utc(active_games):
 	started = []
 	for game in active_games:
 		try:
-			started.append(int(game.game_state_json.get("parent_id")))
+			value = int(game.game_state_json.get("parent_id"))
 		except (AttributeError, TypeError, ValueError):
-			started.append(int(game.created_utc))
+			value = int(game.created_utc)
+		started.append(_clock_round_start(value))
 	return min(started) if started else None
 
 
 def get_roulette_round_state():
-	# This module's before_request hook can run before the global request hook
-	# that normally assigns g.db, so make the dependency explicit here.
 	_ensure_db()
 	active_games = get_active_roulette_games()
-	started_utc = _round_started_utc(active_games)
-	if started_utc is None:
-		return {
-			"active": False,
-			"started_utc": None,
-			"next_spin_utc": None,
-			"seconds_remaining": None,
-		}
-
 	now = int(time.time())
+	started_utc = _round_started_utc(active_games)
+
+	# The roulette clock keeps moving even when nobody has bet. A wager made at
+	# 04:04 belongs to the 04:00-04:05 round, not a private five-minute timer.
+	if started_utc is None:
+		started_utc = _clock_round_start(now)
+
 	next_spin_utc = started_utc + ROULETTE_ROUND_SECONDS
 	return {
-		"active": True,
+		"active": bool(active_games),
 		"started_utc": started_utc,
 		"next_spin_utc": next_spin_utc,
 		"seconds_remaining": max(0, next_spin_utc - now),
@@ -80,8 +84,6 @@ def settle_roulette_if_due():
 	if not _try_round_lock():
 		return False
 
-	# Another worker may have settled the round before this request acquired
-	# the advisory lock, so discard cached ORM state and verify again.
 	g.db.expire_all()
 	state = get_roulette_round_state()
 	if not state["active"] or state["seconds_remaining"] > 0:
@@ -113,8 +115,6 @@ def _augment_roulette_response(handler):
 			response["round"] = _round_response_payload()
 			return response
 
-		# auth_required calls make_response(), so the normal roulette handlers
-		# reach this wrapper as JSON Response objects rather than raw dictionaries.
 		if getattr(response, "is_json", False):
 			payload = response.get_json(silent=True)
 			if isinstance(payload, dict) and response.status_code < 400:
@@ -137,7 +137,7 @@ def install_roulette_response_state():
 
 def _roulette_round_worker():
 	while True:
-		gevent.sleep(5)
+		gevent.sleep(2)
 		with app.app_context():
 			g.db = db_session()
 			try:
