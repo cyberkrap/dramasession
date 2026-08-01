@@ -88,6 +88,28 @@
 			});
 		}
 
+		function clearRenderedRouletteChips() {
+			const table = document.getElementById("roulette-table");
+			if (!table) return;
+
+			// Polling used to call buildRouletteTable(), which replaced every cell
+			// after the site's data-onclick binder had initialised them. The new
+			// cells looked correct but were inert. Remove only rendered chip wrappers
+			// so the original interactive cells and their click bindings survive.
+			table.querySelectorAll(".roulette-poker-chip").forEach((chip) => {
+				const wrapper = chip.parentElement;
+				if (wrapper && wrapper.parentElement && wrapper.parentElement.closest("#roulette-table")) {
+					wrapper.remove();
+				} else {
+					chip.remove();
+				}
+			});
+
+			table.querySelectorAll("[data-count]").forEach((cell) => {
+				cell.removeAttribute("data-count");
+			});
+		}
+
 		function getResponseError(response, xhr) {
 			if (response) {
 				return response.details || response.description || response.error || "The roulette request was rejected.";
@@ -105,8 +127,8 @@
 			}
 
 			const succeeded = xhr.status >= 200 && xhr.status < 300 && response && !response.error;
-			if (succeeded && typeof window.buildRouletteTable === "function") {
-				window.buildRouletteTable();
+			if (succeeded) {
+				clearRenderedRouletteChips();
 			}
 
 			legacyHandleResponse(xhr);
