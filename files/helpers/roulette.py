@@ -9,6 +9,7 @@ from files.classes.casino_game import CasinoGame
 from files.helpers.alerts import *
 from files.helpers.get import get_account
 
+
 class RouletteAction(str, Enum):
 	STRAIGHT_UP_BET = "STRAIGHT_UP_BET",
 	LINE_BET = "LINE_BET"
@@ -76,11 +77,60 @@ PAYOUT_MULITPLIERS = {
 }
 
 
+def roulette_number_color(number):
+	number = int(number)
+	if number in (0, 37):
+		return "green"
+	return "red" if number in REDS else "black"
+
+
+def roulette_result_payload(number, round_id=None, settled_utc=None):
+	number = int(number)
+	return {
+		"round_id": int(round_id) if round_id is not None else None,
+		"number": "00" if number == 37 else number,
+		"number_value": number,
+		"color": roulette_number_color(number),
+		"settled_utc": int(settled_utc or time.time()),
+	}
+
+
 def get_active_roulette_games():
 	return g.db.query(CasinoGame).filter(
 		CasinoGame.active == True,
 		CasinoGame.kind == 'roulette'
 	).all()
+
+
+def get_recent_roulette_results(limit=24):
+	"""Return one persisted outcome per settled roulette round, newest first."""
+	games = g.db.query(CasinoGame).filter(
+		CasinoGame.active == False,
+		CasinoGame.kind == 'roulette'
+	).order_by(CasinoGame.id.desc()).limit(max(limit * 12, 120)).all()
+
+	results = []
+	seen_rounds = set()
+	for game in games:
+		try:
+			state = game.game_state_json
+			number = int(state["winning_number"])
+			round_id = int(state.get("parent_id") or game.created_utc)
+		except (AttributeError, KeyError, TypeError, ValueError):
+			continue
+
+		if round_id in seen_rounds:
+			continue
+		seen_rounds.add(round_id)
+		results.append(roulette_result_payload(
+			number,
+			round_id=round_id,
+			settled_utc=state.get("settled_utc") or game.created_utc,
+		))
+		if len(results) >= limit:
+			break
+
+	return results
 
 
 def charge_gambler(gambler, amount, currency):
@@ -164,56 +214,59 @@ def get_roulette_bets_and_betters():
 def spin_roulette_wheel():
 	participants, bets, active_games = get_roulette_bets_and_betters()
 
-	if len(participants) > 0:
-		number = randint(0, 37)  # 37 is 00
+	if len(participants) == 0:
+		return None
 
-		winners, payouts, rewards_by_game_id = determine_roulette_winners(number, bets)
+	number = randint(0, 37)  # 37 is 00
+	settled_utc = int(time.time())
+	try:
+		round_id = min(int(game.game_state_json.get("parent_id") or game.created_utc) for game in active_games)
+	except (AttributeError, TypeError, ValueError):
+		round_id = int(active_games[0].created_utc)
 
-		if number == 37: number = '00'
+	winners, payouts, rewards_by_game_id = determine_roulette_winners(number, bets)
+	display_number = '00' if number == 37 else number
 
-		# Pay out to the winners and send a notification.
-		for user_id in winners:
-			gambler = get_account(user_id)
-			gambler_payout = payouts[user_id]
-			coin_winnings = gambler_payout['coins']
-			procoin_winnings = gambler_payout['marseybux']
+	# Pay out to the winners and send a notification.
+	for user_id in winners:
+		gambler = get_account(user_id)
+		gambler_payout = payouts[user_id]
+		coin_winnings = gambler_payout['coins']
+		procoin_winnings = gambler_payout['marseybux']
 
-			gambler.pay_account('coins', coin_winnings, skip_if_unlimited=True)
-			gambler.pay_account('marseybux', procoin_winnings, skip_if_unlimited=True)
+		gambler.pay_account('coins', coin_winnings, skip_if_unlimited=True)
+		gambler.pay_account('marseybux', procoin_winnings, skip_if_unlimited=True)
 
-			# Notify the winners.
-			notification_text = f"Winning number: {number}\nCongratulations! One or more of your roulette bets paid off!\n"
+		notification_text = f"Winning number: {display_number}\nCongratulations! One or more of your roulette bets paid off!\n"
 
-			if coin_winnings > 0:
-				notification_text = notification_text + \
-					f"* You received {coin_winnings} coins.\n"
+		if coin_winnings > 0:
+			notification_text = notification_text + f"* You received {coin_winnings} Wishcoins.\n"
 
-			if procoin_winnings > 0:
-				notification_text = notification_text + \
-					f"* You received {procoin_winnings} Wishbux.\n"
+		if procoin_winnings > 0:
+			notification_text = notification_text + f"* You received {procoin_winnings} Wishbux.\n"
 
-			send_repeatable_notification(user_id, notification_text)
+		send_repeatable_notification(user_id, notification_text)
 
-		# Give condolences.
-		for participant in participants:
-			if not participant in winners:
-				send_repeatable_notification(
-					participant, f"Winning number: {number}\nSorry, none of your recent roulette bets paid off.")
+	# Give condolences.
+	for participant in participants:
+		if participant not in winners:
+			send_repeatable_notification(
+				participant, f"Winning number: {display_number}\nSorry, none of your recent roulette bets paid off.")
+			g.db.flush()
 
-				g.db.flush()
+	# Persist the result on every game in the round. This gives all workers and
+	# all open browsers one authoritative landing history without a new table.
+	for game in active_games:
+		game.winnings = rewards_by_game_id.get(game.id, -game.wager)
+		state = dict(game.game_state_json or {})
+		state["winning_number"] = number
+		state["settled_utc"] = settled_utc
+		game.game_state = json.dumps(state)
+		game.active = False
+		g.db.add(game)
 
-		# Adjust game winnings.
-		for game in active_games:
-			if rewards_by_game_id.get(game.id):
-				game.winnings = rewards_by_game_id[game.id]
-			else:
-				game.winnings = -game.wager
-
-			game.active = False
-			g.db.add(game)
-
-		# Commit early when dirty because of long-running tasks after roulette
-		g.db.commit()
+	g.db.commit()
+	return roulette_result_payload(number, round_id=round_id, settled_utc=settled_utc)
 
 
 def determine_roulette_winners(number, bets):
@@ -230,7 +283,7 @@ def determine_roulette_winners(number, bets):
 		payout = wager_amount + reward
 		currency = bet['wager']['currency']
 
-		if not gambler_id in winners:
+		if gambler_id not in winners:
 			winners.append(gambler_id)
 
 		if not payouts.get(gambler_id):
@@ -251,7 +304,6 @@ def determine_roulette_winners(number, bets):
 
 	if number == 0 or number == 37:
 		return winners, payouts, rewards_by_game_id
-
 
 	# Line Bet
 	line = -1
