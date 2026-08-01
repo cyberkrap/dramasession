@@ -4,8 +4,10 @@
 
 {% block content %}
 <link rel="stylesheet" href="{{('css/casino/roulette_screen.css') | asset}}">
+<link rel="stylesheet" href="{{('css/casino/roulette_leaderboard.css') | asset}}">
 <script defer src="{{'js/casino/roulette_screen.js' | asset}}"></script>
 <script defer src="{{'js/casino/roulette_rounds.js' | asset}}"></script>
+<script defer src="{{'js/casino/roulette_leaderboard.js' | asset}}"></script>
 
 <div id="casino-game-wrapper" data-game="roulette" class="roulette-shell">
 	{% set stats_alert_class = 'success' if v_stats[0] >= v_stats[2] else 'danger' %}
@@ -77,6 +79,13 @@
 					<tr><td>High / Low</td><td>1:1</td><td>Click 1:18 or 19:36.</td></tr>
 				</tbody>
 			</table>
+		</div>
+	</section>
+
+	<section id="roulette-leaders" class="roulette-section roulette-leaders" aria-labelledby="roulette-leaders-heading" data-leaderboard='{{leaderboard|e}}'>
+		<h2 id="roulette-leaders-heading" class="roulette-section-heading"><span>Leaders</span></h2>
+		<div class="roulette-leader-list" aria-live="polite">
+			<div class="roulette-leader-loading">Loading roulette records...</div>
 		</div>
 	</section>
 </div>
