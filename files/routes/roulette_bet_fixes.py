@@ -32,10 +32,8 @@ def _current_round_start():
 
 def _round_payload():
 	try:
-		from files.routes.roulette_rounds import get_roulette_round_state
-		state = get_roulette_round_state()
-		state["rolled"] = bool(getattr(g, "roulette_round_rolled", False))
-		return state
+		from files.routes.roulette_rounds import get_roulette_round_payload
+		return get_roulette_round_payload()
 	except Exception:
 		app.logger.exception("Unable to attach roulette round state to bet response")
 		return None
