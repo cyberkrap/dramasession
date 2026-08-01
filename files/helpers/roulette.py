@@ -95,6 +95,126 @@ def roulette_result_payload(number, round_id=None, settled_utc=None):
 	}
 
 
+def _roulette_currency_name(currency, amount):
+	if currency == "coins":
+		return "Wishcoin" if abs(int(amount)) == 1 else "Wishcoins"
+	return "Wishbux"
+
+
+def _format_roulette_currency(amount, currency, signed=False):
+	amount = int(amount)
+	prefix = "+" if signed and amount > 0 else ""
+	return f"{prefix}{amount:,} {_roulette_currency_name(currency, amount)}"
+
+
+def _roulette_bet_target(state):
+	bet = str(state.get("bet") or "")
+	which = state.get("which")
+
+	if bet == "STRAIGHT_UP_BET":
+		return f"number {'00' if str(which) == '37' else which}"
+	if bet == "LINE_BET":
+		return f"line {which}"
+	if bet == "COLUMN_BET":
+		return f"column {which}"
+	if bet == "DOZEN_BET":
+		labels = {"1": "1st dozen", "2": "2nd dozen", "3": "3rd dozen"}
+		return labels.get(str(which), f"dozen {which}")
+	if bet == "EVEN_ODD_BET":
+		return str(which).lower()
+	if bet == "RED_BLACK_BET":
+		return str(which).lower()
+	if bet == "HIGH_LOW_BET":
+		return "19-36" if str(which).upper() == "HIGH" else "1-18"
+	return str(which)
+
+
+def _aggregate_roulette_notification_bets(games, rewards_by_game_id, winners_only):
+	grouped = {}
+
+	for game in games:
+		reward = rewards_by_game_id.get(game.id)
+		if winners_only and reward is None:
+			continue
+
+		try:
+			state = game.game_state_json
+		except (AttributeError, TypeError, ValueError):
+			state = {}
+
+		key = (
+			game.currency,
+			str(state.get("bet") or ""),
+			str(state.get("which") or ""),
+		)
+		entry = grouped.setdefault(key, {
+			"currency": game.currency,
+			"wager": 0,
+			"reward": 0,
+			"target": _roulette_bet_target(state),
+		})
+		entry["wager"] += int(game.wager)
+		entry["reward"] += int(reward or 0)
+
+	return list(grouped.values())
+
+
+def _build_roulette_notification(user_id, display_number, games, rewards_by_game_id):
+	user_games = [game for game in games if game.user_id == user_id]
+	winning_bets = _aggregate_roulette_notification_bets(
+		user_games,
+		rewards_by_game_id,
+		winners_only=True,
+	)
+	lines = [f"Winning number: {display_number}", ""]
+
+	if winning_bets:
+		lines.extend([
+			"Congratulations! The following roulette bets paid off:",
+			"",
+		])
+		for bet in winning_bets:
+			wager = _format_roulette_currency(bet["wager"], bet["currency"])
+			reward = _format_roulette_currency(bet["reward"], bet["currency"])
+			lines.append(f"* {wager} on {bet['target']} — won {reward}")
+	else:
+		lines.extend([
+			"Sorry, none of your roulette bets paid off:",
+			"",
+		])
+		for bet in _aggregate_roulette_notification_bets(
+			user_games,
+			rewards_by_game_id,
+			winners_only=False,
+		):
+			wager = _format_roulette_currency(bet["wager"], bet["currency"])
+			lines.append(f"* {wager} on {bet['target']}")
+
+	net_by_currency = {}
+	for game in user_games:
+		net_by_currency.setdefault(game.currency, 0)
+		net_by_currency[game.currency] += int(
+			rewards_by_game_id.get(game.id, -game.wager)
+		)
+
+	lines.append("")
+	for currency in ("coins", "marseybux"):
+		if currency not in net_by_currency:
+			continue
+		net = net_by_currency[currency]
+		if net > 0:
+			label = "Net profit"
+		elif net < 0:
+			label = "Net loss"
+		else:
+			label = "Net result"
+		lines.append(
+			f"{label}: {_format_roulette_currency(net, currency, signed=True)}"
+		)
+
+	return "\n".join(lines)
+
+
 def get_active_roulette_games():
 	return g.db.query(CasinoGame).filter(
 		CasinoGame.active == True,
@@ -227,32 +347,36 @@ def spin_roulette_wheel():
 	winners, payouts, rewards_by_game_id = determine_roulette_winners(number, bets)
 	display_number = '00' if number == 37 else number
 
-	# Pay out to the winners and send a notification.
+	# Pay each winner the returned stake plus the reward earned by winning bets.
 	for user_id in winners:
 		gambler = get_account(user_id)
 		gambler_payout = payouts[user_id]
-		coin_winnings = gambler_payout['coins']
-		procoin_winnings = gambler_payout['marseybux']
+		gambler.pay_account(
+			'coins',
+			gambler_payout['coins'],
+			skip_if_unlimited=True,
+		)
+		gambler.pay_account(
+			'marseybux',
+			gambler_payout['marseybux'],
+			skip_if_unlimited=True,
+		)
 
-		gambler.pay_account('coins', coin_winnings, skip_if_unlimited=True)
-		gambler.pay_account('marseybux', procoin_winnings, skip_if_unlimited=True)
+	g.db.flush()
 
-		notification_text = f"Winning number: {display_number}\nCongratulations! One or more of your roulette bets paid off!\n"
-
-		if coin_winnings > 0:
-			notification_text = notification_text + f"* You received {coin_winnings} Wishcoins.\n"
-
-		if procoin_winnings > 0:
-			notification_text = notification_text + f"* You received {procoin_winnings} Wishbux.\n"
-
-		send_repeatable_notification(user_id, notification_text)
-
-	# Give condolences.
+	# Send one rDrama-style round summary to every participant. Equivalent bets
+	# are combined, winning lines show their reward, and the footer reports the
+	# true net result after both winning and losing wagers are included.
 	for participant in participants:
-		if participant not in winners:
-			send_repeatable_notification(
-				participant, f"Winning number: {display_number}\nSorry, none of your recent roulette bets paid off.")
-			g.db.flush()
+		send_repeatable_notification(
+			participant,
+			_build_roulette_notification(
+				participant,
+				display_number,
+				active_games,
+				rewards_by_game_id,
+			),
+		)
 
 	# Persist the result on every game in the round. This gives all workers and
 	# all open browsers one authoritative landing history without a new table.
