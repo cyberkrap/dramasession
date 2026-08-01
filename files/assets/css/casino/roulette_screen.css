@@ -230,17 +230,22 @@ body.casino-game-roulette main {
 .roulette-controls {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-	gap: 26px;
-	margin-top: 14px;
+	align-items: start;
+	gap: 18px;
+	margin-top: 8px;
 }
 
-.roulette-control,
-.roulette-section {
+.roulette-control {
+	display: grid;
+	grid-template-rows: auto 34px;
+	align-content: start;
+	row-gap: 3px;
 	min-width: 0;
 }
 
 .roulette-section {
-	margin-top: 14px;
+	min-width: 0;
+	margin-top: 10px;
 }
 
 .roulette-section-heading {
@@ -248,13 +253,17 @@ body.casino-game-roulette main {
 	align-items: center;
 	gap: 10px;
 	width: 100%;
-	margin: 0 0 8px;
+	margin: 0;
 	color: inherit;
 	font-size: 1rem;
 	font-weight: 800;
 	line-height: 1;
 	text-transform: uppercase;
 	opacity: .75;
+}
+
+.roulette-section > .roulette-section-heading {
+	margin-bottom: 6px;
 }
 
 .roulette-section-heading::after {
@@ -265,28 +274,33 @@ body.casino-game-roulette main {
 }
 
 #wagerAmount {
-	height: 42px;
+	height: 34px;
+	min-height: 34px;
+	padding-top: 4px;
+	padding-bottom: 4px;
 	border-radius: 4px;
 }
 
 .roulette-currency-picker {
 	display: flex;
 	align-items: center;
-	gap: 18px;
-	height: 42px;
+	justify-content: flex-start;
+	gap: 14px;
+	height: 34px;
+	min-height: 34px;
 }
 
 .roulette-currency-option {
 	display: inline-flex;
 	align-items: center;
-	gap: 7px;
+	gap: 6px;
 	margin: 0;
 	cursor: pointer;
 }
 
 .roulette-radio-dot {
-	width: 14px;
-	height: 14px;
+	width: 13px;
+	height: 13px;
 	border: 2px solid rgba(255, 255, 255, .75);
 	border-radius: 50%;
 	box-shadow: inset 0 0 0 3px #111;
@@ -299,8 +313,8 @@ body.casino-game-roulette main {
 
 .roulette-currency-option img,
 .roulette-currency-icon {
-	width: 28px !important;
-	height: 28px !important;
+	width: 24px !important;
+	height: 24px !important;
 	object-fit: contain;
 	vertical-align: middle;
 }
@@ -432,7 +446,8 @@ body.casino-game-roulette main {
 	}
 
 	.roulette-controls {
-		gap: 12px;
+		gap: 8px;
+		margin-top: 6px;
 	}
 
 	.roulette-section-heading {
