@@ -1,95 +1,83 @@
-{% extends "casino/game_screen.html" %} {% block result %}Loading round timer...{% endblock %}
+{% extends "default.html" %}
+{% block body_attributes %}id="casino-game-page" class="casino-game-roulette"{% endblock %}
+{% block pagetitle %}Roulette{% endblock %}
 
-{% block script %}
-	<script defer src="{{'js/casino/roulette_screen.js' | asset}}"></script>
-	<script defer src="{{'js/casino/roulette_rounds.js' | asset}}"></script>
-{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{('css/casino/roulette_screen.css') | asset}}">
+<script defer src="{{'js/casino/roulette_screen.js' | asset}}"></script>
+<script defer src="{{'js/casino/roulette_rounds.js' | asset}}"></script>
 
-{% block screen %}
-	<link rel="stylesheet" href="{{('css/casino/roulette_screen.css') | asset}}">
-	<div id="roulette-table">
+<main id="casino-game-wrapper" data-game="roulette" class="roulette-shell">
+	{% set stats_alert_class = 'success' if v_stats[0] >= v_stats[2] else 'danger' %}
+	<div id="casinoGameStats" class="alert alert-{{stats_alert_class}} roulette-status-bar">
+		{{v_stats[0]}} win{{macros.plural(v_stats[0])}} - {{v_stats[2]}} loss{{macros.plural(v_stats[2], 'es')}}
 	</div>
-{% endblock %}
 
-{% block actiontext %}
-Bets
-{% endblock %}
+	<div id="casinoGameResult" class="alert alert-success roulette-status-bar roulette-round-status" aria-live="polite">
+		<span class="roulette-round-status__label">Next spin in</span>
+		<strong class="roulette-round-status__value">--:--</strong>
+	</div>
 
-{% block actions %}
-<div id="roulette-bets">
-	<small class="roulette-total-bets">Loading bets...</small>
-	<hr>
-</div>
+	<div class="roulette-table-scroll" aria-label="Roulette betting table">
+		<div id="roulette-table"></div>
+	</div>
 
-<div class="game_screen-title">
-	<h5>How to Bet</h5>
-	<hr>
-</div>
-<table class="table">
-	<thead>
-		<tr>
-			<th>Bet</th>
-			<th>Payout</th>
-			<th>Description</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>Straight Up</td>
-			<td>35:1</td>
-			<td>
-				Click any single number. <br>
-				You win if the roulette lands on that number.
-			</td>
-		</tr>
-		<tr>
-			<td>Line</td>
-			<td>5:1</td>
-			<td>
-				Click Line 1, Line 2 ... Line 6. <br>
-				You win if the roulette lands on any of the six numbers beneath the line.
-			</td>
-		</tr>
-		<tr>
-			<td>Column</td>
-			<td>2:1</td>
-			<td>
-				Click Col 1, Col 2 or Col 3. <br>
-				You win if the roulette lands on any of the 12 numbers to the left of the column.
-			</td>
-		</tr>
-		<tr>
-			<td>Dozen</td>
-			<td>2:1</td>
-			<td>
-				Click 1st12, 2nd12 or 3rd12. <br>
-				You win if the roulette lands on a number within 1-12, 13-24 or 25-36, respectively.
-			</td>
-		</tr>
-		<tr>
-			<td>Even/Odd</td>
-			<td>1:1</td>
-			<td>
-				Click EVEN or ODD. <br>
-				You win if the roulette lands on a number that matches your choice.
-			</td>
-		</tr>
-		<tr>
-			<td>Red/Black</td>
-			<td>1:1</td>
-			<td>
-				Click RED or BLACK. <br>
-				You win if the roulette lands on a number that is the same color as your choice.
-			</td>
-		</tr>
-		<tr>
-			<td>High/Low</td>
-			<td>1:1</td>
-			<td>
-				Click 1:18 or 19:36. <br>
-				You win if the roulette lands on a number within your selected range.
-			</td>
-		</tr>
-	</tbody>
-</table>
+	<section class="roulette-controls" aria-label="Roulette wager controls">
+		<div class="roulette-control">
+			<div class="roulette-section-heading"><span>Wager</span></div>
+			<input id="wagerAmount" type="number" min="5" step="1" value="5" class="form-control">
+		</div>
+
+		<div class="roulette-control">
+			<div class="roulette-section-heading"><span>Currency</span></div>
+			<div class="roulette-currency-picker">
+				<input type="radio" class="btn-check" name="wagerCurrency" autocomplete="off" id="wagerCoins" value="coin" checked>
+				<label for="wagerCoins" class="roulette-currency-option" title="Wishcoin">
+					<span class="roulette-radio-dot" aria-hidden="true"></span>
+					<img id="rouletteWishcoinAsset" loading="lazy" src="{{'coins.webp' | asset_siteimg}}" alt="Wishcoin" width="28" height="28">
+				</label>
+
+				<input type="radio" class="btn-check" name="wagerCurrency" autocomplete="off" id="wagerMarseybux" value="marseybux">
+				<label for="wagerMarseybux" class="roulette-currency-option" title="Wishbux">
+					<span class="roulette-radio-dot" aria-hidden="true"></span>
+					<img id="rouletteWishbuxAsset" loading="lazy" src="/i/marseybux.webp?v=2000" alt="Wishbux" width="28" height="28">
+				</label>
+			</div>
+		</div>
+	</section>
+
+	<section class="roulette-section" aria-labelledby="roulette-bets-heading">
+		<h2 id="roulette-bets-heading" class="roulette-section-heading"><span>Bets</span></h2>
+		<div id="roulette-bets">
+			<small class="roulette-total-bets">Loading bets...</small>
+		</div>
+	</section>
+
+	<section class="roulette-section" aria-labelledby="roulette-history-heading">
+		<h2 id="roulette-history-heading" class="roulette-section-heading"><span>Recent Ball Landings</span></h2>
+		<div id="roulette-recent-results" class="roulette-recent-results" aria-live="polite">
+			<span class="roulette-history-empty">No recorded landings yet.</span>
+		</div>
+	</section>
+
+	<section class="roulette-section roulette-rules" aria-labelledby="roulette-rules-heading">
+		<h2 id="roulette-rules-heading" class="roulette-section-heading"><span>How to Bet</span></h2>
+		<div class="roulette-rules-scroll">
+			<table class="table roulette-rules-table">
+				<thead>
+					<tr><th>Bet</th><th>Payout</th><th>Description</th></tr>
+				</thead>
+				<tbody>
+					<tr><td>Straight Up</td><td>35:1</td><td>Click any single number. You win if the ball lands on that number.</td></tr>
+					<tr><td>Line</td><td>5:1</td><td>Click Line 1 through Line 6. You win on any of the six numbers beneath that line.</td></tr>
+					<tr><td>Column</td><td>2:1</td><td>Click Col 1, Col 2 or Col 3. You win on any of the twelve numbers in that column.</td></tr>
+					<tr><td>Dozen</td><td>2:1</td><td>Click 1st12, 2nd12 or 3rd12. You win when the ball lands in that group of twelve.</td></tr>
+					<tr><td>Even / Odd</td><td>1:1</td><td>Click EVEN or ODD.</td></tr>
+					<tr><td>Red / Black</td><td>1:1</td><td>Click RED or BLACK.</td></tr>
+					<tr><td>High / Low</td><td>1:1</td><td>Click 1:18 or 19:36.</td></tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+</main>
 {% endblock %}
