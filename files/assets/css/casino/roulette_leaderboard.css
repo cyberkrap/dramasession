@@ -1,0 +1,130 @@
+.roulette-leaders {
+	margin-top: 18px;
+}
+
+.roulette-leader-list {
+	display: grid;
+	grid-template-columns: 1fr;
+	width: 100%;
+}
+
+.roulette-leader,
+.roulette-leader-loading {
+	min-height: 92px;
+	border-top: 1px solid rgba(255, 255, 255, .2);
+}
+
+.roulette-leader {
+	display: grid;
+	grid-template-columns: 72px minmax(0, 1fr);
+	align-items: center;
+	gap: 16px;
+	padding: 12px 4px;
+}
+
+.roulette-leader-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 62px;
+	height: 62px;
+	border: 2px solid currentColor;
+	border-radius: 50%;
+	font-size: 1.8rem;
+	background: rgba(0, 0, 0, .22);
+}
+
+.roulette-leader--winner .roulette-leader-icon {
+	color: #f3c833;
+}
+
+.roulette-leader--loser .roulette-leader-icon {
+	color: #c84242;
+}
+
+.roulette-leader-details {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	min-width: 0;
+	text-align: right;
+}
+
+.roulette-leader-label {
+	margin-bottom: 4px;
+	font-size: .73rem;
+	font-weight: 800;
+	letter-spacing: .13em;
+	text-transform: uppercase;
+	opacity: .78;
+}
+
+.roulette-leader-user {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 1.15rem;
+	font-weight: 900;
+	line-height: 1.15;
+}
+
+.roulette-leader-amount {
+	margin-top: 3px;
+	font-size: .88rem;
+	font-weight: 800;
+	letter-spacing: .04em;
+}
+
+.roulette-leader--winner .roulette-leader-amount {
+	color: #2fd16f;
+}
+
+.roulette-leader--loser .roulette-leader-amount {
+	color: #ff5b5b;
+}
+
+.roulette-leader-empty,
+.roulette-leader-loading {
+	opacity: .6;
+}
+
+.roulette-leader-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	font-size: .82rem;
+	font-weight: 800;
+	letter-spacing: .12em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+@media (max-width: 560px) {
+	.roulette-leader {
+		grid-template-columns: 52px minmax(0, 1fr);
+		gap: 10px;
+		min-height: 76px;
+		padding: 9px 2px;
+	}
+
+	.roulette-leader-icon {
+		width: 46px;
+		height: 46px;
+		font-size: 1.25rem;
+	}
+
+	.roulette-leader-label {
+		font-size: .63rem;
+		letter-spacing: .09em;
+	}
+
+	.roulette-leader-user {
+		font-size: 1rem;
+	}
+
+	.roulette-leader-amount {
+		font-size: .78rem;
+	}
+}
