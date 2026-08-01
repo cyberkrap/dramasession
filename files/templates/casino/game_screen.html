@@ -3,8 +3,10 @@
 {% block pagetitle %}{{game.capitalize()}}{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{('css/casino/game_screen.css') | asset}}">
+<link rel="stylesheet" href="{{('css/casino/roulette_leaderboard.css') | asset}}">
 <link rel="stylesheet" href="{{('css/casino/mobile_compact.css') | asset}}">
 <link rel="stylesheet" href="{{('css/casino/mobile_scroll_fix.css') | asset}}">
+<script defer src="{{'js/casino/roulette_leaderboard.js' | asset}}"></script>
 <script defer src="{{'js/casino/game_screen.js' | asset}}"></script>
 
 {% block script %}{% endblock %}
@@ -75,27 +77,13 @@
 				Reload Feed
 			</button>
 		</div>
-		<div class="col casino-game-leaders">
+		<div id="gameLeaderboard" data-leaderboard='{{leaderboard|e}}' class="col casino-game-leaders roulette-leaders">
 			<div class="game_screen-title">
 				<h5>Leaders</h5>
 				<hr>
 			</div>
-			<div id="gameLeaderboard" data-leaderboard="{{leaderboard}}">
-				{%- macro leaderboard(text, css_class, color) -%}
-				<div class="casino-game-leaderboard">
-					<div class="leaderboard-marsey-trophy">
-						<i class="fas fa-trophy leaderboard-marsey-trophy__trophy" style="color: {{color}};"></i>
-					</div>
-					<div class="casino-game-leaderboard-info">
-						<small>{{text}}</small>
-						<h3 id="{{css_class}}">-</h3>
-					</div>
-				</div>
-				{%- endmacro -%}
-				{{leaderboard('Biggest Winner (All Time)', 'biggestWinnerAllTime', 'gold')}}
-				{{leaderboard('Biggest Winner (Last 24h)', 'biggestWinner24h', 'gold')}}
-				{{leaderboard('Biggest Loser (Last 24h)', 'biggestLoser24h', 'darkred')}}
-				{{leaderboard('Biggest Loser (All Time)', 'biggestLoserAllTime', 'darkred')}}
+			<div class="roulette-leader-list" aria-live="polite">
+				<div class="roulette-leader-loading">Loading casino records...</div>
 			</div>
 		</div>
 	</div>
