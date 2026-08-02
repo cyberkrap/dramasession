@@ -1,0 +1,232 @@
+/*
+ * Compact control polish for the existing Obsession UI.
+ *
+ * This intentionally changes only controls and their alignment. It does not
+ * replace the current theme, cards, backgrounds, colours, or page structure.
+ */
+
+:root {
+	--obs-control-radius: 6px;
+	--obs-field-radius: 7px;
+	--obs-control-height: 36px;
+	--obs-control-gap: 6px;
+}
+
+/* Buttons should read as controls, not pills. */
+.btn,
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.btn.rounded-pill,
+button.rounded-pill {
+	border-radius: var(--obs-control-radius) !important;
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: .35rem;
+	min-height: var(--obs-control-height);
+	padding-top: .42rem;
+	padding-bottom: .42rem;
+	line-height: 1.15;
+	vertical-align: middle;
+}
+
+.btn-sm {
+	min-height: 30px;
+	border-radius: 5px !important;
+}
+
+.btn-lg {
+	min-height: 42px;
+	border-radius: 7px !important;
+}
+
+.btn-block {
+	width: 100%;
+}
+
+/* Keep icon and text baselines consistent. */
+.btn > i,
+.btn > svg,
+.btn > img,
+button > i,
+button > svg,
+button > img {
+	flex: 0 0 auto;
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+	vertical-align: middle;
+}
+
+/* Fields were also inheriting pill-like corners. */
+.form-control,
+.custom-select,
+.form-select,
+textarea,
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+input[type="date"],
+.custom-file-label,
+.input-group-text {
+	border-radius: var(--obs-field-radius) !important;
+}
+
+/* Native upload control, including the Select File button shown by Chromium. */
+input[type="file"] {
+	min-height: var(--obs-control-height);
+	font-size: .875rem;
+	line-height: 1.2;
+	vertical-align: middle;
+}
+
+input[type="file"]::file-selector-button,
+input[type="file"]::-webkit-file-upload-button {
+	min-height: 34px;
+	margin-right: 8px;
+	padding: .42rem .72rem;
+	border: 1px solid rgba(255, 255, 255, .16);
+	border-radius: var(--obs-control-radius);
+	background: rgba(255, 255, 255, .08);
+	color: inherit;
+	font: inherit;
+	font-weight: 700;
+	line-height: 1.1;
+	cursor: pointer;
+}
+
+input[type="file"]::file-selector-button:hover,
+input[type="file"]::-webkit-file-upload-button:hover {
+	border-color: rgba(255, 51, 77, .45);
+	background: rgba(255, 51, 77, .13);
+}
+
+/* Bootstrap custom file controls. */
+.custom-file,
+.custom-file-label {
+	min-height: var(--obs-control-height);
+}
+
+.custom-file-label {
+	display: flex;
+	align-items: center;
+	padding-top: .42rem;
+	padding-bottom: .42rem;
+}
+
+.custom-file-label::after {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: calc(var(--obs-control-height) - 2px);
+	border-radius: 0 6px 6px 0 !important;
+}
+
+/* Joined controls should have one clean outline, not overlapping pills. */
+.btn-group,
+.input-group {
+	align-items: stretch;
+}
+
+.btn-group > .btn,
+.input-group > .form-control,
+.input-group > .custom-select,
+.input-group > .input-group-prepend > .btn,
+.input-group > .input-group-append > .btn,
+.input-group > .input-group-prepend > .input-group-text,
+.input-group > .input-group-append > .input-group-text {
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+}
+
+.btn-group > .btn:not(:first-child),
+.input-group > .form-control:not(:first-child),
+.input-group > .custom-select:not(:first-child),
+.input-group > .input-group-append > .btn,
+.input-group > .input-group-append > .input-group-text {
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+}
+
+.btn-group > .btn:not(:last-child),
+.input-group > .form-control:not(:last-child),
+.input-group > .custom-select:not(:last-child),
+.input-group > .input-group-prepend > .btn,
+.input-group > .input-group-prepend > .input-group-text {
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+}
+
+/* Toolbars and action rows shown under editors, comments, and profiles. */
+.btn-toolbar,
+.form-actions,
+.editor-actions,
+.comment-actions,
+.post-actions,
+.action-buttons,
+.actionbtns {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--obs-control-gap);
+}
+
+.btn-toolbar > *,
+.form-actions > *,
+.editor-actions > *,
+.comment-actions > *,
+.post-actions > *,
+.action-buttons > *,
+.actionbtns > * {
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+}
+
+/* Common inline utility rows should not vertically stagger their controls. */
+.d-flex > .btn,
+.d-inline-flex > .btn,
+.form-row .btn,
+.row .btn {
+	align-self: center;
+}
+
+/* Preserve circular non-control visuals only. */
+.rounded-circle:not(.btn):not(button),
+.profile-pic-20,
+.profile-pic-25,
+.profile-pic-30,
+.profile-pic-35,
+.profile-pic-40,
+.profile-pic-50,
+.profile-pic-65,
+.profile-pic-75,
+.profile-pic-100,
+.avatar,
+.roulette-history-ball,
+.roulette-radio-dot,
+input[type="radio"] {
+	border-radius: 50% !important;
+}
+
+@media (max-width: 575.98px) {
+	.btn-toolbar,
+	.form-actions,
+	.editor-actions,
+	.comment-actions,
+	.post-actions,
+	.action-buttons,
+	.actionbtns {
+		gap: 5px;
+	}
+
+	.btn {
+		min-height: 34px;
+	}
+}
