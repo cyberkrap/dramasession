@@ -1,1 +1,50 @@
-/* placeholder */
+.popover-user-profile .popover-profile-stats {
+	display: grid !important;
+	grid-template-columns: repeat(4, max-content) minmax(12px, 1fr) auto !important;
+	align-items: center !important;
+	gap: 0 14px !important;
+	min-height: 48px !important;
+	padding: 8px 14px 9px !important;
+}
+
+.popover-user-profile .pop-profile-stat {
+	min-width: 0 !important;
+	width: max-content !important;
+	font-family: "Segoe UI Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+}
+
+.popover-user-profile .pop-profile-stat strong {
+	font-family: inherit !important;
+	font-size: .86rem !important;
+	font-weight: 700 !important;
+	line-height: 1.05 !important;
+	letter-spacing: .015em !important;
+}
+
+.popover-user-profile .pop-profile-stat span {
+	margin-top: 2px !important;
+	font-family: inherit !important;
+	font-size: .59rem !important;
+	font-weight: 500 !important;
+	line-height: 1 !important;
+	letter-spacing: .01em !important;
+}
+
+.popover-user-profile .pop-view_more {
+	grid-column: 6 !important;
+	justify-self: end !important;
+	margin: 0 !important;
+	font-family: "Segoe UI Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+}
+
+@media (max-width: 575.98px) {
+	.popover-user-profile .popover-profile-stats {
+		grid-template-columns: repeat(2, max-content) minmax(8px, 1fr) auto !important;
+		gap: 8px 14px !important;
+	}
+
+	.popover-user-profile .pop-view_more {
+		grid-column: 4 !important;
+		grid-row: 1 / span 2;
+	}
+}
