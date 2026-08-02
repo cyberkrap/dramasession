@@ -170,8 +170,7 @@ input[type="file"]::-webkit-file-upload-button:hover {
 .editor-actions,
 .comment-actions,
 .post-actions,
-.action-buttons,
-.actionbtns {
+.action-buttons {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -183,8 +182,7 @@ input[type="file"]::-webkit-file-upload-button:hover {
 .editor-actions > *,
 .comment-actions > *,
 .post-actions > *,
-.action-buttons > *,
-.actionbtns > * {
+.action-buttons > * {
 	margin-top: 0 !important;
 	margin-bottom: 0 !important;
 }
@@ -192,8 +190,7 @@ input[type="file"]::-webkit-file-upload-button:hover {
 /* Common inline utility rows should not vertically stagger their controls. */
 .d-flex > .btn,
 .d-inline-flex > .btn,
-.form-row .btn,
-.row .btn {
+.form-row .btn {
 	align-self: center;
 }
 
@@ -221,8 +218,7 @@ input[type="radio"] {
 	.editor-actions,
 	.comment-actions,
 	.post-actions,
-	.action-buttons,
-	.actionbtns {
+	.action-buttons {
 		gap: 5px;
 	}
 
