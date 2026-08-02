@@ -126,6 +126,7 @@ from files.helpers.default_user_background import install_default_user_backgroun
 from files.helpers.patron_branding import install_patron_branding
 from files.helpers.persistent_site_content import install_persistent_site_content
 from files.helpers.signup_rewards import install_signup_rewards
+from files.helpers.user_activity_defaults import install_user_activity_defaults
 from files.helpers.username_effects import install_username_effects
 from files.helpers.wishcoin_asset import install_wishcoin_asset
 install_badge_branding(engine)
@@ -136,6 +137,7 @@ install_default_following(app, engine)
 install_default_user_background()
 install_patron_branding()
 install_persistent_site_content()
+install_user_activity_defaults(engine, User)
 install_signup_rewards(engine)
 install_signup_reward_signup_hook()
 install_username_effects(engine, User)
