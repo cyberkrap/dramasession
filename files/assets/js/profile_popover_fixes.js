@@ -75,9 +75,99 @@
 		return visible.length ? visible[visible.length - 1] : null;
 	}
 
+	function normalizedText(element) {
+		return (element?.textContent || '').replace(/\s+/g, ' ').trim();
+	}
+
+	function replaceCurrencyLabels(stats) {
+		if (!stats || stats.dataset.obsCurrencyLabelsReady === '1') return;
+		stats.dataset.obsCurrencyLabelsReady = '1';
+		const walker = document.createTreeWalker(stats, NodeFilter.SHOW_TEXT);
+		const nodes = [];
+		while (walker.nextNode()) nodes.push(walker.currentNode);
+		nodes.forEach(node => {
+			node.nodeValue = node.nodeValue
+				.replace(/\bmarseybux\b/gi, 'Wishbux')
+				.replace(/\bcoins\b/gi, 'Wishcoins');
+		});
+	}
+
+	function rebuildIdentity(profile) {
+		const info = profile.querySelector('.popover-profile-identity > .text-truncate');
+		const username = info?.querySelector('.pop-username');
+		if (!info || !username || info.dataset.obsIdentityReady === '1') return;
+		info.dataset.obsIdentityReady = '1';
+
+		const meta = info.querySelector('.popover-profile-meta');
+		const items = meta ? Array.from(meta.children) : [];
+		const findItem = matcher => items.find(item => matcher(normalizedText(item).toLowerCase()));
+		const joined = findItem(text => text.startsWith('joined') || text.includes(' joined '));
+		const userId = findItem(text => text.startsWith('user id') || /^id\s*:?\s*\d/.test(text));
+		const truescore = findItem(text => text.startsWith('truescore'));
+		const reserved = findItem(text => text.startsWith('reserved username'));
+
+		const nameRow = document.createElement('div');
+		nameRow.className = 'obs-card-name-row';
+		username.before(nameRow);
+		nameRow.append(username);
+		if (joined) {
+			joined.className = 'obs-card-joined';
+			nameRow.append(joined);
+		}
+
+		if (userId || truescore) {
+			const facts = document.createElement('div');
+			facts.className = 'obs-card-facts';
+			if (userId) {
+				userId.textContent = normalizedText(userId).replace(/^user\s*id\s*:?\s*/i, 'ID ');
+				facts.append(userId);
+			}
+			if (truescore) {
+				truescore.textContent = normalizedText(truescore).replace(/^truescore\s*:?\s*/i, 'Truescore ');
+				facts.append(truescore);
+			}
+			nameRow.after(facts);
+		}
+
+		if (reserved) {
+			reserved.className = 'obs-card-reserved';
+			const facts = info.querySelector('.obs-card-facts');
+			(facts || nameRow).after(reserved);
+		}
+
+		if (meta && !meta.children.length) meta.remove();
+	}
+
+	function enhancePopoverLayout(popover, trigger) {
+		if (!popover) return;
+		popover.classList.add('obs-user-card');
+		const profile = popover.querySelector('.popover-user-profile');
+		if (!profile) return;
+
+		if (profile.dataset.obsCardLayoutReady !== '1') {
+			profile.dataset.obsCardLayoutReady = '1';
+			rebuildIdentity(profile);
+			replaceCurrencyLabels(profile.querySelector('.popover-profile-stats'));
+
+			const view = profile.querySelector('.pop-view_more');
+			if (view && !view.querySelector('.obs-card-view-arrow')) {
+				const arrow = document.createElement('span');
+				arrow.className = 'obs-card-view-arrow';
+				arrow.setAttribute('aria-hidden', 'true');
+				arrow.textContent = '→';
+				view.append(arrow);
+			}
+		}
+
+		const instance = typeof bootstrap !== 'undefined' ? bootstrap.Popover.getInstance(trigger) : null;
+		requestAnimationFrame(() => instance?.update());
+	}
+
 	function hydratePopover(trigger) {
 		const popover = visiblePopoverFor(trigger);
 		if (!popover) return;
+		enhancePopoverLayout(popover, trigger);
+
 		const username = popover.querySelector('.pop-username');
 		if (username) {
 			const plateColor = patronNameplateColor(trigger);
@@ -95,8 +185,12 @@
 				username.style.setProperty('background-image', 'none', 'important');
 			}
 		}
-		popover.addEventListener('pointerdown', event => event.stopPropagation());
-		popover.addEventListener('click', event => event.stopPropagation());
+
+		if (popover.dataset.obsClickShieldReady !== '1') {
+			popover.dataset.obsClickShieldReady = '1';
+			popover.addEventListener('pointerdown', event => event.stopPropagation());
+			popover.addEventListener('click', event => event.stopPropagation());
+		}
 	}
 
 	function renameActivity() {
@@ -191,6 +285,10 @@
 		});
 		observer.observe(document.body, {childList: true, subtree: true});
 	}
+
+	document.addEventListener('inserted.bs.popover', event => {
+		if (event.target.matches(triggerSelector)) hydratePopover(event.target);
+	});
 
 	document.addEventListener('shown.bs.popover', event => {
 		if (event.target.matches(triggerSelector)) hydratePopover(event.target);
