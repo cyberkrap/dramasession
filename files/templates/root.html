@@ -7,6 +7,7 @@
 {% endblock %}
 {%- import 'util/macros.html' as macros with context -%}
 {%- import 'util/html_head.html' as html_head with context -%}
+{% set is_gallery_background = v and v.background and not v.background.startswith('/images/') %}
 
 <!DOCTYPE html>
 <html lang="en" {% if not IS_FISTMAS() %}style="--primary:#{{v.themecolor if v else DEFAULT_COLOR}}"{% endif %}>
@@ -41,11 +42,11 @@
 		{% if v and v.background and not request.path.startswith('/@') %}
 		<style>
 			body.page-standard .app-shell {
-				background-color: rgba(8, 8, 11, .42) !important;
+				background-color: {% if is_gallery_background %}rgba(8, 8, 11, .34){% else %}rgba(8, 8, 11, .42){% endif %} !important;
 				border: 1px solid rgba(255, 255, 255, .12);
 				box-shadow: 0 24px 70px rgba(0, 0, 0, .34);
-				backdrop-filter: blur(14px) saturate(125%);
-				-webkit-backdrop-filter: blur(14px) saturate(125%);
+				backdrop-filter: blur({% if is_gallery_background %}8px{% else %}14px{% endif %}) saturate(125%);
+				-webkit-backdrop-filter: blur({% if is_gallery_background %}8px{% else %}14px{% endif %}) saturate(125%);
 			}
 			body.page-standard #main-content-row,
 			body.page-standard #main-content-col,
@@ -55,9 +56,9 @@
 			}
 			@media (max-width: 767.98px) {
 				body.page-standard .app-shell {
-					background-color: rgba(8, 8, 11, .52) !important;
-					backdrop-filter: blur(10px) saturate(118%);
-					-webkit-backdrop-filter: blur(10px) saturate(118%);
+					background-color: {% if is_gallery_background %}rgba(8, 8, 11, .42){% else %}rgba(8, 8, 11, .52){% endif %} !important;
+					backdrop-filter: blur({% if is_gallery_background %}6px{% else %}10px{% endif %}) saturate(118%);
+					-webkit-backdrop-filter: blur({% if is_gallery_background %}6px{% else %}10px{% endif %}) saturate(118%);
 				}
 			}
 		</style>
@@ -66,7 +67,7 @@
 	</head>
 	<body class="{% if request.path.startswith('/@') %}page-profile{% else %}page-standard{% endif %}"
 		{% if v and v.background and not request.path.startswith('/@') %}
-		style="background-image: linear-gradient(rgba(5,5,6,.58), rgba(5,5,6,.72)), url('{{ v.background|e }}') !important; background-size: cover !important; background-position: center top !important; background-repeat: no-repeat !important; background-attachment: fixed !important;"
+		style="background-image: linear-gradient(rgba(5,5,6,{% if is_gallery_background %}.20{% else %}.58{% endif %}), rgba(5,5,6,{% if is_gallery_background %}.32{% else %}.72{% endif %})), url('{{ v.background|e }}') !important; background-size: {% if is_gallery_background %}auto{% else %}cover{% endif %} !important; background-position: {% if is_gallery_background %}left top{% else %}center top{% endif %} !important; background-repeat: {% if is_gallery_background %}repeat{% else %}no-repeat{% endif %} !important; background-attachment: fixed !important;"
 		{% endif %}
 		{% block body_attributes %}id="{%block pagetype %}{% endblock %}"{% endblock %}>
 		{% if SITE_NAME == 'Obsession' and not request.path.startswith('/@') and not (v and v.background) %}
