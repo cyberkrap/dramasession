@@ -1,0 +1,78 @@
+.popover-user-profile .popover-badges-div {
+	max-height: none !important;
+	overflow: visible !important;
+	padding-bottom: 14px !important;
+}
+
+.popover-user-profile .popover-profile-stats {
+	display: grid !important;
+	grid-template-columns: repeat(4, minmax(58px, max-content)) minmax(12px, 1fr) auto;
+	align-items: center;
+	gap: 0 20px !important;
+	min-height: 62px;
+	padding: 10px 18px 11px !important;
+	border-top: 1px solid rgba(255, 255, 255, .18);
+	background: #09090b !important;
+}
+
+.popover-user-profile .pop-profile-stat {
+	display: flex !important;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
+	min-width: 0;
+	padding: 0 !important;
+	color: #fff !important;
+	text-decoration: none !important;
+	border: 0 !important;
+	background: transparent !important;
+}
+
+.popover-user-profile .pop-profile-stat strong {
+	display: block;
+	color: #fff !important;
+	font-size: .88rem !important;
+	font-weight: 800;
+	line-height: 1.1;
+	font-variant-numeric: tabular-nums;
+}
+
+.popover-user-profile .pop-profile-stat span {
+	display: block;
+	margin-top: 3px;
+	color: #d0cdd3 !important;
+	font-size: .64rem !important;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.popover-user-profile .pop-view_more {
+	grid-column: 6;
+	justify-self: end;
+	align-self: center;
+	margin: 0 !important;
+	padding: 4px 0 !important;
+	white-space: nowrap;
+}
+
+.popover-user-profile .obs-card-name-row {
+	gap: 5px 10px;
+}
+
+.popover-user-profile .obs-card-facts {
+	gap: 4px 12px;
+	margin-top: 5px;
+}
+
+@media (max-width: 575.98px) {
+	.popover-user-profile .popover-profile-stats {
+		grid-template-columns: repeat(2, minmax(82px, 1fr));
+		gap: 10px 16px !important;
+		padding: 11px 12px !important;
+	}
+
+	.popover-user-profile .pop-view_more {
+		grid-column: 2;
+		justify-self: end;
+	}
+}
