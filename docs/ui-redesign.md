@@ -84,3 +84,5 @@ The visual reference is application UI rather than a marketing landing page:
 - Forms must remain keyboard accessible
 - Mobile pages must not gain horizontal overflow
 - Roulette cells and other custom game controls must retain their own geometry
+
+Preview environment trigger refreshed on 2026-08-02.
