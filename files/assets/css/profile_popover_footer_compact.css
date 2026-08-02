@@ -1,50 +1,108 @@
 .popover-user-profile .popover-profile-stats {
-	display: grid !important;
-	grid-template-columns: repeat(4, max-content) minmax(12px, 1fr) auto !important;
+	display: flex !important;
 	align-items: center !important;
-	gap: 0 14px !important;
-	min-height: 48px !important;
-	padding: 8px 14px 9px !important;
+	gap: 18px !important;
+	min-height: 42px !important;
+	padding: 9px 14px !important;
+	border-top: 1px solid rgba(255, 255, 255, .22) !important;
+	background: #11151d !important;
+	white-space: nowrap;
 }
 
 .popover-user-profile .pop-profile-stat {
+	display: inline-flex !important;
+	flex: 0 0 auto !important;
+	flex-direction: row !important;
+	align-items: baseline !important;
+	gap: 4px !important;
 	min-width: 0 !important;
-	width: max-content !important;
-	font-family: "Segoe UI Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+	width: auto !important;
+	padding: 0 !important;
+	font-family: "Arial Nova", "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif !important;
+	font-size: .78rem !important;
+	font-weight: 600 !important;
+	line-height: 1 !important;
+	letter-spacing: .005em !important;
+	text-decoration: none !important;
+	border: 0 !important;
+	background: transparent !important;
+	white-space: nowrap !important;
+}
+
+.popover-user-profile .pop-profile-stat strong,
+.popover-user-profile .pop-profile-stat span {
+	display: inline !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-family: inherit !important;
+	font-size: inherit !important;
+	line-height: inherit !important;
+	letter-spacing: inherit !important;
+	white-space: nowrap !important;
 }
 
 .popover-user-profile .pop-profile-stat strong {
-	font-family: inherit !important;
-	font-size: .86rem !important;
-	font-weight: 700 !important;
-	line-height: 1.05 !important;
-	letter-spacing: .015em !important;
+	font-weight: 750 !important;
+	font-variant-numeric: tabular-nums;
 }
 
 .popover-user-profile .pop-profile-stat span {
-	margin-top: 2px !important;
-	font-family: inherit !important;
-	font-size: .59rem !important;
 	font-weight: 500 !important;
-	line-height: 1 !important;
-	letter-spacing: .01em !important;
+}
+
+.popover-user-profile .pop-profile-stat:nth-child(1),
+.popover-user-profile .pop-profile-stat:nth-child(2),
+.popover-user-profile .pop-profile-stat:nth-child(1) strong,
+.popover-user-profile .pop-profile-stat:nth-child(2) strong,
+.popover-user-profile .pop-profile-stat:nth-child(1) span,
+.popover-user-profile .pop-profile-stat:nth-child(2) span {
+	color: #eb4d68 !important;
+}
+
+.popover-user-profile .pop-profile-stat:nth-child(3),
+.popover-user-profile .pop-profile-stat:nth-child(4),
+.popover-user-profile .pop-profile-stat:nth-child(3) strong,
+.popover-user-profile .pop-profile-stat:nth-child(4) strong,
+.popover-user-profile .pop-profile-stat:nth-child(3) span,
+.popover-user-profile .pop-profile-stat:nth-child(4) span {
+	color: #c7ccd5 !important;
 }
 
 .popover-user-profile .pop-view_more {
-	grid-column: 6 !important;
-	justify-self: end !important;
-	margin: 0 !important;
-	font-family: "Segoe UI Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 5px !important;
+	grid-column: auto !important;
+	grid-row: auto !important;
+	margin: 0 0 0 auto !important;
+	padding: 0 !important;
+	font-family: "Arial Nova", "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif !important;
+	font-size: .78rem !important;
+	font-weight: 600 !important;
+	line-height: 1 !important;
+	letter-spacing: .005em !important;
+	color: #eb4d68 !important;
+	white-space: nowrap !important;
+}
+
+.popover-user-profile .pop-view_more:hover,
+.popover-user-profile .pop-view_more:focus {
+	color: #ff7189 !important;
 }
 
 @media (max-width: 575.98px) {
 	.popover-user-profile .popover-profile-stats {
-		grid-template-columns: repeat(2, max-content) minmax(8px, 1fr) auto !important;
+		flex-wrap: wrap !important;
 		gap: 8px 14px !important;
+		padding: 9px 12px !important;
+		white-space: normal;
+	}
+
+	.popover-user-profile .pop-profile-stat {
+		font-size: .74rem !important;
 	}
 
 	.popover-user-profile .pop-view_more {
-		grid-column: 4 !important;
-		grid-row: 1 / span 2;
+		margin-left: auto !important;
 	}
 }
