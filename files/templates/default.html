@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="{{'css/signup_reward.css' | asset}}">
 <link rel="stylesheet" href="{{'css/post_edit_inline_images.css' | asset}}">
 <link rel="stylesheet" href="{{'css/obsession_compact_controls.css' | asset}}">
+<link rel="stylesheet" href="{{'css/profile_popover_data_hotfix.css' | asset}}">
 {% block banner %}
 	{% include "modals/expanded_image.html" %}
 	{% if err or '@' not in request.path %}
@@ -77,6 +78,7 @@
 <script defer src="{{'js/vendor/lozad.js' | asset}}"></script>
 <script defer src="{{'js/vendor/lite-youtube.js' | asset}}"></script>
 <script defer src="{{'js/profile_popover_fixes.js' | asset}}"></script>
+<script defer src="{{'js/profile_popover_data_hotfix.js' | asset}}"></script>
 <script defer src="{{'js/distinguished_identity.js' | asset}}"></script>
 <script defer src="{{'js/relationship_counts.js' | asset}}"></script>
 <script defer src="{{'js/header_community_threads.js' | asset}}"></script>
@@ -89,7 +91,7 @@
 {% endif %}
 
 {% if IS_FISTMAS() %}
-	{% include "fistmas/music.html" %}
+	{% include 'fistmas/music.html' %}
 {% endif %}
 
 {% endblock %}
