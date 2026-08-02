@@ -29,7 +29,13 @@
 				<div id="profile--joined">Joined on <span id="profile--joined--time" data-time="{{u.created_utc}}"></span></div>
 
 				{% if v.admin_level >= PERMS['VIEW_LAST_ACTIVE'] -%}
-					<div id="profile--lastactive" class="mt-3">Last active on <span id="profile--lastactive--time" data-time="{{u.last_active}}"></span></div>
+					<div id="profile--lastactive" class="mt-3">
+						{% if u.last_active %}
+							Last active on <span id="profile--lastactive--time" data-time="{{u.last_active}}"></span>
+						{% else %}
+							Last active: <span class="text-muted">No activity recorded</span>
+						{% endif %}
+					</div>
 				{%- endif %}
 
 				{% if FEATURES['USERS_PROFILE_BODYTEXT'] and not hide_bios and u.bio_html %}
