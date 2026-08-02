@@ -33,152 +33,321 @@
 	padding: 3px 7px 4px !important;
 	line-height: 1.1;
 	background-image: none !important;
-	border-radius: 5px;
+	border-radius: 4px;
 }
 
-.popover {
-	width: min(520px, calc(100vw - 24px));
-	max-width: min(520px, calc(100vw - 24px)) !important;
+.popover.obs-user-card {
+	width: min(570px, calc(100vw - 24px));
+	max-width: min(570px, calc(100vw - 24px)) !important;
+	padding: 0 !important;
+	border: 1px solid rgba(255, 255, 255, .58) !important;
+	border-radius: 3px !important;
+	background: #050506 !important;
+	box-shadow: 0 18px 46px rgba(0, 0, 0, .58) !important;
 }
 
-.popover .popover-body {
-	padding: 0;
+.popover.obs-user-card .popover-arrow {
+	display: none !important;
+}
+
+.popover.obs-user-card .popover-body {
+	padding: 0 !important;
+	color: inherit;
+	background: transparent;
 }
 
 .popover-user-profile {
 	overflow: hidden;
-	color: var(--obs-text, #f3f1f1);
-	background: #09090b;
-	border-radius: inherit;
+	color: #f1f1f3;
+	background: #050506 !important;
+	border-radius: 2px;
 }
 
 .popover-user-profile .pop-banner {
 	display: block;
 	width: 100% !important;
-	height: 150px !important;
+	height: 205px !important;
 	object-fit: cover;
 	object-position: center;
 	background: #111115;
+	border: 0 !important;
+	border-radius: 0 !important;
 }
 
 .popover-user-profile .popover-profile-identity {
 	position: relative;
 	z-index: 2;
 	display: grid !important;
-	grid-template-columns: 86px minmax(0, 1fr);
-	gap: 14px;
+	grid-template-columns: 102px minmax(0, 1fr);
+	gap: 16px;
 	align-items: start !important;
-	margin: -38px 0 0 !important;
-	padding: 0 16px 14px !important;
+	margin: -84px 0 0 !important;
+	padding: 0 18px 8px !important;
+	background: linear-gradient(to bottom, transparent 0, transparent 83px, #050506 84px, #050506 100%);
 }
 
 .popover-user-profile .popover-profile-identity .profile-pic-75-wrapper {
-	width: 86px;
-	height: 86px;
-	background: #09090b;
-	border: 3px solid #09090b;
+	width: 98px !important;
+	height: 98px !important;
+	margin: 0 !important;
+	background: #050506;
+	border: 4px solid #050506 !important;
 	border-radius: 50%;
-	box-shadow: 0 8px 24px rgba(0, 0, 0, .42);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, .58), 0 0 0 1px rgba(255, 255, 255, .14);
 }
 
 .popover-user-profile .popover-profile-identity .profile-pic-75,
 .popover-user-profile .popover-profile-identity .profile-pic-75-hat {
-	width: 80px;
-	height: 80px;
+	width: 90px !important;
+	height: 90px !important;
 }
 
 .popover-user-profile .popover-profile-identity > .text-truncate {
+	display: flex;
+	flex-direction: column;
 	min-width: 0;
-	padding: 44px 0 0 !important;
+	padding: 88px 0 0 !important;
 	overflow: visible !important;
 	white-space: normal !important;
 }
 
+.popover-user-profile .obs-card-name-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 6px 10px;
+	min-width: 0;
+}
+
 .popover-user-profile .pop-username {
 	max-width: 100%;
-	margin: 0 0 4px !important;
+	margin: 0 !important;
 	padding: 0 !important;
-	font-size: 1.05rem;
+	font-size: 1rem;
 	font-weight: 800;
-	line-height: 1.2;
+	line-height: 1.25;
 	white-space: normal !important;
 	overflow-wrap: anywhere;
 }
 
-.popover-user-profile .popover-profile-meta {
+.popover-user-profile .obs-card-joined {
+	color: #d0cdd2;
+	font-size: .78rem;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.popover-user-profile .obs-card-facts {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px 12px;
 	margin-top: 4px;
-	font-size: .78rem;
+	color: #c6c3c9;
+	font-size: .76rem;
+	line-height: 1.35;
+}
+
+.popover-user-profile .obs-card-reserved {
+	margin-top: 3px;
+	color: #aaa7ad;
+	font-size: .72rem;
+	line-height: 1.35;
+	overflow-wrap: anywhere;
+}
+
+.popover-user-profile .popover-profile-meta:empty {
+	display: none;
 }
 
 .popover-user-profile .popover-bio-div {
-	max-height: 140px;
-	padding: 4px 16px 12px !important;
+	max-height: 190px;
+	padding: 7px 18px 10px !important;
+	overflow: auto;
+	color: #f0eef1;
+	font-size: .9rem;
+	line-height: 1.5;
+	background: #050506;
+}
+
+.popover-user-profile .popover-bio-div:empty {
+	display: none;
+}
+
+.popover-user-profile .popover-bio-div p:last-child {
+	margin-bottom: 0;
+}
+
+.popover-user-profile .popover-bio-div img:not(.emoji):not(.emoji-lg) {
+	max-width: 100%;
+	max-height: 190px;
+	object-fit: contain;
+	border-radius: 0;
 }
 
 .popover-user-profile .popover-badges-div {
-	max-height: 96px;
-	padding: 0 4px;
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 3px 4px;
+	max-height: 108px;
+	padding: 8px 18px 13px !important;
+	overflow-y: auto;
+	background: #050506;
+}
+
+.popover-user-profile .popover-badges-div:empty {
+	display: none !important;
+}
+
+.popover-user-profile .popover-badges-div > a,
+.popover-user-profile .popover-badges-div > img {
+	flex: 0 0 auto;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	background: transparent !important;
+}
+
+.popover-user-profile .popover-badges-div img {
+	display: block;
+	width: 40px !important;
+	height: 40px !important;
+	max-width: 40px !important;
+	max-height: 40px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	object-fit: contain;
+	border: 0 !important;
+	border-radius: 0 !important;
+	transition: transform .12s ease;
+}
+
+.popover-user-profile .popover-badges-div img:hover,
+.popover-user-profile .popover-badges-div img:focus {
+	position: relative;
+	z-index: 2;
+	transform: scale(1.1);
 }
 
 .popover-user-profile .popover-profile-stats {
-	flex-wrap: wrap;
-	gap: 10px 16px !important;
-	padding: 12px 16px !important;
-	background: #0d0d10;
+	display: flex !important;
+	flex-wrap: nowrap;
+	align-items: flex-end;
+	gap: 8px 16px !important;
+	padding: 10px 14px !important;
+	border-top: 1px solid rgba(255, 255, 255, .18);
+	background: #0b0b0e !important;
 }
 
 .popover-user-profile .pop-profile-stat {
-	display: inline-flex;
+	display: inline-flex !important;
+	flex: 0 0 auto;
 	flex-direction: column;
-	min-width: 44px;
+	align-items: flex-start;
+	min-width: 48px;
+	padding: 0 !important;
 	color: inherit !important;
+	line-height: 1.15;
+	border: 0 !important;
+	background: transparent !important;
+}
+
+.popover-user-profile .pop-profile-stat strong,
+.popover-user-profile .pop-profile-stat > :first-child:not(span) {
+	color: #fff;
+	font-size: .84rem;
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
 }
 
 .popover-user-profile .pop-profile-stat span {
-	font-size: .68rem;
+	margin-top: 2px;
+	color: #d2cfd5;
+	font-size: .65rem;
+	font-weight: 600;
+	line-height: 1.05;
+	text-transform: none;
 }
 
 .popover-user-profile .pop-view_more {
 	display: inline-flex;
 	align-items: center;
-	min-height: 34px;
+	align-self: center;
+	gap: 5px;
+	min-height: 30px;
 	margin-left: auto !important;
-	padding: 0 8px;
-	color: #db6a70 !important;
-	border-radius: 4px;
+	padding: 0 2px !important;
+	color: #e25a67 !important;
+	font-size: .76rem;
+	font-weight: 600;
+	border: 0 !important;
+	border-radius: 0 !important;
+	background: transparent !important;
 }
 
 .popover-user-profile .pop-view_more:hover,
 .popover-user-profile .pop-view_more:focus {
 	color: #fff !important;
-	background: rgba(255, 255, 255, .07);
+	text-decoration: none;
+	background: transparent !important;
 }
 
 @media (max-width: 575.98px) {
+	.popover.obs-user-card {
+		width: calc(100vw - 16px);
+		max-width: calc(100vw - 16px) !important;
+	}
+
 	.popover-user-profile .pop-banner {
-		height: 128px !important;
+		height: 158px !important;
 	}
 
 	.popover-user-profile .popover-profile-identity {
-		grid-template-columns: 74px minmax(0, 1fr);
-		margin-top: -32px !important;
+		grid-template-columns: 82px minmax(0, 1fr);
+		gap: 11px;
+		margin-top: -66px !important;
+		padding: 0 12px 8px !important;
+		background: linear-gradient(to bottom, transparent 0, transparent 65px, #050506 66px, #050506 100%);
 	}
 
 	.popover-user-profile .popover-profile-identity .profile-pic-75-wrapper {
-		width: 74px;
-		height: 74px;
+		width: 80px !important;
+		height: 80px !important;
+		border-width: 3px !important;
 	}
 
 	.popover-user-profile .popover-profile-identity .profile-pic-75,
 	.popover-user-profile .popover-profile-identity .profile-pic-75-hat {
-		width: 68px;
-		height: 68px;
+		width: 74px !important;
+		height: 74px !important;
 	}
 
 	.popover-user-profile .popover-profile-identity > .text-truncate {
-		padding-top: 36px !important;
+		padding-top: 70px !important;
+	}
+
+	.popover-user-profile .popover-bio-div {
+		padding-inline: 12px !important;
+	}
+
+	.popover-user-profile .popover-badges-div {
+		padding-inline: 12px !important;
+	}
+
+	.popover-user-profile .popover-badges-div img {
+		width: 36px !important;
+		height: 36px !important;
+		max-width: 36px !important;
+		max-height: 36px !important;
+	}
+
+	.popover-user-profile .popover-profile-stats {
+		flex-wrap: wrap;
+		gap: 9px 14px !important;
+		padding: 10px 12px !important;
+	}
+
+	.popover-user-profile .pop-view_more {
+		margin-left: auto !important;
 	}
 }
