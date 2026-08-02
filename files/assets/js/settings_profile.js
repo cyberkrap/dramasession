@@ -20,6 +20,9 @@ function updatebgselection(){
 				"3.webp",
 				"4.webp",
 				"5.webp",
+				"9.webp",
+				"10.webp",
+				"11.webp",
 			]
 		},
 		{
