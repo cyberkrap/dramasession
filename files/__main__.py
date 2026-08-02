@@ -47,10 +47,24 @@ def _startup_check():
 _server_name = SITE
 _railway_environment = environ.get('RAILWAY_ENVIRONMENT_NAME', '').strip()
 _railway_public_domain = environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
-if _railway_public_domain and _railway_environment and _railway_environment != 'production':
+_is_railway_preview = bool(
+	_railway_public_domain
+	and _railway_environment
+	and _railway_environment != 'production'
+)
+if _is_railway_preview:
+	# Route modules import SITE from the shared constants module and use it for
+	# host validation. Override every source before those modules are imported,
+	# otherwise Flask accepts the preview domain but the application still
+	# returns its custom "Unauthorized host provided" response.
 	_server_name = _railway_public_domain
+	environ['SITE'] = _railway_public_domain
+	SITE = _railway_public_domain
+	from files.helpers.config import const as _config_const
+	_config_const.SITE = _railway_public_domain
 
 app.config['SERVER_NAME'] = _server_name
+app.config['TRUSTED_HOSTS'] = [_server_name, '.up.railway.app'] if _is_railway_preview else [_server_name]
 app.config['SECRET_KEY'] = environ.get('SECRET_KEY').strip()
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 3153600
 _startup_check()
