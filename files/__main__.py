@@ -44,7 +44,13 @@ def _startup_check():
 	if not SITE: raise TypeError("SITE environment variable must exist and not be None")
 	if SITE.startswith('.'): raise ValueError("Domain must not start with a dot")
 
-app.config['SERVER_NAME'] = SITE
+_server_name = SITE
+_railway_environment = environ.get('RAILWAY_ENVIRONMENT_NAME', '').strip()
+_railway_public_domain = environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
+if _railway_public_domain and _railway_environment and _railway_environment != 'production':
+	_server_name = _railway_public_domain
+
+app.config['SERVER_NAME'] = _server_name
 app.config['SECRET_KEY'] = environ.get('SECRET_KEY').strip()
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 3153600
 _startup_check()
