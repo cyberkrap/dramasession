@@ -17,6 +17,11 @@ from files.routes.routehelpers import *
 # import wrappers then...
 from files.routes.wrappers import *
 
+# Register the core request lifecycle before feature-specific before_request
+# hooks. In particular, this guarantees g.db exists before the age gate reads
+# submissions or comments.
+from files.routes.allroutes import *
+
 # import jinja2 then... (lmao this was in feeds.py before wtf)
 from files.routes.jinja2 import *
 
