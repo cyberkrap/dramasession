@@ -12,6 +12,24 @@ function pinned_timestamp(id) {
 	}
 }
 
+// Bootstrap escapes tooltip HTML by default. Ban-hat tooltip content is generated
+// server-side from escaped text, so restore only the marked username links after
+// the tooltip is shown. This preserves ordinary tooltip sanitisation everywhere else.
+document.addEventListener('shown.bs.tooltip', (event) => {
+	const trigger = event.target;
+	const rawTitle = trigger.getAttribute('data-bs-original-title') || trigger.getAttribute('title') || '';
+	if (!rawTitle.includes('ban-tooltip-user')) return;
+
+	const tooltipId = trigger.getAttribute('aria-describedby');
+	const tooltip = tooltipId ? document.getElementById(tooltipId) : null;
+	const inner = tooltip ? tooltip.querySelector('.tooltip-inner') : null;
+	if (!inner) return;
+
+	inner.innerHTML = rawTitle;
+	const instance = bootstrap.Tooltip.getInstance(trigger);
+	if (instance && instance.update) instance.update();
+});
+
 const popClickBadgeTemplateDOM = document.createElement("IMG");
 popClickBadgeTemplateDOM.classList.add("pop-badge");
 popClickBadgeTemplateDOM.loading = "lazy";
@@ -39,7 +57,34 @@ document.addEventListener('shown.bs.popover', (e) => {
 
 	popover.getElementsByClassName('pop-banner')[0].src = author["bannerurl"]
 	popover.getElementsByClassName('pop-picture')[0].src = author["profile_url"]
-	if (author["hat"]) popover.getElementsByClassName('pop-hat')[0].src = author['hat'] + "?h=7"
+
+	const popHat = popover.getElementsByClassName('pop-hat')[0];
+	if (author["hat"]) {
+		const separator = author["hat"].includes('?') ? '&' : '?';
+		popHat.src = author["hat"] + separator + "h=8";
+		popHat.classList.remove('d-none');
+		const isBanHat = author["hat"].includes('/ban-hats/');
+		popHat.classList.toggle('pop-hat-ban', isBanHat);
+		if (isBanHat) {
+			popHat.style.width = '64px';
+			popHat.style.left = '5.5px';
+			popHat.style.bottom = '0';
+			popHat.style.height = 'auto';
+			popHat.style.objectFit = 'contain';
+		} else {
+			popHat.style.removeProperty('width');
+			popHat.style.removeProperty('left');
+			popHat.style.removeProperty('bottom');
+			popHat.style.removeProperty('height');
+			popHat.style.removeProperty('object-fit');
+		}
+	} else {
+		popHat.removeAttribute('src');
+		popHat.classList.add('d-none');
+		popHat.classList.remove('pop-hat-ban');
+		popHat.removeAttribute('style');
+	}
+
 	popover.getElementsByClassName('pop-username')[0].innerHTML = author["username"]
 	if (popover.getElementsByClassName('pop-bio').length > 0) {
 		popover.getElementsByClassName('pop-bio')[0].innerHTML = author["bio_html"]
