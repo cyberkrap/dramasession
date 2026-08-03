@@ -14,7 +14,6 @@ from files.helpers.age_verification import (
     create_didit_session,
     didit_configured,
     didit_enabled,
-    didit_minimum_age,
     is_age_verified,
     record_webhook_event,
     retrieve_didit_decision,
@@ -40,6 +39,14 @@ _AGE_ROUTE_ENDPOINTS = {
     "age_verification_return",
     "didit_webhook",
 }
+
+
+def _minimum_age() -> int:
+    try:
+        value = int(os.environ.get("DIDIT_MINIMUM_AGE", "18"))
+    except (TypeError, ValueError):
+        value = 18
+    return max(18, min(value, 120))
 
 
 def _same_site_referrer_path() -> str:
@@ -132,7 +139,7 @@ def age_verification_page(v):
         verified=bool(v and is_age_verified(v)),
         configured=didit_configured(),
         gate_enabled=didit_enabled(),
-        minimum_age=didit_minimum_age(),
+        minimum_age=_minimum_age(),
     )
 
 
@@ -153,7 +160,7 @@ def age_verification_start(v):
             verified=False,
             configured=didit_configured(),
             gate_enabled=didit_enabled(),
-            minimum_age=didit_minimum_age(),
+            minimum_age=_minimum_age(),
             error="You must consent to the verification checks before continuing.",
         ), 400
     if not didit_configured():
@@ -166,7 +173,7 @@ def age_verification_start(v):
             verified=False,
             configured=False,
             gate_enabled=didit_enabled(),
-            minimum_age=didit_minimum_age(),
+            minimum_age=_minimum_age(),
             error="Age verification is not fully configured yet.",
         ), 503
 
@@ -183,7 +190,7 @@ def age_verification_start(v):
             verified=False,
             configured=True,
             gate_enabled=didit_enabled(),
-            minimum_age=didit_minimum_age(),
+            minimum_age=_minimum_age(),
             error=f"Verification could not start: {str(exc)[:240]}",
         ), 502
 
