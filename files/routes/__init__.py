@@ -108,6 +108,11 @@ from .special import *
 from .push_notifs import *
 from .age_verification import *
 
+# Keep Didit API failures on the branded page so Cloudflare does not replace
+# the useful upstream error message with its generic 502 interstitial.
+from files.helpers.age_verification_response import install_age_verification_response_fix
+install_age_verification_response_fix()
+
 # Patch connection identity hydration after connection routes are registered.
 from files.helpers.connection_repairs import install_connection_repairs
 install_connection_repairs()
