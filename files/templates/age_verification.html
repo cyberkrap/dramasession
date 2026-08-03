@@ -3,13 +3,13 @@
 {% block pagetype %}age-verification{% endblock %}
 {% block content %}
 <style>
-.age-verification-shell{max-width:720px;margin:32px auto;padding:0 16px}.age-verification-card{background:#101014;border:1px solid #34343c;border-radius:7px;overflow:hidden}.age-verification-head{padding:22px 24px;border-bottom:1px solid #34343c;background:linear-gradient(120deg,rgba(239,35,67,.16),transparent 65%)}.age-verification-head h1{font-size:1.55rem;margin:0 0 6px}.age-verification-body{padding:24px}.age-verification-list{display:grid;gap:10px;margin:18px 0;padding:0;list-style:none}.age-verification-list li{display:flex;gap:10px;align-items:flex-start}.age-verification-list i{color:#ef2343;margin-top:3px}.age-verification-consent{display:flex;gap:10px;align-items:flex-start;padding:14px;border:1px solid #383842;background:#0b0b0e;border-radius:6px}.age-verification-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.age-verification-note{font-size:.86rem;color:#aaa;margin-top:16px}.age-verification-status{padding:12px 14px;border-left:3px solid #ef2343;background:#19191f;margin-bottom:18px}.age-verification-status.success{border-color:#36bd7c}.age-verification-status.warning{border-color:#e6b84a}.age-verification-error{border-color:#ef2343;color:#ff9aaa}.age-verification-card a{color:#ff5570}@media(max-width:576px){.age-verification-shell{margin:16px auto}.age-verification-head,.age-verification-body{padding:18px}}
+.age-verification-shell{max-width:720px;margin:32px auto;padding:0 16px}.age-verification-card{background:#101014;border:1px solid #34343c;border-radius:7px;overflow:hidden}.age-verification-head{padding:22px 24px;border-bottom:1px solid #34343c;background:linear-gradient(120deg,rgba(239,35,67,.16),transparent 65%)}.age-verification-head h1{font-size:1.55rem;margin:0 0 6px}.age-verification-body{padding:24px}.age-verification-list{display:grid;gap:10px;margin:18px 0;padding:0;list-style:none}.age-verification-list li{display:flex;gap:10px;align-items:flex-start}.age-verification-list i{color:#ef2343;margin-top:3px}.age-verification-consent{display:flex;gap:10px;align-items:flex-start;padding:14px;border:1px solid #383842;background:#0b0b0e;border-radius:6px}.age-verification-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.age-verification-status{padding:12px 14px;border-left:3px solid #ef2343;background:#19191f;margin-bottom:18px}.age-verification-status.success{border-color:#36bd7c}.age-verification-status.warning{border-color:#e6b84a}.age-verification-error{border-color:#ef2343;color:#ff9aaa}.age-verification-card a{color:#ff5570}@media(max-width:576px){.age-verification-shell{margin:16px auto}.age-verification-head,.age-verification-body{padding:18px}}
 </style>
 <div class="age-verification-shell">
   <section class="age-verification-card" aria-labelledby="age-verification-title">
     <header class="age-verification-head">
-      <h1 id="age-verification-title"><i class="fas fa-user-shield mr-2"></i>Age verification {{'required' if gate_enabled else 'available'}}</h1>
-      <p class="mb-0 text-muted">The Obsession Club is an 18+ community. {% if gate_enabled %}Verification is required before contributing, entering public chat, or opening NSFW posts.{% else %}Verification enforcement is currently disabled by an administrator.{% endif %}</p>
+      <h1 id="age-verification-title"><i class="fas fa-user-shield mr-2"></i>{{'Age verification complete' if verified else 'Age verification required'}}</h1>
+      <p class="mb-0 text-muted">The Obsession Club is an 18+ community. Verification is required before contributing, entering public chat, or opening NSFW posts.</p>
     </header>
     <div class="age-verification-body">
       {% if error %}<div class="age-verification-status age-verification-error">{{error}}</div>{% endif %}
@@ -28,7 +28,7 @@
         <p>You must sign in to verify an account on The Obsession Club.</p>
         <div class="age-verification-actions"><a class="btn btn-primary" href="/login">Sign in</a><a class="btn btn-secondary" href="/">Return home</a></div>
       {% elif not verified %}
-        <p>Verification is handled by <b>Didit</b>. Depending on the estimated age, the process may request a selfie, liveness check, device/IP analysis, and a government-issued identity document.</p>
+        <p>Verification is handled by <b>Didit</b> using a government-issued identity document, liveness check, face match, and device/IP analysis.</p>
         <ul class="age-verification-list">
           <li><i class="fas fa-check"></i><span>The minimum approved age is {{minimum_age}}.</span></li>
           <li><i class="fas fa-check"></i><span>The Obsession Club stores only the result, provider, Didit session ID, consent time, and completion time.</span></li>
@@ -53,7 +53,6 @@
           <div class="age-verification-status age-verification-error">Didit credentials are not fully configured. Age verification cannot start yet.</div>
         {% endif %}
       {% endif %}
-      <p class="age-verification-note">Age verification enforcement is currently <b>{{'enabled' if gate_enabled else 'disabled by an administrator'}}</b>.</p>
     </div>
   </section>
 </div>
