@@ -9,7 +9,7 @@
   <section class="age-verification-card" aria-labelledby="age-verification-title">
     <header class="age-verification-head">
       <h1 id="age-verification-title"><i class="fas fa-user-shield mr-2"></i>Age verification required</h1>
-      <p class="mb-0 text-muted">Obsession is an 18+ community. Verification is required before contributing, entering public chat, or opening NSFW posts.</p>
+      <p class="mb-0 text-muted">The Obsession Club is an 18+ community. Verification is required before contributing, entering public chat, or opening NSFW posts.</p>
     </header>
     <div class="age-verification-body">
       {% if error %}<div class="age-verification-status age-verification-error">{{error}}</div>{% endif %}
@@ -25,14 +25,14 @@
       {% endif %}
 
       {% if not v %}
-        <p>You must sign in to verify the age of an Obsession account.</p>
+        <p>You must sign in to verify an account on The Obsession Club.</p>
         <div class="age-verification-actions"><a class="btn btn-primary" href="/login">Sign in</a><a class="btn btn-secondary" href="/">Return home</a></div>
       {% elif not verified %}
         <p>Verification is handled by <b>Didit</b>. Depending on the estimated age, the process may request a selfie, liveness check, device/IP analysis, and a government-issued identity document.</p>
         <ul class="age-verification-list">
           <li><i class="fas fa-check"></i><span>The minimum approved age is {{minimum_age}}.</span></li>
-          <li><i class="fas fa-check"></i><span>Obsession stores only the result, provider, Didit session ID, consent time, and completion time.</span></li>
-          <li><i class="fas fa-check"></i><span>Obsession does not retain your selfie, ID image, document number, name, address, or date of birth.</span></li>
+          <li><i class="fas fa-check"></i><span>The Obsession Club stores only the result, provider, Didit session ID, consent time, and completion time.</span></li>
+          <li><i class="fas fa-check"></i><span>The Obsession Club does not retain your selfie, ID image, document number, name, address, or date of birth.</span></li>
           <li><i class="fas fa-check"></i><span>Approved accounts automatically receive the Minor Strike badge.</span></li>
         </ul>
         {% if configured %}
