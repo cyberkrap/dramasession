@@ -100,11 +100,17 @@ Compress(app)
 from files.routes.allroutes import *
 
 # The chat process runs independently from the main web process, so install
-# the dynamic username-effect columns and properties before either service
-# imports routes that read User.active_username_effects.
+# dynamic user columns before either service imports routes that read them.
 from files.classes import User
 from files.helpers.username_effects import install_username_effects
 install_username_effects(engine, User)
+from files.helpers.age_verification import install_age_verification
+install_age_verification(
+	engine,
+	User,
+	db_session,
+	ensure_badge=app.config['SERVICE'] == Service.RDRAMA,
+)
 from files.routes.chat_username_effects import *
 
 if app.config['SERVICE'] == Service.RDRAMA:
@@ -115,5 +121,7 @@ elif app.config['SERVICE'] == Service.CHAT:
 	from sys import modules
 	from files.helpers.chat_presence import install_chat_presence_fix
 	install_chat_presence_fix(modules['files.routes.chat'])
+	from files.helpers.age_verification import install_chat_age_verification_gate
+	install_chat_age_verification_gate(modules['files.routes.chat'])
 
 stdout.flush()
