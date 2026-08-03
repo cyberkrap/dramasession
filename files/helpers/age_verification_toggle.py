@@ -11,12 +11,12 @@ _installed = False
 _AGE_VERIFICATION_MODACTIONS = {
 	'enable_age_verification_required': {
 		"str": 'enabled age verification requirement',
-		"icon": 'fa-user-shield',
+		"icon": 'fa-id-card',
 		"color": 'bg-success',
 	},
 	'disable_age_verification_required': {
 		"str": 'disabled age verification requirement',
-		"icon": 'fa-user-shield',
+		"icon": 'fa-id-card',
 		"color": 'bg-danger',
 	},
 }
@@ -32,6 +32,18 @@ def age_verification_required() -> bool:
 		}
 
 
+def _ensure_modaction_kind_capacity() -> None:
+	"""Allow descriptive moderation-action keys without truncating inserts."""
+	from files.__main__ import engine
+
+	if engine.dialect.name != 'postgresql':
+		return
+	with engine.begin() as connection:
+		connection.exec_driver_sql(
+			'ALTER TABLE modactions ALTER COLUMN kind TYPE VARCHAR(64)'
+		)
+
+
 def _install_modaction_types() -> None:
 	from files.helpers.config.modaction_types import (
 		MODACTION_TYPES,
@@ -45,6 +57,8 @@ def install_age_verification_toggle() -> None:
 	global _installed
 	if _installed:
 		return
+
+	_ensure_modaction_kind_capacity()
 
 	from files.helpers import age_verification
 	age_verification.didit_enabled = age_verification_required
