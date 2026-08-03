@@ -1,0 +1,128 @@
+{% extends "root.html" %}
+{% block template_config %}
+	{% set root_scope.js = true %}
+	{% set root_scope.include_user_css = false %}
+	{% set root_scope.include_seo = false %}
+{% endblock %}
+{% block pagetitle %}Contact administrators{% endblock %}
+{% block head_final %}
+<style nonce="{{g.nonce}}">
+	body.page-standard {
+		min-height: 100vh;
+		color: #f3f1f1 !important;
+		background: #0b0b0d !important;
+	}
+	#obsession-aurora { display: none !important; }
+	.restricted-contact {
+		min-height: 100vh;
+		background: #0b0b0d;
+	}
+	.restricted-contact__banner {
+		height: clamp(150px, 18vw, 235px);
+		overflow: hidden;
+		background: #080809;
+		border-bottom: 1px solid rgba(255,255,255,.1);
+	}
+	.restricted-contact__banner img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center;
+	}
+	.restricted-contact__main {
+		width: min(880px, calc(100% - 32px));
+		margin: 0 auto;
+		padding: 42px 0 80px;
+	}
+	.restricted-contact__heading {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		margin-bottom: 24px;
+	}
+	.restricted-contact__heading img {
+		width: 72px;
+		height: 72px;
+		object-fit: contain;
+	}
+	.restricted-contact h1 {
+		margin: 0 0 5px;
+		color: #fff;
+		font-size: clamp(25px, 4vw, 34px);
+		font-weight: 800;
+	}
+	.restricted-contact p {
+		margin: 0;
+		color: #aaa5a7;
+		line-height: 1.55;
+	}
+	.restricted-contact__status {
+		margin-bottom: 20px;
+		padding: 12px 14px;
+		color: #d8f4e3;
+		background: rgba(45,150,92,.13);
+		border: 1px solid rgba(66,188,116,.38);
+		border-radius: 6px;
+	}
+	.restricted-contact form {
+		padding: 22px;
+		background: #111115;
+		border: 1px solid rgba(255,255,255,.1);
+		border-radius: 6px;
+	}
+	.restricted-contact label {
+		display: block;
+		margin-bottom: 9px;
+		color: #f3f1f1;
+		font-weight: 700;
+	}
+	.restricted-contact textarea {
+		min-height: 180px;
+		resize: vertical;
+	}
+	.restricted-contact__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 16px;
+	}
+	.restricted-contact__actions .btn {
+		padding: .62rem 1rem;
+		font-weight: 700;
+	}
+	@media (max-width: 576px) {
+		.restricted-contact__heading { align-items: flex-start; }
+		.restricted-contact__heading img { width: 58px; height: 58px; }
+		.restricted-contact form { padding: 16px; }
+	}
+</style>
+{% endblock %}
+{% block body %}
+	<div class="restricted-contact">
+		<div class="restricted-contact__banner" aria-hidden="true">
+			<img src="{{macros.live_banner()}}" alt="">
+		</div>
+		<main class="restricted-contact__main">
+			<div class="restricted-contact__heading">
+				<img src="/i/Obsession/ban-hats/underage.webp?v=3" alt="">
+				<div>
+					<h1>Contact administrators</h1>
+					<p>This private message will be delivered through modmail.</p>
+				</div>
+			</div>
+
+			{% if msg %}<div class="restricted-contact__status" role="status">{{msg}}</div>{% endif %}
+
+			<form id="restricted-contact-form" action="/contact" method="post">
+				<input hidden name="formkey" value="{{contact_user|formkey}}">
+				<label for="restricted-contact-message">Your message</label>
+				<textarea id="restricted-contact-message" name="message" class="form-control" maxlength="10000" required autofocus></textarea>
+				<div class="restricted-contact__actions">
+					<button type="submit" class="btn btn-primary">Send to administrators</button>
+					<a class="btn btn-secondary" href="/underage-ban">Back</a>
+				</div>
+			</form>
+		</main>
+	</div>
+{% endblock %}
