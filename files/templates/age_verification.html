@@ -1,0 +1,60 @@
+{% extends "default.html" %}
+{% block pagetitle %}Age verification{% endblock %}
+{% block pagetype %}age-verification{% endblock %}
+{% block content %}
+<style>
+.age-verification-shell{max-width:720px;margin:32px auto;padding:0 16px}.age-verification-card{background:#101014;border:1px solid #34343c;border-radius:7px;overflow:hidden}.age-verification-head{padding:22px 24px;border-bottom:1px solid #34343c;background:linear-gradient(120deg,rgba(239,35,67,.16),transparent 65%)}.age-verification-head h1{font-size:1.55rem;margin:0 0 6px}.age-verification-body{padding:24px}.age-verification-list{display:grid;gap:10px;margin:18px 0;padding:0;list-style:none}.age-verification-list li{display:flex;gap:10px;align-items:flex-start}.age-verification-list i{color:#ef2343;margin-top:3px}.age-verification-consent{display:flex;gap:10px;align-items:flex-start;padding:14px;border:1px solid #383842;background:#0b0b0e;border-radius:6px}.age-verification-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.age-verification-note{font-size:.86rem;color:#aaa;margin-top:16px}.age-verification-status{padding:12px 14px;border-left:3px solid #ef2343;background:#19191f;margin-bottom:18px}.age-verification-status.success{border-color:#36bd7c}.age-verification-status.warning{border-color:#e6b84a}.age-verification-error{border-color:#ef2343;color:#ff9aaa}.age-verification-card a{color:#ff5570}@media(max-width:576px){.age-verification-shell{margin:16px auto}.age-verification-head,.age-verification-body{padding:18px}}
+</style>
+<div class="age-verification-shell">
+  <section class="age-verification-card" aria-labelledby="age-verification-title">
+    <header class="age-verification-head">
+      <h1 id="age-verification-title"><i class="fas fa-user-shield mr-2"></i>Age verification required</h1>
+      <p class="mb-0 text-muted">Obsession is an 18+ community. Verification is required before contributing, entering public chat, or opening NSFW posts.</p>
+    </header>
+    <div class="age-verification-body">
+      {% if error %}<div class="age-verification-status age-verification-error">{{error}}</div>{% endif %}
+      {% if result_status == 'approved' or verified %}
+        <div class="age-verification-status success"><b>Age verified.</b> Your account can now post, comment, use public chat, and view NSFW content.</div>
+        <div class="age-verification-actions"><a class="btn btn-primary" href="{{next_path}}">Continue</a></div>
+      {% elif result_status in ['declined','expired','abandoned','kyc expired'] %}
+        <div class="age-verification-status age-verification-error"><b>Verification was not approved.</b> You cannot use age-restricted features. You may retry if the session expired or was abandoned.</div>
+      {% elif result_status in ['in review','in progress','awaiting user','resubmitted','not started'] %}
+        <div class="age-verification-status warning"><b>Verification is still pending.</b> Complete any remaining Didit steps, then return here.</div>
+      {% elif result_status in ['error','missing'] %}
+        <div class="age-verification-status age-verification-error">The verification result could not be confirmed. Start a new session or try again shortly.</div>
+      {% endif %}
+
+      {% if not v %}
+        <p>You must sign in to verify the age of an Obsession account.</p>
+        <div class="age-verification-actions"><a class="btn btn-primary" href="/login">Sign in</a><a class="btn btn-secondary" href="/">Return home</a></div>
+      {% elif not verified %}
+        <p>Verification is handled by <b>Didit</b>. Depending on the estimated age, the process may request a selfie, liveness check, device/IP analysis, and a government-issued identity document.</p>
+        <ul class="age-verification-list">
+          <li><i class="fas fa-check"></i><span>The minimum approved age is 18.</span></li>
+          <li><i class="fas fa-check"></i><span>Obsession stores only the result, provider, Didit session ID, consent time, and completion time.</span></li>
+          <li><i class="fas fa-check"></i><span>Obsession does not retain your selfie, ID image, document number, name, address, or date of birth.</span></li>
+          <li><i class="fas fa-check"></i><span>Approved accounts automatically receive the Minor Strike badge.</span></li>
+        </ul>
+        {% if configured %}
+        <form action="/age-verification/start" method="post">
+          <input type="hidden" name="formkey" value="{{v|formkey}}">
+          <input type="hidden" name="next" value="{{next_path}}">
+          <input type="hidden" name="reason" value="{{reason}}">
+          <label class="age-verification-consent">
+            <input type="checkbox" name="consent" value="yes" required>
+            <span>I am requesting age verification and consent to Didit processing the selfie, biometric, document, device, and IP data needed by this workflow. I have read Didit's <a href="https://didit.me/terms/verification-privacy-notice/" target="_blank" rel="noopener noreferrer">Verification Privacy Notice</a> and <a href="https://didit.me/terms/identity-verification/" target="_blank" rel="noopener noreferrer">End User Terms</a>.</span>
+          </label>
+          <div class="age-verification-actions">
+            <button class="btn btn-primary" type="submit">Verify my age</button>
+            <a class="btn btn-secondary" href="{{next_path if next_path != '/chat' else '/'}}">Cancel</a>
+          </div>
+        </form>
+        {% else %}
+          <div class="age-verification-status age-verification-error">Didit credentials are not fully configured. Age verification cannot start yet.</div>
+        {% endif %}
+      {% endif %}
+      <p class="age-verification-note">The contribution gate is currently <b>{{'enabled' if gate_enabled else 'in test mode'}}</b>. While it is in test mode, this page can be tested without restricting the rest of the site.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}
