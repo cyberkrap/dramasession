@@ -20,6 +20,9 @@ _OBSESSION_BADGE_ASSETS = {
 	25: "ian-bankroller.webp",
 	99: "sidebar.webp",
 }
+_OBSESSION_BADGE_ASSETS_BY_NAME = {
+	"Minor Strike": "minor-strike.webp",
+}
 _BADGE_ASSET_DIRECTORY = Path(__file__).resolve().parents[1] / "assets" / "images" / SITE_NAME / "badges"
 
 
@@ -42,8 +45,10 @@ class BadgeDef(Base):
 	@lazy
 	def path(self):
 		asset_name = _OBSESSION_BADGE_ASSETS.get(self.id)
+		if not asset_name:
+			asset_name = _OBSESSION_BADGE_ASSETS_BY_NAME.get(str(self.name or "").strip())
 		if asset_name and (_BADGE_ASSET_DIRECTORY / asset_name).is_file():
-			return f"/i/{SITE_NAME}/badges/{asset_name}?v=20260726-webp"
+			return f"/i/{SITE_NAME}/badges/{asset_name}?v=20260803-minor-strike"
 		if 20 < self.id < 28 or self.id == 222:
 			return f"/i/{SITE_NAME}/badges/{self.id}.webp"
 		return f"/i/badges/{self.id}.webp"
