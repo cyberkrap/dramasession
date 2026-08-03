@@ -1,0 +1,93 @@
+{% extends "root.html" %}
+{% block template_config %}
+	{% set root_scope.js = true %}
+	{% set root_scope.include_user_css = false %}
+	{% set root_scope.include_seo = false %}
+{% endblock %}
+{% block pagetitle %}Account restricted{% endblock %}
+{% block head_final %}
+<style nonce="{{g.nonce}}">
+	body.page-standard {
+		min-height: 100vh;
+		color: #f3f1f1 !important;
+		background: #0b0b0d !important;
+	}
+	#obsession-aurora { display: none !important; }
+	.underage-wall {
+		min-height: 100vh;
+		background: #0b0b0d;
+	}
+	.underage-wall__banner {
+		height: clamp(150px, 18vw, 235px);
+		overflow: hidden;
+		background: #080809;
+		border-bottom: 1px solid rgba(255,255,255,.1);
+	}
+	.underage-wall__banner img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center;
+	}
+	.underage-wall__main {
+		display: grid;
+		place-items: center;
+		min-height: calc(100vh - clamp(150px, 18vw, 235px));
+		padding: 42px 20px 80px;
+		text-align: center;
+	}
+	.underage-wall__content {
+		width: min(520px, 100%);
+	}
+	.underage-wall__icon {
+		display: block;
+		width: 148px;
+		height: 148px;
+		margin: 0 auto 18px;
+		object-fit: contain;
+	}
+	.underage-wall h1 {
+		margin: 0 0 12px;
+		color: #fff;
+		font-size: clamp(22px, 3vw, 30px);
+		font-weight: 800;
+		letter-spacing: .04em;
+		text-transform: uppercase;
+	}
+	.underage-wall p {
+		margin: 0 auto 8px;
+		color: #d1cdce;
+		font-size: 15px;
+		line-height: 1.55;
+	}
+	.underage-wall__actions {
+		display: flex;
+		justify-content: center;
+		margin-top: 24px;
+	}
+	.underage-wall__actions .btn {
+		min-width: 150px;
+		padding: .65rem 1rem;
+		font-weight: 700;
+	}
+</style>
+{% endblock %}
+{% block body %}
+	<div class="underage-wall">
+		<div class="underage-wall__banner" aria-hidden="true">
+			<img src="{{macros.live_banner()}}" alt="">
+		</div>
+		<main class="underage-wall__main">
+			<section class="underage-wall__content" aria-labelledby="underage-wall-title">
+				<img class="underage-wall__icon" src="/i/Obsession/ban-hats/underage.webp?v=3" alt="">
+				<h1 id="underage-wall-title">This is an 18+ community</h1>
+				<p>Your account has been banned for being underage.</p>
+				<p>If this was an error, contact the administrators below.</p>
+				<div class="underage-wall__actions">
+					<a class="btn btn-primary" href="/contact">Contact administrators</a>
+				</div>
+			</section>
+		</main>
+	</div>
+{% endblock %}
