@@ -44,9 +44,12 @@ class BadgeDef(Base):
 	@property
 	@lazy
 	def path(self):
+		badge_name = str(self.name or "").strip()
+		if SITE_NAME == "Obsession" and badge_name == "Minor Strike":
+			return "/assets/images/Obsession/badges/minor-strike.webp?v=20260803-minor-strike-direct"
 		asset_name = _OBSESSION_BADGE_ASSETS.get(self.id)
 		if not asset_name:
-			asset_name = _OBSESSION_BADGE_ASSETS_BY_NAME.get(str(self.name or "").strip())
+			asset_name = _OBSESSION_BADGE_ASSETS_BY_NAME.get(badge_name)
 		if asset_name and (_BADGE_ASSET_DIRECTORY / asset_name).is_file():
 			return f"/i/{SITE_NAME}/badges/{asset_name}?v=20260803-minor-strike"
 		if 20 < self.id < 28 or self.id == 222:
