@@ -1,5 +1,6 @@
 """Hosted Didit age-verification flow and contribution gates."""
 
+import hashlib
 import os
 from urllib.parse import urlencode, urlsplit
 
@@ -13,6 +14,7 @@ from files.helpers.age_verification import (
     create_didit_session,
     didit_configured,
     didit_enabled,
+    didit_minimum_age,
     is_age_verified,
     record_webhook_event,
     retrieve_didit_decision,
@@ -130,6 +132,7 @@ def age_verification_page(v):
         verified=bool(v and is_age_verified(v)),
         configured=didit_configured(),
         gate_enabled=didit_enabled(),
+        minimum_age=didit_minimum_age(),
     )
 
 
@@ -150,6 +153,7 @@ def age_verification_start(v):
             verified=False,
             configured=didit_configured(),
             gate_enabled=didit_enabled(),
+            minimum_age=didit_minimum_age(),
             error="You must consent to the verification checks before continuing.",
         ), 400
     if not didit_configured():
@@ -162,6 +166,7 @@ def age_verification_start(v):
             verified=False,
             configured=False,
             gate_enabled=didit_enabled(),
+            minimum_age=didit_minimum_age(),
             error="Age verification is not fully configured yet.",
         ), 503
 
@@ -178,6 +183,7 @@ def age_verification_start(v):
             verified=False,
             configured=True,
             gate_enabled=didit_enabled(),
+            minimum_age=didit_minimum_age(),
             error=f"Verification could not start: {str(exc)[:240]}",
         ), 502
 
@@ -244,18 +250,24 @@ def didit_webhook():
     if workflow_id and str(payload.get("workflow_id") or "") != workflow_id:
         return jsonify({"ok": True, "ignored": True}), 200
 
-    event_id = str(payload.get("event_id") or "").strip()
     session_id = str(payload.get("session_id") or "").strip()
+    status = str(payload.get("status") or "")
     user_id = user_id_from_vendor_data(payload.get("vendor_data"))
-    if not event_id or not session_id or not user_id:
+    if not session_id or not user_id:
         return jsonify({"error": "invalid_envelope"}), 400
+    event_id = str(payload.get("event_id") or "").strip()
+    if not event_id:
+        event_id = hashlib.sha256(
+            f"{session_id}:{status}:{webhook_type}:{payload.get('timestamp', '')}".encode("utf-8")
+        ).hexdigest()
+    elif len(event_id) > 128:
+        event_id = hashlib.sha256(event_id.encode("utf-8")).hexdigest()
     if webhook_event_seen(g.db, event_id):
         return jsonify({"ok": True, "duplicate": True}), 200
 
     user = g.db.query(User).filter(User.id == user_id).one_or_none()
     if not user:
         return jsonify({"ok": True, "ignored": True}), 200
-    status = str(payload.get("status") or "")
     apply_didit_status(g.db, user, session_id, status)
     record_webhook_event(
         g.db,
