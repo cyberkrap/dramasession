@@ -104,6 +104,8 @@ from files.routes.allroutes import *
 from files.classes import User
 from files.helpers.username_effects import install_username_effects
 install_username_effects(engine, User)
+from files.helpers.age_verification_toggle import install_age_verification_toggle
+install_age_verification_toggle()
 from files.helpers.age_verification import install_age_verification
 install_age_verification(
 	engine,
