@@ -61,28 +61,14 @@ document.addEventListener('shown.bs.popover', (e) => {
 	const popHat = popover.getElementsByClassName('pop-hat')[0];
 	if (author["hat"]) {
 		const separator = author["hat"].includes('?') ? '&' : '?';
-		popHat.src = author["hat"] + separator + "h=8";
-		popHat.classList.remove('d-none');
-		const isBanHat = author["hat"].includes('/ban-hats/');
-		popHat.classList.toggle('pop-hat-ban', isBanHat);
-		if (isBanHat) {
-			popHat.style.width = '64px';
-			popHat.style.left = '5.5px';
-			popHat.style.bottom = '0';
-			popHat.style.height = 'auto';
-			popHat.style.objectFit = 'contain';
-		} else {
-			popHat.style.removeProperty('width');
-			popHat.style.removeProperty('left');
-			popHat.style.removeProperty('bottom');
-			popHat.style.removeProperty('height');
-			popHat.style.removeProperty('object-fit');
-		}
+		popHat.src = author["hat"] + separator + "h=9";
+		popHat.removeAttribute('style');
+		popHat.classList.remove('d-none', 'pop-hat-ban');
 	} else {
 		popHat.removeAttribute('src');
+		popHat.removeAttribute('style');
 		popHat.classList.add('d-none');
 		popHat.classList.remove('pop-hat-ban');
-		popHat.removeAttribute('style');
 	}
 
 	popover.getElementsByClassName('pop-username')[0].innerHTML = author["username"]
