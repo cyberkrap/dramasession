@@ -72,6 +72,11 @@ def _ban_kind(user):
 	return "permanent"
 
 
+def is_underage_banned(user):
+	"""Return whether an authenticated account is currently banned as underage."""
+	return bool(user and user.is_suspended and _ban_kind(user) == "underage")
+
+
 def _latest_award(user, kind):
 	post_award = g.db.query(AwardRelationship).join(
 		Submission,
