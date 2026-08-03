@@ -23,6 +23,7 @@ from files.helpers.age_verification import (
     verify_didit_webhook,
     webhook_event_seen,
 )
+from files.helpers.alerts import send_repeatable_notification
 from files.helpers.config.const import DEFAULT_RATELIMIT, SITE
 from files.routes.wrappers import *
 
@@ -39,6 +40,12 @@ _AGE_ROUTE_ENDPOINTS = {
     "age_verification_return",
     "didit_webhook",
 }
+_MINOR_STRIKE_NOTIFICATION = (
+    "@AutoJanny has given you the following profile badge:\n\n"
+    "![](/assets/images/Obsession/badges/minor-strike.png?v=20260803-minor-strike-png)\n\n"
+    "**Minor Strike**\n\n"
+    "This user has verified their age. Thanks for keeping this community minor-free!"
+)
 
 
 def _minimum_age() -> int:
@@ -83,6 +90,12 @@ def _verification_redirect(reason: str):
         }), 451
     query = urlencode({"next": next_path, "reason": reason})
     return redirect(f"/age-verification?{query}")
+
+
+def _notify_minor_strike_award(user, was_verified: bool, normalized_status: str) -> None:
+    if was_verified or normalized_status != "approved":
+        return
+    send_repeatable_notification(user.id, _MINOR_STRIKE_NOTIFICATION)
 
 
 @app.before_request
@@ -229,12 +242,14 @@ def age_verification_return(v):
     user = g.db.query(User).filter(User.id == user_id).one_or_none()
     if not user:
         abort(404)
+    was_verified = is_age_verified(user)
     normalized = apply_didit_status(
         g.db,
         user,
         session_id,
         decision.get("status"),
     )
+    _notify_minor_strike_award(user, was_verified, normalized)
     query = urlencode({"status": normalized or "unknown", "next": next_path})
     return redirect(f"/age-verification?{query}")
 
@@ -275,7 +290,9 @@ def didit_webhook():
     user = g.db.query(User).filter(User.id == user_id).one_or_none()
     if not user:
         return jsonify({"ok": True, "ignored": True}), 200
-    apply_didit_status(g.db, user, session_id, status)
+    was_verified = is_age_verified(user)
+    normalized = apply_didit_status(g.db, user, session_id, status)
+    _notify_minor_strike_award(user, was_verified, normalized)
     record_webhook_event(
         g.db,
         event_id,
