@@ -56,7 +56,7 @@ def _read_locked(handle) -> dict[str, bool]:
 		return _normalize_settings(json.loads(raw))
 	except (TypeError, ValueError, json.JSONDecodeError):
 		# Keep the last known state if an old process was interrupted while
-		# writing during a rolling deployment. The next successful write repairs
+		# writing during a rolling deployment. The next successful toggle repairs
 		# the file instead of silently resetting every switch.
 		return _normalize_settings(_SETTINGS)
 
@@ -120,10 +120,8 @@ def toggle_setting(setting: str):
 
 def reload_settings():
 	with _open_settings_file() as handle:
-		fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+		fcntl.flock(handle.fileno(), fcntl.LOCK_SH)
 		settings = _read_locked(handle)
-		# Persist newly introduced keys while preserving existing values.
-		_write_locked(handle, settings)
 		_set_local_state(settings, handle)
 		fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
