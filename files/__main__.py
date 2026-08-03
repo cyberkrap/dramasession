@@ -117,6 +117,8 @@ from files.routes.chat_username_effects import *
 
 if app.config['SERVICE'] == Service.RDRAMA:
 	from files.routes import *
+	from files.helpers.underage_ban_wall import install_underage_ban_wall
+	install_underage_ban_wall(app)
 
 elif app.config['SERVICE'] == Service.CHAT:
 	from files.routes.chat import *
