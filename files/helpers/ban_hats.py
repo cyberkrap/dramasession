@@ -18,13 +18,26 @@ BAN_HAT_PATHS = {
 	"permanent": "/i/Obsession/ban-hats/permanent.webp?v=2",
 }
 
-_LINK_TOKEN = re.compile(r"(@[A-Za-z0-9_]{1,25}|/(?:comment|post)/\d+/?)")
+_LINK_TOKEN = re.compile(r"(@[A-Za-z0-9_-]{1,25}|/(?:comment|post)/\d+/?)")
+_COLOR_TOKEN = re.compile(r"^[0-9A-Fa-f]{6}$")
 _INSTALLED = False
 
 
 def _plain_text(value):
 	text = re.sub(r"<[^>]+>", "", value or "")
 	return html.unescape(text).strip()
+
+
+def _username_link(token):
+	username = token[1:]
+	user = g.db.query(User).filter(User.username.ilike(username)).one_or_none()
+	color = str(getattr(user, "name_color", "") or "") if user else ""
+	if not _COLOR_TOKEN.fullmatch(color):
+		color = "db6a70"
+	return Markup(
+		"<a class='ban-tooltip-user' href='/@{}' "
+		"style='color:#{};font-weight:700;text-decoration:none'>{}</a>"
+	).format(escape(username), escape(color), escape(token))
 
 
 def _linkify_text(value):
@@ -35,12 +48,12 @@ def _linkify_text(value):
 		parts.append(escape(plain[position:match.start()]))
 		token = match.group(0)
 		if token.startswith("@"):
-			href = f"/@{token[1:]}"
+			parts.append(_username_link(token))
 		else:
 			href = token.rstrip("/")
 			if href.startswith("/comment/"):
 				href += "#context"
-		parts.append(Markup('<a href="{}">{}</a>').format(escape(href), escape(token)))
+			parts.append(Markup("<a href='{}'>{}</a>").format(escape(href), escape(token)))
 		position = match.end()
 	parts.append(escape(plain[position:]))
 	return Markup("").join(parts)
@@ -150,7 +163,7 @@ def _build_ban_display(user):
 		duration = " permanently"
 
 	message = f'{prefix} "{details}"{duration}'
-	message_html = Markup('{} "{}"{}').format(
+	message_html = Markup("{} &quot;{}&quot;{}").format(
 		_linkify_text(prefix),
 		_linkify_text(details),
 		escape(duration),
@@ -198,7 +211,7 @@ def install_ban_hat_support():
 		if self.is_suspended:
 			display = self.ban_display
 			if display:
-				return display["hat"], display["message"]
+				return display["hat"], display["message_html"]
 		return original_hat_active(self, viewer)
 
 	def ban(self, admin=None, reason=None, days=0.0):
