@@ -106,6 +106,7 @@ if FEATURES['ASSET_SUBMISSIONS']:
 from .report_fixes import *
 from .special import *
 from .push_notifs import *
+from .age_verification import *
 
 # Patch connection identity hydration after connection routes are registered.
 from files.helpers.connection_repairs import install_connection_repairs
