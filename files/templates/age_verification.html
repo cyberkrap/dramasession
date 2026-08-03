@@ -30,7 +30,7 @@
       {% elif not verified %}
         <p>Verification is handled by <b>Didit</b>. Depending on the estimated age, the process may request a selfie, liveness check, device/IP analysis, and a government-issued identity document.</p>
         <ul class="age-verification-list">
-          <li><i class="fas fa-check"></i><span>The minimum approved age is 18.</span></li>
+          <li><i class="fas fa-check"></i><span>The minimum approved age is {{minimum_age}}.</span></li>
           <li><i class="fas fa-check"></i><span>Obsession stores only the result, provider, Didit session ID, consent time, and completion time.</span></li>
           <li><i class="fas fa-check"></i><span>Obsession does not retain your selfie, ID image, document number, name, address, or date of birth.</span></li>
           <li><i class="fas fa-check"></i><span>Approved accounts automatically receive the Minor Strike badge.</span></li>
