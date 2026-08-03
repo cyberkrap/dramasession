@@ -51,6 +51,57 @@
 		});
 	}
 
+	function ageVerificationTarget(data) {
+		if (!data || typeof data.verification_path !== 'string' || !data.verification_path) return null;
+		const target = new URL(data.verification_path, window.location.origin);
+		if (target.origin !== window.location.origin) return null;
+		if (!target.searchParams.has('next')) {
+			target.searchParams.set('next', window.location.pathname + window.location.search + window.location.hash);
+		}
+		if (data.reason && !target.searchParams.has('reason')) {
+			target.searchParams.set('reason', String(data.reason));
+		}
+		return target.pathname + target.search + target.hash;
+	}
+
+	function redirectAgeGate(data) {
+		const target = ageVerificationTarget(data);
+		if (!target) return false;
+		window.location.assign(target);
+		return true;
+	}
+
+	const nativeOpen = XMLHttpRequest.prototype.open;
+	XMLHttpRequest.prototype.open = function(...args) {
+		if (!this.__obsessionAgeGateListener) {
+			this.__obsessionAgeGateListener = true;
+			this.addEventListener('load', function(event) {
+				if (this.status !== 451) return;
+				let data = null;
+				try {
+					data = JSON.parse(this.responseText || '{}');
+				} catch (_) {}
+				if (!redirectAgeGate(data)) return;
+				event.stopImmediatePropagation();
+			}, true);
+		}
+		return nativeOpen.apply(this, args);
+	};
+
+	if (typeof window.fetch === 'function') {
+		const nativeFetch = window.fetch.bind(window);
+		window.fetch = async function(...args) {
+			const response = await nativeFetch(...args);
+			if (response.status !== 451) return response;
+			let data = null;
+			try {
+				data = await response.clone().json();
+			} catch (_) {}
+			if (!redirectAgeGate(data)) return response;
+			return new Promise(() => {});
+		};
+	}
+
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', enhanceCurrencyTooltips, {once: true});
 	} else {
