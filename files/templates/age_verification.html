@@ -8,8 +8,8 @@
 <div class="age-verification-shell">
   <section class="age-verification-card" aria-labelledby="age-verification-title">
     <header class="age-verification-head">
-      <h1 id="age-verification-title"><i class="fas fa-user-shield mr-2"></i>Age verification required</h1>
-      <p class="mb-0 text-muted">The Obsession Club is an 18+ community. Verification is required before contributing, entering public chat, or opening NSFW posts.</p>
+      <h1 id="age-verification-title"><i class="fas fa-user-shield mr-2"></i>Age verification {{'required' if gate_enabled else 'available'}}</h1>
+      <p class="mb-0 text-muted">The Obsession Club is an 18+ community. {% if gate_enabled %}Verification is required before contributing, entering public chat, or opening NSFW posts.{% else %}Verification enforcement is currently disabled by an administrator.{% endif %}</p>
     </header>
     <div class="age-verification-body">
       {% if error %}<div class="age-verification-status age-verification-error">{{error}}</div>{% endif %}
@@ -53,7 +53,7 @@
           <div class="age-verification-status age-verification-error">Didit credentials are not fully configured. Age verification cannot start yet.</div>
         {% endif %}
       {% endif %}
-      <p class="age-verification-note">The contribution gate is currently <b>{{'enabled' if gate_enabled else 'in test mode'}}</b>. While it is in test mode, this page can be tested without restricting the rest of the site.</p>
+      <p class="age-verification-note">Age verification enforcement is currently <b>{{'enabled' if gate_enabled else 'disabled by an administrator'}}</b>.</p>
     </div>
   </section>
 </div>
