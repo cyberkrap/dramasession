@@ -47,6 +47,47 @@ body#shop .obs-hat-preview img.profile-pic-75-hat {
 	image-rendering: auto;
 }
 
+/* Use the same 75x75 avatar and natural-height overlay geometry in profile popovers. */
+.popover-user-profile .popover-profile-identity .profile-pic-75-wrapper {
+	position: relative !important;
+	flex: 0 0 75px !important;
+	width: 75px !important;
+	height: 75px !important;
+	overflow: visible !important;
+	transform: none !important;
+}
+
+.popover-user-profile .popover-profile-identity img.profile-pic-75 {
+	position: relative !important;
+	z-index: 1;
+	display: block !important;
+	width: 75px !important;
+	height: 75px !important;
+	object-fit: cover !important;
+	object-position: center !important;
+}
+
+.popover-user-profile .popover-profile-identity img.profile-pic-75-hat {
+	position: absolute !important;
+	z-index: 2;
+	left: 0 !important;
+	bottom: 0 !important;
+	display: block !important;
+	width: 75px !important;
+	height: auto !important;
+	max-width: none !important;
+	max-height: none !important;
+	object-fit: contain !important;
+	object-position: center bottom !important;
+	transform: none !important;
+	border-radius: 0 !important;
+	image-rendering: auto;
+}
+
+.popover-user-profile .popover-profile-identity img.profile-pic-75-hat.d-none {
+	display: none !important;
+}
+
 .admin-only-comments-notice {
 	margin: 0 0 1rem;
 	padding: .8rem 1rem;
