@@ -1,27 +1,54 @@
 {% extends "root.html" %}
 {% block template_config %}
-	{% set root_scope.js = true %}
+	{% set root_scope.js = false %}
 	{% set root_scope.include_user_css = false %}
 	{% set root_scope.include_seo = false %}
 {% endblock %}
 {% block pagetitle %}Contact administrators{% endblock %}
 {% block head_final %}
 <style nonce="{{g.nonce}}">
+	html,
 	body.page-standard {
-		min-height: 100vh;
+		min-height: 100%;
 		color: #f3f1f1 !important;
-		background: #0b0b0d !important;
+		background: #20262d !important;
 	}
 	#obsession-aurora { display: none !important; }
 	.restricted-contact {
 		min-height: 100vh;
-		background: #0b0b0d;
+		background: #20262d;
+	}
+	.restricted-contact__header {
+		display: flex;
+		align-items: center;
+		height: 70px;
+		padding: 0 clamp(14px, 2.5vw, 34px);
+		background: #11161c;
+		border-bottom: 1px solid rgba(255,255,255,.1);
+	}
+	.restricted-contact__brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 11px;
+	}
+	.restricted-contact__brand-icon {
+		display: block;
+		width: 38px;
+		height: 38px;
+		object-fit: contain;
+	}
+	.restricted-contact__brand-wordmark {
+		display: block;
+		width: min(168px, 46vw);
+		height: 34px;
+		object-fit: contain;
+		object-position: left center;
 	}
 	.restricted-contact__banner {
-		height: clamp(150px, 18vw, 235px);
+		height: clamp(155px, 18vw, 230px);
 		overflow: hidden;
-		background: #080809;
-		border-bottom: 1px solid rgba(255,255,255,.1);
+		background: #08090a;
+		border-bottom: 1px solid rgba(255,255,255,.12);
 	}
 	.restricted-contact__banner img {
 		display: block;
@@ -54,7 +81,7 @@
 	}
 	.restricted-contact p {
 		margin: 0;
-		color: #aaa5a7;
+		color: #c9cdd0;
 		line-height: 1.55;
 	}
 	.restricted-contact__status {
@@ -67,8 +94,8 @@
 	}
 	.restricted-contact form {
 		padding: 22px;
-		background: #111115;
-		border: 1px solid rgba(255,255,255,.1);
+		background: #11161c;
+		border: 1px solid rgba(255,255,255,.12);
 		border-radius: 6px;
 	}
 	.restricted-contact label {
@@ -92,6 +119,9 @@
 		font-weight: 700;
 	}
 	@media (max-width: 576px) {
+		.restricted-contact__header { height: 62px; }
+		.restricted-contact__brand-icon { width: 34px; height: 34px; }
+		.restricted-contact__brand-wordmark { height: 29px; }
 		.restricted-contact__heading { align-items: flex-start; }
 		.restricted-contact__heading img { width: 58px; height: 58px; }
 		.restricted-contact form { padding: 16px; }
@@ -100,12 +130,18 @@
 {% endblock %}
 {% block body %}
 	<div class="restricted-contact">
+		<header class="restricted-contact__header" aria-label="The Obsession Club">
+			<div class="restricted-contact__brand">
+				<img class="restricted-contact__brand-icon" src="{{'official-logo.png' | asset_siteimg}}" alt="">
+				<img class="restricted-contact__brand-wordmark" src="{{'wordmark.png' | asset_siteimg}}" alt="The Obsession Club">
+			</div>
+		</header>
 		<div class="restricted-contact__banner" aria-hidden="true">
-			<img src="{{macros.live_banner()}}" alt="">
+			<img src="{{macros.live_banner()}}" alt="" loading="eager">
 		</div>
 		<main class="restricted-contact__main">
 			<div class="restricted-contact__heading">
-				<img src="/i/Obsession/ban-hats/underage.webp?v=3" alt="">
+				<img src="/i/Obsession/ban-hats/underage.webp?v=4" alt="">
 				<div>
 					<h1>Contact administrators</h1>
 					<p>This private message will be delivered through modmail.</p>
@@ -120,7 +156,7 @@
 				<textarea id="restricted-contact-message" name="message" class="form-control" maxlength="10000" required autofocus></textarea>
 				<div class="restricted-contact__actions">
 					<button type="submit" class="btn btn-primary">Send to administrators</button>
-					<a class="btn btn-secondary" href="/underage-ban">Back</a>
+					<a class="btn btn-secondary" href="/">Back</a>
 				</div>
 			</form>
 		</main>
