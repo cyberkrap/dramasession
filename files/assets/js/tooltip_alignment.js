@@ -3,9 +3,15 @@
 
 	const TOOLTIP_ID = 'obsession-aligned-tooltip';
 	const installed = new WeakSet();
+	const configurations = new WeakMap();
 	let activeTrigger = null;
 	let tooltip = null;
 	let hideTimer = 0;
+
+	function clearHideTimer() {
+		window.clearTimeout(hideTimer);
+		hideTimer = 0;
+	}
 
 	function tooltipElement() {
 		if (tooltip && document.body.contains(tooltip)) return tooltip;
@@ -14,6 +20,20 @@
 		tooltip.className = 'obsession-aligned-tooltip';
 		tooltip.setAttribute('role', 'tooltip');
 		tooltip.setAttribute('aria-hidden', 'true');
+		tooltip.addEventListener('pointerenter', () => {
+			if (tooltip.dataset.kind === 'ban-hat') clearHideTimer();
+		});
+		tooltip.addEventListener('pointerleave', () => {
+			if (tooltip.dataset.kind === 'ban-hat') hideTooltip(activeTrigger);
+		});
+		tooltip.addEventListener('focusin', () => {
+			if (tooltip.dataset.kind === 'ban-hat') clearHideTimer();
+		});
+		tooltip.addEventListener('focusout', event => {
+			if (tooltip.dataset.kind === 'ban-hat' && !tooltip.contains(event.relatedTarget)) {
+				hideTooltip(activeTrigger);
+			}
+		});
 		document.body.appendChild(tooltip);
 		return tooltip;
 	}
@@ -70,7 +90,8 @@
 
 		const geometry = triggerGeometry(activeTrigger);
 		const margin = 8;
-		const gap = activeTrigger.dataset.obsTooltipKind === 'badge' ? 10 : 8;
+		const kind = tooltip.dataset.kind;
+		const gap = kind === 'badge' || kind === 'ban-hat' ? 10 : 8;
 		const width = tooltip.offsetWidth;
 		const centre = clamp(
 			geometry.center,
@@ -83,14 +104,15 @@
 	}
 
 	function showTooltip(trigger) {
-		window.clearTimeout(hideTimer);
-		const text = trigger.dataset.obsTooltipText;
-		if (!text) return;
+		clearHideTimer();
+		const config = configurations.get(trigger);
+		if (!config || !config.content) return;
 
 		activeTrigger = trigger;
 		const element = tooltipElement();
-		element.textContent = text;
-		element.dataset.kind = trigger.dataset.obsTooltipKind || 'standard';
+		if (config.html) element.innerHTML = config.content;
+		else element.textContent = config.content;
+		element.dataset.kind = config.kind || 'standard';
 		element.setAttribute('aria-hidden', 'false');
 		element.classList.add('is-visible');
 		trigger.setAttribute('aria-describedby', TOOLTIP_ID);
@@ -107,17 +129,21 @@
 			tooltip.setAttribute('aria-hidden', 'true');
 		};
 
-		window.clearTimeout(hideTimer);
+		clearHideTimer();
 		if (immediate) hide();
-		else hideTimer = window.setTimeout(hide, 45);
+		else hideTimer = window.setTimeout(hide, 120);
 	}
 
-	function install(trigger, text, kind) {
-		if (!(trigger instanceof Element) || !text) return;
-		const cleanedText = String(text).trim();
-		if (!cleanedText) return;
+	function install(trigger, content, kind, html = false) {
+		if (!(trigger instanceof Element) || !content) return;
+		const cleanedContent = String(content).trim();
+		if (!cleanedContent) return;
 
-		trigger.dataset.obsTooltipText = cleanedText;
+		configurations.set(trigger, {
+			content: cleanedContent,
+			html,
+			kind,
+		});
 		trigger.dataset.obsTooltipKind = kind;
 		cleanTriggerTree(trigger);
 
@@ -126,8 +152,13 @@
 		trigger.addEventListener('pointerenter', () => showTooltip(trigger));
 		trigger.addEventListener('pointerleave', () => hideTooltip(trigger));
 		trigger.addEventListener('focusin', () => showTooltip(trigger));
-		trigger.addEventListener('focusout', () => hideTooltip(trigger));
-		trigger.addEventListener('pointerdown', () => hideTooltip(trigger, true));
+		trigger.addEventListener('focusout', event => {
+			if (!tooltip?.contains(event.relatedTarget)) hideTooltip(trigger);
+		});
+		trigger.addEventListener('pointerdown', event => {
+			if (configurations.get(trigger)?.kind !== 'ban-hat') hideTooltip(trigger, true);
+			else event.stopPropagation();
+		});
 	}
 
 	function originalTooltipText(element) {
@@ -180,25 +211,50 @@
 		});
 	}
 
+	function installBanHatTooltips(root) {
+		const scope = root instanceof Element ? root : document;
+		const images = [];
+		const selector = 'img.hat[src*="/ban-hats/"]';
+		if (scope.matches?.(selector)) images.push(scope);
+		scope.querySelectorAll?.(selector).forEach(image => images.push(image));
+
+		images.forEach(image => {
+			const markup = originalTooltipText(image);
+			if (!markup.includes('ban-tooltip-user')) return;
+			install(image, markup, 'ban-hat', true);
+		});
+	}
+
 	function scan(root = document) {
 		installNavbarTooltips(root);
 		installPinnedTooltips(root);
 		installBadgeTooltips(root);
+		installBanHatTooltips(root);
 	}
 
 	function initialize() {
 		scan(document);
 		const observer = new MutationObserver(mutations => {
-			mutations.forEach(mutation => mutation.addedNodes.forEach(node => {
-				if (node instanceof Element) scan(node);
-			}));
+			mutations.forEach(mutation => {
+				if (mutation.type === 'attributes' && mutation.target instanceof Element) {
+					scan(mutation.target);
+				}
+				mutation.addedNodes.forEach(node => {
+					if (node instanceof Element) scan(node);
+				});
+			});
 		});
-		observer.observe(document.body, {childList: true, subtree: true});
+		observer.observe(document.body, {
+			attributeFilter: ['src', 'title', 'data-bs-original-title'],
+			attributes: true,
+			childList: true,
+			subtree: true,
+		});
 
 		window.addEventListener('resize', positionTooltip, {passive: true});
 		window.addEventListener('scroll', positionTooltip, {passive: true, capture: true});
 		document.addEventListener('hide.bs.tooltip', event => {
-			if (event.target?.dataset?.obsTooltipText) hideTooltip(event.target, true);
+			if (configurations.has(event.target)) hideTooltip(event.target, true);
 		});
 	}
 
