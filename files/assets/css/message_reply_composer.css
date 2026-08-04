@@ -1,0 +1,191 @@
+/* Message and modmail reply composer. Scoped to notification message threads. */
+button[data-onclick*="reply-message-"] {
+	border-radius: 7px !important;
+	padding: .48rem .82rem !important;
+}
+
+[id^="reply-message-"] {
+	box-sizing: border-box;
+	width: 100%;
+	margin: .75rem 0 0;
+	padding: 0 14px 14px;
+}
+
+[id^="reply-message-"] > [id^="comment-form-space-"] {
+	box-sizing: border-box;
+	width: 100%;
+	margin: 0 !important;
+	padding: 14px !important;
+	overflow: visible !important;
+	background: rgba(255, 255, 255, .025);
+	background: color-mix(in srgb, currentColor 3%, transparent);
+	border: 1px solid rgba(255, 255, 255, .12);
+	border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+	border-radius: 10px;
+	box-shadow: 0 10px 26px rgba(0, 0, 0, .16);
+}
+
+[id^="reply-message-"] .input-group {
+	display: grid !important;
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	gap: 10px;
+	align-items: center;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 100%;
+	margin: 0 !important;
+}
+
+[id^="reply-message-"] textarea.comment-box {
+	grid-column: 1 / -1;
+	box-sizing: border-box;
+	width: 100% !important;
+	min-width: 0;
+	min-height: 116px;
+	margin: 0 !important;
+	padding: 12px 13px !important;
+	resize: vertical;
+	color: inherit;
+	background: rgba(0, 0, 0, .08) !important;
+	background: color-mix(in srgb, currentColor 2%, transparent) !important;
+	border: 1px solid rgba(255, 255, 255, .16) !important;
+	border: 1px solid color-mix(in srgb, currentColor 20%, transparent) !important;
+	border-radius: 8px !important;
+	box-shadow: none !important;
+	outline: 0;
+}
+
+[id^="reply-message-"] textarea.comment-box:focus {
+	border-color: var(--primary, #dc143c) !important;
+	box-shadow: 0 0 0 3px rgba(220, 20, 60, .14) !important;
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #dc143c) 16%, transparent) !important;
+}
+
+[id^="reply-message-"] .comment-format {
+	grid-column: 1;
+	display: flex !important;
+	align-items: center;
+	gap: 7px;
+	min-width: 0;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+[id^="reply-message-"] .comment-format > .btn,
+[id^="reply-message-"] .comment-format > label.btn {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-width: 36px;
+	height: 36px;
+	margin: 0 !important;
+	padding: 0 10px !important;
+	line-height: 1;
+	border-radius: 7px !important;
+}
+
+[id^="reply-message-"] .comment-format > button.btn {
+	width: 36px;
+	padding: 0 !important;
+}
+
+[id^="reply-message-"] .comment-format > label.btn {
+	max-width: min(240px, 45vw);
+	overflow: hidden;
+}
+
+[id^="reply-message-"] .comment-format > label.btn > div {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+[id^="reply-message-"] .input-group > button[data-toggleelement^="reply-message-"] {
+	grid-column: 2;
+	align-self: center;
+	min-height: 36px;
+	margin: 0 !important;
+	padding: 0 13px !important;
+	color: inherit !important;
+	font-weight: 600;
+	line-height: 1;
+	text-decoration: none !important;
+	background: transparent !important;
+	border: 1px solid rgba(255, 255, 255, .18) !important;
+	border: 1px solid color-mix(in srgb, currentColor 22%, transparent) !important;
+	border-radius: 7px !important;
+	opacity: .82;
+}
+
+[id^="reply-message-"] .input-group > button[data-toggleelement^="reply-message-"]:hover,
+[id^="reply-message-"] .input-group > button[data-toggleelement^="reply-message-"]:focus {
+	opacity: 1;
+	background: rgba(255, 255, 255, .055) !important;
+	background: color-mix(in srgb, currentColor 7%, transparent) !important;
+}
+
+[id^="reply-message-"] .input-group > button[id^="save-reply-to-"] {
+	grid-column: 3;
+	align-self: center;
+	min-height: 36px;
+	margin: 0 !important;
+	padding: 0 15px !important;
+	font-weight: 700;
+	line-height: 1;
+	border-radius: 7px !important;
+	box-shadow: none !important;
+}
+
+[id^="reply-message-"] .preview {
+	box-sizing: border-box;
+	max-width: 100%;
+	margin: 12px 0 0 !important;
+	overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+	[id^="reply-message-"] {
+		margin-top: .65rem;
+		padding: 0 8px 10px;
+	}
+
+	[id^="reply-message-"] > [id^="comment-form-space-"] {
+		padding: 10px !important;
+		border-radius: 8px;
+	}
+
+	[id^="reply-message-"] .input-group {
+		gap: 8px;
+	}
+
+	[id^="reply-message-"] textarea.comment-box {
+		min-height: 104px;
+		padding: 11px !important;
+		border-radius: 7px !important;
+	}
+
+	[id^="reply-message-"] .comment-format {
+		gap: 6px;
+	}
+
+	[id^="reply-message-"] .comment-format > .btn,
+	[id^="reply-message-"] .comment-format > label.btn {
+		min-width: 34px;
+		height: 34px;
+		padding-inline: 8px !important;
+	}
+
+	[id^="reply-message-"] .comment-format > button.btn {
+		width: 34px;
+		padding: 0 !important;
+	}
+
+	[id^="reply-message-"] .input-group > button[data-toggleelement^="reply-message-"],
+	[id^="reply-message-"] .input-group > button[id^="save-reply-to-"] {
+		min-height: 34px;
+		padding-inline: 11px !important;
+		font-size: .82rem;
+	}
+}
