@@ -1,0 +1,19 @@
+.tooltip.ban-hat-tooltip {
+	pointer-events: auto;
+}
+
+.tooltip.ban-hat-tooltip .tooltip-inner {
+	max-width: 340px;
+	white-space: normal;
+}
+
+.tooltip.ban-hat-tooltip .tooltip-inner a {
+	pointer-events: auto;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.tooltip.ban-hat-tooltip .tooltip-inner a:hover,
+.tooltip.ban-hat-tooltip .tooltip-inner a:focus {
+	text-decoration: underline;
+}
