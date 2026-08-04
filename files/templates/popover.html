@@ -1,18 +1,18 @@
 <style nonce="{{g.nonce}}">
-	/* Ban-hat artwork is 100x130. Fit the complete artwork inside the avatar
-	   instead of sizing by width and letting it spill into the card. */
+	/* Ban hats use the exact avatar width, preserve their natural 100x130
+	   proportions, and overflow upward just like the working shop preview. */
 	body .popover-user-profile .popover-profile-identity img.profile-pic-75-hat[src*="/ban-hats/"],
 	body .popover-user-profile .popover-profile-identity img.profile-pic-75-hat.pop-hat-ban {
-		top: 50% !important;
-		left: 50% !important;
-		bottom: auto !important;
-		width: auto !important;
-		height: calc(100% - 6px) !important;
-		max-width: calc(100% - 6px) !important;
-		max-height: calc(100% - 6px) !important;
+		top: auto !important;
+		left: 0 !important;
+		bottom: 0 !important;
+		width: 100% !important;
+		height: auto !important;
+		max-width: none !important;
+		max-height: none !important;
 		object-fit: contain !important;
-		object-position: center !important;
-		transform: translate(-50%, -50%) !important;
+		object-position: center bottom !important;
+		transform: none !important;
 	}
 </style>
 <div style="display:none" id="popover">
