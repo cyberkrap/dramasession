@@ -1,27 +1,55 @@
 {% extends "root.html" %}
 {% block template_config %}
-	{% set root_scope.js = true %}
+	{% set root_scope.js = false %}
 	{% set root_scope.include_user_css = false %}
 	{% set root_scope.include_seo = false %}
 {% endblock %}
 {% block pagetitle %}Account restricted{% endblock %}
 {% block head_final %}
 <style nonce="{{g.nonce}}">
+	html,
 	body.page-standard {
-		min-height: 100vh;
+		min-height: 100%;
 		color: #f3f1f1 !important;
-		background: #0b0b0d !important;
+		background: #20262d !important;
 	}
 	#obsession-aurora { display: none !important; }
 	.underage-wall {
 		min-height: 100vh;
-		background: #0b0b0d;
+		background: #20262d;
+	}
+	.underage-wall__header {
+		display: flex;
+		align-items: center;
+		height: 70px;
+		padding: 0 clamp(14px, 2.5vw, 34px);
+		background: #11161c;
+		border-bottom: 1px solid rgba(255,255,255,.1);
+	}
+	.underage-wall__brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 11px;
+		pointer-events: none;
+	}
+	.underage-wall__brand-icon {
+		display: block;
+		width: 38px;
+		height: 38px;
+		object-fit: contain;
+	}
+	.underage-wall__brand-wordmark {
+		display: block;
+		width: min(168px, 46vw);
+		height: 34px;
+		object-fit: contain;
+		object-position: left center;
 	}
 	.underage-wall__banner {
-		height: clamp(150px, 18vw, 235px);
+		height: clamp(155px, 18vw, 230px);
 		overflow: hidden;
-		background: #080809;
-		border-bottom: 1px solid rgba(255,255,255,.1);
+		background: #08090a;
+		border-bottom: 1px solid rgba(255,255,255,.12);
 	}
 	.underage-wall__banner img {
 		display: block;
@@ -33,8 +61,8 @@
 	.underage-wall__main {
 		display: grid;
 		place-items: center;
-		min-height: calc(100vh - clamp(150px, 18vw, 235px));
-		padding: 42px 20px 80px;
+		min-height: calc(100vh - 70px - clamp(155px, 18vw, 230px));
+		padding: 52px 20px 90px;
 		text-align: center;
 	}
 	.underage-wall__content {
@@ -57,7 +85,7 @@
 	}
 	.underage-wall p {
 		margin: 0 auto 8px;
-		color: #d1cdce;
+		color: #e0e3e5;
 		font-size: 15px;
 		line-height: 1.55;
 	}
@@ -67,20 +95,35 @@
 		margin-top: 24px;
 	}
 	.underage-wall__actions .btn {
-		min-width: 150px;
+		min-width: 160px;
 		padding: .65rem 1rem;
 		font-weight: 700;
+	}
+	@media (max-width: 576px) {
+		.underage-wall__header { height: 62px; }
+		.underage-wall__brand-icon { width: 34px; height: 34px; }
+		.underage-wall__brand-wordmark { height: 29px; }
+		.underage-wall__main {
+			min-height: calc(100vh - 62px - clamp(155px, 18vw, 230px));
+			padding-top: 38px;
+		}
 	}
 </style>
 {% endblock %}
 {% block body %}
 	<div class="underage-wall">
+		<header class="underage-wall__header" aria-label="The Obsession Club">
+			<div class="underage-wall__brand">
+				<img class="underage-wall__brand-icon" src="{{'official-logo.png' | asset_siteimg}}" alt="">
+				<img class="underage-wall__brand-wordmark" src="{{'wordmark.png' | asset_siteimg}}" alt="The Obsession Club">
+			</div>
+		</header>
 		<div class="underage-wall__banner" aria-hidden="true">
-			<img src="{{macros.live_banner()}}" alt="">
+			<img src="{{macros.live_banner()}}" alt="" loading="eager">
 		</div>
 		<main class="underage-wall__main">
 			<section class="underage-wall__content" aria-labelledby="underage-wall-title">
-				<img class="underage-wall__icon" src="/i/Obsession/ban-hats/underage.webp?v=3" alt="">
+				<img class="underage-wall__icon" src="/i/Obsession/ban-hats/underage.webp?v=4" alt="">
 				<h1 id="underage-wall-title">This is an 18+ community</h1>
 				<p>Your account has been banned for being underage.</p>
 				<p>If this was an error, contact the administrators below.</p>
