@@ -16,6 +16,7 @@ _ASSET_PREFIXES = (
 _PUBLIC_PATHS = {
 	"/healthz",
 	"/robots.txt",
+	"/site-banner",
 }
 
 
