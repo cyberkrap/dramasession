@@ -1,4 +1,4 @@
-/* Precisely anchored tooltips for the fixed navbar, pinned posts and profile badges. */
+/* Precisely anchored tooltips for the fixed navbar, pinned posts, badges, and ban hats. */
 .obsession-aligned-tooltip {
 	position: fixed;
 	z-index: 200000;
@@ -36,6 +36,23 @@
 
 .obsession-aligned-tooltip[data-kind="badge"] {
 	max-width: min(280px, calc(100vw - 20px));
+}
+
+.obsession-aligned-tooltip[data-kind="ban-hat"] {
+	max-width: min(360px, calc(100vw - 20px));
+	padding: .45rem .65rem;
+	line-height: 1.35;
+	pointer-events: auto;
+}
+
+.obsession-aligned-tooltip[data-kind="ban-hat"] a {
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.obsession-aligned-tooltip[data-kind="ban-hat"] a:hover,
+.obsession-aligned-tooltip[data-kind="ban-hat"] a:focus {
+	text-decoration: underline;
 }
 
 /* The tooltip is custom-positioned, so never let a stale Bootstrap instance show too. */
