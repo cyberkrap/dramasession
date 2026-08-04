@@ -4,7 +4,7 @@ button[data-onclick*="reply-message-"] {
 	align-items: center;
 	justify-content: center;
 	min-height: 36px;
-	margin: 12px 0 0 14px !important;
+	margin: 12px 0 16px 14px !important;
 	padding: 0 13px !important;
 	color: inherit !important;
 	font-weight: 650;
@@ -27,17 +27,60 @@ button[data-onclick*="reply-message-"]:focus {
 
 button[id^="mute-user-"],
 button[id^="unmute-user-"] {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
 	min-height: 36px;
-	margin: 12px 0 0 14px !important;
+	margin: 12px 0 16px 14px !important;
 	padding: 0 13px !important;
+	font-weight: 650;
 	line-height: 1;
 	border-radius: 7px !important;
 	box-shadow: none !important;
 }
 
+button[id^="mute-user-"] {
+	color: var(--primary, #dc143c) !important;
+	background: rgba(220, 20, 60, .06) !important;
+	background: color-mix(in srgb, var(--primary, #dc143c) 8%, transparent) !important;
+	border: 1px solid rgba(220, 20, 60, .42) !important;
+	border: 1px solid color-mix(in srgb, var(--primary, #dc143c) 46%, transparent) !important;
+}
+
+button[id^="mute-user-"]:hover,
+button[id^="mute-user-"]:focus {
+	color: #fff !important;
+	background: var(--primary, #dc143c) !important;
+	border-color: var(--primary, #dc143c) !important;
+}
+
+button[id^="unmute-user-"] {
+	color: inherit !important;
+	background: rgba(255, 255, 255, .035) !important;
+	background: color-mix(in srgb, currentColor 5%, transparent) !important;
+	border: 1px solid rgba(255, 255, 255, .16) !important;
+	border: 1px solid color-mix(in srgb, currentColor 20%, transparent) !important;
+}
+
 button[id^="mute-user-"] ~ button[data-onclick*="reply-message-"],
 button[id^="unmute-user-"] ~ button[data-onclick*="reply-message-"] {
 	margin-left: 8px !important;
+	color: inherit !important;
+	background: rgba(255, 255, 255, .035) !important;
+	background: color-mix(in srgb, currentColor 5%, transparent) !important;
+	border: 1px solid rgba(255, 255, 255, .16) !important;
+	border: 1px solid color-mix(in srgb, currentColor 20%, transparent) !important;
+	box-shadow: none !important;
+}
+
+button[id^="mute-user-"] ~ button[data-onclick*="reply-message-"]:hover,
+button[id^="mute-user-"] ~ button[data-onclick*="reply-message-"]:focus,
+button[id^="unmute-user-"] ~ button[data-onclick*="reply-message-"]:hover,
+button[id^="unmute-user-"] ~ button[data-onclick*="reply-message-"]:focus {
+	color: inherit !important;
+	background: rgba(255, 255, 255, .075) !important;
+	background: color-mix(in srgb, currentColor 9%, transparent) !important;
+	border-color: var(--primary, #dc143c) !important;
 }
 
 [id^="reply-message-"] {
@@ -187,6 +230,7 @@ button[id^="unmute-user-"] ~ button[data-onclick*="reply-message-"] {
 	button[id^="unmute-user-"] {
 		min-height: 34px;
 		margin-top: 10px !important;
+		margin-bottom: 12px !important;
 		padding-inline: 11px !important;
 		font-size: .82rem;
 	}
