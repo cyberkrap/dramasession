@@ -1,3 +1,5 @@
+@import url("message_reply_composer.css?v=20260804-1");
+
 /* Precisely anchored tooltips for the fixed navbar, pinned posts, badges, and ban hats. */
 .obsession-aligned-tooltip {
 	position: fixed;
