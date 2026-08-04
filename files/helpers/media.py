@@ -271,34 +271,25 @@ def process_dm_images(v, user):
 	files = request.files.getlist('file')
 	if len(files) > max_files:
 		abort(413, f"You can upload up to {max_files} files at a time.")
+
 	for file in files:
-		if file.content_type.startswith('image/'):
-			filename = f'/dm_images/{time.time()}'.replace('.','') + '.webp'
+		if not file.content_type or not file.content_type.startswith('image/'):
+			abort(415, "The uploaded file is not a valid image.")
+
+		filename = f'/dm_images/{time.time()}'.replace('.','') + '.webp'
+		try:
 			file.save(filename)
+			url = process_image(filename, v)
+		except Exception:
+			_remove_failed_image(filename)
+			raise
 
-			size = os.stat(filename).st_size
-			if size > patron_limit(v, "image_audio_mb") * 1024 * 1024:
-				os.remove(filename)
-				abort(413, f"Max image/audio size is {MAX_IMAGE_AUDIO_SIZE_MB} MB ({MAX_IMAGE_AUDIO_SIZE_MB_PATRON} MB for paypigs)")
+		if not url:
+			_remove_failed_image(filename)
+			abort(422, "That image could not be processed. Please try another image.")
 
-			with open(filename, 'rb') as f:
-				os.remove(filename)
-				try:
-					req = requests.request(
-						"POST",
-						"https://pomf2.lain.la/upload.php",
-						files={'files[]': f},
-						timeout=20,
-						proxies=proxies
-					).json()
-				except requests.Timeout:
-					abort(400, "Image upload timed out, please try again!")
-			
-			try: url = req['files'][0]['url']
-			except: abort(400, req['description'])
-			
-			body += f'\n\n{url}\n\n'
-	
+		body += f'\n\n{SITE_FULL}{url}\n\n'
+
 	if body:
 		with open(f"{LOG_DIRECTORY}/dm_images.log", "a+", encoding="utf-8") as f:
 			if user:
