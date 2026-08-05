@@ -1,7 +1,7 @@
 from flask import g, render_template, request
 
-from files.helpers.alerts import get_msg
 from files.helpers.ban_hats import is_underage_banned
+from files.helpers.get import get_msg
 from files.helpers.modmail_history import get_user_modmail_history
 from files.routes.wrappers import get_logged_in_user
 
