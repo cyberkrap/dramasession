@@ -1,0 +1,6 @@
+/* The shared composer styles use display!important for these controls. Keep the
+   state class stronger so only the action that is currently valid is visible. */
+button[id^="mute-user-"].d-none,
+button[id^="unmute-user-"].d-none {
+	display: none !important;
+}
