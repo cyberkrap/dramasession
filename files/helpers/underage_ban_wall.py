@@ -1,6 +1,8 @@
 from flask import g, render_template, request
 
+from files.classes import Comment
 from files.helpers.ban_hats import is_underage_banned
+from files.helpers.config.const import MODMAIL_ID
 from files.helpers.get import get_msg
 from files.helpers.modmail_history import get_user_modmail_history
 from files.routes.wrappers import get_logged_in_user
@@ -50,6 +52,25 @@ def _render_contact(viewer, underage_banned, *, msg="", status=200):
 	return render_template("contact.html", **context), status
 
 
+def _is_owned_modmail_reply(viewer):
+	try:
+		parent_id = int(request.values.get("parent_id", ""))
+	except (TypeError, ValueError):
+		return False
+
+	parent = g.db.get(Comment, parent_id)
+	if not parent:
+		return False
+
+	top_id = parent.top_comment_id or parent.id
+	top = parent if parent.id == top_id else g.db.get(Comment, top_id)
+	return bool(
+		top
+		and top.sentto == MODMAIL_ID
+		and top.author_id == viewer.id
+	)
+
+
 def install_underage_ban_wall(app):
 	global _INSTALLED
 	if _INSTALLED:
@@ -80,6 +101,18 @@ def install_underage_ban_wall(app):
 				return _render_contact(viewer, underage_banned, msg=get_msg())
 
 		if not underage_banned:
+			return None
+
+		# Restricted users may reply only inside modmail threads they originally
+		# opened. Every other /reply request remains blocked by the wall.
+		if path == "/reply" and request.method == "POST" and _is_owned_modmail_reply(viewer):
+			if viewer.is_muted:
+				return _render_contact(
+					viewer,
+					True,
+					msg=_MUTED_MESSAGE,
+					status=403,
+				)
 			return None
 
 		# An unmuted restricted account may still submit the contact form.
