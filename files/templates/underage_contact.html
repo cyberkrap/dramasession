@@ -6,6 +6,7 @@
 {% endblock %}
 {% block pagetitle %}Contact administrators{% endblock %}
 {% block head_final %}
+<link rel="stylesheet" href="{{'css/contact_modmail.css' | asset}}">
 <style nonce="{{g.nonce}}">
 	html,
 	body.page-standard {
@@ -93,6 +94,7 @@
 		border-radius: 6px;
 	}
 	.restricted-contact form {
+		margin-top: 20px;
 		padding: 22px;
 		background: #11161c;
 		border: 1px solid rgba(255,255,255,.12);
@@ -144,15 +146,17 @@
 				<img src="/i/Obsession/ban-hats/underage.webp?v=4" alt="">
 				<div>
 					<h1>Contact administrators</h1>
-					<p>This private message will be delivered through modmail.</p>
+					<p>Your modmail history and administrator replies remain available on this page.</p>
 				</div>
 			</div>
 
 			{% if msg %}<div class="restricted-contact__status" role="status">{{msg}}</div>{% endif %}
 
+			{% include "contact_modmail_history.html" %}
+
 			<form id="restricted-contact-form" action="/contact" method="post">
 				<input hidden name="formkey" value="{{contact_user|formkey}}">
-				<label for="restricted-contact-message">Your message</label>
+				<label for="restricted-contact-message">Send another message</label>
 				<textarea id="restricted-contact-message" name="message" class="form-control" maxlength="10000" required autofocus></textarea>
 				<div class="restricted-contact__actions">
 					<button type="submit" class="btn btn-primary">Send to administrators</button>
