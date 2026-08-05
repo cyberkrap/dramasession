@@ -10,23 +10,32 @@
 	<p class="text-muted">For content reports, include the exact post, comment, profile, banner, or sidebar URL and enough detail for the administrators to review the issue.</p>
 
 	{% if v %}
-		<form id="contactform" action="/contact" method="post" enctype="multipart/form-data">
-			<label for="input-message" class="mt-3">Your message</label>
-			<input hidden name="formkey" value="{{v|formkey}}">
-			<textarea autocomplete="off" maxlength="10000" id="input-message" form="contactform" name="message" class="form-control" required></textarea>
-			<label class="btn btn-secondary m-0 mt-3" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-message')" data-bs-toggle="modal" data-bs-target="#emojiModal" data-bs-placement="bottom" title="Add Emoji">
-				<i class="fas fa-smile-beam"></i>
-			</label>
-			<label class="btn btn-secondary m-0 mt-3" for="file-upload">
-				<div id="filename"><i class="fas fa-file"></i></div>
-				<input autocomplete="off" id="file-upload" accept="image/*, video/*, audio/*" type="file" name="file" multiple="multiple" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename','file-upload')" hidden>
-			</label>
-			<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Submit" class="btn btn-primary mt-3">
-		</form>
+		{% if modmail_muted or v.is_muted %}
+			<div class="contact-muted-warning" role="alert">Your modmails have been muted by admins, so you cannot message them.</div>
+		{% else %}
+			<form id="contactform" class="contact-compose" action="/contact" method="post" enctype="multipart/form-data">
+				<label for="input-message" class="mt-3">Your message</label>
+				<input hidden name="formkey" value="{{v|formkey}}">
+				<textarea autocomplete="off" maxlength="10000" id="input-message" form="contactform" name="message" class="form-control" required></textarea>
+				<div class="contact-compose__actions">
+					<div class="contact-compose__tools">
+						<label class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-message')" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add Emoji">
+							<i class="fas fa-smile-beam"></i>
+						</label>
+						<label class="btn btn-secondary" for="file-upload" title="Attach files">
+							<div id="filename"><i class="fas fa-file"></i></div>
+							<input autocomplete="off" id="file-upload" accept="image/*, video/*, audio/*" type="file" name="file" multiple="multiple" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename','file-upload')" hidden>
+						</label>
+					</div>
+					<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Send to administrators" class="btn btn-primary">
+				</div>
+			</form>
+		{% endif %}
 
 		{% include "contact_modmail_history.html" %}
 
 		<script defer src="{{'js/contact.js' | asset}}"></script>
+		<script defer src="{{'js/contact_modmail.js' | asset}}"></script>
 		{% include "modals/emoji.html" %}
 	{% else %}
 		<p>Sign in to use the secure contact form.</p>
