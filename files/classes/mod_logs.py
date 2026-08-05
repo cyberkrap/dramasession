@@ -147,9 +147,8 @@ class ModAction(Base):
 	@property
 	@lazy
 	def emoji_author(self):
-		author = self.emoji_author
-		if not author:
-			return None
+		if self.target_user:
+			return self.target_user
 		if self.kind != 'approve_marsey':
 			return None
 		try:
@@ -196,7 +195,7 @@ MODACTION_TYPES_FILTERED.update(EMOTE_MODACTION_TYPES)
 MODMAIL_MODACTION_TYPES = {
 	'mod_mute_user': {
 		"str": 'muted modmails from @{self.target_link}',
-		"icon": 'fa-envelope-circle-xmark',
+		"icon": 'fa-envelope',
 		"color": 'bg-danger'
 	},
 	'mod_unmute_user': {
