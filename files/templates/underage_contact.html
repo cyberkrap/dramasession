@@ -1,6 +1,6 @@
 {% extends "root.html" %}
 {% block template_config %}
-	{% set root_scope.js = false %}
+	{% set root_scope.js = true %}
 	{% set root_scope.include_user_css = false %}
 	{% set root_scope.include_seo = false %}
 {% endblock %}
@@ -59,7 +59,7 @@
 		object-position: center;
 	}
 	.restricted-contact__main {
-		width: min(880px, calc(100% - 32px));
+		width: min(980px, calc(100% - 32px));
 		margin: 0 auto;
 		padding: 42px 0 80px;
 	}
@@ -93,8 +93,8 @@
 		border: 1px solid rgba(66,188,116,.38);
 		border-radius: 6px;
 	}
-	.restricted-contact form {
-		margin-top: 20px;
+	.restricted-contact .contact-compose {
+		margin: 0 0 2.25rem;
 		padding: 22px;
 		background: #11161c;
 		border: 1px solid rgba(255,255,255,.12);
@@ -107,7 +107,7 @@
 		font-weight: 700;
 	}
 	.restricted-contact textarea {
-		min-height: 180px;
+		min-height: 150px;
 		resize: vertical;
 	}
 	.restricted-contact__actions {
@@ -126,7 +126,7 @@
 		.restricted-contact__brand-wordmark { height: 29px; }
 		.restricted-contact__heading { align-items: flex-start; }
 		.restricted-contact__heading img { width: 58px; height: 58px; }
-		.restricted-contact form { padding: 16px; }
+		.restricted-contact .contact-compose { padding: 16px; }
 	}
 </style>
 {% endblock %}
@@ -146,23 +146,29 @@
 				<img src="/i/Obsession/ban-hats/underage.webp?v=4" alt="">
 				<div>
 					<h1>Contact administrators</h1>
-					<p>Your modmail history and administrator replies remain available on this page.</p>
+					<p>You can send modmail and continue existing conversations here. The rest of the site remains unavailable.</p>
 				</div>
 			</div>
 
 			{% if msg %}<div class="restricted-contact__status" role="status">{{msg}}</div>{% endif %}
 
-			{% include "contact_modmail_history.html" %}
+			{% if modmail_muted or contact_user.is_muted %}
+				<div class="contact-muted-warning" role="alert">Your modmails have been muted by admins, so you cannot message them.</div>
+			{% else %}
+				<form id="restricted-contact-form" class="contact-compose" action="/contact" method="post">
+					<input hidden name="formkey" value="{{contact_user|formkey}}">
+					<label for="restricted-contact-message">Send a new message</label>
+					<textarea id="restricted-contact-message" name="message" class="form-control" maxlength="10000" required autofocus></textarea>
+					<div class="restricted-contact__actions">
+						<button type="submit" class="btn btn-primary">Send to administrators</button>
+					</div>
+				</form>
+			{% endif %}
 
-			<form id="restricted-contact-form" action="/contact" method="post">
-				<input hidden name="formkey" value="{{contact_user|formkey}}">
-				<label for="restricted-contact-message">Send another message</label>
-				<textarea id="restricted-contact-message" name="message" class="form-control" maxlength="10000" required autofocus></textarea>
-				<div class="restricted-contact__actions">
-					<button type="submit" class="btn btn-primary">Send to administrators</button>
-					<a class="btn btn-secondary" href="/">Back</a>
-				</div>
-			</form>
+			{% include "contact_modmail_history.html" %}
 		</main>
 	</div>
+
+	<script defer src="{{'js/contact_modmail.js' | asset}}"></script>
+	{% include "modals/emoji.html" %}
 {% endblock %}
