@@ -20,6 +20,7 @@ _PUBLIC_PATHS = {
 	"/robots.txt",
 	"/site-banner",
 }
+_MUTED_MESSAGE = "Your modmails have been muted by admins, so you cannot message them."
 
 
 def _normalised_path():
@@ -29,6 +30,19 @@ def _normalised_path():
 
 def _is_asset_or_health_request(path):
 	return path in _PUBLIC_PATHS or path.startswith(_ASSET_PREFIXES)
+
+
+def _render_contact(viewer, underage_banned, *, msg="", status=200):
+	context = {
+		"v": viewer,
+		"msg": msg,
+		"modmail_history": get_user_modmail_history(g.db, viewer),
+		"modmail_muted": bool(viewer.is_muted),
+	}
+	if underage_banned:
+		context["contact_user"] = viewer
+		return render_template("underage_contact.html", **context), status
+	return render_template("contact.html", **context), status
 
 
 def install_underage_ban_wall(app):
@@ -45,30 +59,25 @@ def install_underage_ban_wall(app):
 		viewer = get_logged_in_user()
 		underage_banned = is_underage_banned(viewer)
 
-		# Logged-in users see their complete modmail history directly on /contact.
-		# This also gives restricted accounts a durable place to read admin replies.
-		if path == "/contact" and request.method == "GET" and viewer:
-			modmail_history = get_user_modmail_history(g.db, viewer)
-			if underage_banned:
-				return render_template(
-					"underage_contact.html",
-					v=viewer,
-					contact_user=viewer,
-					msg=get_msg(),
-					modmail_history=modmail_history,
+		if path == "/contact" and viewer:
+			# Handle muted accounts before Flask-Limiter runs on the POST route. This
+			# keeps the user on their modmail page with an explicit explanation
+			# instead of eventually surfacing an unrelated 429 response.
+			if request.method == "POST" and viewer.is_muted:
+				return _render_contact(
+					viewer,
+					underage_banned,
+					msg=_MUTED_MESSAGE,
+					status=403,
 				)
 
-			return render_template(
-				"contact.html",
-				v=viewer,
-				msg=get_msg(),
-				modmail_history=modmail_history,
-			)
+			if request.method == "GET":
+				return _render_contact(viewer, underage_banned, msg=get_msg())
 
 		if not underage_banned:
 			return None
 
-		# The modmail submission itself must reach the existing contact route.
+		# An unmuted restricted account may still submit the contact form.
 		if path == "/contact" and request.method == "POST":
 			return None
 
