@@ -13,6 +13,7 @@
 		<script defer src="{{'js/navbar_currency_tooltips.js' | asset}}"></script>
 		<script defer src="{{'js/username_effects.js' | asset}}"></script>
 		<script defer src="{{'js/tooltip_alignment.js' | asset}}"></script>
+		<script defer src="{{'js/message_inline_images.js' | asset}}"></script>
 	{% endif %}
 {% endmacro %}
 
@@ -146,9 +147,9 @@
 		<link rel="stylesheet" href="{{'fistmas/css/fistmas.css'| asset}}">
 
 		{% if v and v.event_darkmode %}
-			<link rel="stylesheet" href="{{'fistmas/css/themes/dark.css'| asset}}">
+			<link rel="stylesheet" href="{{'fistmas/css/themes/dark.css') | asset}}">
 		{% else %}
-			<link rel="stylesheet" href="{{'fistmas/css/themes/light.css'| asset}}">
+			<link rel="stylesheet" href="{{'fistmas/css/themes/light.css') | asset}}">
 		{% endif %}
 	{% endif %}
 
