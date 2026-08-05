@@ -1,0 +1,166 @@
+/* Shared inline-image controls for post creation and message replies. */
+.inline-editor-toolbar {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.inline-editor-control {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	height: 38px;
+	min-height: 38px;
+	margin: 0 !important;
+	padding: 0 11px !important;
+	line-height: 1 !important;
+	vertical-align: middle;
+	border-radius: 7px !important;
+	box-shadow: none !important;
+}
+
+.inline-editor-control-square {
+	width: 38px;
+	min-width: 38px;
+	padding: 0 !important;
+}
+
+.inline-editor-control-wide {
+	gap: 7px;
+	white-space: nowrap;
+}
+
+.inline-editor-control i,
+.inline-editor-control span,
+#emoji-reply-btn i,
+label[for="file-upload-submit"] i,
+.submit-grid-view small.btn.format span {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	line-height: 1 !important;
+}
+
+/* Normalize the post editor's historically mixed small/button/label controls. */
+.submit-grid-view small.btn.format,
+#emoji-reply-btn,
+label[for="file-upload-submit"] {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 38px;
+	min-width: 38px;
+	height: 38px;
+	min-height: 38px;
+	margin: 0 8px 0 0 !important;
+	padding: 0 !important;
+	font-size: 14px;
+	line-height: 1 !important;
+	vertical-align: middle;
+	border-radius: 7px !important;
+	box-shadow: none !important;
+}
+
+#inline-image-url-btn {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	height: 38px;
+	min-height: 38px;
+	margin: 0 !important;
+	padding: 0 12px !important;
+	gap: 7px;
+	line-height: 1 !important;
+	vertical-align: middle;
+	border-radius: 7px !important;
+	box-shadow: none !important;
+}
+
+.submit-grid-view small.btn.format span {
+	width: 100%;
+	height: 100%;
+	font-size: 13px;
+}
+
+label[for="file-upload-submit"] > div,
+[id^="reply-message-"] label[for^="file-upload-reply-"] > div {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	line-height: 1;
+}
+
+[id^="reply-message-"] .comment-format.inline-editor-toolbar {
+	min-width: 0;
+}
+
+[id^="reply-message-"] .message-inline-image-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 6px 10px;
+	box-sizing: border-box;
+	width: 100%;
+	margin: 9px 0 0;
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+[id^="reply-message-"] .message-inline-image-status:empty {
+	display: none;
+}
+
+[id^="reply-message-"] .message-inline-image-help {
+	opacity: .68;
+}
+
+[id^="reply-message-"] .message-inline-image-url {
+	max-width: 150px;
+}
+
+@media (max-width: 575.98px) {
+	.inline-editor-toolbar {
+		gap: 6px;
+	}
+
+	.inline-editor-control,
+	.submit-grid-view small.btn.format,
+	#emoji-reply-btn,
+	label[for="file-upload-submit"],
+	#inline-image-url-btn {
+		height: 36px;
+		min-height: 36px;
+	}
+
+	.inline-editor-control-square,
+	.submit-grid-view small.btn.format,
+	#emoji-reply-btn,
+	label[for="file-upload-submit"] {
+		width: 36px;
+		min-width: 36px;
+	}
+
+	#inline-image-url-btn,
+	.inline-editor-control-wide {
+		padding-inline: 10px !important;
+		font-size: .82rem;
+	}
+
+	[id^="reply-message-"] .message-inline-image-meta {
+		display: block;
+		margin-top: 8px;
+		font-size: 11px;
+	}
+
+	[id^="reply-message-"] .message-inline-image-status:not(:empty) {
+		display: block;
+		margin-bottom: 3px;
+	}
+}
