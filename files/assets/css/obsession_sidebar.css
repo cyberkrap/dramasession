@@ -1,3 +1,47 @@
+/* Sidebar artwork must keep its original aspect ratio and never be cropped into a card. */
+.community-sidebar > a.sidebar-hero-media {
+	display: block;
+	width: calc(100% + 36px);
+	margin: -18px -18px 18px;
+	padding: 0;
+	line-height: 0;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	overflow: visible;
+}
+
+.community-sidebar > a.sidebar-hero-media > img.sidebar-hero-image {
+	display: block;
+	width: 100% !important;
+	max-width: none !important;
+	height: auto !important;
+	max-height: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	object-fit: contain !important;
+	object-position: center !important;
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
+.community-sidebar .sidebar-markdown img {
+	display: block;
+	width: auto;
+	max-width: 100% !important;
+	height: auto !important;
+	max-height: none !important;
+	margin: .8rem auto;
+	object-fit: contain !important;
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
 .community-sidebar .sidebar--rules {
 	padding: 1rem 0 0;
 	color: #d2ced0;
