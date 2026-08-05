@@ -1,0 +1,39 @@
+{% if modmail_history %}
+<section class="contact-history" aria-labelledby="contact-history-heading">
+	<div class="contact-history__heading">
+		<div>
+			<h2 id="contact-history-heading">Previous conversations</h2>
+			<p>Your messages and administrator replies remain available here.</p>
+		</div>
+		<span>{{modmail_history|length}} conversation{{'' if modmail_history|length == 1 else 's'}}</span>
+	</div>
+
+	<div class="contact-history__threads">
+		{% for group in modmail_history %}
+		<section class="contact-thread" id="modmail-thread-{{group.thread.id}}">
+			<header class="contact-thread__header">
+				<strong>Conversation #{{group.thread.id}}</strong>
+				<span>{{group.messages[-1].age_string}}</span>
+			</header>
+
+			<div class="contact-thread__messages">
+				{% for message in group.messages %}
+				<article class="contact-message {% if message.author_id == v.id %}contact-message--self{% else %}contact-message--admin{% endif %}">
+					<header>
+						<strong>{% if message.author_id == v.id %}You{% else %}@{{message.author.username}}{% endif %}</strong>
+						<span>{{message.age_string}}</span>
+					</header>
+					<div class="contact-message__body">{{message.body_html|safe}}</div>
+				</article>
+				{% endfor %}
+			</div>
+		</section>
+		{% endfor %}
+	</div>
+</section>
+{% else %}
+<section class="contact-history contact-history--empty" aria-labelledby="contact-history-heading">
+	<h2 id="contact-history-heading">Previous conversations</h2>
+	<p>You have not contacted the administrators yet.</p>
+</section>
+{% endif %}
