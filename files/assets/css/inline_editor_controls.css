@@ -101,6 +101,22 @@ label[for="file-upload-submit"] > div,
 	min-width: 0;
 }
 
+[id^="reply-message-"] .comment-format > button.inline-editor-control-square,
+[id^="reply-message-"] .comment-format > label.inline-editor-control-square {
+	width: 38px !important;
+	min-width: 38px !important;
+	height: 38px !important;
+	min-height: 38px !important;
+	padding: 0 !important;
+}
+
+[id^="reply-message-"] .comment-format > button.message-inline-image-url {
+	width: auto !important;
+	min-width: max-content;
+	max-width: 150px;
+	padding: 0 11px !important;
+}
+
 [id^="reply-message-"] .message-inline-image-meta {
 	display: flex;
 	flex-wrap: wrap;
@@ -119,10 +135,6 @@ label[for="file-upload-submit"] > div,
 
 [id^="reply-message-"] .message-inline-image-help {
 	opacity: .68;
-}
-
-[id^="reply-message-"] .message-inline-image-url {
-	max-width: 150px;
 }
 
 @media (max-width: 575.98px) {
@@ -151,6 +163,19 @@ label[for="file-upload-submit"] > div,
 	.inline-editor-control-wide {
 		padding-inline: 10px !important;
 		font-size: .82rem;
+	}
+
+	[id^="reply-message-"] .comment-format > button.inline-editor-control-square,
+	[id^="reply-message-"] .comment-format > label.inline-editor-control-square {
+		width: 36px !important;
+		min-width: 36px !important;
+		height: 36px !important;
+		min-height: 36px !important;
+	}
+
+	[id^="reply-message-"] .comment-format > button.message-inline-image-url {
+		width: auto !important;
+		padding-inline: 10px !important;
 	}
 
 	[id^="reply-message-"] .message-inline-image-meta {
