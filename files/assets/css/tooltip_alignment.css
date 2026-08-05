@@ -1,5 +1,6 @@
 @import url("message_reply_composer.css?v=20260804-3");
 @import url("inline_editor_controls.css?v=20260805-2");
+@import url("modmail_state_controls.css?v=20260806-1");
 
 /* Precisely anchored tooltips for the fixed navbar, pinned posts, badges, and ban hats. */
 .obsession-aligned-tooltip {
