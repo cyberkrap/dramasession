@@ -1,0 +1,155 @@
+.contact-history {
+	margin-top: 2rem;
+}
+
+.contact-history__heading {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+.contact-history__heading h2,
+.contact-history--empty h2 {
+	margin: 0 0 .3rem;
+	font-size: 1.25rem;
+	font-weight: 750;
+}
+
+.contact-history__heading p,
+.contact-history--empty p {
+	margin: 0;
+	color: #a9a5a7;
+	font-size: .9rem;
+}
+
+.contact-history__heading > span {
+	flex: 0 0 auto;
+	padding: .28rem .55rem;
+	color: #c8c4c6;
+	background: rgba(255,255,255,.045);
+	border: 1px solid rgba(255,255,255,.11);
+	border-radius: 999px;
+	font-size: .72rem;
+	font-weight: 700;
+}
+
+.contact-history__threads {
+	display: grid;
+	gap: 1rem;
+}
+
+.contact-thread {
+	overflow: hidden;
+	background: rgba(10,10,12,.78);
+	border: 1px solid rgba(255,255,255,.11);
+	border-radius: 8px;
+	box-shadow: 0 12px 34px rgba(0,0,0,.18);
+}
+
+.contact-thread__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .75rem;
+	padding: .75rem .9rem;
+	background: rgba(255,255,255,.035);
+	border-bottom: 1px solid rgba(255,255,255,.09);
+}
+
+.contact-thread__header strong {
+	font-size: .82rem;
+}
+
+.contact-thread__header span,
+.contact-message header span {
+	color: #999497;
+	font-size: .72rem;
+}
+
+.contact-thread__messages {
+	display: grid;
+	gap: .65rem;
+	padding: .85rem;
+}
+
+.contact-message {
+	max-width: min(82%, 720px);
+	padding: .78rem .85rem;
+	background: rgba(255,255,255,.045);
+	border: 1px solid rgba(255,255,255,.09);
+	border-radius: 8px;
+}
+
+.contact-message--self {
+	justify-self: end;
+	background: rgba(158,17,27,.16);
+	border-color: rgba(210,43,53,.3);
+}
+
+.contact-message--admin {
+	justify-self: start;
+}
+
+.contact-message header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .75rem;
+	margin-bottom: .45rem;
+}
+
+.contact-message header strong {
+	font-size: .78rem;
+}
+
+.contact-message__body {
+	font-size: .9rem;
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+
+.contact-message__body > :last-child {
+	margin-bottom: 0;
+}
+
+.contact-message__body img,
+.contact-message__body video {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin-top: .65rem;
+	border-radius: 5px;
+}
+
+.contact-history--empty {
+	padding: 1rem;
+	background: rgba(255,255,255,.025);
+	border: 1px dashed rgba(255,255,255,.13);
+	border-radius: 8px;
+}
+
+@media (max-width: 575.98px) {
+	.contact-history {
+		margin-top: 1.5rem;
+	}
+
+	.contact-history__heading {
+		display: block;
+	}
+
+	.contact-history__heading > span {
+		display: inline-block;
+		margin-top: .65rem;
+	}
+
+	.contact-thread__messages {
+		padding: .65rem;
+	}
+
+	.contact-message {
+		max-width: 94%;
+		padding: .7rem .75rem;
+	}
+}
