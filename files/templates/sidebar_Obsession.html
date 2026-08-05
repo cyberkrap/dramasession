@@ -8,8 +8,8 @@
 	{% endif %}
 
 	{% if request.path != '/sidebar' and image %}
-		<a href="{{image}}">
-			<img class="mb-4" alt="Obsession community artwork" data-nonce="{{g.nonce}}" data-onclick="expandImage()" loading="lazy" src="{{image}}" width="100%">
+		<a class="sidebar-hero-media" href="{{image}}">
+			<img class="sidebar-hero-image" alt="Obsession community artwork" data-nonce="{{g.nonce}}" data-onclick="expandImage()" loading="lazy" src="{{image}}">
 		</a>
 	{% endif %}
 
@@ -41,7 +41,7 @@
 	</p>
 
 	{% if sub %}
-		{% if sub.sidebar_html %}<div class="mb-4">{{sub.sidebar_html|safe}}</div>{% endif %}
+		{% if sub.sidebar_html %}<div class="sidebar-markdown mb-4">{{sub.sidebar_html|safe}}</div>{% endif %}
 		{% if v %}
 			<a class="btn btn-secondary btn-block mb-3" href="/holes">BROWSE {{HOLE_NAME|upper}}S</a>
 			{% if v.can_create_hole %}<a class="btn btn-secondary btn-block mb-3" href="/create_hole">CREATE {{HOLE_NAME|upper}}</a>{% endif %}
