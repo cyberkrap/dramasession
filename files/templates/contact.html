@@ -1,5 +1,8 @@
 {% extends "default.html" %}
 {% block pagetitle %}Contact{% endblock %}
+{% block head_final %}
+	<link rel="stylesheet" href="{{'css/contact_modmail.css' | asset}}">
+{% endblock %}
 {% block content %}
 	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
 	<h1 class="article-title">Contact the Obsession Fan Club Team</h1>
@@ -20,6 +23,8 @@
 			</label>
 			<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Submit" class="btn btn-primary mt-3">
 		</form>
+
+		{% include "contact_modmail_history.html" %}
 
 		<script defer src="{{'js/contact.js' | asset}}"></script>
 		{% include "modals/emoji.html" %}
