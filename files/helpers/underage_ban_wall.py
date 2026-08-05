@@ -1,6 +1,8 @@
-from flask import render_template, request
+from flask import g, render_template, request
 
+from files.helpers.alerts import get_msg
 from files.helpers.ban_hats import is_underage_banned
+from files.helpers.modmail_history import get_user_modmail_history
 from files.routes.wrappers import get_logged_in_user
 
 
@@ -41,20 +43,34 @@ def install_underage_ban_wall(app):
 			return None
 
 		viewer = get_logged_in_user()
-		if not is_underage_banned(viewer):
+		underage_banned = is_underage_banned(viewer)
+
+		# Logged-in users see their complete modmail history directly on /contact.
+		# This also gives restricted accounts a durable place to read admin replies.
+		if path == "/contact" and request.method == "GET" and viewer:
+			modmail_history = get_user_modmail_history(g.db, viewer)
+			if underage_banned:
+				return render_template(
+					"underage_contact.html",
+					v=viewer,
+					contact_user=viewer,
+					msg=get_msg(),
+					modmail_history=modmail_history,
+				)
+
+			return render_template(
+				"contact.html",
+				v=viewer,
+				msg=get_msg(),
+				modmail_history=modmail_history,
+			)
+
+		if not underage_banned:
 			return None
 
 		# The modmail submission itself must reach the existing contact route.
 		if path == "/contact" and request.method == "POST":
 			return None
-
-		if path == "/contact":
-			return render_template(
-				"underage_contact.html",
-				v=viewer,
-				contact_user=viewer,
-				msg=request.args.get("msg", ""),
-			)
 
 		# Render the restriction at the requested URL. There is no dedicated
 		# destination to bypass, and no normal page content is executed.
