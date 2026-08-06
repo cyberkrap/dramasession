@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+
+{% block title %}<title>Admins only | {{SITE_NAME}}</title>{% endblock %}
+{% block pagetype %}admin-only-board{% endblock %}
+{% block sidebar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center py-5" style="min-height: 52vh;">
+	<section class="card border-0 shadow-sm text-center mx-auto" style="width: min(100%, 560px); background: rgba(18, 18, 22, .96);">
+		<div class="card-body px-4 py-5 px-md-5">
+			<div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4" style="width: 64px; height: 64px; background: rgba(220, 35, 58, .14); color: var(--primary);">
+				<i class="fas fa-lock fa-2x" aria-hidden="true"></i>
+			</div>
+			<h1 class="h3 mb-3">Admins only</h1>
+			<p class="text-muted mb-4">Sorry, this board is for administrators only and you cannot view it.</p>
+			<a class="btn btn-primary px-4" href="/">
+				<i class="fas fa-home mr-2" aria-hidden="true"></i>Go back to the home page
+			</a>
+		</div>
+	</section>
+</div>
+{% endblock %}
