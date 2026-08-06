@@ -3,17 +3,121 @@
 import sys
 from urllib.parse import urlsplit, urlunsplit
 
-from flask import redirect, request
+from flask import abort, g, has_request_context, redirect, render_template, request
 
 from files.helpers.config.const import SITE_NAME
 
 
 _BOARD_COST = 15_000
+_ADMIN_ONLY_BOARD = "onlymods"
 _INSTALLED_ATTR = "_obsession_board_branding_installed"
 
 
 def _route_key(rule, endpoint, methods):
 	return rule, endpoint, frozenset(methods)
+
+
+def _is_site_admin(user):
+	return bool(user and int(getattr(user, "admin_level", 0) or 0) > 0)
+
+
+def _is_admin_only_board(value):
+	return str(value or "").strip().lower() == _ADMIN_ONLY_BOARD
+
+
+def _is_admin_only_board_path(path):
+	path = str(path or "")
+	return (
+		path in {f"/b/{_ADMIN_ONLY_BOARD}", f"/h/{_ADMIN_ONLY_BOARD}"}
+		or path.startswith(f"/b/{_ADMIN_ONLY_BOARD}/")
+		or path.startswith(f"/h/{_ADMIN_ONLY_BOARD}/")
+	)
+
+
+def _request_viewer(explicit_viewer=None):
+	if explicit_viewer is not None:
+		return explicit_viewer
+	if not has_request_context():
+		return None
+	if hasattr(g, "v"):
+		return g.v
+	from files.routes.wrappers import get_logged_in_user
+	return get_logged_in_user()
+
+
+def _replace_loaded_function(original, replacement):
+	for module_name, module in list(sys.modules.items()):
+		if not module_name.startswith("files.") or module is None:
+			continue
+		if getattr(module, original.__name__, None) is original:
+			setattr(module, original.__name__, replacement)
+
+
+def _install_admin_only_content_guards():
+	"""Keep onlymods content inaccessible outside administrator sessions."""
+	from files.classes import Sub, User
+	from files.helpers import get as get_helpers
+
+	current_can_see = User.can_see
+	original_can_see = getattr(current_can_see, "__func__", current_can_see)
+	if not getattr(original_can_see, "_obsession_admin_only_board", False):
+		def can_see(cls, user, other):
+			if isinstance(other, Sub) and _is_admin_only_board(other.name):
+				return _is_site_admin(user)
+			return original_can_see(cls, user, other)
+
+		can_see._obsession_admin_only_board = True
+		User.can_see = classmethod(can_see)
+
+	original_get_post = get_helpers.get_post
+	if not getattr(original_get_post, "_obsession_admin_only_board", False):
+		def get_post(*args, **kwargs):
+			post = original_get_post(*args, **kwargs)
+			if post and _is_admin_only_board(getattr(post, "sub", None)) and has_request_context():
+				explicit_viewer = kwargs.get("v", args[1] if len(args) > 1 else None)
+				if not _is_site_admin(_request_viewer(explicit_viewer)):
+					graceful = kwargs.get("graceful", args[2] if len(args) > 2 else False)
+					if graceful:
+						return None
+					abort(403, "This board is for administrators only.")
+			return post
+
+		get_post._obsession_admin_only_board = True
+		get_helpers.get_post = get_post
+		_replace_loaded_function(original_get_post, get_post)
+
+	original_get_posts = get_helpers.get_posts
+	if not getattr(original_get_posts, "_obsession_admin_only_board", False):
+		def get_posts(*args, **kwargs):
+			posts = original_get_posts(*args, **kwargs)
+			if not has_request_context():
+				return posts
+			explicit_viewer = kwargs.get("v", args[1] if len(args) > 1 else None)
+			if _is_site_admin(_request_viewer(explicit_viewer)):
+				return posts
+			return [post for post in posts if not _is_admin_only_board(getattr(post, "sub", None))]
+
+		get_posts._obsession_admin_only_board = True
+		get_helpers.get_posts = get_posts
+		_replace_loaded_function(original_get_posts, get_posts)
+
+	original_get_comment = get_helpers.get_comment
+	if not getattr(original_get_comment, "_obsession_admin_only_board", False):
+		def get_comment(*args, **kwargs):
+			comment = original_get_comment(*args, **kwargs)
+			post = getattr(comment, "post", None) if comment else None
+			if post and _is_admin_only_board(getattr(post, "sub", None)) and has_request_context():
+				explicit_viewer = kwargs.get("v", args[1] if len(args) > 1 else None)
+				if not _is_site_admin(_request_viewer(explicit_viewer)):
+					graceful = kwargs.get("graceful", args[2] if len(args) > 2 else False)
+					if graceful:
+						return None
+					abort(403, "This board is for administrators only.")
+			return comment
+
+		get_comment._obsession_admin_only_board = True
+		get_helpers.get_comment = get_comment
+		_replace_loaded_function(original_get_comment, get_comment)
 
 
 def _add_alias(app, rule, endpoint, methods):
@@ -123,10 +227,20 @@ def install_board_branding(app):
 	_install_board_cost(app)
 	_install_board_route_aliases(app)
 	_install_canonical_submission_links()
+	_install_admin_only_content_guards()
 
 	@app.before_request
 	def obsession_canonical_board_redirect():
 		path = request.path
+
+		if _is_admin_only_board_path(path):
+			from files.routes.wrappers import get_logged_in_user
+			v = get_logged_in_user()
+			if not _is_site_admin(v):
+				if request.method == "GET" and not g.is_api_or_xhr:
+					return render_template("errors/admin_only_board.html", v=v), 403
+				abort(403, "This board is for administrators only.")
+
 		canonical = _canonical_path(path)
 		if canonical:
 			if request.query_string:
