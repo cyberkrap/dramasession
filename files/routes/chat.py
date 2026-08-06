@@ -41,8 +41,13 @@ def chat_access_required(f):
 	return wrapper
 
 
-def _message_dict(message):
+def _message_dict(message, viewer=None):
 	removed = bool(message.removed_by_username)
+	can_view_removed = bool(
+		viewer
+		and viewer.admin_level >= PERMS['POST_COMMENT_MODERATION']
+	)
+	show_body = not removed or can_view_removed
 	author = g.db.query(User).filter(User.id == message.user_id).one_or_none()
 	return {
 		"id": message.id,
@@ -53,20 +58,24 @@ def _message_dict(message):
 		"username": author.username if author else message.username,
 		"namecolor": author.name_color if author else message.namecolor,
 		"patron": bool(author and author.patron),
-		"text": "" if removed else message.body,
-		"text_html": "" if removed else message.body_html,
-		"text_censored": "" if removed else message.body_censored,
+		"text": message.body if show_body else "",
+		"text_html": message.body_html if show_body else "",
+		"text_censored": message.body_censored if show_body else "",
 		"time": message.created_utc,
 		"removed_by": message.removed_by_username,
 		"removed_by_id": message.removed_by_id,
+		"viewer_can_see_removed": can_view_removed,
 		"distinguish_by": message.distinguish_by_username,
 		"distinguish_by_id": message.distinguish_by_id,
 		"has_attachment": bool(message.has_attachment),
 	}
 
 
-def _message_map(rows):
-	return {str(item["id"]): item for item in (_message_dict(row) for row in rows)}
+def _message_map(rows, viewer=None):
+	return {
+		str(item["id"]): item
+		for item in (_message_dict(row, viewer) for row in rows)
+	}
 
 
 def _parse_timeout(text):
@@ -170,11 +179,11 @@ def chat(v):
 		notification.read = True
 	if chat_mention_notifications:
 		g.db.commit()
-	payload = [_message_dict(row) for row in rows]
+	payload = [_message_dict(row, v) for row in rows]
 	return render_template(
 		"chat.html",
 		v=v,
-		messages=_message_map(rows),
+		messages=_message_map(rows, v),
 		initial_messages=payload,
 		initial_has_more=has_more,
 	)
@@ -319,7 +328,7 @@ def speak(data, v):
 		send_notification(uid, f"@{v.username} mentioned you in [public chat message #{message.id}](/chat#{message.id})")
 	if mention_uids:
 		g.db.commit()
-	payload = _message_dict(message)
+	payload = _message_dict(message, v)
 
 	if self_only or v.shadowbanned:
 		emit('speak', payload)
@@ -388,7 +397,7 @@ def history(data, v):
 		limit=data.get('limit', CHAT_PAGE_SIZE),
 	)
 	emit('history', {
-		'messages': [_message_dict(row) for row in rows],
+		'messages': [_message_dict(row, v) for row in rows],
 		'has_more': has_more,
 		'mode': 'around' if around_id is not None else ('filter' if _active_filters(filters) else ('prepend' if before_id is not None else 'replace')),
 	})
@@ -407,9 +416,6 @@ def delete(message_id, v):
 		return '', 204
 	message.removed_by_id = v.id
 	message.removed_by_username = v.username
-	message.body = ''
-	message.body_html = ''
-	message.body_censored = ''
 	g.db.commit()
 	emit('delete', {
 		'id': message_id,
