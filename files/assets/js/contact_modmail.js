@@ -6,13 +6,38 @@
 		else window.alert(message);
 	}
 
-	window.toggleContactModmailReply = function toggleContactModmailReply(id) {
+	function replyToggleFor(id, trigger) {
+		if (trigger?.classList?.contains('contact-thread__reply-toggle')) return trigger;
+		return document.querySelector(`#modmail-thread-${id} .contact-thread__reply-toggle`);
+	}
+
+	function restoreButton(button) {
+		button.disabled = false;
+		button.classList.remove('disabled');
+		button.innerHTML = button.dataset.originalHtml || '<span>Send reply</span><i class="fas fa-paper-plane"></i>';
+	}
+
+	window.toggleContactModmailReply = function toggleContactModmailReply(id, trigger) {
 		const composer = document.getElementById(`reply-message-c_${id}`);
 		if (!composer) return;
-		composer.classList.toggle('d-none');
-		if (!composer.classList.contains('d-none')) {
+
+		const thread = composer.closest('details');
+		if (thread) thread.open = true;
+
+		const opening = composer.classList.contains('d-none');
+		composer.classList.toggle('d-none', !opening);
+
+		const toggle = replyToggleFor(id, trigger);
+		if (toggle) toggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+
+		if (opening) {
 			const textarea = document.getElementById(`reply-form-body-${id}`);
-			textarea?.focus();
+			requestAnimationFrame(() => {
+				composer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				textarea?.focus({ preventScroll: true });
+			});
+		} else if (toggle) {
+			toggle.focus({ preventScroll: true });
 		}
 	};
 
@@ -35,9 +60,10 @@
 		const input = document.getElementById(`file-upload-reply-c_${id}`);
 		for (const file of Array.from(input?.files || [])) form.append('file', file);
 
+		button.dataset.originalHtml = button.innerHTML;
 		button.disabled = true;
 		button.classList.add('disabled');
-		button.textContent = 'Sending…';
+		button.innerHTML = '<span>Sending…</span><i class="fas fa-circle-notch fa-spin"></i>';
 
 		const pair = createXhrWithFormKey('/reply', 'POST', form);
 		const xhr = pair[0];
@@ -46,6 +72,7 @@
 			try { data = JSON.parse(xhr.responseText); } catch (_) {}
 
 			if (xhr.status >= 200 && xhr.status < 300 && data?.comment) {
+				window.location.hash = `modmail-thread-${id}`;
 				window.location.reload();
 				return;
 			}
@@ -54,16 +81,26 @@
 				? getMessageFromJsonData(false, data)
 				: (data?.error || data?.message || 'The reply could not be sent.');
 			toastError(message);
-			button.disabled = false;
-			button.classList.remove('disabled');
-			button.textContent = 'Reply';
+			restoreButton(button);
 		};
 		xhr.onerror = () => {
 			toastError('The reply could not be sent.');
-			button.disabled = false;
-			button.classList.remove('disabled');
-			button.textContent = 'Reply';
+			restoreButton(button);
 		};
 		xhr.send(pair[1]);
 	};
+
+	document.addEventListener('DOMContentLoaded', () => {
+		const target = window.location.hash && document.querySelector(window.location.hash);
+		if (target?.matches?.('details.contact-thread')) target.open = true;
+
+		document.querySelectorAll('.contact-thread__composer textarea').forEach((textarea) => {
+			textarea.addEventListener('keydown', (event) => {
+				if (!((event.ctrlKey || event.metaKey) && event.key === 'Enter')) return;
+				event.preventDefault();
+				const id = textarea.dataset.id;
+				if (id) window.submitContactModmailReply(id);
+			});
+		});
+	});
 })();
