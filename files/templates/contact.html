@@ -4,67 +4,32 @@
 	<link rel="stylesheet" href="{{'css/contact_modmail.css' | asset}}">
 {% endblock %}
 {% block content %}
-<div class="contact-page">
-	<header class="contact-hero">
-		<div class="contact-hero__icon" aria-hidden="true"><i class="fas fa-envelope-open-text"></i></div>
-		<div class="contact-hero__copy">
-			<span class="contact-hero__eyebrow">Private support channel</span>
-			<h1>Contact the Obsession Fan Club Team</h1>
-			<p>Message the administrators about account access, appeals, privacy, security, partnerships, or anything that needs a direct response.</p>
-		</div>
-		<div class="contact-hero__trust" aria-label="Private and visible only to administrators">
-			<i class="fas fa-lock"></i>
-			<span>Visible only to you and administrators</span>
-		</div>
-	</header>
-
-	{% if msg %}<div class="contact-status" role="status"><i class="fas fa-check-circle"></i><span>{{msg}}</span></div>{% endif %}
+	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+	<h1 class="article-title">Contact the Obsession Fan Club Team</h1>
+	<p>Use this page for account access, moderation appeals, privacy requests, security concerns, intellectual-property reports, partnership questions, or general support.</p>
+	<p class="text-muted">For content reports, include the exact post, comment, profile, banner, or sidebar URL and enough detail for the administrators to review the issue.</p>
 
 	{% if v %}
 		{% if modmail_muted or v.is_muted %}
-			<div class="contact-muted-warning" role="alert">
-				<i class="fas fa-comment-slash" aria-hidden="true"></i>
-				<div>
-					<strong>Modmail unavailable</strong>
-					<span>Your modmails have been muted by admins, so you cannot message them.</span>
-				</div>
-			</div>
+			<div class="contact-muted-warning" role="alert">Your modmails have been muted by admins, so you cannot message them.</div>
 		{% else %}
-			<section class="contact-compose-card" aria-labelledby="new-contact-heading">
-				<header class="contact-compose-card__header">
-					<div class="contact-compose-card__title">
-						<span class="contact-compose-card__icon"><i class="fas fa-pen"></i></span>
-						<div>
-							<h2 id="new-contact-heading">Start a new conversation</h2>
-							<p>For an existing issue, use the Reply button inside that conversation instead of opening another one.</p>
-						</div>
+			<form id="contactform" class="contact-compose" action="/contact" method="post" enctype="multipart/form-data">
+				<label for="input-message" class="mt-3">Your message</label>
+				<input hidden name="formkey" value="{{v|formkey}}">
+				<textarea autocomplete="off" maxlength="10000" id="input-message" form="contactform" name="message" class="form-control" required></textarea>
+				<div class="contact-compose__actions">
+					<div class="contact-compose__tools">
+						<label class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-message')" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add Emoji">
+							<i class="fas fa-smile-beam"></i>
+						</label>
+						<label class="btn btn-secondary" for="file-upload" title="Attach files">
+							<div id="filename"><i class="fas fa-file"></i></div>
+							<input autocomplete="off" id="file-upload" accept="image/*, video/*, audio/*" type="file" name="file" multiple="multiple" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename','file-upload')" hidden>
+						</label>
 					</div>
-					<span class="contact-compose-card__badge">New request</span>
-				</header>
-
-				<form id="contactform" class="contact-compose" action="/contact" method="post" enctype="multipart/form-data">
-					<label for="input-message" class="sr-only">Your message</label>
-					<input hidden name="formkey" value="{{v|formkey}}">
-					<textarea autocomplete="off" maxlength="10000" id="input-message" form="contactform" name="message" class="form-control" required placeholder="Explain what happened, what you expected, and include any relevant links or screenshots."></textarea>
-					<div class="contact-compose__footer">
-						<div class="contact-compose__left">
-							<div class="contact-compose__tools" aria-label="Message tools">
-								<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('input-message')" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add emoji" aria-label="Add emoji">
-									<i class="fas fa-smile-beam"></i>
-								</button>
-								<label class="btn btn-secondary" for="file-upload" title="Attach files" aria-label="Attach files">
-									<div id="filename"><i class="fas fa-paperclip"></i></div>
-									<input autocomplete="off" id="file-upload" accept="image/*, video/*, audio/*" type="file" name="file" multiple="multiple" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('filename','file-upload')" hidden>
-								</label>
-							</div>
-							<span class="contact-compose__hint"><i class="fas fa-link"></i> Add exact links when reporting site content.</span>
-						</div>
-						<button type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" class="btn btn-primary contact-compose__submit">
-							<span>Send to administrators</span><i class="fas fa-paper-plane"></i>
-						</button>
-					</div>
-				</form>
-			</section>
+					<input type="submit" data-nonce="{{g.nonce}}" data-onclick="disable(this)" value="Send to administrators" class="btn btn-primary">
+				</div>
+			</form>
 		{% endif %}
 
 		{% include "contact_modmail_history.html" %}
@@ -73,20 +38,13 @@
 		<script defer src="{{'js/contact_modmail.js' | asset}}"></script>
 		{% include "modals/emoji.html" %}
 	{% else %}
-		<section class="contact-signed-out">
-			<i class="fas fa-user-lock" aria-hidden="true"></i>
-			<div>
-				<h2>Sign in to contact the team</h2>
-				<p>Your account keeps the conversation private and lets you return to administrator replies.</p>
-				{% if EMAIL %}<p>Email: <a href="mailto:{{EMAIL}}">{{EMAIL}}</a></p>{% endif %}
-			</div>
-		</section>
+		<p>Sign in to use the secure contact form.</p>
+		{% if EMAIL %}<p>Email: <a href="mailto:{{EMAIL}}">{{EMAIL}}</a></p>{% endif %}
 	{% endif %}
 
-	<footer class="contact-legal">
+	<div class="mt-4 pt-3 border-top">
 		<a href="/terms">Terms of Service</a>
-		<span aria-hidden="true">•</span>
+		<span class="mx-2 text-muted">|</span>
 		<a href="/privacy">Privacy Policy</a>
-	</footer>
-</div>
+	</div>
 {% endblock %}
