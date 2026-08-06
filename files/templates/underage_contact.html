@@ -59,7 +59,7 @@
 		object-position: center;
 	}
 	.restricted-contact__main {
-		width: min(980px, calc(100% - 32px));
+		width: min(1100px, calc(100% - 32px));
 		margin: 0 auto;
 		padding: 42px 0 80px;
 	}
@@ -80,7 +80,7 @@
 		font-size: clamp(25px, 4vw, 34px);
 		font-weight: 800;
 	}
-	.restricted-contact p {
+	.restricted-contact__heading p {
 		margin: 0;
 		color: #c9cdd0;
 		line-height: 1.55;
@@ -91,34 +91,13 @@
 		color: #d8f4e3;
 		background: rgba(45,150,92,.13);
 		border: 1px solid rgba(66,188,116,.38);
-		border-radius: 6px;
+		border-radius: 9px;
 	}
-	.restricted-contact .contact-compose {
-		margin: 0 0 2.25rem;
-		padding: 22px;
-		background: #11161c;
-		border: 1px solid rgba(255,255,255,.12);
-		border-radius: 6px;
+	.restricted-contact .contact-compose-card {
+		margin-bottom: 2.25rem;
 	}
-	.restricted-contact label {
-		display: block;
-		margin-bottom: 9px;
-		color: #f3f1f1;
-		font-weight: 700;
-	}
-	.restricted-contact textarea {
+	.restricted-contact .contact-compose textarea {
 		min-height: 150px;
-		resize: vertical;
-	}
-	.restricted-contact__actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 10px;
-		margin-top: 16px;
-	}
-	.restricted-contact__actions .btn {
-		padding: .62rem 1rem;
-		font-weight: 700;
 	}
 	@media (max-width: 576px) {
 		.restricted-contact__header { height: 62px; }
@@ -126,7 +105,6 @@
 		.restricted-contact__brand-wordmark { height: 29px; }
 		.restricted-contact__heading { align-items: flex-start; }
 		.restricted-contact__heading img { width: 58px; height: 58px; }
-		.restricted-contact .contact-compose { padding: 16px; }
 	}
 </style>
 {% endblock %}
@@ -153,22 +131,49 @@
 			{% if msg %}<div class="restricted-contact__status" role="status">{{msg}}</div>{% endif %}
 
 			{% if modmail_muted or contact_user.is_muted %}
-				<div class="contact-muted-warning" role="alert">Your modmails have been muted by admins, so you cannot message them.</div>
+				<div class="contact-muted-warning" role="alert">
+					<i class="fas fa-comment-slash" aria-hidden="true"></i>
+					<div><strong>Modmail unavailable</strong><span>Your modmails have been muted by admins, so you cannot message them.</span></div>
+				</div>
 			{% else %}
-				<form id="restricted-contact-form" class="contact-compose" action="/contact" method="post">
-					<input hidden name="formkey" value="{{contact_user|formkey}}">
-					<label for="restricted-contact-message">Send a new message</label>
-					<textarea id="restricted-contact-message" name="message" class="form-control" maxlength="10000" required autofocus></textarea>
-					<div class="restricted-contact__actions">
-						<button type="submit" class="btn btn-primary">Send to administrators</button>
-					</div>
-				</form>
+				<section class="contact-compose-card" aria-labelledby="restricted-new-contact-heading">
+					<header class="contact-compose-card__header">
+						<div class="contact-compose-card__title">
+							<span class="contact-compose-card__icon"><i class="fas fa-pen"></i></span>
+							<div>
+								<h2 id="restricted-new-contact-heading">Start a new conversation</h2>
+								<p>Use Reply inside an existing conversation when you are continuing the same issue.</p>
+							</div>
+						</div>
+						<span class="contact-compose-card__badge">New request</span>
+					</header>
+
+					<form id="restricted-contact-form" class="contact-compose" action="/contact" method="post" enctype="multipart/form-data">
+						<input hidden name="formkey" value="{{contact_user|formkey}}">
+						<label for="restricted-contact-message" class="sr-only">Your message</label>
+						<textarea id="restricted-contact-message" name="message" class="form-control" maxlength="10000" required autofocus placeholder="Explain what happened and include any information the administrators need."></textarea>
+						<div class="contact-compose__footer">
+							<div class="contact-compose__left">
+								<div class="contact-compose__tools">
+									<button type="button" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('restricted-contact-message')" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add emoji" aria-label="Add emoji"><i class="fas fa-smile-beam"></i></button>
+									<label class="btn btn-secondary" for="restricted-file-upload" title="Attach files" aria-label="Attach files">
+										<div id="restricted-filename"><i class="fas fa-paperclip"></i></div>
+										<input autocomplete="off" id="restricted-file-upload" accept="image/*, video/*, audio/*" type="file" name="file" multiple="multiple" {% if g.is_tor %}disabled{% endif %} data-nonce="{{g.nonce}}" data-onchange="changename('restricted-filename','restricted-file-upload')" hidden>
+									</label>
+								</div>
+								<span class="contact-compose__hint"><i class="fas fa-lock"></i>This channel remains available while the site is restricted.</span>
+							</div>
+							<button type="submit" class="btn btn-primary contact-compose__submit"><span>Send to administrators</span><i class="fas fa-paper-plane"></i></button>
+						</div>
+					</form>
+				</section>
 			{% endif %}
 
 			{% include "contact_modmail_history.html" %}
 		</main>
 	</div>
 
+	<script defer src="{{'js/contact.js' | asset}}"></script>
 	<script defer src="{{'js/contact_modmail.js' | asset}}"></script>
 	{% include "modals/emoji.html" %}
 {% endblock %}
