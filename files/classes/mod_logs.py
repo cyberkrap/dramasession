@@ -194,12 +194,12 @@ MODACTION_TYPES_FILTERED.update(EMOTE_MODACTION_TYPES)
 
 MODMAIL_MODACTION_TYPES = {
 	'mod_mute_user': {
-		"str": 'muted modmails from @{self.target_link}',
+		"str": 'muted modmails from {self.target_link}',
 		"icon": 'fa-envelope',
 		"color": 'bg-danger'
 	},
 	'mod_unmute_user': {
-		"str": 'unmuted modmails from @{self.target_link}',
+		"str": 'unmuted modmails from {self.target_link}',
 		"icon": 'fa-envelope-open',
 		"color": 'bg-success'
 	},
