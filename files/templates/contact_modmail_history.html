@@ -1,81 +1,113 @@
 {% if modmail_history %}
 <section class="contact-history" aria-labelledby="contact-history-heading">
-	<div class="contact-history__heading">
-		<div>
-			<h2 id="contact-history-heading">Previous contacts</h2>
-			<p>Newest conversations appear first. Replies stay inside the conversation they belong to.</p>
+	<header class="contact-history__heading">
+		<div class="contact-history__heading-copy">
+			<span class="contact-history__eyebrow">Your inbox</span>
+			<h2 id="contact-history-heading">Previous conversations</h2>
+			<p>Open a conversation to read the full timeline or continue it without creating a duplicate request.</p>
 		</div>
-		<span>{{modmail_history|length}} conversation{{'' if modmail_history|length == 1 else 's'}}</span>
-	</div>
+		<span class="contact-history__count"><i class="fas fa-inbox"></i>{{modmail_history|length}} conversation{{'' if modmail_history|length == 1 else 's'}}</span>
+	</header>
 
 	<div class="contact-history__threads">
 		{% for group in modmail_history %}
-		<section class="contact-thread" id="modmail-thread-{{group.thread.id}}">
-			<header class="contact-thread__header">
-				<strong>Sent to admins</strong>
-				<span>Last activity {{group.messages[-1].age_string}}</span>
-			</header>
+		<details class="contact-thread {% if loop.first %}contact-thread--latest{% endif %}" id="modmail-thread-{{group.thread.id}}" {% if loop.first %}open{% endif %}>
+			<summary class="contact-thread__summary">
+				<span class="contact-thread__summary-icon" aria-hidden="true"><i class="fas fa-comments"></i></span>
+				<span class="contact-thread__summary-copy">
+					<span class="contact-thread__summary-title">
+						Conversation #{{group.thread.id}}
+						{% if loop.first %}<span class="contact-thread__latest-badge">Latest</span>{% endif %}
+					</span>
+					<span class="contact-thread__summary-subtitle">{{group.messages|length}} message{{'' if group.messages|length == 1 else 's'}} with the administrator team</span>
+				</span>
+				<span class="contact-thread__summary-meta">
+					<span>Last activity</span>
+					<strong>{{group.messages[-1].age_string}}</strong>
+				</span>
+				<span class="contact-thread__chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+			</summary>
 
-			<div class="contact-thread__timeline" id="contact-thread-messages-{{group.thread.id}}">
-				{% for message in group.messages %}
-				<article class="contact-message" id="contact-message-{{message.id}}">
-					<header class="contact-message__header">
-						<a class="contact-message__author" href="{{message.author.url}}" style="color:#{{message.author.name_color}}">
-							<span class="contact-message__avatar profile-pic-30-wrapper">
-								<img loading="lazy" src="{{message.author.profile_url}}" class="profile-pic-30" alt="">
-								{% if message.author.hat_active(v)[0] -%}
-									<img class="profile-pic-30-hat hat" loading="lazy" src="{{message.author.hat_active(v)[0]}}?h=7" alt="">
-								{%- endif %}
-							</span>
-							<strong>{% if message.author_id == v.id %}{{message.author.username}}{% else %}{{message.author.username}}{% endif %}</strong>
-						</a>
-						{% if not loop.first %}<span class="contact-message__reply-mark"><i class="fas fa-reply fa-flip-horizontal"></i></span>{% endif %}
-						<span class="contact-message__age">{{message.age_string}}</span>
-						<a class="contact-message__permalink" href="/comment/{{message.id}}#context">#{{message.id}}</a>
-					</header>
-					<div class="contact-message__body">{{message.realbody(v)|safe}}</div>
-				</article>
-				{% endfor %}
-			</div>
-
-			{% if modmail_muted %}
-				<div class="contact-thread__muted">Your modmails have been muted by admins, so you cannot reply.</div>
-			{% else %}
-				<div class="contact-thread__actions">
-					<button type="button" class="btn btn-secondary contact-thread__reply-toggle" data-nonce="{{g.nonce}}" data-onclick="toggleContactModmailReply('{{group.thread.id}}')">
-						<i class="fas fa-reply"></i> Reply
-					</button>
-				</div>
-
-				<div id="reply-message-c_{{group.thread.id}}" class="contact-thread__composer d-none">
-					<div id="comment-form-space-{{group.thread.id}}" class="comment-write collapsed child">
-						<div class="input-group">
-							<textarea data-fullname="c_{{group.thread.id}}" required autocomplete="off" minlength="1" maxlength="10000" name="body" data-id="{{group.thread.id}}" class="comment-box form-control rounded" id="reply-form-body-{{group.thread.id}}" rows="4"></textarea>
-
-							<div class="comment-format inline-editor-toolbar" id="comment-format-bar-{{group.thread.id}}">
-								<button type="button" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('reply-form-body-{{group.thread.id}}')" class="btn btn-secondary inline-editor-control inline-editor-control-square" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add Emoji"><i class="fas fa-smile-beam"></i></button>
-
-								{% set upload_disabled = g.is_tor or not get_setting('dm_images') %}
-								<label class="btn btn-secondary inline-editor-control inline-editor-control-square {% if upload_disabled %}disabled{% endif %}" for="file-upload-reply-c_{{group.thread.id}}">
-									<div id="filename-show-reply-c_{{group.thread.id}}"><i class="fas fa-images"></i></div>
-									<input autocomplete="off" id="file-upload-reply-c_{{group.thread.id}}" accept="image/*" type="file" multiple="multiple" {% if upload_disabled %}disabled{% endif %} hidden>
-								</label>
-							</div>
-
-							<button type="button" class="btn btn-secondary contact-thread__cancel" data-nonce="{{g.nonce}}" data-onclick="toggleContactModmailReply('{{group.thread.id}}')">Cancel</button>
-							<button type="button" id="save-reply-to-{{group.thread.id}}" class="btn btn-primary contact-thread__send" data-nonce="{{g.nonce}}" data-onclick="submitContactModmailReply('{{group.thread.id}}')">Reply</button>
+			<div class="contact-thread__panel">
+				<div class="contact-thread__timeline" id="contact-thread-messages-{{group.thread.id}}">
+					{% for message in group.messages %}
+					<article class="contact-message {% if message.author_id == v.id %}contact-message--self{% else %}contact-message--admin{% endif %}" id="contact-message-{{message.id}}">
+						<div class="contact-message__rail" aria-hidden="true">
+							<span class="contact-message__dot"></span>
+							{% if not loop.last %}<span class="contact-message__line"></span>{% endif %}
 						</div>
-						<div id="message-reply-{{group.thread.id}}" class="preview mt-2"></div>
-					</div>
+
+						<a class="contact-message__avatar profile-pic-30-wrapper" href="{{message.author.url}}" tabindex="-1" aria-hidden="true">
+							<img loading="lazy" src="{{message.author.profile_url}}" class="profile-pic-30" alt="">
+							{% if message.author.hat_active(v)[0] -%}
+								<img class="profile-pic-30-hat hat" loading="lazy" src="{{message.author.hat_active(v)[0]}}?h=7" alt="">
+							{%- endif %}
+						</a>
+
+						<div class="contact-message__content">
+							<header class="contact-message__header">
+								<div class="contact-message__identity">
+									<a class="contact-message__author" href="{{message.author.url}}" style="color:#{{message.author.name_color}}">{{message.author.username}}</a>
+									<span class="contact-message__role">{% if message.author_id == v.id %}You{% else %}Administrator{% endif %}</span>
+								</div>
+								<div class="contact-message__meta">
+									<time>{{message.age_string}}</time>
+									<a class="contact-message__permalink" href="/comment/{{message.id}}#context" title="Open message permalink" aria-label="Open message permalink"><i class="fas fa-link"></i></a>
+								</div>
+							</header>
+							<div class="contact-message__body">{{message.modmail_display_html|safe}}</div>
+						</div>
+					</article>
+					{% endfor %}
 				</div>
-			{% endif %}
-		</section>
+
+				{% if modmail_muted %}
+					<div class="contact-thread__muted"><i class="fas fa-comment-slash"></i><span>Your modmails have been muted by admins, so you cannot reply.</span></div>
+				{% else %}
+					<div class="contact-thread__footer">
+						<div class="contact-thread__status"><span class="contact-thread__status-dot"></span>Conversation open</div>
+						<button type="button" class="btn btn-secondary contact-thread__reply-toggle" aria-expanded="false" aria-controls="reply-message-c_{{group.thread.id}}" data-nonce="{{g.nonce}}" data-onclick="toggleContactModmailReply('{{group.thread.id}}', this)">
+							<i class="fas fa-reply"></i><span>Reply to this conversation</span>
+						</button>
+					</div>
+
+					<div id="reply-message-c_{{group.thread.id}}" class="contact-thread__composer d-none">
+						<div id="comment-form-space-{{group.thread.id}}" class="comment-write collapsed child">
+							<div class="contact-thread__composer-heading">
+								<div><i class="fas fa-reply"></i><strong>Reply to conversation #{{group.thread.id}}</strong></div>
+								<span>Your reply will stay inside this thread.</span>
+							</div>
+							<div class="input-group">
+								<textarea data-fullname="c_{{group.thread.id}}" required autocomplete="off" minlength="1" maxlength="10000" name="body" data-id="{{group.thread.id}}" class="comment-box form-control rounded" id="reply-form-body-{{group.thread.id}}" rows="4" placeholder="Write your reply…"></textarea>
+
+								<div class="comment-format inline-editor-toolbar" id="comment-format-bar-{{group.thread.id}}">
+									<button type="button" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('reply-form-body-{{group.thread.id}}')" class="btn btn-secondary inline-editor-control inline-editor-control-square" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add emoji" aria-label="Add emoji"><i class="fas fa-smile-beam"></i></button>
+
+									{% set upload_disabled = g.is_tor or not get_setting('dm_images') %}
+									<label class="btn btn-secondary inline-editor-control inline-editor-control-square {% if upload_disabled %}disabled{% endif %}" for="file-upload-reply-c_{{group.thread.id}}" title="Upload images" aria-label="Upload images">
+										<div id="filename-show-reply-c_{{group.thread.id}}"><i class="fas fa-images"></i></div>
+										<input autocomplete="off" id="file-upload-reply-c_{{group.thread.id}}" accept="image/*" type="file" multiple="multiple" {% if upload_disabled %}disabled{% endif %} hidden>
+									</label>
+								</div>
+
+								<button type="button" class="btn btn-secondary contact-thread__cancel" data-nonce="{{g.nonce}}" data-onclick="toggleContactModmailReply('{{group.thread.id}}')">Cancel</button>
+								<button type="button" id="save-reply-to-{{group.thread.id}}" class="btn btn-primary contact-thread__send" data-nonce="{{g.nonce}}" data-onclick="submitContactModmailReply('{{group.thread.id}}')"><span>Send reply</span><i class="fas fa-paper-plane"></i></button>
+							</div>
+							<div id="message-reply-{{group.thread.id}}" class="preview mt-2"></div>
+						</div>
+					</div>
+				{% endif %}
+			</div>
+		</details>
 		{% endfor %}
 	</div>
 </section>
 {% else %}
 <section class="contact-history contact-history--empty" aria-labelledby="contact-history-heading">
-	<h2 id="contact-history-heading">Previous contacts</h2>
-	<p>You have not contacted the administrators yet.</p>
+	<div class="contact-history--empty__icon"><i class="fas fa-inbox"></i></div>
+	<div>
+		<h2 id="contact-history-heading">No conversations yet</h2>
+		<p>Your first message and every administrator reply will appear here.</p>
+	</div>
 </section>
 {% endif %}
