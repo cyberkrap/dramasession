@@ -363,7 +363,6 @@ def award_thing(v, thing_type, id):
 		if author.patron_utc: author.patron_utc += 2629746
 		else: author.patron_utc = int(time.time()) + 2629746
 		author.pay_account('marseybux', 2500)
-		badge_grant(user=v, badge_id=103)
 	elif kind == "rehab":
 		if author.rehab: author.rehab += 86400
 		else: author.rehab = int(time.time()) + 86400
