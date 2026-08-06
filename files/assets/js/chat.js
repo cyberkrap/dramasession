@@ -22,6 +22,8 @@ const statusElement = document.getElementById('chat-status');
 const vid = Number(document.getElementById('vid').value);
 const siteName = document.getElementById('site_name').value;
 const slurreplacer = document.getElementById('slurreplacer').value;
+const adminLevel = Number(document.getElementById('admin_level')?.value || 0);
+const canModerateChat = adminLevel > 1;
 const initialData = document.getElementById('chat-initial-data');
 const initialMessages = initialData ? JSON.parse(initialData.textContent || '[]') : [];
 const initialHasMore = document.getElementById('chat-has-more');
@@ -72,6 +74,25 @@ function setChatStatus(message, temporary = false) {
 	}, 3000);
 }
 
+function renderChatBody(message) {
+	return String(slurreplacer !== '0' ? message.text_censored : message.text_html || '')
+		.replace(/data-src/g, 'src')
+		.replace(/data-cfsrc/g, 'src')
+		.replace(/style="display:none;visibility:hidden;"/g, '');
+}
+
+function removalNoticeHtml(message, hasOriginal) {
+	const username = chatEscapeHtml(message.removed_by);
+	const margin = hasOriginal ? 'margin-top:7px;' : '';
+	return `<div class="chat-removal-notice${hasOriginal ? ' chat-removal-notice-admin' : ''}" style="display:block;${margin}padding:6px 8px;color:#ff6b7d;background:rgba(220,35,58,.12);border-left:3px solid #dc233a;border-radius:2px;font-size:.82rem;line-height:1.3;font-style:italic;">This message was removed by <a href="/@${username}" style="color:#ff6b7d;font-weight:700;">@${username}</a> (Admin).</div>`;
+}
+
+function setChatControlVisible(control, visible) {
+	if (!control) return;
+	control.classList.toggle('d-none', !visible);
+	control.style.setProperty('display', visible ? 'inline-flex' : 'none', 'important');
+}
+
 function populateGroup(group, message) {
 	group.dataset.userId = String(message.user_id);
 	const userlink = group.querySelector('.userlink');
@@ -117,14 +138,21 @@ function populateLine(line, message) {
 	const quoteLink = line.querySelector('.QuotedMessageLink');
 	const quoteUser = line.querySelector('.QuotedUser');
 	const quoteText = line.querySelector('.QuotedMessage');
+	const bodyHtml = renderChatBody(message);
+	const showRemovedOriginal = Boolean(
+		message.removed_by
+		&& (message.viewer_can_see_removed || canModerateChat)
+		&& bodyHtml.trim()
+	);
+
 	if (rawText) rawText.textContent = message.text || '';
+	line.classList.toggle('chat-removed-with-original', showRemovedOriginal);
 	if (message.removed_by) {
-		messageElement.innerHTML = `<em class="chat-removal-notice">This message was removed by <a href="/@${chatEscapeHtml(message.removed_by)}">@${chatEscapeHtml(message.removed_by)}</a> (Admin).</em>`;
+		messageElement.innerHTML = showRemovedOriginal
+			? `<div class="chat-removed-original">${bodyHtml}</div>${removalNoticeHtml(message, true)}`
+			: removalNoticeHtml(message, false);
 	} else {
-		messageElement.innerHTML = (slurreplacer !== '0' ? message.text_censored : message.text_html || '')
-			.replace(/data-src/g, 'src')
-			.replace(/data-cfsrc/g, 'src')
-			.replace(/style="display:none;visibility:hidden;"/g, '');
+		messageElement.innerHTML = bodyHtml;
 	}
 	if (message.quotes && chatState.messages.has(String(message.quotes))) {
 		const quoted = chatState.messages.get(String(message.quotes));
@@ -138,9 +166,18 @@ function populateLine(line, message) {
 		quoteUser.textContent = '';
 		quoteText.textContent = '';
 	}
-	for (const button of line.querySelectorAll('.del, .delmsg, .quote')) {
-		if (message.removed_by || button.classList.contains('delmsg')) button.classList.add('d-none');
-		else button.classList.remove('d-none');
+
+	const deleteButton = line.querySelector('.del:not(.delmsg)');
+	const deleteConfirmButton = line.querySelector('.delmsg');
+	const quoteButton = line.querySelector('.quote');
+	if (message.removed_by) {
+		setChatControlVisible(deleteButton, false);
+		setChatControlVisible(deleteConfirmButton, false);
+		setChatControlVisible(quoteButton, false);
+	} else {
+		setChatControlVisible(deleteButton, true);
+		setChatControlVisible(deleteConfirmButton, false);
+		setChatControlVisible(quoteButton, true);
 	}
 	line.dataset.messageId = message.id;
 }
@@ -366,7 +403,7 @@ socket.on('history', result => {
 		chatState.pendingAround = null;
 		setTimeout(() => document.getElementById(String(target))?.scrollIntoView({block: 'center'}), 50);
 	} else if (mode === 'filter' || mode === 'replace') scrollToBottom();
-updateLoadMoreButton();
+	updateLoadMoreButton();
 });
 
 socket.on('delete', data => {
@@ -374,9 +411,12 @@ socket.on('delete', data => {
 	if (!message) return;
 	message.removed_by = data.removed_by;
 	message.removed_by_id = data.removed_by_id;
-	message.text = '';
-	message.text_html = '';
-	message.text_censored = '';
+	message.viewer_can_see_removed = canModerateChat;
+	if (!canModerateChat) {
+		message.text = '';
+		message.text_html = '';
+		message.text_censored = '';
+	}
 	chatState.messages.set(String(data.id), message);
 	renderAll();
 });
@@ -384,7 +424,6 @@ socket.on('delete', data => {
 socket.on('online', data => {
 	const users = data[0] || [];
 	document.querySelectorAll('.board-chat-count').forEach(element => element.textContent = users.length);
-	const adminLevel = Number(document.getElementById('admin_level').value);
 	let online = '';
 	for (const user of users) {
 		const username = chatEscapeHtml(user[0]);
@@ -441,8 +480,8 @@ document.addEventListener('click', event => {
 	const confirmButton = event.target.closest('.del:not(.delmsg)');
 	if (confirmButton) {
 		const parent = confirmButton.parentElement;
-		parent.querySelector('.delmsg')?.classList.remove('d-none');
-		confirmButton.classList.add('d-none');
+		setChatControlVisible(parent.querySelector('.delmsg'), true);
+		setChatControlVisible(confirmButton, false);
 		return;
 	}
 	if (event.target.id === 'cancel') {
@@ -485,7 +524,7 @@ textbox.addEventListener('keydown', event => {
 });
 
 textbox.addEventListener('input', () => {
-void updateMentionSuggestions();
+	void updateMentionSuggestions();
 	textbox.style.height = 'auto';
 	textbox.style.height = `${Math.min(textbox.scrollHeight, 160)}px`;
 	const hasText = Boolean(textbox.value.trim());
