@@ -22,6 +22,37 @@ from files.helpers.username_effects import (
 from files.routes.wrappers import auth_required, get_ID
 
 
+RECENT_USERNAME_EFFECT_KEYS = frozenset({
+    'barbershop',
+    'barrage',
+    'blossom',
+    'bubbles',
+    'bux',
+    'coins',
+    'disco',
+    'error',
+    'explosive',
+    'glitched',
+    'heavenly',
+    'hellish',
+    'holographic',
+    'incandescent',
+    'interference',
+    'lemonparty',
+    'milkyway',
+    'radioactive',
+    'rome',
+    'spill',
+    'splash',
+    'stargate',
+    'submerge',
+    'swirly',
+    'tartan',
+    'tiedye',
+    'yoonseul',
+})
+
+
 def _effect_or_404(effect_key):
     key = str(effect_key or '').strip().lower()
     effect = USERNAME_EFFECTS.get(key)
@@ -71,7 +102,10 @@ def username_effect_shop(v):
 
     effects.sort(
         key=lambda item: (
-            0 if item['active'] else 1 if item['owned'] else 2,
+            0 if item['active']
+            else 1 if item['owned']
+            else 2 if item['key'] in RECENT_USERNAME_EFFECT_KEYS
+            else 3,
             item['_position'],
         )
     )
