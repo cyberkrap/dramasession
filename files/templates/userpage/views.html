@@ -1,8 +1,9 @@
 {% extends "default.html" %}
 {% block pagetitle %}@{{u.username}}'s Profile Views{% endblock %}
 {% block content %}
+{% set total = profile_view_count(u, 'views', v) %}
 <div class="d-flex align-items-center justify-content-between flex-wrap pt-4 pl-2 pr-2 pb-3">
-	<h5 class="mb-2">Users who viewed @{{u.username}}'s profile</h5>
+	<h5 class="mb-2">Users who viewed <a href="/@{{u.username}}">@{{u.username}}</a>'s profile ({{total}} user{% if total != 1 %}s{% endif %})</h5>
 	<div class="btn-group btn-group-sm mb-2" role="group" aria-label="Profile view history">
 		<a class="btn btn-primary" href="/@{{u.username}}/views" aria-current="page">Profile Views</a>
 		<a class="btn btn-secondary" href="/@{{u.username}}/viewed">Profiles Viewed</a>
