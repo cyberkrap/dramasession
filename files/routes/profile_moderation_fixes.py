@@ -1,6 +1,6 @@
 import os
 
-from flask import abort, request
+from flask import abort, g, request
 
 from files.__main__ import app
 from files.classes import ModAction, User
@@ -38,9 +38,6 @@ def protect_privileged_modlog_permalinks():
     if not action_id:
         return None
 
-    action = app.extensions["sqlalchemy"].session.get(ModAction, action_id) if False else None
-    # g.db is installed by the core request lifecycle before route hooks run.
-    from flask import g
     action = g.db.get(ModAction, action_id)
     if not action or action.kind not in modaction_config.MODACTION_PRIVILEGED_TYPES:
         return None
