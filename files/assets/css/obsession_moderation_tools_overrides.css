@@ -1,0 +1,126 @@
+/* Final profile moderation corrections. Loaded after obsession_moderation_tools.css. */
+
+/* The base moderation stylesheet intentionally uses !important layout rules.
+   Hidden state must win over those rules or shadowban/ban forms reappear. */
+.profile-moderation .d-none,
+.profile-moderation form.d-none,
+.profile-moderation button.d-none,
+.profile-moderation a.d-none {
+	display: none !important;
+}
+
+/* Flair moderation is one compact tool, not three unrelated controls floating
+   around a card. */
+.profile-moderation .profile-flair-card {
+	padding: 12px !important;
+}
+
+.profile-moderation .profile-flair-card > .w-lg-100,
+.profile-moderation .profile-flair-card form[action^="/admin/title_change/"] {
+	width: 100% !important;
+	min-width: 0 !important;
+}
+
+.profile-moderation .profile-flair-card form[action^="/admin/title_change/"] > .form-control {
+	margin-bottom: 8px !important;
+}
+
+.profile-moderation .profile-flair-controls {
+	display: grid !important;
+	grid-template-columns: 40px minmax(120px, 1fr) auto !important;
+	align-items: center !important;
+	gap: 8px !important;
+	width: 100% !important;
+	margin: 0 !important;
+}
+
+.profile-moderation .profile-flair-emoji {
+	display: block !important;
+	width: 40px !important;
+	height: 40px !important;
+	margin: 0 !important;
+}
+
+.profile-moderation .profile-flair-emoji .btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 40px !important;
+	height: 40px !important;
+	min-width: 40px !important;
+	min-height: 40px !important;
+	padding: 0 !important;
+	color: #dedce1 !important;
+	background: rgba(255, 255, 255, .055) !important;
+	border: 1px solid var(--mod-border) !important;
+	border-radius: 8px !important;
+}
+
+.profile-moderation .profile-flair-lock {
+	position: relative !important;
+	display: flex !important;
+	align-items: center !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	height: 40px !important;
+	min-height: 40px !important;
+	margin: 0 !important;
+	padding: 0 10px 0 36px !important;
+	background: rgba(3, 3, 5, .55) !important;
+	border: 1px solid var(--mod-border) !important;
+	border-radius: 8px !important;
+	box-sizing: border-box !important;
+}
+
+.profile-moderation .profile-flair-lock .custom-control-input {
+	left: 11px !important;
+}
+
+.profile-moderation .profile-flair-lock .custom-control-label {
+	display: flex !important;
+	align-items: center !important;
+	min-height: 38px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	color: #d8d5dc !important;
+	font-size: .8rem !important;
+	font-weight: 650 !important;
+	line-height: 1.1 !important;
+	white-space: nowrap !important;
+}
+
+.profile-moderation .profile-flair-lock .custom-control-label::before,
+.profile-moderation .profile-flair-lock .custom-control-label::after {
+	top: 50% !important;
+	left: -25px !important;
+	transform: translateY(-50%) !important;
+}
+
+.profile-moderation .profile-flair-submit {
+	width: auto !important;
+	min-width: 116px !important;
+	height: 40px !important;
+	min-height: 40px !important;
+	margin: 0 !important;
+	padding: 0 14px !important;
+	white-space: nowrap !important;
+}
+
+/* Disabled asset actions should look intentionally unavailable. */
+.profile-moderation .moderation-asset-actions .btn:disabled {
+	opacity: .42 !important;
+	cursor: not-allowed !important;
+	transform: none !important;
+	box-shadow: none !important;
+}
+
+@media (max-width: 560px) {
+	.profile-moderation .profile-flair-controls {
+		grid-template-columns: 40px minmax(0, 1fr) !important;
+	}
+
+	.profile-moderation .profile-flair-submit {
+		grid-column: 1 / -1 !important;
+		width: 100% !important;
+	}
+}
