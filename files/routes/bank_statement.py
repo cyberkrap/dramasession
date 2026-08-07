@@ -1,6 +1,7 @@
 import csv
 import io
 import json
+import re
 import time
 from urllib.parse import urlencode
 
@@ -32,6 +33,7 @@ _VALID_CATEGORIES = {x[0] for x in BANK_CATEGORIES}
 _VALID_DIRECTIONS = {"all", "in", "out"}
 _VALID_RANGES = {"all", "24h", "7d", "30d", "90d"}
 _RANGE_SECONDS = {"24h": 86400, "7d": 604800, "30d": 2592000, "90d": 7776000}
+_PROFILE_PATH_RE = re.compile(r"^/@([a-zA-Z0-9_-]+)$")
 
 
 def _safe_json(raw):
@@ -260,3 +262,32 @@ def bank_statement(v: User, username: str):
         next_exists=next_exists,
         query_string=_qs(),
     )
+
+
+@app.after_request
+def link_profile_balances_to_bank_statement(response):
+    """Make profile currency stats act as the natural entry point to the ledger."""
+    match = _PROFILE_PATH_RE.fullmatch(request.path)
+    if not match or response.direct_passthrough or response.mimetype != "text/html" or response.status_code >= 400:
+        return response
+
+    body = response.get_data(as_text=True)
+    if 'id="profile-coins-amount"' not in body and 'id="profile-bux-amount"' not in body:
+        return response
+
+    username = match.group(1)
+    body = re.sub(
+        r'<div class="profile-stat"><strong id="profile-bux-amount">(.*?)</strong><span>Wishbux</span></div>',
+        rf'<a class="profile-stat" href="/@{username}/bank?currency=wishbux" title="View Wishbux bank statement"><strong id="profile-bux-amount">\1</strong><span>Wishbux</span></a>',
+        body,
+        count=1,
+    )
+    body = re.sub(
+        r'<div class="profile-stat"><strong id="profile-coins-amount">(.*?)</strong><span>Wishcoins</span></div>',
+        rf'<a class="profile-stat" href="/@{username}/bank?currency=coins" title="View Wishcoin bank statement"><strong id="profile-coins-amount">\1</strong><span>Wishcoins</span></a>',
+        body,
+        count=1,
+    )
+    response.set_data(body)
+    response.headers.pop("Content-Length", None)
+    return response
