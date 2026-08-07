@@ -266,16 +266,14 @@ def bank_statement(v: User, username: str):
 
 @app.after_request
 def link_profile_balances_to_bank_statement(response):
-    """Make profile currency stats act as the natural entry point to the ledger."""
+    """Expose bank/history entry points directly from a profile."""
     match = _PROFILE_PATH_RE.fullmatch(request.path)
     if not match or response.direct_passthrough or response.mimetype != "text/html" or response.status_code >= 400:
         return response
 
     body = response.get_data(as_text=True)
-    if 'id="profile-coins-amount"' not in body and 'id="profile-bux-amount"' not in body:
-        return response
-
     username = match.group(1)
+
     body = re.sub(
         r'<div class="profile-stat"><strong id="profile-bux-amount">(.*?)</strong><span>Wishbux</span></div>',
         rf'<a class="profile-stat" href="/@{username}/bank?currency=wishbux" title="View Wishbux bank statement"><strong id="profile-bux-amount">\1</strong><span>Wishbux</span></a>',
@@ -288,6 +286,17 @@ def link_profile_balances_to_bank_statement(response):
         body,
         count=1,
     )
+
+    views_link = f'<a href="/@{username}/views">Profile Views</a>'
+    viewed_link = f'<a href="/@{username}/viewed">Profiles Viewed</a>'
+    voting_link = f'<a href="/@{username}/voted/posts">Voting history</a>'
+    bank_link = f'<a href="/@{username}/bank">Bank Statement</a>'
+
+    if views_link in body and viewed_link not in body:
+        body = body.replace(views_link, views_link + "\n\t\t\t\t\t" + viewed_link, 1)
+    if voting_link in body and bank_link not in body:
+        body = body.replace(voting_link, voting_link + "\n\t\t\t\t\t" + bank_link, 1)
+
     response.set_data(body)
     response.headers.pop("Content-Length", None)
     return response
