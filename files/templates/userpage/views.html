@@ -1,7 +1,13 @@
 {% extends "default.html" %}
 {% block pagetitle %}@{{u.username}}'s Profile Views{% endblock %}
 {% block content %}
-<h5 class="pt-4 pl-2 pb-3">Users who viewed @{{u.username}}'s profile</h5>
+<div class="d-flex align-items-center justify-content-between flex-wrap pt-4 pl-2 pr-2 pb-3">
+	<h5 class="mb-2">Users who viewed @{{u.username}}'s profile</h5>
+	<div class="btn-group btn-group-sm mb-2" role="group" aria-label="Profile view history">
+		<a class="btn btn-primary" href="/@{{u.username}}/views" aria-current="page">Profile Views</a>
+		<a class="btn btn-secondary" href="/@{{u.username}}/viewed">Profiles Viewed</a>
+	</div>
+</div>
 <div class="overflow-x-auto"><table class="table table-striped mb-5">
 <thead class="bg-primary text-white">
 	<tr>
@@ -18,9 +24,13 @@
 		</td>
 		<td>{{view.last_view_string}}</td>
 	</tr>
+{% else %}
+	<tr>
+		<td colspan="2" class="text-muted">No profile views recorded yet.</td>
+	</tr>
 {% endfor %}
 </table>
-
+</div>
 {% endblock %}
 
 {% block pagenav %}
