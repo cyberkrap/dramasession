@@ -128,14 +128,6 @@ function register_new_elements(e) {
 		element.onchange = () => {execute(element, 'onchange')};
 	}
 
-	const popover_triggers = document.getElementsByClassName('user-name');
-	for (const element of popover_triggers) {
-		element.onclick = (e) => {
-			if (!(e.ctrlKey || e.metaKey || e.shiftKey || e.altKey))
-				e.preventDefault();
-		};
-	}
-
 	const expandable = document.querySelectorAll('.in-comment-image, img[alt^="![]("]');
 	for (const element of expandable) {
 		element.onclick = () => {expandImage()};
