@@ -31,7 +31,7 @@ _BADGE_ASSET_DIRECTORY = Path(__file__).resolve().parents[1] / "assets" / "image
 class BadgeDef(Base):
 	__tablename__ = "badge_defs"
 
-	id = Column(Integer, primary_key_key=True, autoincrement=True)
+	id = Column(Integer, primary_key=True, autoincrement=True)
 	name = Column(String)
 	description = Column(String)
 	created_utc = Column(Integer)
