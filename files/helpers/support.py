@@ -23,6 +23,7 @@ PATRON_CAPABILITIES = {
     "gifting_tax_exempt": 1,
     "custom_background": 2,
     "benefactor": 2,
+    "short_username": 3,
 }
 
 PATRON_LIMITS = {
@@ -111,7 +112,8 @@ SUPPORT_TIERS = (
         "level": 3, "slug": "devoted", "name": SUPPORT_TIER_NAMES[3], "price": 20,
         "wishbux": 24000, "discount": 20, "badge": 23, "popular": True,
         "new_perks": ("Sandy's Devoted badge and nameplate", "24,000 Wishbux monthly",
-                       "20% shop and award discount", "Profile signature"),
+                       "20% shop and award discount", "Profile signature",
+                       "Ability to use a 1- or 2-character username"),
     },
     {
         "level": 4, "slug": "obsessed", "name": SUPPORT_TIER_NAMES[4], "price": 50,
