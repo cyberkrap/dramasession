@@ -80,6 +80,7 @@ from .settings import *
 from .connections import *
 from .signup_rewards import *
 from .static import *
+from .profile_moderation_fixes import *
 from .site_banner import *
 from .paypal import *
 from .community_gallery import *
