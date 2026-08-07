@@ -1,0 +1,55 @@
+{% extends "default.html" %}
+{% block pagetitle %}@{{u.username}}'s Profiles Viewed{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap pt-4 pl-2 pr-2 pb-3">
+	<h5 class="mb-2">Profiles viewed by @{{u.username}}</h5>
+	<div class="btn-group btn-group-sm mb-2" role="group" aria-label="Profile view history">
+		<a class="btn btn-secondary" href="/@{{u.username}}/views">Profile Views</a>
+		<a class="btn btn-primary" href="/@{{u.username}}/viewed" aria-current="page">Profiles Viewed</a>
+	</div>
+</div>
+<div class="overflow-x-auto"><table class="table table-striped mb-5">
+<thead class="bg-primary text-white">
+	<tr>
+		<th>Name</th>
+		<th class="disable-sort-click">Last viewed</th>
+	</tr>
+</thead>
+{% for view, viewed_user in views %}
+	<tr>
+		<td>
+			{% with user=viewed_user %}
+				{% include "user_in_table.html" %}
+			{% endwith %}
+		</td>
+		<td>{{view.last_view_string}}</td>
+	</tr>
+{% else %}
+	<tr>
+		<td colspan="2" class="text-muted">No profile views recorded yet.</td>
+	</tr>
+{% endfor %}
+</table>
+</div>
+{% endblock %}
+
+{% block pagenav %}
+<nav>
+	<ul class="pagination pagination-sm py-3 pl-3 mb-0">
+		{% if page>1 %}
+		<li class="page-item">
+			<small><a class="page-link" href="?page={{page-1}}" tabindex="-1">Prev</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Prev</span></li>
+		{% endif %}
+		{% if next_exists %}
+		<li class="page-item">
+			<small><a class="page-link" href="?page={{page+1}}">Next</a></small>
+		</li>
+		{% else %}
+		<li class="page-item disabled"><span class="page-link">Next</span></li>
+		{% endif %}
+	</ul>
+</nav>
+{% endblock %}
