@@ -2,7 +2,7 @@
 {% block pagetitle %}@{{u.username}}'s Profiles Viewed{% endblock %}
 {% block content %}
 <div class="d-flex align-items-center justify-content-between flex-wrap pt-4 pl-2 pr-2 pb-3">
-	<h5 class="mb-2">Profiles viewed by @{{u.username}}</h5>
+	<h5 class="mb-2">Profiles that <a href="/@{{u.username}}">@{{u.username}}</a> viewed ({{total}} user{% if total != 1 %}s{% endif %})</h5>
 	<div class="btn-group btn-group-sm mb-2" role="group" aria-label="Profile view history">
 		<a class="btn btn-secondary" href="/@{{u.username}}/views">Profile Views</a>
 		<a class="btn btn-primary" href="/@{{u.username}}/viewed" aria-current="page">Profiles Viewed</a>
