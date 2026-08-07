@@ -19,6 +19,8 @@ _OBSESSION_BADGE_ASSETS = {
 	24: "curry-obsession.webp",
 	25: "ian-bankroller.webp",
 	99: "sidebar.webp",
+	366: "366.webp",
+	367: "367.webp",
 }
 _OBSESSION_BADGE_ASSETS_BY_NAME = {
 	"Minor Strike": "minor-strike.png",
@@ -29,7 +31,7 @@ _BADGE_ASSET_DIRECTORY = Path(__file__).resolve().parents[1] / "assets" / "image
 class BadgeDef(Base):
 	__tablename__ = "badge_defs"
 
-	id = Column(Integer, primary_key=True, autoincrement=True)
+	id = Column(Integer, primary_key_key=True, autoincrement=True)
 	name = Column(String)
 	description = Column(String)
 	created_utc = Column(Integer)
@@ -51,7 +53,7 @@ class BadgeDef(Base):
 		if not asset_name:
 			asset_name = _OBSESSION_BADGE_ASSETS_BY_NAME.get(badge_name)
 		if asset_name and (_BADGE_ASSET_DIRECTORY / asset_name).is_file():
-			return f"/i/{SITE_NAME}/badges/{asset_name}?v=20260803-minor-strike-png"
+			return f"/i/{SITE_NAME}/badges/{asset_name}?v=20260808-casino-million"
 		if 20 < self.id < 28 or self.id == 222:
 			return f"/i/{SITE_NAME}/badges/{self.id}.webp"
 		return f"/i/badges/{self.id}.webp"
