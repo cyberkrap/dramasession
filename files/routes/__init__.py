@@ -77,6 +77,7 @@ from .posts import *
 from .inline_images import *
 from .search import *
 from .settings import *
+from .short_username_perk import *
 from .connections import *
 from .signup_rewards import *
 from .static import *
