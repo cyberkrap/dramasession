@@ -85,6 +85,7 @@ from .site_banner import *
 from .paypal import *
 from .community_gallery import *
 from .users import *
+from .profile_view_history import *
 from .profile_enhancements import *
 from .lifetime_contributions import *
 from .votes import *
