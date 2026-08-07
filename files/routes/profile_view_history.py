@@ -8,6 +8,30 @@ from files.routes.wrappers import *
 from files.__main__ import app, limiter
 
 
+def profile_view_count(user: User, direction: str, viewer: User | None = None) -> int:
+	"""Return the full profile-view relationship count before pagination."""
+	if direction == "views":
+		return g.db.query(ViewerRelationship).filter(
+			ViewerRelationship.user_id == user.id,
+		).count()
+
+	if direction == "viewed":
+		query = g.db.query(ViewerRelationship) \
+			.join(User, User.id == ViewerRelationship.user_id) \
+			.filter(ViewerRelationship.viewer_id == user.id)
+
+		# Keep the total consistent with the rows visible on Profiles Viewed.
+		if viewer and not viewer.can_see_shadowbanned:
+			query = query.filter(User.shadowbanned == None)
+
+		return query.count()
+
+	raise ValueError(f"Unknown profile view direction: {direction}")
+
+
+app.jinja_env.globals["profile_view_count"] = profile_view_count
+
+
 @app.get("/@<username>/viewed")
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
 @auth_required
@@ -31,6 +55,8 @@ def profiles_viewed(v: User, username: str):
 	if not v.can_see_shadowbanned:
 		views = views.filter(User.shadowbanned == None)
 
+	total = views.order_by(None).count()
+
 	views = views.order_by(ViewerRelationship.last_view_utc.desc()) \
 		.offset(PAGE_SIZE * (page - 1)) \
 		.limit(PAGE_SIZE + 1) \
@@ -44,6 +70,7 @@ def profiles_viewed(v: User, username: str):
 		v=v,
 		u=u,
 		views=views,
+		total=total,
 		next_exists=next_exists,
 		page=page,
 	)
