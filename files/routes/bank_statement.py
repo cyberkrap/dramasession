@@ -9,7 +9,7 @@ from sqlalchemy import text
 
 from files.__main__ import app, limiter
 from files.classes import User
-from files.helpers.config.const import DEFAULT_RATELIMIT, PAGE_SIZE
+from files.helpers.config.const import DEFAULT_RATELIMIT
 from files.helpers.get import get_user
 from files.helpers.wishcoin_asset import WISHBUX_ASSET_URL, WISHCOIN_ASSET_URL
 from files.routes.wrappers import auth_desired, get_ID
@@ -46,6 +46,36 @@ def _transaction_label(row):
     path = (row.get("origin_path") or "").lower()
     meta = _safe_json(row.get("context_json"))
     amount = int(row.get("amount") or 0)
+    subsystem = (row.get("label") or "").strip()
+
+    if subsystem == "Slots":
+        return "Slots winnings" if amount > 0 else "Slots bet"
+    if subsystem == "Blackjack":
+        return "Blackjack winnings" if amount > 0 else "Blackjack bet"
+    if subsystem == "Roulette":
+        return "Roulette winnings" if amount > 0 else "Roulette bet"
+    if subsystem == "Lottery":
+        return "Lottery winnings" if amount > 0 else "Lottery purchase"
+    if subsystem == "Awards":
+        return "Award payout" if amount > 0 else "Award purchase"
+    if subsystem == "Username effect":
+        return "Username effect refund" if amount > 0 else "Username effect purchase"
+    if subsystem == "Hat shop":
+        return "Hat transaction" if amount > 0 else "Hat purchase"
+    if subsystem == "Gift":
+        target = meta.get("username") or meta.get("user") or meta.get("target") or meta.get("name")
+        base = "Gift received" if amount > 0 else "Gift sent"
+        return f"{base} involving @{target}" if target else base
+    if subsystem == "Currency exchange":
+        return "Currency exchange"
+    if subsystem == "Support":
+        return "Support reward" if amount > 0 else "Support transaction"
+    if subsystem == "Admin adjustment":
+        return "Admin balance adjustment"
+    if subsystem == "Bet":
+        return "Bet winnings" if amount > 0 else "Bet placed"
+    if subsystem == "Casino":
+        return "Casino winnings" if amount > 0 else "Casino bet"
 
     if "slot" in path:
         return "Slots winnings" if amount > 0 else "Slots bet"
@@ -58,17 +88,16 @@ def _transaction_label(row):
     if "award" in path:
         return "Award payout" if amount > 0 else "Award purchase"
     if "username_effect" in path or "username-effect" in path or "effect" in path:
-        return "Username effect purchase" if amount < 0 else "Username effect refund"
+        return "Username effect refund" if amount > 0 else "Username effect purchase"
     if "hat" in path:
-        return "Hat purchase" if amount < 0 else "Hat transaction"
+        return "Hat transaction" if amount > 0 else "Hat purchase"
     if "shop" in path:
         item = meta.get("item") or meta.get("name")
         return f"Shop purchase: {item}" if item and amount < 0 else "Shop transaction"
     if "gift" in path or "transfer" in path:
         target = meta.get("username") or meta.get("user") or meta.get("target") or meta.get("name")
-        if target:
-            return ("Gift received" if amount > 0 else "Gift sent") + f" involving @{target}"
-        return "Gift received" if amount > 0 else "Gift sent"
+        base = "Gift received" if amount > 0 else "Gift sent"
+        return f"{base} involving @{target}" if target else base
     if "exchange" in path:
         return "Currency exchange"
     if "paypal" in path or "support" in path or "donat" in path:
@@ -99,7 +128,7 @@ def _build_statement_query(user_id, currency, category, direction, period, q, hi
     if q:
         params["q"] = f"%{q.lower()}%"
         clauses.append(
-            "(LOWER(COALESCE(origin_path,'')) LIKE :q OR "
+            "(LOWER(COALESCE(label,'')) LIKE :q OR LOWER(COALESCE(origin_path,'')) LIKE :q OR "
             " LOWER(COALESCE(context_json,'')) LIKE :q OR "
             " CAST(id AS TEXT) LIKE :q OR CAST(amount AS TEXT) LIKE :q)"
         )
@@ -113,6 +142,7 @@ def _qs(**overrides):
     for key in [k for k, v in args.items() if v in (None, "", "all") and k not in {"currency"}]:
         args.pop(key, None)
     args.pop("page", None)
+    args.pop("format", None)
     return urlencode(args)
 
 
@@ -143,6 +173,10 @@ def bank_statement(v: User, username: str):
         page = max(1, int(request.args.get("page", 1)))
     except (TypeError, ValueError):
         page = 1
+    try:
+        per_page = max(25, min(100, int(request.args.get("per_page", 50) or 50)))
+    except (TypeError, ValueError):
+        per_page = 50
 
     where_sql, params = _build_statement_query(
         u.id, currency, category, direction, period, q, hide_casino
@@ -159,11 +193,12 @@ def bank_statement(v: User, username: str):
         params,
     ).mappings().one()
 
+    select_columns = "id, created_utc, amount, balance_after, category, label, origin_path, context_json"
+
     if request.args.get("format") == "csv":
         export_rows = g.db.execute(
             text(
-                f"SELECT id, created_utc, amount, balance_after, category, origin_path, context_json "
-                f"FROM economy_ledger WHERE {where_sql} "
+                f"SELECT {select_columns} FROM economy_ledger WHERE {where_sql} "
                 f"ORDER BY created_utc DESC, id DESC LIMIT 10000"
             ),
             params,
@@ -183,13 +218,10 @@ def bank_statement(v: User, username: str):
             headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
 
-    per_page = max(25, min(100, int(request.args.get("per_page", 50) or 50)))
     rows = g.db.execute(
         text(
-            f"SELECT id, created_utc, amount, balance_after, category, origin_path, context_json "
-            f"FROM economy_ledger WHERE {where_sql} "
-            f"ORDER BY created_utc DESC, id DESC "
-            f"OFFSET :offset LIMIT :limit"
+            f"SELECT {select_columns} FROM economy_ledger WHERE {where_sql} "
+            f"ORDER BY created_utc DESC, id DESC OFFSET :offset LIMIT :limit"
         ),
         {**params, "offset": (page - 1) * per_page, "limit": per_page + 1},
     ).mappings().all()
