@@ -8,7 +8,7 @@ from files.routes.wrappers import *
 from files.__main__ import app, limiter
 
 
-def profile_view_count(user: User, direction: str, viewer: User | None = None) -> int:
+def profile_view_count(user: User, direction: str, viewer=None) -> int:
 	"""Return the full profile-view relationship count before pagination."""
 	if direction == "views":
 		return g.db.query(ViewerRelationship).filter(
