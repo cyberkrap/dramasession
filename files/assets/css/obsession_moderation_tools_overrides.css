@@ -5,7 +5,9 @@
 .profile-moderation .d-none,
 .profile-moderation form.d-none,
 .profile-moderation button.d-none,
-.profile-moderation a.d-none {
+.profile-moderation a.d-none,
+.profile-moderation .admintools-user-lower-desktop > form.d-none,
+.profile-moderation .admintools-user-lower-mobile > form.d-none {
 	display: none !important;
 }
 
