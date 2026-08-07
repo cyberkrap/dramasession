@@ -1,5 +1,7 @@
 """Keep Obsession badge names and descriptions free of legacy branding."""
 
+import time
+
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -26,6 +28,18 @@ CONTRIBUTION_BADGE_DESCRIPTIONS.update({
 })
 
 
+CASINO_MILLION_BADGES = {
+    366: (
+        "Goombler God",
+        "Won a 1,000,000 Wishcoin bet. Living proof that you should never stop gambling.",
+    ),
+    367: (
+        "Never Gonna Financially Recover From This",
+        "Lost a 1,000,000 Wishcoin bet. Lmao RIP.",
+    ),
+}
+
+
 BADGE_BRANDING = {
     1: (
         "Alpha User",
@@ -44,6 +58,7 @@ BADGE_BRANDING = {
         "Created approved artwork for the site sidebar.",
     ),
 }
+BADGE_BRANDING.update(CASINO_MILLION_BADGES)
 BADGE_BRANDING.update({
     badge_id: (
         CONTRIBUTION_BADGE_NAMES[badge_id],
@@ -54,9 +69,24 @@ BADGE_BRANDING.update({
 
 
 def install_badge_branding(engine):
-    """Update existing badge definitions at startup without touching ownership."""
+    """Install required Obsession badges and keep badge branding current."""
     try:
         with engine.begin() as connection:
+            for badge_id, (name, description) in CASINO_MILLION_BADGES.items():
+                connection.execute(
+                    text(
+                        "INSERT INTO badge_defs (id, name, description, created_utc) "
+                        "VALUES (:badge_id, :name, :description, :created_utc) "
+                        "ON CONFLICT (id) DO NOTHING"
+                    ),
+                    {
+                        "badge_id": badge_id,
+                        "name": name,
+                        "description": description,
+                        "created_utc": int(time.time()),
+                    },
+                )
+
             for badge_id, (name, description) in BADGE_BRANDING.items():
                 connection.execute(
                     text(
