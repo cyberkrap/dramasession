@@ -6,8 +6,7 @@ from files.__main__ import app
 from files.classes import ModAction, User
 from files.helpers.config.const import PERMS
 from files.helpers.config import modaction_types as modaction_config
-from files.helpers.get import get_logged_in_user
-from files.routes.wrappers import admin_level_required
+from files.routes.wrappers import admin_level_required, get_logged_in_user
 
 
 _PROFILE_ANTHEM_ACTION = {
