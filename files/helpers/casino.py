@@ -112,6 +112,8 @@ def distribute_wager_badges(user, wager, won):
 			badges_earned.append(161)
 		if wager >= 100000:
 			badges_earned.append(162)
+		if wager >= 1000000:
+			badges_earned.append(366)
 	else:
 		if wager >= 1000:
 			badges_earned.append(157)
@@ -119,6 +121,8 @@ def distribute_wager_badges(user, wager, won):
 			badges_earned.append(158)
 		if wager >= 100000:
 			badges_earned.append(159)
+		if wager >= 1000000:
+			badges_earned.append(367)
 
 	for badge in badges_earned:
 		badge_grant(user, badge)
