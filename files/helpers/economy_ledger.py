@@ -15,6 +15,10 @@ from files.helpers.config.const import SITE_NAME
 
 
 _LEDGER_DDL = r"""
+-- Multiple Gunicorn workers import routes at the same time. Serialize this
+-- installer inside PostgreSQL so trigger creation cannot race at boot.
+SELECT pg_advisory_xact_lock(hashtext('toc_economy_ledger_install'));
+
 CREATE TABLE IF NOT EXISTS economy_ledger (
     id BIGSERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
