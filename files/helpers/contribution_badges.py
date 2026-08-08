@@ -11,7 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from files.__main__ import app, engine
 from files.classes import Badge, PaypalPayment, PaypalSubscription, User
-from files.helpers.get import get_user
+from files.helpers.get import get_comment, get_post, get_user
 from files.helpers.support import PAYPAL_ACTIVE_PLAN_IDS, SUPPORT_TIER_BY_LEVEL
 
 
@@ -34,6 +34,8 @@ _SYNC_LOCK = threading.Lock()
 _NEXT_GLOBAL_SYNC_UTC = 0
 _FLAG_INSTALLED = False
 _ADMIN_ROUTE_INSTALLED = False
+_BENEFACTOR_ROUTE_INSTALLED = False
+_BADGE_REMOVE_ROUTE_INSTALLED = False
 
 
 def _install_patron_badge_flag():
@@ -66,6 +68,42 @@ def _install_patron_badge_flag():
                         "patron_badges_disabled BOOLEAN NOT NULL DEFAULT FALSE"
                     )
     _FLAG_INSTALLED = True
+
+
+def _active_paypal_support_level(db, user_id):
+    """Return the user's active paid PayPal tier, or 0 for non-paid patron time."""
+    if not PAYPAL_ACTIVE_PLAN_IDS:
+        return 0
+
+    now = int(time.time())
+    subscriptions = db.query(PaypalSubscription).filter(
+        PaypalSubscription.user_id == int(user_id),
+        PaypalSubscription.plan_id.in_(PAYPAL_ACTIVE_PLAN_IDS),
+        PaypalSubscription.status.in_(("ACTIVE", "CANCELLED")),
+    ).all()
+
+    level = 0
+    for subscription in subscriptions:
+        paid = db.query(PaypalPayment.payment_id).filter(
+            PaypalPayment.subscription_id == subscription.subscription_id,
+            PaypalPayment.user_id == int(user_id),
+            PaypalPayment.status == "COMPLETED",
+        ).first()
+        if not paid:
+            continue
+
+        entitlement_until = max(
+            int(subscription.next_billing_utc or 0),
+            int(subscription.last_payment_utc or 0) + 35 * 86400,
+        )
+        if subscription.status == "ACTIVE" or entitlement_until > now:
+            level = max(level, min(5, int(subscription.tier or 0)))
+
+    return level
+
+
+def has_active_paid_support(db, user_id):
+    return _active_paypal_support_level(db, user_id) > 0
 
 
 def sync_active_support_badges(db, user, level=None):
@@ -304,10 +342,113 @@ def _install_admin_patron_badge_option():
     _ADMIN_ROUTE_INSTALLED = True
 
 
+def _install_benefactor_patron_badge_guard():
+    """Benefactor award time grants patron perks, never donation badges."""
+    global _BENEFACTOR_ROUTE_INSTALLED
+    if _BENEFACTOR_ROUTE_INSTALLED:
+        return
+
+    endpoint = "award_thing"
+    original = app.view_functions.get(endpoint)
+    if original is None or getattr(original, "_benefactor_patron_badge_guard", False):
+        return
+
+    @wraps(original)
+    def award_with_benefactor_patron_guard(*args, **kwargs):
+        kind = (request.values.get("kind") or "").strip().lower()
+        if kind != "benefactor":
+            return original(*args, **kwargs)
+
+        target = None
+        prior_level = 0
+        try:
+            view_args = request.view_args or {}
+            thing_type = view_args.get("thing_type")
+            thing_id = int(view_args.get("id"))
+            thing = get_post(thing_id) if thing_type == "post" else get_comment(thing_id)
+            target = thing.author
+            prior_level = int(getattr(target, "patron", 0) or 0)
+            prior_expiry = int(getattr(target, "patron_utc", 0) or 0)
+            if prior_expiry and prior_expiry <= int(time.time()):
+                prior_level = 0
+        except Exception:
+            target = None
+            prior_level = 0
+
+        response = original(*args, **kwargs)
+
+        if target is not None:
+            # Never let a Benefactor award downgrade an existing higher patron tier.
+            if prior_level > int(getattr(target, "patron", 0) or 0):
+                target.patron = prior_level
+
+            # A brand-new patron entitlement created by Benefactor is a perk grant,
+            # not evidence of a donation. Verified paid support remains untouched.
+            if prior_level == 0 and not has_active_paid_support(g.db, target.id):
+                target.patron_badges_disabled = True
+                sync_active_support_badges(g.db, target, 0)
+
+            target.__dict__.pop("_lazy", None)
+            g.db.add(target)
+            g.db.flush()
+
+        return response
+
+    award_with_benefactor_patron_guard._benefactor_patron_badge_guard = True
+    app.view_functions[endpoint] = award_with_benefactor_patron_guard
+    _BENEFACTOR_ROUTE_INSTALLED = True
+
+
+def _install_support_badge_removal_guard():
+    """Let admins permanently remove mistaken supporter badges from non-payers."""
+    global _BADGE_REMOVE_ROUTE_INSTALLED
+    if _BADGE_REMOVE_ROUTE_INSTALLED:
+        return
+
+    endpoint = "badge_remove_post"
+    original = app.view_functions.get(endpoint)
+    if original is None or getattr(original, "_support_badge_removal_guard", False):
+        return
+
+    @wraps(original)
+    def remove_badge_with_support_guard(*args, **kwargs):
+        response = original(*args, **kwargs)
+
+        try:
+            badge_id = int(request.values.get("badge_id"))
+        except (TypeError, ValueError):
+            return response
+        if badge_id not in ACTIVE_SUPPORT_BADGE_IDS:
+            return response
+
+        # Only apply the suppression when the normal admin route actually reports
+        # a successful removal; failed/nonexistent removals must not change patron state.
+        if not isinstance(response, str) or "Badge removed from @" not in response:
+            return response
+
+        username = (request.values.get("username") or "").strip()
+        user = get_user(username, graceful=True)
+        if user is None or has_active_paid_support(g.db, user.id):
+            return response
+
+        user.patron_badges_disabled = True
+        sync_active_support_badges(g.db, user, 0)
+        user.__dict__.pop("_lazy", None)
+        g.db.add(user)
+        g.db.flush()
+        return response
+
+    remove_badge_with_support_guard._support_badge_removal_guard = True
+    app.view_functions[endpoint] = remove_badge_with_support_guard
+    _BADGE_REMOVE_ROUTE_INSTALLED = True
+
+
 def install_cumulative_contribution_badges():
     """Install active-support recalculation, free patrons, and badge migration."""
     _install_patron_badge_flag()
     _install_admin_patron_badge_option()
+    _install_benefactor_patron_badge_guard()
+    _install_support_badge_removal_guard()
 
     paypal_helpers = importlib.import_module("files.helpers.paypal")
     paypal_routes = importlib.import_module("files.routes.paypal")
