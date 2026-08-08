@@ -134,7 +134,7 @@ BEGIN
             PERFORM set_config('toc.economy_label', 'Patron reward', true);
             PERFORM set_config(
                 'toc.economy_meta',
-                '{"tier_name":"Ian''s Bankroller","tier":5,"manual_seed":"cybercrap-tier5-reset-20260808"}',
+                '{"tier_name":"Ian''s Bankroller","manual_seed":"cybercrap-tier5-reset-20260808"}',
                 true
             );
             UPDATE users SET marseybux = 140000 WHERE id = target_user_id;
