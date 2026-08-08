@@ -12,7 +12,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from files.__main__ import app, engine
 from files.classes import Badge, PaypalPayment, PaypalSubscription, User
 from files.helpers.get import get_comment, get_post, get_user
-from files.helpers.support import PAYPAL_ACTIVE_PLAN_IDS, SUPPORT_TIER_BY_LEVEL
+from files.helpers.support import (
+    CONTRIBUTION_BADGE_NAMES,
+    PAYPAL_ACTIVE_PLAN_IDS,
+    SUPPORT_TIER_BY_LEVEL,
+)
 
 
 # Badge IDs 21-25 correspond to the five live monthly support tiers. IDs 26-27
@@ -258,6 +262,67 @@ def _entitlement_sql():
     return sql, params
 
 
+def _honor_admin_support_badge_removals():
+    """Persist prior admin removals that old patron sync code used to undo."""
+    if not PAYPAL_ACTIVE_PLAN_IDS:
+        return False
+
+    params = {"now": int(time.time())}
+    plan_slots = []
+    for index, plan_id in enumerate(PAYPAL_ACTIVE_PLAN_IDS):
+        key = f"cleanup_plan_{index}"
+        params[key] = plan_id
+        plan_slots.append(f":{key}")
+
+    badge_slots = []
+    for index, badge_id in enumerate(ACTIVE_SUPPORT_BADGE_IDS):
+        key = f"cleanup_badge_{index}"
+        params[key] = CONTRIBUTION_BADGE_NAMES[badge_id].lower()
+        badge_slots.append(f":{key}")
+
+    plans = ", ".join(plan_slots)
+    badge_names = ", ".join(badge_slots)
+    statement = text(f"""
+        UPDATE users u
+        SET patron_badges_disabled = TRUE
+        WHERE COALESCE(u.patron_badges_disabled, FALSE) = FALSE
+          AND EXISTS (
+              SELECT 1
+              FROM modactions ma
+              WHERE ma.target_user_id = u.id
+                AND ma.kind = 'badge_remove'
+                AND LOWER(COALESCE(ma._note, '')) IN ({badge_names})
+          )
+          AND NOT EXISTS (
+              SELECT 1
+              FROM paypal_subscriptions ps
+              WHERE ps.user_id = u.id
+                AND ps.plan_id IN ({plans})
+                AND ps.status IN ('ACTIVE', 'CANCELLED')
+                AND EXISTS (
+                    SELECT 1 FROM paypal_payments pp
+                    WHERE pp.subscription_id = ps.subscription_id
+                      AND pp.user_id = ps.user_id
+                      AND pp.status = 'COMPLETED'
+                )
+                AND (
+                    ps.status = 'ACTIVE'
+                    OR GREATEST(
+                        COALESCE(ps.next_billing_utc, 0),
+                        COALESCE(ps.last_payment_utc, 0) + 3024000
+                    ) > :now
+                )
+          )
+    """)
+
+    try:
+        with engine.begin() as connection:
+            result = connection.execute(statement, params)
+        return bool(getattr(result, "rowcount", 0))
+    except SQLAlchemyError:
+        return False
+
+
 def _sync_existing_active_support_badges():
     """Synchronize all active paid and explicitly non-free manual patrons."""
     sql, params = _entitlement_sql()
@@ -454,5 +519,6 @@ def install_cumulative_contribution_badges():
     paypal_routes = importlib.import_module("files.routes.paypal")
     paypal_helpers.recalculate_paypal_patron = recalculate_paypal_patron
     paypal_routes.recalculate_paypal_patron = recalculate_paypal_patron
+    _honor_admin_support_badge_removals()
     _sync_existing_active_support_badges()
     app.before_request(_periodic_active_support_badge_sync)
