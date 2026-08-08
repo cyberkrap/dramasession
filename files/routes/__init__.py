@@ -144,6 +144,7 @@ from files.helpers.patron_branding import install_patron_branding
 from files.helpers.persistent_site_content import install_persistent_site_content
 from files.helpers.private_economy_modactions import install_private_economy_modactions
 from files.helpers.signup_rewards import install_signup_rewards
+from files.helpers.support_badge_removal_fix import install_support_badge_removal_fix
 from files.helpers.user_activity_defaults import install_user_activity_defaults
 from files.helpers.username_effects import install_username_effects
 from files.helpers.wishcoin_asset import install_wishcoin_asset
@@ -151,6 +152,7 @@ install_badge_branding(engine)
 install_ban_hat_support()
 install_board_branding(app)
 install_cumulative_contribution_badges()
+install_support_badge_removal_fix()
 install_default_following(app, engine)
 install_default_user_background()
 install_economy_ledger(app, engine)
