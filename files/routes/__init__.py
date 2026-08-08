@@ -139,6 +139,7 @@ from files.helpers.contribution_badges import install_cumulative_contribution_ba
 from files.helpers.default_follow import install_default_following
 from files.helpers.default_user_background import install_default_user_background
 from files.helpers.economy_ledger import install_economy_ledger
+from files.helpers.gift_ledger_enrichment import install_gift_ledger_enrichment
 from files.helpers.patron_branding import install_patron_branding
 from files.helpers.persistent_site_content import install_persistent_site_content
 from files.helpers.private_economy_modactions import install_private_economy_modactions
@@ -153,6 +154,7 @@ install_cumulative_contribution_badges()
 install_default_following(app, engine)
 install_default_user_background()
 install_economy_ledger(app, engine)
+install_gift_ledger_enrichment()
 install_patron_branding()
 install_persistent_site_content()
 install_private_economy_modactions(engine)
