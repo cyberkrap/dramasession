@@ -3,6 +3,10 @@
 Keeps transfer behavior untouched while preserving the useful human context:
 who sent/received the gift and the optional gift message. Older ledger rows can
 recover that context from the existing AutoJanny transfer notification.
+
+Casino request paths are classified before gift enrichment. This is deliberate:
+a balance mutation made by Slots/Blackjack/Roulette must never inherit stale or
+ambiguous gift context.
 """
 
 import html
@@ -10,8 +14,9 @@ import importlib
 import inspect
 import re
 
+from flask import has_request_context, request
 from markupsafe import Markup, escape
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 from files.classes import Comment, Notification, User
 
@@ -24,6 +29,25 @@ _TAG_RE = re.compile(r"<[^>]+>")
 
 def _username(value):
     return str(getattr(value, "username", "") or "")[:80]
+
+
+def _request_classification():
+    """Return authoritative classification for routes with unambiguous meaning."""
+    if not has_request_context():
+        return None
+
+    path = str(request.path or "").lower()
+    if path.startswith("/casino/slots"):
+        return "casino", "Slots", {}
+    if path.startswith("/casino/twentyone") or path.startswith("/casino/blackjack"):
+        return "casino", "Blackjack", {}
+    if path.startswith("/casino/roulette"):
+        return "casino", "Roulette", {}
+    if path.startswith("/casino/"):
+        return "casino", "Casino", {}
+    if path.startswith("/lottery") or path.startswith("/lottershe"):
+        return "lottery", "Lottery", {}
+    return None
 
 
 def _gift_frame_context(account):
@@ -156,18 +180,56 @@ def _gift_description(bank_module, row, statement_user):
     return headline + note
 
 
+def _repair_misclassified_casino_rows():
+    """Repair rows produced while gift enrichment incorrectly outranked casino context."""
+    from files.__main__ import engine
+
+    if engine.dialect.name != "postgresql":
+        return
+
+    with engine.begin() as conn:
+        conn.execute(text("""
+            UPDATE economy_ledger
+            SET category = 'casino',
+                label = CASE
+                    WHEN LOWER(COALESCE(origin_path, '')) LIKE '/casino/slots%' THEN 'Slots'
+                    WHEN LOWER(COALESCE(origin_path, '')) LIKE '/casino/twentyone%'
+                      OR LOWER(COALESCE(origin_path, '')) LIKE '/casino/blackjack%' THEN 'Blackjack'
+                    WHEN LOWER(COALESCE(origin_path, '')) LIKE '/casino/roulette%' THEN 'Roulette'
+                    ELSE 'Casino'
+                END
+            WHERE (category = 'gifts' OR label = 'Gift')
+              AND LOWER(COALESCE(origin_path, '')) LIKE '/casino/%'
+        """))
+
+
 def install_gift_ledger_enrichment():
     """Patch the already-installed ledger wrapper and bank renderer in-place."""
     ledger = importlib.import_module("files.helpers.economy_ledger")
     bank = importlib.import_module("files.routes.bank_statement")
 
+    # Clean rows created by the earlier bad precedence before rendering them.
+    _repair_misclassified_casino_rows()
+
     if not getattr(ledger, "_gift_context_enriched", False):
         original_caller_context = ledger._caller_context
 
         def caller_context(account):
-            gift_meta = _gift_frame_context(account)
-            if gift_meta is not None:
-                return "gifts", "Gift", gift_meta
+            # Casino/lottery paths are authoritative and must beat all stack-based
+            # gift inference. This prevents slot pulls from ever becoming gifts.
+            route_context = _request_classification()
+            if route_context is not None:
+                return route_context
+
+            # Gift enrichment only activates on the actual transfer endpoint.
+            # Do not scan arbitrary requests and guess from unrelated frames.
+            if has_request_context():
+                path_match = _TRANSFER_PATH_RE.match(str(request.path or ""))
+                if path_match:
+                    gift_meta = _gift_frame_context(account) or {}
+                    gift_meta.setdefault("target_username", path_match.group(1))
+                    return "gifts", "Gift", gift_meta
+
             return original_caller_context(account)
 
         ledger._caller_context = caller_context
