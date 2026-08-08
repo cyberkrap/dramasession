@@ -65,13 +65,9 @@ def _award_title(kind):
     kind = str(kind or "").strip()
     if not kind:
         return "Award"
-    award = AWARDS_ENABLED.get(kind)
+    award = AWARDS_ENABLED.get(kind) or HOUSE_AWARDS.get(kind)
     if award:
         return award.get("title") or kind
-    for house_awards in HOUSE_AWARDS.values():
-        award = house_awards.get(kind)
-        if award:
-            return award.get("title") or kind
     return kind.replace("-", " ").replace("_", " ").title()
 
 
