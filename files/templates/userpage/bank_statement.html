@@ -2,18 +2,18 @@
 {% block pagetitle %}@{{u.username}}'s Bank Statement{% endblock %}
 {% block content %}
 <style nonce="{{g.nonce}}">
-.bank-shell{max-width:1320px;margin:0 auto;padding:1.25rem .9rem 5rem}.bank-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;margin-bottom:1rem}.bank-title{margin:0;font-size:1.55rem;font-weight:800}.bank-title a{text-decoration:none}.bank-sub{color:var(--gray,#9aa0aa);margin:.3rem 0 0}.bank-tabs{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--primary);border-radius:12px;overflow:hidden;margin:1rem 0}.bank-tab{min-height:58px;display:flex;align-items:center;justify-content:center;gap:.65rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;text-decoration:none!important;background:rgba(18,20,27,.72)}.bank-tab.active{background:var(--primary);color:#fff}.bank-tab img{width:38px;height:28px;object-fit:contain}.bank-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin:0 0 1rem}.bank-stat{border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:.9rem 1rem;background:rgba(15,17,23,.72)}.bank-stat-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;font-weight:700}.bank-stat-value{font-size:1.25rem;font-weight:800;margin-top:.2rem;word-break:break-word}.bank-positive{color:#4ade80}.bank-negative{color:#fb7185}.bank-toolbar{border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:.85rem;background:rgba(15,17,23,.76);margin-bottom:1rem}.bank-search{display:grid;grid-template-columns:minmax(220px,2fr) repeat(3,minmax(120px,1fr)) auto;gap:.55rem}.bank-search .form-control{height:40px}.bank-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.55rem;margin-top:.7rem}.bank-toggle{display:inline-flex;align-items:center;gap:.45rem;border:1px solid rgba(255,255,255,.14);padding:.45rem .65rem;border-radius:999px;color:inherit;text-decoration:none!important}.bank-toggle.active{border-color:var(--primary);background:rgba(220,35,65,.12)}.bank-export{margin-left:auto}.bank-list{border:1px solid rgba(255,255,255,.12);border-radius:14px;overflow:hidden;background:rgba(10,12,17,.76)}.bank-list-head,.bank-row{display:grid;grid-template-columns:150px minmax(0,1fr) 150px;gap:1rem;align-items:center}.bank-list-head{padding:.75rem 1rem;background:rgba(255,255,255,.045);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:#aab0bb}.bank-row{position:relative;padding:.9rem 1rem;border-top:1px solid rgba(255,255,255,.08)}.bank-row:first-of-type{border-top:0}.bank-row:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#6b7280}.bank-row.in:before{background:#22c55e}.bank-row.out:before{background:#ef4444}.bank-amount{display:flex;align-items:center;gap:.6rem;font-weight:850;font-size:1rem}.bank-amount img{width:30px;height:26px;object-fit:contain}.bank-time{font-size:.76rem;color:#9ca3af;margin-top:.16rem}.bank-main{min-width:0}.bank-desc{font-weight:700;overflow-wrap:anywhere}.bank-meta{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem;align-items:center}.bank-pill{font-size:.68rem;padding:.18rem .42rem;border-radius:999px;background:rgba(255,255,255,.07);color:#b9bec8}.bank-source{font-size:.7rem;color:#828996;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bank-balance{text-align:right}.bank-balance strong{display:block;font-size:1rem}.bank-balance span{font-size:.7rem;color:#9ca3af;text-transform:uppercase}.bank-empty{text-align:center;padding:4rem 1rem;color:#9ca3af}.bank-pagination{display:flex;justify-content:center;gap:.5rem;margin-top:1rem}.bank-note{font-size:.75rem;color:#8f96a3;margin-top:.7rem}.bank-count{font-weight:700;color:#c7ccd4}
-@media(max-width:850px){.bank-summary{grid-template-columns:1fr 1fr}.bank-search{grid-template-columns:1fr 1fr}.bank-search input[name=q]{grid-column:1/-1}.bank-search button{grid-column:1/-1}.bank-list-head{display:none}.bank-row{grid-template-columns:1fr auto;gap:.65rem}.bank-amount{grid-column:1/2}.bank-main{grid-column:1/-1;grid-row:2}.bank-balance{grid-column:2;grid-row:1}.bank-export{margin-left:0}}
-@media(max-width:520px){.bank-shell{padding:.8rem .55rem 5rem}.bank-head{align-items:flex-start;flex-direction:column}.bank-title{font-size:1.25rem}.bank-tabs{margin:.7rem 0}.bank-tab{min-height:50px;font-size:.78rem}.bank-tab img{width:30px}.bank-summary{gap:.45rem}.bank-stat{padding:.72rem}.bank-stat-value{font-size:1rem}.bank-toolbar{padding:.65rem}.bank-search{grid-template-columns:1fr}.bank-search input[name=q],.bank-search button{grid-column:auto}.bank-row{padding:.8rem .75rem}.bank-amount img{width:25px}.bank-source{max-width:250px}}
+.bank-shell{max-width:1160px;margin:0 auto;padding:1.2rem 1rem 5rem}.bank-head{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1rem}.bank-title{margin:0;font-size:1.55rem;font-weight:800;line-height:1.2}.bank-title a{text-decoration:none}.bank-sub{margin:.3rem 0 0;color:#8d949f;font-size:.86rem}.bank-count{font-size:.78rem;color:#8d949f;white-space:nowrap}.bank-tabs{display:grid;grid-template-columns:1fr 1fr;padding:3px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(10,11,15,.72);margin-bottom:.8rem}.bank-tab{height:44px;display:flex;align-items:center;justify-content:center;gap:.5rem;border-radius:7px;color:#aeb4be!important;text-decoration:none!important;font-size:.8rem;font-weight:800;letter-spacing:.055em;text-transform:uppercase}.bank-tab:hover{background:rgba(255,255,255,.045)}.bank-tab.active{background:rgba(220,35,65,.16);color:#fff!important;box-shadow:inset 0 0 0 1px rgba(220,35,65,.4)}.bank-tab img{width:25px;height:21px;object-fit:contain}.bank-summary{display:grid;grid-template-columns:1.25fr repeat(3,1fr);gap:.6rem;margin-bottom:.8rem}.bank-stat{min-width:0;padding:.78rem .85rem;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(13,15,20,.68)}.bank-stat:first-child{background:rgba(255,255,255,.035)}.bank-stat-label{font-size:.64rem;text-transform:uppercase;letter-spacing:.075em;font-weight:800;color:#7f8792}.bank-stat-value{margin-top:.15rem;font-size:1.12rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bank-positive{color:#53d889}.bank-negative{color:#f06a7c}.bank-tools{margin-bottom:.8rem;padding:.72rem;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(13,15,20,.58)}.bank-search{display:grid;grid-template-columns:minmax(220px,2fr) minmax(130px,.9fr) minmax(135px,.9fr) minmax(125px,.8fr) auto;gap:.45rem}.bank-search .form-control,.bank-search .btn{height:38px;font-size:.78rem}.bank-quick{display:flex;align-items:center;gap:.4rem;margin-top:.55rem}.bank-quick a{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .5rem;border-radius:6px;color:#9da4ae;text-decoration:none!important;font-size:.72rem}.bank-quick a:hover{background:rgba(255,255,255,.045);color:#fff}.bank-quick a.active{color:#f17b8c;background:rgba(220,35,65,.1)}.bank-filter-note{margin-left:auto;color:#737b86;font-size:.68rem}.bank-list{border:1px solid rgba(255,255,255,.1);border-radius:10px;overflow:hidden;background:rgba(8,10,14,.72)}.bank-list-head,.bank-row{display:grid;grid-template-columns:150px minmax(0,1fr) 145px;align-items:center;gap:1rem}.bank-list-head{padding:.58rem .85rem;background:rgba(255,255,255,.035);font-size:.62rem;letter-spacing:.075em;text-transform:uppercase;font-weight:800;color:#707884}.bank-row{position:relative;min-height:72px;padding:.72rem .85rem;border-top:1px solid rgba(255,255,255,.075)}.bank-row:before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:2px;border-radius:2px;background:#626a75}.bank-row.in:before{background:#37b875}.bank-row.out:before{background:#d54b5f}.bank-row.preview{background:linear-gradient(90deg,rgba(125,92,255,.07),transparent 50%)}.bank-amount{display:flex;align-items:center;gap:.45rem;font-size:.9rem;font-weight:800}.bank-amount img{width:23px;height:20px;object-fit:contain}.bank-time{margin-top:.16rem;color:#7f8792;font-size:.69rem}.bank-main{min-width:0}.bank-desc{font-size:.86rem;font-weight:650;line-height:1.4;overflow-wrap:anywhere}.bank-inline-link{font-weight:750;text-decoration:none!important}.bank-inline-link:hover{text-decoration:underline!important}.bank-meta{display:flex;align-items:center;gap:.42rem;margin-top:.22rem;color:#727a85;font-size:.67rem}.bank-preview-tag{padding:.08rem .3rem;border-radius:4px;background:rgba(125,92,255,.14);color:#bdb1ff;font-weight:700;text-transform:uppercase;letter-spacing:.045em}.bank-balance{text-align:right}.bank-balance strong{display:block;font-size:.88rem}.bank-balance span{display:block;margin-top:.12rem;color:#727a85;font-size:.62rem;text-transform:uppercase;letter-spacing:.05em}.bank-empty{text-align:center;padding:3.5rem 1rem;color:#7f8792}.bank-pagination{display:flex;justify-content:center;align-items:center;gap:.4rem;margin-top:.85rem}.bank-page-label{padding:.4rem .65rem;color:#8b929d;font-size:.76rem}
+@media(max-width:850px){.bank-head{align-items:flex-start;flex-direction:column}.bank-count{white-space:normal}.bank-summary{grid-template-columns:1fr 1fr}.bank-search{grid-template-columns:1fr 1fr}.bank-search input[name=q]{grid-column:1/-1}.bank-search button{grid-column:1/-1}.bank-list-head{display:none}.bank-row{grid-template-columns:1fr auto;gap:.55rem}.bank-main{grid-column:1/-1;grid-row:2}.bank-balance{grid-column:2;grid-row:1}.bank-filter-note{display:none}}
+@media(max-width:520px){.bank-shell{padding:.8rem .55rem 4.5rem}.bank-title{font-size:1.22rem}.bank-sub{font-size:.78rem}.bank-tab{height:42px;font-size:.72rem}.bank-summary{gap:.4rem}.bank-stat{padding:.65rem}.bank-stat-label{font-size:.58rem}.bank-stat-value{font-size:.95rem}.bank-tools{padding:.55rem}.bank-search{grid-template-columns:1fr}.bank-search input[name=q],.bank-search button{grid-column:auto}.bank-quick{flex-wrap:wrap}.bank-row{padding:.7rem .7rem;min-height:68px}.bank-amount img{width:20px}.bank-desc{font-size:.82rem}.bank-balance strong{font-size:.82rem}}
 </style>
 
 <div class="bank-shell">
 	<header class="bank-head">
 		<div>
 			<h1 class="bank-title"><a href="/@{{u.username}}">@{{u.username}}</a>'s Bank Statement</h1>
-			<p class="bank-sub">Every recorded balance change, with filters that keep casino spam from burying the transaction you actually need.</p>
+			<p class="bank-sub">Wishcoin and Wishbux activity, with gambling easy to filter out when you need the useful stuff.</p>
 		</div>
-		<div class="bank-count">{{stats.total|number}} matching transaction{{'' if stats.total == 1 else 's'}}</div>
+		<div class="bank-count">{{stats.total|number}} recorded transaction{{'' if stats.total == 1 else 's'}} matching these filters</div>
 	</header>
 
 	<nav class="bank-tabs" aria-label="Currency">
@@ -32,44 +32,43 @@
 		<div class="bank-stat"><div class="bank-stat-label">Net change</div><div class="bank-stat-value {{'bank-positive' if stats.net > 0 else 'bank-negative' if stats.net < 0 else ''}}">{{'+' if stats.net > 0 else ''}}{{stats.net|number}}</div></div>
 	</section>
 
-	<section class="bank-toolbar">
+	<section class="bank-tools">
 		<form method="get" action="/@{{u.username}}/bank" class="bank-search">
 			<input type="hidden" name="currency" value="{{currency}}">
-			<input class="form-control" type="search" name="q" value="{{q}}" placeholder="Search amount, transaction ID, user, item or source…" aria-label="Search bank statement">
+			<input class="form-control" type="search" name="q" value="{{q}}" placeholder="Search user, item, amount or transaction ID…" aria-label="Search bank statement">
 			<select class="form-control" name="category" aria-label="Category">
 				{% for value, label in categories %}<option value="{{value}}" {{'selected' if category == value else ''}}>{{label}}</option>{% endfor %}
 			</select>
 			<select class="form-control" name="direction" aria-label="Direction">
 				<option value="all" {{'selected' if direction == 'all' else ''}}>Money in + out</option>
-				<option value="in" {{'selected' if direction == 'in' else ''}}>Money in only</option>
-				<option value="out" {{'selected' if direction == 'out' else ''}}>Money out only</option>
+				<option value="in" {{'selected' if direction == 'in' else ''}}>Money in</option>
+				<option value="out" {{'selected' if direction == 'out' else ''}}>Money out</option>
 			</select>
 			<select class="form-control" name="range" aria-label="Time range">
 				<option value="all" {{'selected' if period == 'all' else ''}}>All time</option>
-				<option value="24h" {{'selected' if period == '24h' else ''}}>Last 24 hours</option>
-				<option value="7d" {{'selected' if period == '7d' else ''}}>Last 7 days</option>
-				<option value="30d" {{'selected' if period == '30d' else ''}}>Last 30 days</option>
-				<option value="90d" {{'selected' if period == '90d' else ''}}>Last 90 days</option>
+				<option value="24h" {{'selected' if period == '24h' else ''}}>24 hours</option>
+				<option value="7d" {{'selected' if period == '7d' else ''}}>7 days</option>
+				<option value="30d" {{'selected' if period == '30d' else ''}}>30 days</option>
+				<option value="90d" {{'selected' if period == '90d' else ''}}>90 days</option>
 			</select>
 			{% if hide_casino %}<input type="hidden" name="hide_casino" value="1">{% endif %}
-			<button class="btn btn-primary" type="submit"><i class="fas fa-filter mr-1"></i> Apply</button>
+			<button class="btn btn-primary" type="submit">Apply</button>
 		</form>
-		<div class="bank-actions">
+		<div class="bank-quick">
 			{% if hide_casino %}
-				<a class="bank-toggle active" href="?currency={{currency}}{% if q %}&q={{q|urlencode}}{% endif %}{% if category != 'all' %}&category={{category}}{% endif %}{% if direction != 'all' %}&direction={{direction}}{% endif %}{% if period != 'all' %}&range={{period}}{% endif %}"><i class="fas fa-eye-slash"></i> Gambling hidden</a>
+				<a class="active" href="?currency={{currency}}{% if q %}&q={{q|urlencode}}{% endif %}{% if category != 'all' %}&category={{category}}{% endif %}{% if direction != 'all' %}&direction={{direction}}{% endif %}{% if period != 'all' %}&range={{period}}{% endif %}"><i class="fas fa-eye-slash"></i> Gambling hidden</a>
 			{% else %}
-				<a class="bank-toggle" href="?currency={{currency}}&hide_casino=1{% if q %}&q={{q|urlencode}}{% endif %}{% if category != 'all' %}&category={{category}}{% endif %}{% if direction != 'all' %}&direction={{direction}}{% endif %}{% if period != 'all' %}&range={{period}}{% endif %}"><i class="fas fa-dice"></i> Hide gambling noise</a>
+				<a href="?currency={{currency}}&hide_casino=1{% if q %}&q={{q|urlencode}}{% endif %}{% if category != 'all' %}&category={{category}}{% endif %}{% if direction != 'all' %}&direction={{direction}}{% endif %}{% if period != 'all' %}&range={{period}}{% endif %}"><i class="fas fa-dice"></i> Hide gambling</a>
 			{% endif %}
-			<a class="bank-toggle" href="/@{{u.username}}/bank?currency={{currency}}"><i class="fas fa-undo"></i> Reset</a>
-			<a class="bank-toggle bank-export" href="?{{query_string}}{% if query_string %}&{% endif %}format=csv"><i class="fas fa-file-csv"></i> Export CSV</a>
+			<a href="/@{{u.username}}/bank?currency={{currency}}"><i class="fas fa-undo"></i> Reset</a>
+			<span class="bank-filter-note">Totals above follow the active filters.</span>
 		</div>
-		<div class="bank-note">Summary totals reflect the active filters, not merely this page.</div>
 	</section>
 
 	<section class="bank-list" aria-label="Transactions">
 		<div class="bank-list-head"><div>Change</div><div>Transaction</div><div class="text-right">Balance after</div></div>
 		{% for tx in transactions %}
-		<article class="bank-row {{'in' if tx.amount > 0 else 'out'}}">
+		<article class="bank-row {{'in' if tx.amount > 0 else 'out'}}{% if tx.preview %} preview{% endif %}">
 			<div>
 				<div class="bank-amount {{'bank-positive' if tx.amount > 0 else 'bank-negative'}}">
 					<img src="{{currency_asset}}" alt=""> <span>{{'+' if tx.amount > 0 else ''}}{{tx.amount|number}}</span>
@@ -79,23 +78,23 @@
 			<div class="bank-main">
 				<div class="bank-desc">{{tx.description}}</div>
 				<div class="bank-meta">
-					<span class="bank-pill">{{tx.category|capitalize}}</span>
-					<span class="bank-pill">#{{tx.id}}</span>
-					{% if tx.origin_path %}<span class="bank-source" title="{{tx.origin_path}}">{{tx.origin_path}}</span>{% else %}<span class="bank-source">System/background change</span>{% endif %}
+					<span>{{tx.group_label}}</span>
+					{% if tx.id %}<span>· #{{tx.id}}</span>{% endif %}
+					{% if tx.preview %}<span class="bank-preview-tag">Preview</span>{% endif %}
 				</div>
 			</div>
 			<div class="bank-balance"><strong>{{tx.balance_after|number}}</strong><span>{{currency_name}}</span></div>
 		</article>
 		{% else %}
-		<div class="bank-empty"><i class="fas fa-receipt fa-2x mb-3"></i><br>No transactions match these filters yet.</div>
+		<div class="bank-empty"><i class="fas fa-receipt fa-2x mb-3"></i><br>No transactions match these filters.</div>
 		{% endfor %}
 	</section>
 
 	{% if page > 1 or next_exists %}
 	<nav class="bank-pagination" aria-label="Bank statement pages">
-		{% if page > 1 %}<a class="btn btn-secondary" href="?{{query_string}}{% if query_string %}&{% endif %}page={{page-1}}">Previous</a>{% endif %}
-		<span class="btn btn-secondary disabled">Page {{page}}</span>
-		{% if next_exists %}<a class="btn btn-secondary" href="?{{query_string}}{% if query_string %}&{% endif %}page={{page+1}}">Next</a>{% endif %}
+		{% if page > 1 %}<a class="btn btn-secondary btn-sm" href="?{{query_string}}{% if query_string %}&{% endif %}page={{page-1}}">Previous</a>{% endif %}
+		<span class="bank-page-label">Page {{page}}</span>
+		{% if next_exists %}<a class="btn btn-secondary btn-sm" href="?{{query_string}}{% if query_string %}&{% endif %}page={{page+1}}">Next</a>{% endif %}
 	</nav>
 	{% endif %}
 </div>
