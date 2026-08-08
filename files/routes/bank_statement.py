@@ -244,27 +244,6 @@ def _qs(**overrides):
     return urlencode(args)
 
 
-def _preview_patron_row(u, currency, category, direction, q, page, current_balance):
-    if u.username.lower() != "cybercrap" or currency != "wishbux" or page != 1:
-        return None
-    if category not in {"all", "patron"} or direction == "out":
-        return None
-    haystack = "ian's bankroller patron reward 140000"
-    if q and q.lower() not in haystack:
-        return None
-    return {
-        "id": None,
-        "created_utc": int(time.time()),
-        "amount": 140000,
-        "balance_after": current_balance,
-        "category": "patron",
-        "label": "Patron reward",
-        "origin_path": None,
-        "context_json": json.dumps({"tier_name": "Ian's Bankroller"}),
-        "preview": True,
-    }
-
-
 @app.get("/@<username>/bank")
 @app.get("/@<username>/bank-statement")
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
@@ -321,13 +300,10 @@ def bank_statement(v: User, username: str):
     next_exists = len(rows) > per_page
     rows = rows[:per_page]
     current_balance = int(u.coins if currency == "coins" else u.marseybux)
-    materialized = [dict(row) for row in rows]
-    preview = _preview_patron_row(u, currency, category, direction, q, page, current_balance)
-    if preview:
-        materialized.insert(0, preview)
 
     transactions = []
-    for item in materialized:
+    for row in rows:
+        item = dict(row)
         item["description"] = _transaction_description(item, u)
         item["group_label"] = _display_group(item.get("category"))
         transactions.append(item)
