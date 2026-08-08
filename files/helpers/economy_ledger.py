@@ -99,6 +99,58 @@ AFTER UPDATE OF coins, marseybux ON users
 FOR EACH ROW
 WHEN (OLD.coins IS DISTINCT FROM NEW.coins OR OLD.marseybux IS DISTINCT FROM NEW.marseybux)
 EXECUTE FUNCTION toc_record_economy_change();
+
+CREATE TABLE IF NOT EXISTS economy_ledger_data_migrations (
+    migration_key TEXT PRIMARY KEY,
+    applied_utc BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())::BIGINT)
+);
+
+DO $$
+DECLARE
+    target_user_id INTEGER;
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM economy_ledger_data_migrations
+        WHERE migration_key = 'cybercrap_wishbux_tier5_seed_20260808'
+    ) THEN
+        SELECT id INTO target_user_id
+        FROM users
+        WHERE LOWER(username) = 'cybercrap' OR LOWER(COALESCE(original_username, '')) = 'cybercrap'
+        ORDER BY CASE WHEN LOWER(username) = 'cybercrap' THEN 0 ELSE 1 END, id
+        LIMIT 1;
+
+        IF target_user_id IS NOT NULL THEN
+            -- Reset the live Wishbux account to a clean zero baseline. The trigger
+            -- may record this reset momentarily; it is deliberately deleted below.
+            UPDATE users SET marseybux = 0 WHERE id = target_user_id;
+            DELETE FROM economy_ledger
+            WHERE user_id = target_user_id AND currency = 'wishbux';
+
+            -- Seed the first and only Wishbux ledger row as a real Tier 5 patron
+            -- reward. This also leaves the live Wishbux balance at 140,000.
+            PERFORM set_config('toc.request_path', '/donate', true);
+            PERFORM set_config('toc.request_meta', '{}', true);
+            PERFORM set_config('toc.economy_category', 'patron', true);
+            PERFORM set_config('toc.economy_label', 'Patron reward', true);
+            PERFORM set_config(
+                'toc.economy_meta',
+                '{"tier_name":"Ian''s Bankroller","tier":5,"manual_seed":"cybercrap-tier5-reset-20260808"}',
+                true
+            );
+            UPDATE users SET marseybux = 140000 WHERE id = target_user_id;
+
+            INSERT INTO economy_ledger_data_migrations (migration_key)
+            VALUES ('cybercrap_wishbux_tier5_seed_20260808');
+
+            PERFORM set_config('toc.request_path', '', true);
+            PERFORM set_config('toc.request_meta', '{}', true);
+            PERFORM set_config('toc.economy_category', '', true);
+            PERFORM set_config('toc.economy_label', '', true);
+            PERFORM set_config('toc.economy_meta', '{}', true);
+        END IF;
+    END IF;
+END;
+$$;
 """
 
 _SAFE_CONTEXT_KEYS = {
