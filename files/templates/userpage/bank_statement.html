@@ -2,18 +2,15 @@
 {% block pagetitle %}@{{u.username}}'s Bank Statement{% endblock %}
 {% block content %}
 <style nonce="{{g.nonce}}">
-.bank-shell{max-width:1160px;margin:0 auto;padding:1.2rem 1rem 5rem}.bank-head{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1rem}.bank-title{margin:0;font-size:1.55rem;font-weight:800;line-height:1.2}.bank-title a{text-decoration:none}.bank-sub{margin:.3rem 0 0;color:#8d949f;font-size:.86rem}.bank-count{font-size:.78rem;color:#8d949f;white-space:nowrap}.bank-tabs{display:grid;grid-template-columns:1fr 1fr;padding:3px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(10,11,15,.72);margin-bottom:.8rem}.bank-tab{height:44px;display:flex;align-items:center;justify-content:center;gap:.5rem;border-radius:7px;color:#aeb4be!important;text-decoration:none!important;font-size:.8rem;font-weight:800;letter-spacing:.055em;text-transform:uppercase}.bank-tab:hover{background:rgba(255,255,255,.045)}.bank-tab.active{background:rgba(220,35,65,.16);color:#fff!important;box-shadow:inset 0 0 0 1px rgba(220,35,65,.4)}.bank-tab img{width:25px;height:21px;object-fit:contain}.bank-summary{display:grid;grid-template-columns:1.25fr repeat(3,1fr);gap:.6rem;margin-bottom:.8rem}.bank-stat{min-width:0;padding:.78rem .85rem;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(13,15,20,.68)}.bank-stat:first-child{background:rgba(255,255,255,.035)}.bank-stat-label{font-size:.64rem;text-transform:uppercase;letter-spacing:.075em;font-weight:800;color:#7f8792}.bank-stat-value{margin-top:.15rem;font-size:1.12rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bank-positive{color:#53d889}.bank-negative{color:#f06a7c}.bank-tools{margin-bottom:.8rem;padding:.72rem;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(13,15,20,.58)}.bank-search{display:grid;grid-template-columns:minmax(220px,2fr) minmax(130px,.9fr) minmax(135px,.9fr) minmax(125px,.8fr) auto;gap:.45rem}.bank-search .form-control,.bank-search .btn{height:38px;font-size:.78rem}.bank-quick{display:flex;align-items:center;gap:.4rem;margin-top:.55rem}.bank-quick a{display:inline-flex;align-items:center;gap:.35rem;padding:.28rem .5rem;border-radius:6px;color:#9da4ae;text-decoration:none!important;font-size:.72rem}.bank-quick a:hover{background:rgba(255,255,255,.045);color:#fff}.bank-quick a.active{color:#f17b8c;background:rgba(220,35,65,.1)}.bank-filter-note{margin-left:auto;color:#737b86;font-size:.68rem}.bank-list{border:1px solid rgba(255,255,255,.1);border-radius:10px;overflow:hidden;background:rgba(8,10,14,.72)}.bank-list-head,.bank-row{display:grid;grid-template-columns:150px minmax(0,1fr) 145px;align-items:center;gap:1rem}.bank-list-head{padding:.58rem .85rem;background:rgba(255,255,255,.035);font-size:.62rem;letter-spacing:.075em;text-transform:uppercase;font-weight:800;color:#707884}.bank-row{position:relative;min-height:72px;padding:.72rem .85rem;border-top:1px solid rgba(255,255,255,.075)}.bank-row:before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:2px;border-radius:2px;background:#626a75}.bank-row.in:before{background:#37b875}.bank-row.out:before{background:#d54b5f}.bank-row.preview{background:linear-gradient(90deg,rgba(125,92,255,.07),transparent 50%)}.bank-amount{display:flex;align-items:center;gap:.45rem;font-size:.9rem;font-weight:800}.bank-amount img{width:23px;height:20px;object-fit:contain}.bank-time{margin-top:.16rem;color:#7f8792;font-size:.69rem}.bank-main{min-width:0}.bank-desc{font-size:.86rem;font-weight:650;line-height:1.4;overflow-wrap:anywhere}.bank-inline-link{font-weight:750;text-decoration:none!important}.bank-inline-link:hover{text-decoration:underline!important}.bank-meta{display:flex;align-items:center;gap:.42rem;margin-top:.22rem;color:#727a85;font-size:.67rem}.bank-preview-tag{padding:.08rem .3rem;border-radius:4px;background:rgba(125,92,255,.14);color:#bdb1ff;font-weight:700;text-transform:uppercase;letter-spacing:.045em}.bank-balance{text-align:right}.bank-balance strong{display:block;font-size:.88rem}.bank-balance span{display:block;margin-top:.12rem;color:#727a85;font-size:.62rem;text-transform:uppercase;letter-spacing:.05em}.bank-empty{text-align:center;padding:3.5rem 1rem;color:#7f8792}.bank-pagination{display:flex;justify-content:center;align-items:center;gap:.4rem;margin-top:.85rem}.bank-page-label{padding:.4rem .65rem;color:#8b929d;font-size:.76rem}
-@media(max-width:850px){.bank-head{align-items:flex-start;flex-direction:column}.bank-count{white-space:normal}.bank-summary{grid-template-columns:1fr 1fr}.bank-search{grid-template-columns:1fr 1fr}.bank-search input[name=q]{grid-column:1/-1}.bank-search button{grid-column:1/-1}.bank-list-head{display:none}.bank-row{grid-template-columns:1fr auto;gap:.55rem}.bank-main{grid-column:1/-1;grid-row:2}.bank-balance{grid-column:2;grid-row:1}.bank-filter-note{display:none}}
-@media(max-width:520px){.bank-shell{padding:.8rem .55rem 4.5rem}.bank-title{font-size:1.22rem}.bank-sub{font-size:.78rem}.bank-tab{height:42px;font-size:.72rem}.bank-summary{gap:.4rem}.bank-stat{padding:.65rem}.bank-stat-label{font-size:.58rem}.bank-stat-value{font-size:.95rem}.bank-tools{padding:.55rem}.bank-search{grid-template-columns:1fr}.bank-search input[name=q],.bank-search button{grid-column:auto}.bank-quick{flex-wrap:wrap}.bank-row{padding:.7rem .7rem;min-height:68px}.bank-amount img{width:20px}.bank-desc{font-size:.82rem}.bank-balance strong{font-size:.82rem}}
+.bank-shell{max-width:1320px;margin:0 auto;padding:1.35rem 1rem 5rem}.bank-head{text-align:center;margin:0 0 1rem}.bank-title{margin:0;font-size:1.7rem;font-weight:850;line-height:1.2}.bank-title a{text-decoration:none!important}.bank-sub{margin:.35rem auto 0;max-width:680px;color:#9299a4;font-size:.84rem}.bank-tabs{display:grid;grid-template-columns:1fr 1fr;margin:1rem 0;border:1px solid rgba(220,35,65,.55);border-radius:8px;overflow:hidden;background:rgba(8,9,13,.82)}.bank-tab{min-height:50px;display:flex;align-items:center;justify-content:center;gap:.7rem;color:#c3c8d0!important;text-decoration:none!important;font-size:.82rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase;transition:background .15s,color .15s}.bank-tab:first-child{border-right:1px solid rgba(220,35,65,.45)}.bank-tab:hover{background:rgba(255,255,255,.04)}.bank-tab.active{background:#cf1737;color:#fff!important}.bank-tab img{width:31px;height:24px;object-fit:contain}.bank-overview{display:grid;grid-template-columns:minmax(230px,1.45fr) repeat(3,minmax(135px,1fr));border:1px solid rgba(255,255,255,.1);border-radius:8px;overflow:hidden;background:rgba(12,14,19,.72);margin-bottom:.85rem}.bank-overview-item{padding:.85rem 1rem;min-width:0}.bank-overview-item+.bank-overview-item{border-left:1px solid rgba(255,255,255,.085)}.bank-overview-item.primary{background:rgba(255,255,255,.035)}.bank-overview-label{font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#767e89}.bank-overview-value{margin-top:.18rem;font-size:1.16rem;line-height:1.15;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bank-overview-item.primary .bank-overview-value{font-size:1.35rem}.bank-positive{color:#45d889}.bank-negative{color:#ff6077}.bank-tools{margin-bottom:.9rem}.bank-search-main{display:grid;grid-template-columns:minmax(240px,1fr) auto;gap:.5rem}.bank-search-main .form-control,.bank-search-main .btn{height:42px}.bank-search-main .form-control{font-size:.82rem;border-color:rgba(255,255,255,.16);background:rgba(12,14,19,.78)}.bank-filter-row{display:grid;grid-template-columns:repeat(3,minmax(135px,1fr)) auto auto;gap:.5rem;align-items:center;margin-top:.5rem}.bank-filter-row .form-control,.bank-filter-row .btn{height:38px;font-size:.77rem}.bank-filter-row .form-control{background:rgba(12,14,19,.72);border-color:rgba(255,255,255,.13)}.bank-filter-link{height:38px;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:0 .75rem;border:1px solid rgba(255,255,255,.12);border-radius:6px;color:#aab0ba!important;text-decoration:none!important;font-size:.74rem;font-weight:700;white-space:nowrap}.bank-filter-link:hover{background:rgba(255,255,255,.045);color:#fff!important}.bank-filter-link.active{color:#fff!important;border-color:rgba(220,35,65,.5);background:rgba(220,35,65,.13)}.bank-tools-foot{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-top:.42rem;padding:0 .12rem;color:#737b86;font-size:.67rem}.bank-reset{text-decoration:none!important;color:#9aa1ab!important}.bank-reset:hover{color:#fff!important}.bank-ledger{border:1px solid rgba(255,255,255,.11);border-radius:8px;overflow:hidden;background:rgba(7,8,12,.8)}.bank-ledger-head,.bank-row{display:grid;grid-template-columns:190px minmax(0,1fr) 175px;align-items:center;gap:1.1rem}.bank-ledger-head{min-height:38px;padding:0 1rem;background:rgba(255,255,255,.045);font-size:.61rem;font-weight:850;letter-spacing:.085em;text-transform:uppercase;color:#7b838e}.bank-ledger-head div:last-child{text-align:right}.bank-row{position:relative;min-height:82px;padding:.82rem 1rem;border-top:1px solid rgba(255,255,255,.07);isolation:isolate}.bank-row:before{content:"";position:absolute;inset:0;z-index:-2}.bank-row.in:before{background:linear-gradient(90deg,rgba(19,105,61,.50),rgba(19,105,61,.34) 62%,rgba(19,105,61,.24))}.bank-row.out:before{background:linear-gradient(90deg,rgba(124,28,39,.54),rgba(124,28,39,.38) 62%,rgba(124,28,39,.27))}.bank-row:after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;z-index:-1}.bank-row.in:after{background:#38d27d}.bank-row.out:after{background:#f04e65}.bank-change{display:flex;align-items:center;gap:.7rem;min-width:0}.bank-change-icon{width:38px;height:38px;flex:0 0 38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.1)}.bank-change-icon img{width:25px;height:22px;object-fit:contain}.bank-change-copy{min-width:0}.bank-amount{font-size:1rem;line-height:1.1;font-weight:900;letter-spacing:.005em}.bank-direction{margin-top:.2rem;color:rgba(255,255,255,.55);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}.bank-time{margin-top:.18rem;color:rgba(255,255,255,.65);font-size:.7rem}.bank-main{min-width:0}.bank-desc{font-size:.89rem;font-weight:700;line-height:1.42;overflow-wrap:anywhere}.bank-inline-link{font-weight:800;text-decoration:none!important}.bank-inline-link:hover{text-decoration:underline!important}.bank-meta{display:flex;align-items:center;gap:.4rem;margin-top:.28rem;color:rgba(255,255,255,.55);font-size:.67rem}.bank-meta-dot{opacity:.55}.bank-balance{text-align:right}.bank-balance-label{font-size:.6rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.48)}.bank-balance strong{display:block;margin-top:.1rem;font-size:1rem;line-height:1.1}.bank-balance span{display:block;margin-top:.18rem;color:rgba(255,255,255,.54);font-size:.61rem;text-transform:uppercase;letter-spacing:.055em}.bank-empty{text-align:center;padding:4rem 1rem;color:#838b96;background:rgba(255,255,255,.012)}.bank-empty i{opacity:.7}.bank-pagination{display:flex;justify-content:center;align-items:center;gap:.45rem;margin-top:.9rem}.bank-page-label{padding:.4rem .65rem;color:#8b929d;font-size:.76rem}
+@media(max-width:860px){.bank-shell{padding-left:.7rem;padding-right:.7rem}.bank-overview{grid-template-columns:1fr 1fr}.bank-overview-item:nth-child(3){border-left:0;border-top:1px solid rgba(255,255,255,.085)}.bank-overview-item:nth-child(4){border-top:1px solid rgba(255,255,255,.085)}.bank-filter-row{grid-template-columns:1fr 1fr}.bank-filter-row .form-control:nth-child(3){grid-column:1/-1}.bank-filter-link{width:100%}.bank-ledger-head{display:none}.bank-row{grid-template-columns:minmax(0,1fr) auto;gap:.65rem;min-height:90px}.bank-change{grid-column:1;grid-row:1}.bank-balance{grid-column:2;grid-row:1}.bank-main{grid-column:1/-1;grid-row:2;padding-left:3rem}.bank-tools-foot{align-items:flex-start;flex-direction:column}}
+@media(max-width:540px){.bank-shell{padding:.8rem .45rem 4.5rem}.bank-title{font-size:1.3rem}.bank-sub{font-size:.75rem}.bank-tabs{margin:.8rem 0}.bank-tab{min-height:46px;font-size:.7rem;letter-spacing:.065em}.bank-tab img{width:25px;height:20px}.bank-overview-item{padding:.7rem}.bank-overview-label{font-size:.55rem}.bank-overview-value{font-size:.93rem}.bank-overview-item.primary .bank-overview-value{font-size:1.08rem}.bank-search-main{grid-template-columns:1fr}.bank-filter-row{grid-template-columns:1fr 1fr}.bank-filter-row .form-control:nth-child(3),.bank-filter-row .btn{grid-column:1/-1}.bank-row{padding:.75rem .7rem}.bank-change{gap:.55rem}.bank-change-icon{width:33px;height:33px;flex-basis:33px}.bank-change-icon img{width:21px;height:18px}.bank-amount{font-size:.9rem}.bank-main{padding-left:2.45rem}.bank-desc{font-size:.82rem}.bank-balance strong{font-size:.86rem}.bank-balance-label{display:none}.bank-time{font-size:.65rem}.bank-direction{font-size:.58rem}}
 </style>
 
 <div class="bank-shell">
 	<header class="bank-head">
-		<div>
-			<h1 class="bank-title"><a href="/@{{u.username}}">@{{u.username}}</a>'s Bank Statement</h1>
-			<p class="bank-sub">Wishcoin and Wishbux activity, with gambling easy to filter out when you need the useful stuff.</p>
-		</div>
-		<div class="bank-count">{{stats.total|number}} recorded transaction{{'' if stats.total == 1 else 's'}} matching these filters</div>
+		<h1 class="bank-title"><a href="/@{{u.username}}">@{{u.username}}</a>'s Bank Statement</h1>
+		<p class="bank-sub">Every Wishcoin and Wishbux movement in one place. Green is money in; red is money out.</p>
 	</header>
 
 	<nav class="bank-tabs" aria-label="Currency">
@@ -25,65 +22,68 @@
 		</a>
 	</nav>
 
-	<section class="bank-summary" aria-label="Statement summary">
-		<div class="bank-stat"><div class="bank-stat-label">Current balance</div><div class="bank-stat-value">{{current_balance|number}}</div></div>
-		<div class="bank-stat"><div class="bank-stat-label">Money in</div><div class="bank-stat-value bank-positive">+{{stats.money_in|number}}</div></div>
-		<div class="bank-stat"><div class="bank-stat-label">Money out</div><div class="bank-stat-value bank-negative">-{{stats.money_out|number}}</div></div>
-		<div class="bank-stat"><div class="bank-stat-label">Net change</div><div class="bank-stat-value {{'bank-positive' if stats.net > 0 else 'bank-negative' if stats.net < 0 else ''}}">{{'+' if stats.net > 0 else ''}}{{stats.net|number}}</div></div>
+	<section class="bank-overview" aria-label="Statement summary">
+		<div class="bank-overview-item primary"><div class="bank-overview-label">Current balance</div><div class="bank-overview-value">{{current_balance|number}} {{currency_name}}</div></div>
+		<div class="bank-overview-item"><div class="bank-overview-label">Money in</div><div class="bank-overview-value bank-positive">+{{stats.money_in|number}}</div></div>
+		<div class="bank-overview-item"><div class="bank-overview-label">Money out</div><div class="bank-overview-value bank-negative">-{{stats.money_out|number}}</div></div>
+		<div class="bank-overview-item"><div class="bank-overview-label">Net change</div><div class="bank-overview-value {{'bank-positive' if stats.net > 0 else 'bank-negative' if stats.net < 0 else ''}}">{{'+' if stats.net > 0 else ''}}{{stats.net|number}}</div></div>
 	</section>
 
-	<section class="bank-tools">
-		<form method="get" action="/@{{u.username}}/bank" class="bank-search">
+	<section class="bank-tools" aria-label="Statement filters">
+		<form method="get" action="/@{{u.username}}/bank">
 			<input type="hidden" name="currency" value="{{currency}}">
-			<input class="form-control" type="search" name="q" value="{{q}}" placeholder="Search user, item, amount or transaction ID…" aria-label="Search bank statement">
-			<select class="form-control" name="category" aria-label="Category">
-				{% for value, label in categories %}<option value="{{value}}" {{'selected' if category == value else ''}}>{{label}}</option>{% endfor %}
-			</select>
-			<select class="form-control" name="direction" aria-label="Direction">
-				<option value="all" {{'selected' if direction == 'all' else ''}}>Money in + out</option>
-				<option value="in" {{'selected' if direction == 'in' else ''}}>Money in</option>
-				<option value="out" {{'selected' if direction == 'out' else ''}}>Money out</option>
-			</select>
-			<select class="form-control" name="range" aria-label="Time range">
-				<option value="all" {{'selected' if period == 'all' else ''}}>All time</option>
-				<option value="24h" {{'selected' if period == '24h' else ''}}>24 hours</option>
-				<option value="7d" {{'selected' if period == '7d' else ''}}>7 days</option>
-				<option value="30d" {{'selected' if period == '30d' else ''}}>30 days</option>
-				<option value="90d" {{'selected' if period == '90d' else ''}}>90 days</option>
-			</select>
 			{% if hide_casino %}<input type="hidden" name="hide_casino" value="1">{% endif %}
-			<button class="btn btn-primary" type="submit">Apply</button>
+			<div class="bank-search-main">
+				<input class="form-control" type="search" name="q" value="{{q}}" placeholder="Search transactions, users, items, amounts or transaction IDs…" aria-label="Search bank statement">
+				<button class="btn btn-primary" type="submit"><i class="fas fa-search mr-1"></i> Search</button>
+			</div>
+			<div class="bank-filter-row">
+				<select class="form-control" name="category" aria-label="Category">
+					{% for value, label in categories %}<option value="{{value}}" {{'selected' if category == value else ''}}>{{label}}</option>{% endfor %}
+				</select>
+				<select class="form-control" name="direction" aria-label="Direction">
+					<option value="all" {{'selected' if direction == 'all' else ''}}>Money in + out</option>
+					<option value="in" {{'selected' if direction == 'in' else ''}}>Money in only</option>
+					<option value="out" {{'selected' if direction == 'out' else ''}}>Money out only</option>
+				</select>
+				<select class="form-control" name="range" aria-label="Time range">
+					<option value="all" {{'selected' if period == 'all' else ''}}>All time</option>
+					<option value="24h" {{'selected' if period == '24h' else ''}}>Last 24 hours</option>
+					<option value="7d" {{'selected' if period == '7d' else ''}}>Last 7 days</option>
+					<option value="30d" {{'selected' if period == '30d' else ''}}>Last 30 days</option>
+					<option value="90d" {{'selected' if period == '90d' else ''}}>Last 90 days</option>
+				</select>
+				<button class="btn btn-secondary" type="submit"><i class="fas fa-sliders-h mr-1"></i> Apply filters</button>
+				{% if hide_casino %}
+				<a class="bank-filter-link active" href="?currency={{currency}}{% if q %}&q={{q|urlencode}}{% endif %}{% if category != 'all' %}&category={{category}}{% endif %}{% if direction != 'all' %}&direction={{direction}}{% endif %}{% if period != 'all' %}&range={{period}}{% endif %}"><i class="fas fa-eye-slash"></i> Gambling hidden</a>
+				{% else %}
+				<a class="bank-filter-link" href="?currency={{currency}}&hide_casino=1{% if q %}&q={{q|urlencode}}{% endif %}{% if category != 'all' %}&category={{category}}{% endif %}{% if direction != 'all' %}&direction={{direction}}{% endif %}{% if period != 'all' %}&range={{period}}{% endif %}"><i class="fas fa-dice"></i> Hide gambling</a>
+				{% endif %}
+			</div>
 		</form>
-		<div class="bank-quick">
-			{% if hide_casino %}
-				<a class="active" href="?currency={{currency}}{% if q %}&q={{q|urlencode}}{% endif %}{% if category != 'all' %}&category={{category}}{% endif %}{% if direction != 'all' %}&direction={{direction}}{% endif %}{% if period != 'all' %}&range={{period}}{% endif %}"><i class="fas fa-eye-slash"></i> Gambling hidden</a>
-			{% else %}
-				<a href="?currency={{currency}}&hide_casino=1{% if q %}&q={{q|urlencode}}{% endif %}{% if category != 'all' %}&category={{category}}{% endif %}{% if direction != 'all' %}&direction={{direction}}{% endif %}{% if period != 'all' %}&range={{period}}{% endif %}"><i class="fas fa-dice"></i> Hide gambling</a>
-			{% endif %}
-			<a href="/@{{u.username}}/bank?currency={{currency}}"><i class="fas fa-undo"></i> Reset</a>
-			<span class="bank-filter-note">Totals above follow the active filters.</span>
+		<div class="bank-tools-foot">
+			<span>{{stats.total|number}} transaction{{'' if stats.total == 1 else 's'}} match the current filters. Summary totals update with the filters.</span>
+			<a class="bank-reset" href="/@{{u.username}}/bank?currency={{currency}}"><i class="fas fa-undo mr-1"></i> Reset filters</a>
 		</div>
 	</section>
 
-	<section class="bank-list" aria-label="Transactions">
-		<div class="bank-list-head"><div>Change</div><div>Transaction</div><div class="text-right">Balance after</div></div>
+	<section class="bank-ledger" aria-label="Transactions">
+		<div class="bank-ledger-head"><div>Change</div><div>Transaction</div><div>Balance after</div></div>
 		{% for tx in transactions %}
-		<article class="bank-row {{'in' if tx.amount > 0 else 'out'}}{% if tx.preview %} preview{% endif %}">
-			<div>
-				<div class="bank-amount {{'bank-positive' if tx.amount > 0 else 'bank-negative'}}">
-					<img src="{{currency_asset}}" alt=""> <span>{{'+' if tx.amount > 0 else ''}}{{tx.amount|number}}</span>
+		<article class="bank-row {{'in' if tx.amount > 0 else 'out'}}">
+			<div class="bank-change">
+				<div class="bank-change-icon"><img src="{{currency_asset}}" alt=""></div>
+				<div class="bank-change-copy">
+					<div class="bank-amount {{'bank-positive' if tx.amount > 0 else 'bank-negative'}}">{{'+' if tx.amount > 0 else ''}}{{tx.amount|number}}</div>
+					<div class="bank-direction">{{'Money in' if tx.amount > 0 else 'Money out'}}</div>
+					<div class="bank-time">{{tx.created_utc|timestamp}}</div>
 				</div>
-				<div class="bank-time">{{tx.created_utc|timestamp}}</div>
 			</div>
 			<div class="bank-main">
 				<div class="bank-desc">{{tx.description}}</div>
-				<div class="bank-meta">
-					<span>{{tx.group_label}}</span>
-					{% if tx.id %}<span>· #{{tx.id}}</span>{% endif %}
-					{% if tx.preview %}<span class="bank-preview-tag">Preview</span>{% endif %}
-				</div>
+				<div class="bank-meta"><span>{{tx.group_label}}</span>{% if tx.id %}<span class="bank-meta-dot">•</span><span>Transaction #{{tx.id}}</span>{% endif %}</div>
 			</div>
-			<div class="bank-balance"><strong>{{tx.balance_after|number}}</strong><span>{{currency_name}}</span></div>
+			<div class="bank-balance"><div class="bank-balance-label">Balance after</div><strong>{{tx.balance_after|number}}</strong><span>{{currency_name}}</span></div>
 		</article>
 		{% else %}
 		<div class="bank-empty"><i class="fas fa-receipt fa-2x mb-3"></i><br>No transactions match these filters.</div>
