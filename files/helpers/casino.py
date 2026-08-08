@@ -4,6 +4,15 @@ from files.helpers.alerts import *
 from files.helpers.config.const import *
 from files.helpers.useractions import badge_grant
 
+# Slots/Blackjack had development-era extreme wagers that permanently polluted
+# the "biggest winner / biggest loser" cards. Keep those CasinoGame rows intact
+# for feeds, user stats and audit/history, but start these two leaderboards fresh
+# from this cutoff. Roulette and any other casino games retain their full history.
+CASINO_LEADERBOARD_RESET_UTC = {
+	'slots': 1786211100,       # 2026-08-08 17:45 UTC
+	'blackjack': 1786211100,   # 2026-08-08 17:45 UTC
+}
+
 def get_game_feed(game, db):
 	games = db.query(CasinoGame) \
 		.filter(CasinoGame.active == False, CasinoGame.kind == game) \
@@ -32,7 +41,12 @@ def get_user_stats(u:User, game:str, db:scoped_session, include_ties=False):
 
 def get_game_leaderboard(game, db:scoped_session):
 	timestamp_24h_ago = time.time() - 86400
-	timestamp_all_time = CASINO_RELEASE_DAY # "All Time" starts on release day
+	leaderboard_reset = CASINO_LEADERBOARD_RESET_UTC.get(game, 0)
+	# "All Time" normally starts on casino release day. For explicitly reset
+	# games it starts at the reset cutoff instead. The 24h card also respects the
+	# same cutoff, so an old extreme game cannot linger for the next 24 hours.
+	timestamp_all_time = max(CASINO_RELEASE_DAY, leaderboard_reset)
+	timestamp_last_24h = max(timestamp_24h_ago, leaderboard_reset)
 
 	biggest_win_all_time = db.query(CasinoGame.user_id, User.username, CasinoGame.currency, CasinoGame.winnings).select_from(
 		CasinoGame).join(User).order_by(CasinoGame.winnings.desc()).filter(
@@ -45,7 +59,7 @@ def get_game_leaderboard(game, db:scoped_session):
 		CasinoGame).join(User).order_by(CasinoGame.winnings.desc()).filter(
 			CasinoGame.kind == game,
 			CasinoGame.winnings > 0,
-			CasinoGame.created_utc > timestamp_24h_ago
+			CasinoGame.created_utc > timestamp_last_24h
 		).limit(1).one_or_none()
 
 	biggest_loss_all_time = db.query(CasinoGame.user_id, User.username, CasinoGame.currency, CasinoGame.winnings).select_from(
@@ -59,7 +73,7 @@ def get_game_leaderboard(game, db:scoped_session):
 		CasinoGame).join(User).order_by(CasinoGame.winnings.asc()).filter(
 			CasinoGame.kind == game,
 			CasinoGame.winnings < 0,
-			CasinoGame.created_utc > timestamp_24h_ago
+			CasinoGame.created_utc > timestamp_last_24h
 		).limit(1).one_or_none()
 
 	if not biggest_win_all_time:
