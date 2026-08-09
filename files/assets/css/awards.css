@@ -1,93 +1,15 @@
 #awards-container {
-	position:fixed;
 	pointer-events: none;
-	z-index:9999;
 }
 
-.stackable-container > div {
-	position: absolute;
-}
-
-.stackable-container div,
-.stackable-container img, .ricardo {
-	animation-iteration-count: infinite !important;
-	animation-timing-function: linear !important;
-}
-
-/* wholesome */
-.wholesome img {
-	width: 100px !important;
-	height: 89.5px !important;
-}
-@media (max-width: 992px) {
-	.wholesome img {
-		width: 40px !important;
-		height: 27px !important;
-	}
-}
-
-.wholesome {animation: sealX 9s alternate}
-.wholesome img {animation: sealY 10s alternate}
-
-.wholesome:nth-child(even),
-.wholesome:nth-child(n+2):nth-child(n+3) img
-{animation-direction: alternate-reverse}
-
-@keyframes sealX {
-	100% {transform: translateX(98vw)}
-}
-@keyframes sealY {
-	100% {transform: translateY(85vh)}
-}
-
-/* train */
-.train img {
-	width: 100px !important;
-	height: 51px !important;
-}
-@media (max-width: 992px) {
-	.train img {
-		width: 40px !important;
-		height: 20px !important;
-	}
-}
-
-.train:nth-child(1), .scooter:nth-child(1) {top:2%}
-.train:nth-child(2), .scooter:nth-child(2) {top:27%}
-.train:nth-child(3), .scooter:nth-child(3) {top:52%}
-.train:nth-child(4), .scooter:nth-child(4) {top:77%}
-
-.train {animation: train 12s;}
-.train:nth-child(odd) {animation-direction: reverse;}
-.train:nth-child(odd) img {transform: scaleX(-1);}
-
-@keyframes train {
-	from {transform: translateX(-3vw)}
-	to {transform: translateX(99vw)}
-}
-
-/* scooter */
-.scooter img {
-	width: 100px !important;
-	height: 135px !important;
-}
-@media (max-width: 992px) {
-	.scooter img {
-		width: 40px !important;
-		height: 54px !important;
-	}
-}
-
-.scooter {animation: train 14s;}
-.scooter:nth-child(even) {animation-direction: reverse;}
-.scooter:nth-child(even) img {transform: scaleX(-1);}
-
-/* Confetti uses the original colorful rDrama asset and stays on the exact awarded content. */
+/* Confetti: original colorful asset, clipped to the exact awarded content. */
+.award-effect-target.has-award-confetti,
 #post-root > .card:has(.award-kind-confetti),
 .comment-body:has(.award-kind-confetti) {
 	position: relative;
 }
 
+.award-effect-target.has-award-confetti::after,
 #post-root > .card:has(.award-kind-confetti)::after,
 .comment-body:has(.award-kind-confetti)::after {
 	content: "";
@@ -95,12 +17,16 @@
 	inset: 0;
 	z-index: 20;
 	pointer-events: none;
+	overflow: hidden;
+	border-radius: inherit;
 	background-image: url(/assets/images/confetti2.webp?v=20260809-confetti2);
 	background-repeat: repeat;
 	background-position: top left;
 	background-size: 800px 450px;
 }
 
+.award-effect-target.has-award-confetti .dropdown-menu,
+.award-effect-target.has-award-confetti .popover,
 #post-root > .card:has(.award-kind-confetti) .dropdown-menu,
 #post-root > .card:has(.award-kind-confetti) .popover,
 .comment-body:has(.award-kind-confetti) .dropdown-menu,
@@ -109,89 +35,22 @@
 }
 
 @media (max-width: 720px) {
+	.award-effect-target.has-award-confetti::after,
 	#post-root > .card:has(.award-kind-confetti)::after,
 	.comment-body:has(.award-kind-confetti)::after {
 		background-size: 640px 360px;
 	}
 }
 
-/* fireworks */
-.firework img {
-	max-width: 15rem;
-}
-
-/* ricardo / Celebration */
-.ricardo {
-	position: fixed !important;
-	bottom: 0;
-}
-.ricardo img {
-	max-height: min(30vw,15rem);
-}
-
-.ricardo1 {animation: ricardo1Xa 5.8s, ricardo1Xb 11.6s, ricardo1Y 23.2s;}
-.ricardo2 {animation: ricardo2 8.5s;}
-.ricardo3 {animation: ricardo3 10s;}
-
-@keyframes ricardo1Xa {
-	0% {right: -200px}
-	50% {right: 200px}
-	100% {right: -200px}
-}
-
-@keyframes ricardo1Xb {
-	0%{left:unset}
-	49% {left: unset}
-	50% {left: -200px}
-	75% {left:200px}
-	100% {left: -200px}
-}
-
-@keyframes ricardo1Y {
-	0% {bottom:20vh}
-	24% {bottom: 20vh}
-	25% {bottom: 60vh}
-	49% {bottom: 60vh}
-	50% {bottom: 10vh}
-	74% {bottom: 10vh}
-	75% {bottom: 50vh}
-	99% {bottom: 50vh}
-	100% {bottom: 20vh}
-}
-
-@keyframes ricardo2 {
-	0% { opacity: 1; left: 0; right: unset;}
-	18% {opacity: 0; left: 0; right: unset;}
-	19% {opacity: 0; left: unset; right: 20vw;}
-	20% {opacity: 1; left: unset; right: 20vw;}
-	38% {opacity: 0; left: unset; right: 20vw;}
-	39% {opacity: 0; left: 20vw; right: unset;}
-	40% {opacity: 1; left: 20vw; right: unset;}
-	58% {opacity: 0; left: 20vw; right: unset;}
-	59% {opacity: 0; left: unset;right: 60vw;}
-	60% {opacity: 1; left: unset; right: 60vw;}
-	78% {opacity: 0; left: unset; right: 60vw;}
-	79% {opacity: 0; left: 80vw; right: unset;}
-	80% {opacity: 1; left: 80vw; right: unset;}
-	98% {opacity: 0; left: 80vw; right: unset;}
-	99% {opacity: 0; left: 0; right: unset;}
-	100% {opacity: 1; left: 0; right: unset;}
-}
-
-@keyframes ricardo3 {
-	50% {transform: translateX(100vw); top: unset; bottom: 0;}
-	51% {transform: translateX(100vw) rotate(180deg); top: 0; bottom: unset;}
-	100% {transform: translateX(-15vw) rotate(180deg); top: 0; bottom: unset;}
-}
-
-/* Tilt used to contain raw Jinja in this static CSS file, so browsers discarded it. */
+/* Tilt. */
 @keyframes awardTilt {
-	0%, 100% {transform: rotate(0deg);}
-	25% {transform: rotate(2deg);}
-	75% {transform: rotate(-2deg);}
+	0%, 100% { transform: rotate(0deg); }
+	25% { transform: rotate(2deg); }
+	75% { transform: rotate(-2deg); }
 }
 
 .tilt,
+.award-effect-target:has(.award-kind-tilt),
 .actual-post:has(.award-kind-tilt),
 .comment-body:has(.award-kind-tilt) {
 	animation-name: awardTilt;
@@ -204,120 +63,40 @@
 
 @media (max-width: 720px) {
 	@keyframes awardTilt {
-		0%, 100% {transform: rotate(0deg);}
-		25% {transform: rotate(.7deg);}
-		75% {transform: rotate(-.7deg);}
+		0%, 100% { transform: rotate(0deg); }
+		25% { transform: rotate(.7deg); }
+		75% { transform: rotate(-.7deg); }
 	}
 }
 
-/* Night Glow also works on comment/listing render paths that only expose the award marker. */
+/* Night Glow. */
+.glow,
+.award-effect-target:has(.award-kind-glowie),
 .actual-post:has(.award-kind-glowie),
 .comment-body:has(.award-kind-glowie) {
-	color: lightgreen;
+	color: lightgreen !important;
 	text-shadow: 1px 1px 1px darkgreen, 0 0 5px green;
 }
 
-/* Comment-level renderers for the legacy animated awards. */
-.comment-body:has(.comment-award-effects) {
-	position: relative;
+.glow .post-title,
+.glow a,
+.glow .post-meta *,
+.glow .user-info *,
+.glow .comment-text,
+.glow .comment-actions *,
+.award-effect-target:has(.award-kind-glowie) .post-title,
+.award-effect-target:has(.award-kind-glowie) a,
+.award-effect-target:has(.award-kind-glowie) .post-meta *,
+.award-effect-target:has(.award-kind-glowie) .user-info *,
+.award-effect-target:has(.award-kind-glowie) .comment-text,
+.award-effect-target:has(.award-kind-glowie) .comment-actions * {
+	color: lightgreen !important;
+	text-shadow: 1px 1px 1px darkgreen, 0 0 5px green;
 }
 
-.comment-award-effects {
-	position: absolute;
-	inset: 0;
-	z-index: 19;
-	pointer-events: none;
-	overflow: hidden;
-}
-
-.comment-award-stack,
-.comment-award-stack > div {
-	position: absolute;
-	inset: 0;
-}
-
-.comment-award-stack img,
-.comment-ricardo img,
-.comment-firework img {
-	pointer-events: none;
-	user-select: none;
-}
-
-.comment-train,
-.comment-scooter,
-.comment-wholesome {
-	position: absolute !important;
-	inset: auto !important;
-	left: -120px;
-}
-
-.comment-train-1, .comment-scooter-1, .comment-wholesome-1 {top: 8%;}
-.comment-train-2, .comment-scooter-2, .comment-wholesome-2 {top: 32%;}
-.comment-train-3, .comment-scooter-3, .comment-wholesome-3 {top: 56%;}
-.comment-train-4, .comment-scooter-4, .comment-wholesome-4 {top: 78%;}
-
-.comment-train img {width: 90px; height: auto;}
-.comment-scooter img {width: 70px; height: auto;}
-.comment-wholesome img {width: 80px; height: auto;}
-
-.comment-train,
-.comment-scooter,
-.comment-wholesome {
-	animation: commentAwardCross 9s linear infinite;
-}
-.comment-scooter {animation-duration: 11s;}
-.comment-wholesome {animation-duration: 13s; animation-direction: alternate;}
-.comment-train:nth-child(even),
-.comment-scooter:nth-child(odd) {animation-direction: reverse;}
-
-@keyframes commentAwardCross {
-	from {left: -120px;}
-	to {left: calc(100% + 20px);}
-}
-
-.comment-ricardo {
-	position: absolute;
-	bottom: 0;
-}
-.comment-ricardo img {
-	max-height: min(160px, 55%);
-	max-width: 180px;
-}
-.comment-ricardo-1 {animation: commentRicardoOne 7s linear infinite;}
-.comment-ricardo-2 {animation: commentRicardoTwo 9s linear infinite;}
-.comment-ricardo-3 {animation: commentRicardoThree 11s linear infinite;}
-
-@keyframes commentRicardoOne {
-	0% {left: -160px; bottom: 4%;}
-	50% {left: calc(100% - 90px); bottom: 45%;}
-	100% {left: -160px; bottom: 4%;}
-}
-@keyframes commentRicardoTwo {
-	0%, 100% {right: 4%; bottom: -30px; opacity: .15;}
-	40%, 65% {right: 38%; bottom: 20%; opacity: 1;}
-}
-@keyframes commentRicardoThree {
-	0% {left: 10%; top: -100px; transform: rotate(180deg);}
-	50% {left: 65%; top: 55%; transform: rotate(180deg);}
-	51% {transform: rotate(0deg);}
-	100% {left: 10%; top: -100px; transform: rotate(0deg);}
-}
-
-.comment-firework {
-	position: absolute;
-	width: 90px;
-	height: 90px;
-	will-change: top, left, opacity;
-}
-.comment-firework img {
-	max-width: 90px;
-	max-height: 90px;
-}
-
-@media (max-width: 720px) {
-	.comment-train img {width: 55px;}
-	.comment-scooter img {width: 45px;}
-	.comment-wholesome img {width: 52px;}
-	.comment-ricardo img {max-height: 100px; max-width: 110px;}
-	.comment-firework, .comment-firework img {width: 64px; height: 64px; max-width: 64px; max-height: 64px;}
+.glow .post-body a,
+.glow .comment-text a,
+.award-effect-target:has(.award-kind-glowie) .post-body a,
+.award-effect-target:has(.award-kind-glowie) .comment-text a {
+	text-decoration: underline;
 }
