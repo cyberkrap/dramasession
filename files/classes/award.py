@@ -47,4 +47,4 @@ class AwardRelationship(Base):
 	@property
 	@lazy
 	def class_list(self):
-		return self.type['icon']+' '+self.type['color']
+		return self.type['icon']+' '+self.type['color']+f' award-kind-{self.kind}'
