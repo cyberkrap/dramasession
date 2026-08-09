@@ -95,7 +95,7 @@
 	inset: 0;
 	z-index: 20;
 	pointer-events: none;
-	background-image: url(/assets/images/confetti.webp?v=1);
+	background-image: url(/assets/images/confetti.webp?v=20260809-confetti);
 	background-repeat: repeat;
 	background-position: top left;
 	background-size: 800px 450px;
