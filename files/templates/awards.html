@@ -9,21 +9,29 @@
 	</div>
 {% endmacro %}
 
+{% if p.award_count("wholesome", v) %}
+	{{ stackable_award('wholesome', '/e/marseywholesome.webp', ':#marseywholesome:') }}
+{% endif %}
 
-{# These legacy effects have no valid Obsession asset. Do not use the site icon as a fake overlay. #}
+{% if p.award_count("train", v) %}
+	{{ stackable_award('train', '/e/marseytrain.webp', ':#marseytrain:') }}
+{% endif %}
 
+{% if p.award_count("scooter", v) %}
+	{{ stackable_award('scooter', '/e/marseyscooter.webp', ':#marseyscooter:') }}
+{% endif %}
 
 {% if p.award_count("firework", v) %}
 	<script defer src="{{'js/fireworks.js' | asset}}"></script>
-	{{ stackable_award('firework') }}
+	{{ stackable_award('firework', '/i/firework-trail.webp', 'Firework') }}
 {% endif %}
 
-{# Confetti is rendered as a scoped CSS effect on the awarded post/comment. #}
+{# Confetti is rendered as a scoped CSS effect on the exact awarded post/comment. #}
 
 {% if p.award_count("ricardo", v) %}
 	{% for i in range(min(p.award_count("ricardo", v), 3)) %}
 		<div class="ricardo ricardo{{i+1}}">
-			<img loading="lazy" src="/i/ricardo{{i+1}}.webp">
+			<img loading="lazy" src="/i/ricardo{{i+1}}.webp" alt="Celebration">
 		</div>
 	{% endfor %}
 {% endif %}
