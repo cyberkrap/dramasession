@@ -46,5 +46,13 @@ class AwardRelationship(Base):
 
 	@property
 	@lazy
+	def awarded_date(self):
+		if not self.awarded_utc:
+			return None
+		date = time.gmtime(self.awarded_utc)
+		return f"{time.strftime('%b', date)} {date.tm_mday}, {date.tm_year}"
+
+	@property
+	@lazy
 	def class_list(self):
 		return self.type['icon']+' '+self.type['color']+f' award-kind-{self.kind}'
