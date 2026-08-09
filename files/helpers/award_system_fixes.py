@@ -30,24 +30,51 @@ def disable_retired_awards():
 
 
 def patch_award_batch_source():
-	"""Add atomic-ish 1-30 award batching and permanent-upgrade duplicate guards."""
+	"""Add 1-30 award batching without notification or bank-statement spam."""
 	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
 		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
 		source = _AWARDS_ROUTE_PATH.read_text(encoding="utf-8")
-		if "# obsession-award-batch-v2" in source:
+		if "# obsession-award-batch-v3" in source:
 			return
+
+		batch_import = (
+			"from files.helpers.award_batch_runtime import "
+			"award_batch_ledger_start, collapse_award_batch_ledger\n"
+		)
+		import_marker = "from files.helpers.support import patron_has\n"
+		if batch_import not in source:
+			if import_marker not in source:
+				raise RuntimeError("Could not locate the awards support import")
+			source = source.replace(import_marker, import_marker + batch_import, 1)
 
 		fn_marker = "def award_thing(v, thing_type, id):\n"
 		fn_start = source.find(fn_marker)
 		if fn_start == -1:
 			raise RuntimeError("Could not locate award_thing")
+		fn_end = source.find("\n@app.", fn_start)
+		if fn_end == -1:
+			fn_end = len(source)
 
+		# Route all existing per-award notifications through a local helper. For a
+		# quantity batch they are suppressed and replaced by one summary notification.
+		fn_source = source[fn_start:fn_end]
+		fn_source = fn_source.replace("send_repeatable_notification(", "_award_notify(")
+		source = source[:fn_start] + fn_source + source[fn_end:]
+
+		fn_start = source.find(fn_marker)
 		kind_line = '\tkind = request.values.get("kind", "").strip()\n'
 		kind_at = source.find(kind_line, fn_start)
 		if kind_at == -1:
 			raise RuntimeError("Could not locate award kind input")
-		quantity_block = kind_line + '''\t# obsession-award-batch-v2\n\ttry:\n\t\tamount = int(request.values.get("amount", 1))\n\texcept (TypeError, ValueError):\n\t\tabort(400, "Invalid award quantity!")\n\tif amount < 1 or amount > 30:\n\t\tabort(400, "Award quantity must be between 1 and 30!")\n'''
+		quantity_block = kind_line + '''\t# obsession-award-batch-v3\n\ttry:\n\t\tamount = int(request.values.get("amount", 1))\n\texcept (TypeError, ValueError):\n\t\tabort(400, "Invalid award quantity!")\n\tif amount < 1 or amount > 30:\n\t\tabort(400, "Award quantity must be between 1 and 30!")\n'''
 		source = source[:kind_at] + source[kind_at:].replace(kind_line, quantity_block, 1)
+
+		author_line = "\tauthor = thing.author\n"
+		author_at = source.find(author_line, fn_start)
+		if author_at == -1:
+			raise RuntimeError("Could not locate award target author")
+		batch_setup = author_line + '''\t_award_batch_target_author = author\n\t_award_batch_ledger_start = award_batch_ledger_start(g.db) if amount > 1 else 0\n\n\tdef _award_notify(user_id, message):\n\t\tif amount == 1:\n\t\t\tsend_repeatable_notification(user_id, message)\n'''
+		source = source[:author_at] + source[author_at:].replace(author_line, batch_setup, 1)
 
 		validation_marker = '\tif kind not in AWARDS: abort(404, "This award doesn\'t exist")\n'
 		validation_at = source.find(validation_marker, fn_start)
@@ -75,7 +102,7 @@ def patch_award_batch_source():
 
 		indented_body = ''.join('\t' + line if line.strip() else line for line in loop_body.splitlines(keepends=True))
 		batch_loop = '\tfor _award_batch_index in range(amount):\n\t\tauthor = thing.author\n' + indented_body
-		batch_return = '''\tif amount == 1:\n\t\tmessage = f"{AWARDS[kind]['title']} award given to {thing_type} successfully!"\n\telse:\n\t\tmessage = f"{amount}× {AWARDS[kind]['title']} awards given to {thing_type} successfully!"\n\treturn {"message": message}\n'''
+		batch_return = '''\tif amount > 1:\n\t\tcollapse_award_batch_ledger(\n\t\t\tg.db,\n\t\t\t_award_batch_ledger_start,\n\t\t\trequest.path,\n\t\t\tkind=kind,\n\t\t\tquantity=amount,\n\t\t\tthing_type=thing_type,\n\t\t\tthing_id=thing.id,\n\t\t\tactor=v,\n\t\t\trecipient=_award_batch_target_author,\n\t\t)\n\t\tif v.id != _award_batch_target_author.id and kind != "spider":\n\t\t\tmsg = f"@{v.username} has given your [{thing_type}]({thing.shortlink}) the {amount} {AWARDS[kind]['title']} Awards!"\n\t\t\tif note:\n\t\t\t\tmsg += f"\\n\\n> {note}"\n\t\t\tsend_repeatable_notification(_award_batch_target_author.id, msg)\n\n\tif amount == 1:\n\t\tmessage = f"{AWARDS[kind]['title']} award given to {thing_type} successfully!"\n\telse:\n\t\tmessage = f"{amount}× {AWARDS[kind]['title']} awards given to {thing_type} successfully!"\n\treturn {"message": message}\n'''
 		source = source[:loop_start] + batch_loop + batch_return + source[final_return_at + len(final_return):]
 
 		_atomic_write(_AWARDS_ROUTE_PATH, source)
