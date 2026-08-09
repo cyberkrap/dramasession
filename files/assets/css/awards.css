@@ -216,3 +216,108 @@
 	color: lightgreen;
 	text-shadow: 1px 1px 1px darkgreen, 0 0 5px green;
 }
+
+/* Comment-level renderers for the legacy animated awards. */
+.comment-body:has(.comment-award-effects) {
+	position: relative;
+}
+
+.comment-award-effects {
+	position: absolute;
+	inset: 0;
+	z-index: 19;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.comment-award-stack,
+.comment-award-stack > div {
+	position: absolute;
+	inset: 0;
+}
+
+.comment-award-stack img,
+.comment-ricardo img,
+.comment-firework img {
+	pointer-events: none;
+	user-select: none;
+}
+
+.comment-train,
+.comment-scooter,
+.comment-wholesome {
+	position: absolute !important;
+	inset: auto !important;
+	left: -120px;
+}
+
+.comment-train-1, .comment-scooter-1, .comment-wholesome-1 {top: 8%;}
+.comment-train-2, .comment-scooter-2, .comment-wholesome-2 {top: 32%;}
+.comment-train-3, .comment-scooter-3, .comment-wholesome-3 {top: 56%;}
+.comment-train-4, .comment-scooter-4, .comment-wholesome-4 {top: 78%;}
+
+.comment-train img {width: 90px; height: auto;}
+.comment-scooter img {width: 70px; height: auto;}
+.comment-wholesome img {width: 80px; height: auto;}
+
+.comment-train,
+.comment-scooter,
+.comment-wholesome {
+	animation: commentAwardCross 9s linear infinite;
+}
+.comment-scooter {animation-duration: 11s;}
+.comment-wholesome {animation-duration: 13s; animation-direction: alternate;}
+.comment-train:nth-child(even),
+.comment-scooter:nth-child(odd) {animation-direction: reverse;}
+
+@keyframes commentAwardCross {
+	from {left: -120px;}
+	to {left: calc(100% + 20px);}
+}
+
+.comment-ricardo {
+	position: absolute;
+	bottom: 0;
+}
+.comment-ricardo img {
+	max-height: min(160px, 55%);
+	max-width: 180px;
+}
+.comment-ricardo-1 {animation: commentRicardoOne 7s linear infinite;}
+.comment-ricardo-2 {animation: commentRicardoTwo 9s linear infinite;}
+.comment-ricardo-3 {animation: commentRicardoThree 11s linear infinite;}
+
+@keyframes commentRicardoOne {
+	0% {left: -160px; bottom: 4%;}
+	50% {left: calc(100% - 90px); bottom: 45%;}
+	100% {left: -160px; bottom: 4%;}
+}
+@keyframes commentRicardoTwo {
+	0%, 100% {right: 4%; bottom: -30px; opacity: .15;}
+	40%, 65% {right: 38%; bottom: 20%; opacity: 1;}
+}
+@keyframes commentRicardoThree {
+	0% {left: 10%; top: -100px; transform: rotate(180deg);}
+	50% {left: 65%; top: 55%; transform: rotate(180deg);}
+	51% {transform: rotate(0deg);}
+	100% {left: 10%; top: -100px; transform: rotate(0deg);}
+}
+
+.comment-firework {
+	position: absolute;
+	width: 90px;
+	height: 90px;
+	will-change: top, left, opacity;
+}
+.comment-firework img {
+	max-width: 90px;
+	max-height: 90px;
+}
+
+@media (max-width: 720px) {
+	.comment-train img {width: 55px;}
+	.comment-scooter img {width: 45px;}
+	.comment-wholesome img {width: 52px;}
+	.comment-ricardo img {max-height: 100px; max-width: 110px;}
+	.comment-firework, .comment-firework img {width: 64px; height: 64px; max-width: 64px; max-height: 64px;}
+}
