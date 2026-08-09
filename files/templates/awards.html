@@ -18,9 +18,7 @@
 	{{ stackable_award('firework') }}
 {% endif %}
 
-{% if p.award_count("confetti", v) %}
-	<div class="confetti w-100 h-100"></div>
-{% endif %}
+{# Confetti is rendered as a scoped CSS effect on the awarded post/comment. #}
 
 {% if p.award_count("ricardo", v) %}
 	{% for i in range(min(p.award_count("ricardo", v), 3)) %}
