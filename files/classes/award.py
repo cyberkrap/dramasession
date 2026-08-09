@@ -47,4 +47,7 @@ class AwardRelationship(Base):
 	@property
 	@lazy
 	def class_list(self):
-		return self.type['icon']+' '+self.type['color']
+		# Keep the visual icon classes while exposing a stable award-kind hook.
+		# Cosmetic effects can now target awarded posts/comments without brittle
+		# title-text selectors or separate comment-specific backend plumbing.
+		return self.type['icon']+' '+self.type['color']+f' award-kind-{self.kind}'
