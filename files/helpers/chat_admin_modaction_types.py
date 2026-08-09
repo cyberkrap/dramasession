@@ -25,18 +25,19 @@ CHAT_ADMIN_MODACTION_TYPES = {
     },
 }
 
-# Use one coherent timeout metaphor everywhere. These are standard Font
-# Awesome icons and avoid the misleading green checkmark / verified look.
-# Color belongs to the modlog action tile, not the filter dropdown itself.
+# Lock / lock-open already exist in the exact Font Awesome build shipped by
+# the site (they are used elsewhere in moderation actions), so these cannot
+# silently disappear like the unavailable hourglass variants did. They also
+# communicate timeout state more clearly than a generic check/undo glyph.
 CHAT_TIMEOUT_MODACTION_TYPES = {
     'chat_timeout': {
         'str': 'timed out {self.target_link} from speaking in {self.note}',
-        'icon': 'fa-hourglass-half',
+        'icon': 'fa-lock',
         'color': 'bg-danger',
     },
     'chat_untimeout': {
         'str': 'removed the chat timeout from {self.target_link} in {self.note}',
-        'icon': 'fa-hourglass-end',
+        'icon': 'fa-lock-open',
         'color': 'bg-success',
     },
 }
