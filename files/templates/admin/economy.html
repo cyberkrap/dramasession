@@ -1,0 +1,100 @@
+{% extends "default.html" %}
+{% block pagetitle %}Economy Administration{% endblock %}
+{% block customPadding %}admin-management-padding{% endblock %}
+{% block content %}
+<div class="admin-management-page">
+	{% if error %}{{macros.alert(error, true)}}{% endif %}
+	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+
+	<header class="admin-management-heading">
+		<div>
+			<p class="admin-eyebrow">Administration</p>
+			<h1>Economy</h1>
+			<p class="text-muted">Currency adjustments, patron rewards, patron status, and lifetime contribution controls.</p>
+		</div>
+		<a class="btn btn-secondary" href="/admin">Back to Admin Tools</a>
+	</header>
+
+	{% if v.has_permission('ADMIN_GRANT_CURRENCY') %}
+	<section class="admin-management-section">
+		<div class="admin-section-heading"><div>
+			<h2>Grant currency</h2>
+			<p class="text-muted">Add Wishcoins or Wishbux directly to a member account. This is a manual balance adjustment, not a patron reward.</p>
+		</div></div>
+		<form action="/admin/grant_currency" method="post" class="admin-patron-form">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<div><label for="grant-currency-username">Username</label><input id="grant-currency-username" name="username" class="form-control" autocomplete="off" required></div>
+			<div><label for="grant-currency-type">Currency</label><select id="grant-currency-type" name="currency" class="form-control"><option value="coins">Wishcoins</option>{% if FEATURES['MARSEYBUX'] %}<option value="marseybux">Wishbux</option>{% endif %}</select></div>
+			<div><label for="grant-currency-amount">Amount</label><input id="grant-currency-amount" name="amount" class="form-control" type="number" min="1" max="1000000000000" step="1" required></div>
+			<button type="submit" class="btn btn-primary">Grant currency</button>
+		</form>
+	</section>
+	{% endif %}
+
+	{% if v.has_permission('ADMIN_REMOVE_CURRENCY') %}
+	<section class="admin-management-section">
+		<div class="admin-section-heading"><div>
+			<h2>Remove currency</h2>
+			<p class="text-muted">Remove Wishcoins or Wishbux from a member account. The balance will never be reduced below zero.</p>
+		</div></div>
+		<form action="/admin/remove_currency" method="post" class="admin-patron-form">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<div><label for="remove-currency-username">Username</label><input id="remove-currency-username" name="username" class="form-control" autocomplete="off" required></div>
+			<div><label for="remove-currency-type">Currency</label><select id="remove-currency-type" name="currency" class="form-control"><option value="coins">Wishcoins</option>{% if FEATURES['MARSEYBUX'] %}<option value="marseybux">Wishbux</option>{% endif %}</select></div>
+			<div><label for="remove-currency-amount">Amount</label><input id="remove-currency-amount" name="amount" class="form-control" type="number" min="1" max="1000000000000" step="1" required></div>
+			<button type="submit" class="btn btn-danger">Remove currency</button>
+		</form>
+	</section>
+	{% endif %}
+
+	{% if v.has_permission('ADMIN_GRANT_CURRENCY') %}
+	<section class="admin-management-section admin-role-card-economy">
+		<div class="admin-section-heading"><div>
+			<h2>Grant patron reward</h2>
+			<p class="text-muted">Issue the exact monthly Wishbux reward for a support tier. The bank statement records this as a Patron reward with the selected tier name. This does not change patron status or lifetime donated amount.</p>
+		</div></div>
+		<form action="/admin/economy/patron-reward" method="post" class="admin-patron-form">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<div><label for="reward-username">Username</label><input id="reward-username" name="username" class="form-control" autocomplete="off" required></div>
+			<div><label for="reward-tier">Patron tier</label><select id="reward-tier" name="tier" class="form-control">{% for tier in support_tiers %}<option value="{{tier.level}}">Tier {{tier.level}} — {{tier.name}} — {{tier.wishbux|number}} Wishbux</option>{% endfor %}</select></div>
+			<button type="submit" class="btn btn-primary">Grant patron reward</button>
+		</form>
+	</section>
+	{% endif %}
+
+	{% if can_manage_patrons %}
+	<section class="admin-management-section admin-patron-management">
+		<div class="admin-section-heading"><div>
+			<h2>Patron management</h2>
+			<p class="text-muted">Grant, update, or end patron status for a member. Patron reward payouts are handled separately above.</p>
+		</div></div>
+		<form action="/admin/patrons/manage" method="post" class="admin-patron-form">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<div><label for="patron-username">Username</label><input id="patron-username" name="username" class="form-control" autocomplete="off" required></div>
+			<div><label for="patron-action">Action</label><select id="patron-action" name="action" class="form-control"><option value="set">Grant / update</option><option value="end">End patron status</option></select></div>
+			<div><label for="patron-level">Level</label><select id="patron-level" name="level" class="form-control">{% for level in patron_levels %}<option value="{{level}}">Level {{level}}</option>{% endfor %}</select></div>
+			<div><label for="patron-duration">Duration (days)</label><input id="patron-duration" name="duration_days" class="form-control" type="number" min="1" max="3650" value="30"></div>
+			<label class="admin-patron-permanent"><input type="checkbox" name="permanent" checked> Permanent</label>
+			<label class="admin-patron-permanent"><input type="checkbox" name="free_patron"> Free patron <span class="text-muted">(all perks, no donation badges)</span></label>
+			<button type="submit" class="btn btn-primary">Apply patron status</button>
+		</form>
+	</section>
+	{% endif %}
+
+	{% if v.has_permission('ADMIN_GRANT_CURRENCY') %}
+	<section class="admin-management-section admin-patron-management">
+		<div class="admin-section-heading"><div>
+			<h2>Lifetime donation amount</h2>
+			<p class="text-muted">Set an exact lifetime donation total, or clear the override to return to verified payment history. Contribution badges synchronize immediately.</p>
+		</div></div>
+		<form action="/admin/lifetime-contributions/manage" method="post" class="admin-patron-form">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<div><label for="lifetime-username">Username</label><input id="lifetime-username" name="username" class="form-control" autocomplete="off" required></div>
+			<div><label for="lifetime-action">Action</label><select id="lifetime-action" name="action" class="form-control"><option value="set">Set exact amount</option><option value="clear">Clear manual override</option></select></div>
+			<div><label for="lifetime-amount">Lifetime donated (USD)</label><input id="lifetime-amount" name="amount" class="form-control" type="number" min="0" step="0.01" value="0.00"></div>
+			<button type="submit" class="btn btn-primary">Save lifetime donation</button>
+		</form>
+	</section>
+	{% endif %}
+</div>
+{% endblock %}
