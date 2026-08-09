@@ -10,7 +10,6 @@
 	border: 1px solid rgba(255,255,255,.10);
 	border-radius: 10px;
 	box-shadow: 0 24px 70px rgba(0,0,0,.65);
-	overflow: hidden;
 }
 
 #awardModal .modal-header {
@@ -39,28 +38,26 @@
 	line-height: 1;
 }
 
-#awardModal .close:hover {
-	color: #fff;
-}
+#awardModal .close:hover { color: #fff; }
+#awardModal .modal-body { padding: 0 1.15rem; }
 
-#awardModal .modal-body {
-	padding: 0 1.15rem;
-}
-
-/* Flat tabs: no box inside a box. */
+/* Equal halves; the label itself is centered in each half. */
 #awardModal .award-tabs {
-	display: flex;
-	gap: 1.6rem;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 0;
 	margin: 0 0 .8rem;
 	border-bottom: 1px solid rgba(255,255,255,.08);
 }
 
 #awardModal .award-tab {
 	position: relative;
+	min-width: 0;
 	min-height: 46px;
-	padding: 0 .1rem;
-	display: inline-flex;
+	padding: 0 .75rem;
+	display: flex;
 	align-items: center;
+	justify-content: center;
 	gap: .42rem;
 	border: 0;
 	background: transparent;
@@ -68,34 +65,25 @@
 	font-size: .78rem;
 	font-weight: 750;
 	letter-spacing: .035em;
+	text-align: center;
 	text-transform: uppercase;
 }
 
 #awardModal .award-tab::after {
 	content: "";
 	position: absolute;
-	left: 0;
-	right: 0;
+	left: 22%;
+	right: 22%;
 	bottom: -1px;
 	height: 2px;
 	background: transparent;
 }
 
-#awardModal .award-tab:hover {
-	color: #d8d8dc;
-}
+#awardModal .award-tab:hover { color: #d8d8dc; }
+#awardModal .award-tab.active { color: #fff; }
+#awardModal .award-tab.active::after { background: var(--primary); }
 
-#awardModal .award-tab.active {
-	color: #fff;
-}
-
-#awardModal .award-tab.active::after {
-	background: var(--primary);
-}
-
-#awardModal .award-panel {
-	padding: .05rem 0 .2rem;
-}
+#awardModal .award-panel { padding: .05rem 0 .2rem; }
 
 #awardModal .awards-wrapper {
 	display: grid;
@@ -104,7 +92,6 @@
 	align-items: stretch;
 }
 
-/* One subtle boundary per award, nothing nested inside it. */
 #awardModal .award-choice {
 	position: relative;
 	min-width: 0;
@@ -121,9 +108,12 @@
 	color: #ededf0;
 	text-align: center;
 	transition: border-color .12s ease, background .12s ease;
+	overflow: visible;
 }
 
-#awardModal .award-choice:hover {
+#awardModal .award-choice:hover,
+#awardModal .award-choice:focus-visible {
+	z-index: 30;
 	border-color: rgba(255,255,255,.18);
 	background: rgba(255,255,255,.025);
 }
@@ -177,10 +167,69 @@
 	font-weight: 800;
 }
 
-/* Note area is deliberately unboxed. */
-#awardModal .award-note-wrap {
-	margin-top: 1rem;
+/* Tooltip is part of the award markup itself, so it cannot fail to initialize. */
+#awardModal .award-inline-tooltip {
+	position: absolute;
+	left: 50%;
+	top: calc(100% + 7px);
+	z-index: 100;
+	width: min(280px, calc(100vw - 30px));
+	padding: .55rem .65rem;
+	border: 1px solid rgba(255,255,255,.12);
+	border-radius: 5px;
+	background: #242529;
+	color: #eeeeef;
+	box-shadow: 0 8px 24px rgba(0,0,0,.42);
+	font-size: .72rem;
+	font-weight: 500;
+	line-height: 1.38;
+	text-align: left;
+	pointer-events: none;
+	opacity: 0;
+	visibility: hidden;
+	transform: translate(-50%, -3px);
+	transition: opacity .1s ease, transform .1s ease, visibility .1s ease;
 }
+
+#awardModal .award-inline-tooltip::before {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: -5px;
+	width: 9px;
+	height: 9px;
+	background: #242529;
+	border-left: 1px solid rgba(255,255,255,.12);
+	border-top: 1px solid rgba(255,255,255,.12);
+	transform: translateX(-50%) rotate(45deg);
+}
+
+#awardModal .award-inline-tooltip strong,
+#awardModal .award-inline-tooltip span,
+#awardModal .award-inline-tooltip small {
+	display: block;
+}
+
+#awardModal .award-inline-tooltip strong {
+	margin-bottom: .2rem;
+	color: #fff;
+	font-size: .74rem;
+}
+
+#awardModal .award-inline-tooltip small {
+	margin-top: .35rem;
+	color: #bfc1c7;
+	font-size: .66rem;
+}
+
+#awardModal .award-choice:hover .award-inline-tooltip,
+#awardModal .award-choice:focus-visible .award-inline-tooltip {
+	opacity: 1;
+	visibility: visible;
+	transform: translate(-50%, 0);
+}
+
+#awardModal .award-note-wrap { margin-top: 1rem; }
 
 #awardModal #notelabel {
 	display: block;
@@ -207,9 +256,7 @@
 	line-height: 1.45;
 }
 
-#awardModal #note::placeholder {
-	color: #62656d;
-}
+#awardModal #note::placeholder { color: #62656d; }
 
 #awardModal #note:focus {
 	border-color: rgba(240,35,65,.65);
@@ -271,9 +318,7 @@
 	color: #f2f2f4;
 }
 
-#awardModal .award-summary-owned {
-	color: #b8bac0;
-}
+#awardModal .award-summary-owned { color: #b8bac0; }
 
 #awardModal .award-summary-separator {
 	margin: 0 .35rem;
@@ -318,9 +363,7 @@
 	box-shadow: 0 0 0 2px rgba(240,35,65,.08);
 }
 
-#awardModal .award-quantity:disabled {
-	opacity: .45;
-}
+#awardModal .award-quantity:disabled { opacity: .45; }
 
 #awardModal #giveaward {
 	min-width: 108px;
@@ -331,27 +374,7 @@
 	font-weight: 750;
 }
 
-#awardModal #giveaward:disabled {
-	opacity: .45;
-}
-
-/* Reliable custom tooltip, positioned by award_modal_enhancements.js. */
-.award-hover-tooltip {
-	position: fixed;
-	z-index: 200000;
-	max-width: min(320px, calc(100vw - 20px));
-	padding: .5rem .6rem;
-	border: 1px solid rgba(255,255,255,.11);
-	border-radius: 6px;
-	background: #1b1c20;
-	color: #eeeeef;
-	box-shadow: 0 10px 28px rgba(0,0,0,.4);
-	font-size: .72rem;
-	font-weight: 550;
-	line-height: 1.4;
-	text-align: left;
-	pointer-events: none;
-}
+#awardModal #giveaward:disabled { opacity: .45; }
 
 @media (max-width: 760px) {
 	#awardModal .modal-dialog.awardmodal {
@@ -359,21 +382,19 @@
 		margin: .3rem auto;
 	}
 
-	#awardModal .modal-header {
-		padding: .8rem .75rem .6rem;
-	}
-
-	#awardModal .modal-body {
-		padding-inline: .75rem;
-	}
-
-	#awardModal .award-tabs {
-		gap: 1rem;
-	}
+	#awardModal .modal-header { padding: .8rem .75rem .6rem; }
+	#awardModal .modal-body { padding-inline: .75rem; }
 
 	#awardModal .award-tab {
 		min-height: 42px;
-		font-size: .72rem;
+		padding-inline: .35rem;
+		font-size: .68rem;
+		letter-spacing: .02em;
+	}
+
+	#awardModal .award-tab::after {
+		left: 12%;
+		right: 12%;
 	}
 
 	#awardModal .awards-wrapper {
@@ -386,8 +407,11 @@
 		padding: .7rem .3rem .6rem;
 	}
 
-	#awardModal .award-name {
-		font-size: .74rem;
+	#awardModal .award-name { font-size: .74rem; }
+
+	#awardModal .award-inline-tooltip {
+		width: min(250px, calc(100vw - 20px));
+		font-size: .69rem;
 	}
 
 	#awardModal .award-modal-footer {
@@ -396,13 +420,8 @@
 		flex-wrap: wrap;
 	}
 
-	#awardModal .award-price-summary {
-		width: 100%;
-	}
-
-	#awardModal .award-actions {
-		margin-left: auto;
-	}
+	#awardModal .award-price-summary { width: 100%; }
+	#awardModal .award-actions { margin-left: auto; }
 }
 
 @media (max-width: 430px) {
