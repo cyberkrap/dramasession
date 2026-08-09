@@ -147,10 +147,12 @@ install_alt_link_fixes()
 
 from files.classes import User
 from files.__main__ import engine
+from files.helpers.admin_patron_rewards import install_admin_patron_rewards
 from files.helpers.award_batch_runtime import repair_existing_award_batches
 from files.helpers.badge_branding import install_badge_branding
 from files.helpers.ban_hats import install_ban_hat_support
 from files.helpers.board_branding import install_board_branding
+from files.helpers.chat_admin_modaction_types import install_chat_admin_modaction_types
 from files.helpers.contribution_badges import install_cumulative_contribution_badges
 from files.helpers.default_follow import install_default_following
 from files.helpers.default_user_background import install_default_user_background
@@ -173,6 +175,8 @@ install_support_badge_removal_fix()
 install_default_following(app, engine)
 install_default_user_background()
 install_economy_ledger(app, engine)
+install_admin_patron_rewards()
+install_chat_admin_modaction_types()
 install_gift_ledger_enrichment()
 install_economy_ledger_flush_fix()
 repair_existing_award_batches(engine)
