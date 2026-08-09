@@ -47,8 +47,8 @@
 					<input autocomplete="off" id="kind" hidden>
 					<textarea autocomplete="off" id="note" maxlength="200" class="form-control" placeholder="Note to include in award notification..."></textarea>
 					<div class="award-note-tools">
-						<button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#emojiModal"><i class="fas fa-smile-beam"></i></button>
-						<button type="button" class="btn btn-secondary btn-sm"><strong>GIF</strong></button>
+						<button type="button" class="btn btn-secondary btn-sm" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('note')" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add Emoji"><i class="fas fa-smile-beam"></i></button>
+						<button type="button" class="btn btn-secondary btn-sm" data-nonce="{{g.nonce}}" data-onclick="getGifs('note')" data-bs-toggle="modal" data-bs-target="#gifModal" title="Add GIF"><strong>GIF</strong></button>
 					</div>
 				</div>
 
