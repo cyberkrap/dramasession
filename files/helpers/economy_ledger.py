@@ -49,6 +49,13 @@ DECLARE
     tx_category TEXT;
     merged_meta TEXT;
 BEGIN
+    -- Some balance changes are intentionally not user-facing financial
+    -- transactions. Vote rewards/reversals are one example: they affect the
+    -- live Wishcoin balance but should not flood Bank Statement.
+    IF category_override = '__skip__' THEN
+        RETURN NEW;
+    END IF;
+
     tx_category := COALESCE(NULLIF(category_override, ''), CASE
         WHEN normalized LIKE '%slot%' OR normalized LIKE '%roulette%'
           OR normalized LIKE '%blackjack%' OR normalized LIKE '%twentyone%'
@@ -105,6 +112,11 @@ CREATE TABLE IF NOT EXISTS economy_ledger_data_migrations (
     applied_utc BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())::BIGINT)
 );
 
+-- Vote rewards are deliberately invisible in Bank Statement. Remove historical
+-- vote-generated rows as well as suppressing future ones in _caller_context.
+DELETE FROM economy_ledger
+WHERE LOWER(COALESCE(origin_path, '')) LIKE '/vote/%';
+
 DO $$
 DECLARE
     target_user_id INTEGER;
@@ -120,14 +132,10 @@ BEGIN
         LIMIT 1;
 
         IF target_user_id IS NOT NULL THEN
-            -- Reset the live Wishbux account to a clean zero baseline. The trigger
-            -- may record this reset momentarily; it is deliberately deleted below.
             UPDATE users SET marseybux = 0 WHERE id = target_user_id;
             DELETE FROM economy_ledger
             WHERE user_id = target_user_id AND currency = 'wishbux';
 
-            -- Seed the first and only Wishbux ledger row as a real Tier 5 patron
-            -- reward. This also leaves the live Wishbux balance at 140,000.
             PERFORM set_config('toc.request_path', '/donate', true);
             PERFORM set_config('toc.request_meta', '{}', true);
             PERFORM set_config('toc.economy_category', 'patron', true);
@@ -178,6 +186,12 @@ def _caller_context(account):
             haystack = f"{filename} {func}"
             local = frame.f_locals
             meta = {}
+
+            # Upvote/downvote Wishcoin deltas are intentionally not part of the
+            # bank ledger. Their balances still change normally; only the
+            # user-facing transaction record is suppressed.
+            if filename.endswith('/routes/votes.py') or func == 'vote_post_comment':
+                return "__skip__", "", meta
 
             if "slots.py" in filename or "slot" in func:
                 return "casino", "Slots", meta
@@ -294,7 +308,12 @@ def _wrap_balance_method(User, method_name):
         category, label, meta = _caller_context(self)
         try:
             set_economy_context(db, category, label, meta)
-            return original(self, *args, **kwargs)
+            result = original(self, *args, **kwargs)
+            # The DB trigger must fire while this exact context is still active.
+            # Clearing the transaction-local config before SQLAlchemy flushes is
+            # what previously allowed Awards/Votes to inherit stale Gift context.
+            db.flush()
+            return result
         finally:
             try:
                 set_economy_context(db)
