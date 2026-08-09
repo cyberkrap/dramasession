@@ -41,10 +41,9 @@
 #awardModal .close:hover { color: #fff; }
 #awardModal .modal-body { padding: 0 1.15rem; }
 
-/* Equal halves; the label itself is centered in each half. */
 #awardModal .award-tabs {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 0;
 	margin: 0 0 .8rem;
 	border-bottom: 1px solid rgba(255,255,255,.08);
@@ -52,6 +51,7 @@
 
 #awardModal .award-tab {
 	position: relative;
+	width: 100%;
 	min-width: 0;
 	min-height: 46px;
 	padding: 0 .75rem;
@@ -67,6 +67,11 @@
 	letter-spacing: .035em;
 	text-align: center;
 	text-transform: uppercase;
+}
+
+#awardModal .award-tab > span {
+	display: inline-block;
+	text-align: center;
 }
 
 #awardModal .award-tab::after {
@@ -85,15 +90,18 @@
 
 #awardModal .award-panel { padding: .05rem 0 .2rem; }
 
+/* Fixed-width tiles in a centered flex row keep partial final rows centered. */
 #awardModal .awards-wrapper {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-	gap: .45rem;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
 	align-items: stretch;
+	gap: .45rem;
 }
 
 #awardModal .award-choice {
 	position: relative;
+	flex: 0 0 132px;
 	min-width: 0;
 	min-height: 104px;
 	padding: .85rem .6rem .7rem;
@@ -108,12 +116,10 @@
 	color: #ededf0;
 	text-align: center;
 	transition: border-color .12s ease, background .12s ease;
-	overflow: visible;
 }
 
 #awardModal .award-choice:hover,
 #awardModal .award-choice:focus-visible {
-	z-index: 30;
 	border-color: rgba(255,255,255,.18);
 	background: rgba(255,255,255,.025);
 }
@@ -167,66 +173,68 @@
 	font-weight: 800;
 }
 
-/* Tooltip is part of the award markup itself, so it cannot fail to initialize. */
-#awardModal .award-inline-tooltip {
-	position: absolute;
-	left: 50%;
-	top: calc(100% + 7px);
-	z-index: 100;
-	width: min(280px, calc(100vw - 30px));
-	padding: .55rem .65rem;
-	border: 1px solid rgba(255,255,255,.12);
-	border-radius: 5px;
+/* Source tooltip stays in the award markup; JS portals a copy to body. */
+#awardModal .award-inline-tooltip { display: none !important; }
+
+.award-floating-tooltip {
+	position: fixed;
+	z-index: 2147483000;
+	width: min(300px, calc(100vw - 20px));
+	padding: .58rem .68rem;
+	border: 1px solid rgba(255,255,255,.14);
+	border-radius: 6px;
 	background: #242529;
 	color: #eeeeef;
-	box-shadow: 0 8px 24px rgba(0,0,0,.42);
+	box-shadow: 0 10px 28px rgba(0,0,0,.48);
 	font-size: .72rem;
 	font-weight: 500;
-	line-height: 1.38;
-	text-align: left;
+	line-height: 1.4;
+	text-align: center;
 	pointer-events: none;
-	opacity: 0;
-	visibility: hidden;
-	transform: translate(-50%, -3px);
-	transition: opacity .1s ease, transform .1s ease, visibility .1s ease;
 }
 
-#awardModal .award-inline-tooltip::before {
+.award-floating-tooltip::after {
 	content: "";
 	position: absolute;
 	left: 50%;
-	top: -5px;
+	bottom: -5px;
 	width: 9px;
 	height: 9px;
 	background: #242529;
-	border-left: 1px solid rgba(255,255,255,.12);
-	border-top: 1px solid rgba(255,255,255,.12);
+	border-right: 1px solid rgba(255,255,255,.14);
+	border-bottom: 1px solid rgba(255,255,255,.14);
 	transform: translateX(-50%) rotate(45deg);
 }
 
-#awardModal .award-inline-tooltip strong,
-#awardModal .award-inline-tooltip span,
-#awardModal .award-inline-tooltip small {
+.award-floating-tooltip.is-below::after {
+	top: -5px;
+	bottom: auto;
+	border: 0;
+	border-left: 1px solid rgba(255,255,255,.14);
+	border-top: 1px solid rgba(255,255,255,.14);
+}
+
+.award-floating-tooltip strong,
+.award-floating-tooltip span,
+.award-floating-tooltip small {
 	display: block;
 }
 
-#awardModal .award-inline-tooltip strong {
+.award-floating-tooltip strong {
 	margin-bottom: .2rem;
 	color: #fff;
-	font-size: .74rem;
+	font-size: .75rem;
+	font-weight: 750;
 }
 
-#awardModal .award-inline-tooltip small {
+.award-floating-tooltip span {
+	color: #e1e2e5;
+}
+
+.award-floating-tooltip small {
 	margin-top: .35rem;
 	color: #bfc1c7;
 	font-size: .66rem;
-}
-
-#awardModal .award-choice:hover .award-inline-tooltip,
-#awardModal .award-choice:focus-visible .award-inline-tooltip {
-	opacity: 1;
-	visibility: visible;
-	transform: translate(-50%, 0);
 }
 
 #awardModal .award-note-wrap { margin-top: 1rem; }
@@ -397,22 +405,15 @@
 		right: 12%;
 	}
 
-	#awardModal .awards-wrapper {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: .35rem;
-	}
+	#awardModal .awards-wrapper { gap: .35rem; }
 
 	#awardModal .award-choice {
+		flex-basis: calc((100% - .7rem) / 3);
 		min-height: 96px;
 		padding: .7rem .3rem .6rem;
 	}
 
 	#awardModal .award-name { font-size: .74rem; }
-
-	#awardModal .award-inline-tooltip {
-		width: min(250px, calc(100vw - 20px));
-		font-size: .69rem;
-	}
 
 	#awardModal .award-modal-footer {
 		margin-inline: -.75rem;
@@ -425,7 +426,7 @@
 }
 
 @media (max-width: 430px) {
-	#awardModal .awards-wrapper {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+	#awardModal .award-choice {
+		flex-basis: calc((100% - .35rem) / 2);
 	}
 }
