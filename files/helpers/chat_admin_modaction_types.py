@@ -1,7 +1,11 @@
 """Register readable moderation-log entries for public-chat admin actions."""
 
 from files.classes.mod_logs import ModAction
-from files.helpers.config.modaction_types import MODACTION_TYPES, MODACTION_TYPES_FILTERED
+from files.helpers.config.modaction_types import (
+    MODACTION_TYPES,
+    MODACTION_TYPES_FILTERED,
+    MODACTION_TYPES__FILTERED,
+)
 from files.helpers.lazy import lazy
 
 
@@ -13,7 +17,10 @@ CHAT_ADMIN_MODACTION_TYPES = {
     },
     'chat_remove': {
         'str': 'removed a {self.note}',
-        'icon': 'fa-comment-slash',
+        # fa-comment-slash is not present in the site's current icon bundle.
+        # Use the same proven comment glyph as comment-removal actions; the
+        # danger background communicates the destructive action.
+        'icon': 'fa-comment',
         'color': 'bg-danger',
     },
 }
@@ -22,13 +29,17 @@ _installed = False
 
 
 def install_chat_admin_modaction_types() -> None:
-    """Teach ModAction how to display chat-message links without duplicating notes."""
+    """Teach ModAction and every modlog filter set about chat admin actions."""
     global _installed
     if _installed:
         return
 
+    # There are two moderation-log filter dictionaries: the ordinary admin
+    # filter and the higher-privilege filter. Register chat actions in both so
+    # they appear no matter which administrator view is being rendered.
     MODACTION_TYPES.update(CHAT_ADMIN_MODACTION_TYPES)
     MODACTION_TYPES_FILTERED.update(CHAT_ADMIN_MODACTION_TYPES)
+    MODACTION_TYPES__FILTERED.update(CHAT_ADMIN_MODACTION_TYPES)
 
     original_getter = ModAction.string.fget
     if not getattr(original_getter, '_chat_admin_modaction_string', False):
