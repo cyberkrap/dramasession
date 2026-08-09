@@ -4,9 +4,9 @@ Keeps transfer behavior untouched while preserving the useful human context:
 who sent/received the gift and the optional gift message. Older ledger rows can
 recover that context from the existing AutoJanny transfer notification.
 
-Casino request paths are classified before gift enrichment. This is deliberate:
-a balance mutation made by Slots/Blackjack/Roulette must never inherit stale or
-ambiguous gift context.
+Request paths with unambiguous meaning (casino, lottery, awards) are classified
+before any stack-based inference. A balance mutation made by one of those routes
+must never inherit stale Gift context.
 """
 
 import html
@@ -22,6 +22,7 @@ from files.classes import Comment, Notification, User
 
 
 _TRANSFER_PATH_RE = re.compile(r"^/@([^/]+)/transfer[-_](?:bux|coins)$", re.I)
+_AWARD_PATH_RE = re.compile(r"^/award/(post|comment)/(\d+)$", re.I)
 _PROFILE_LINK_RE = re.compile(r'href=["\']/@([^"\']+)["\']', re.I)
 _BLOCKQUOTE_RE = re.compile(r"<blockquote[^>]*>(.*?)</blockquote>", re.I | re.S)
 _TAG_RE = re.compile(r"<[^>]+>")
@@ -36,7 +37,8 @@ def _request_classification():
     if not has_request_context():
         return None
 
-    path = str(request.path or "").lower()
+    raw_path = str(request.path or "")
+    path = raw_path.lower()
     if path.startswith("/casino/slots"):
         return "casino", "Slots", {}
     if path.startswith("/casino/twentyone") or path.startswith("/casino/blackjack"):
@@ -47,6 +49,27 @@ def _request_classification():
         return "casino", "Casino", {}
     if path.startswith("/lottery") or path.startswith("/lottershe"):
         return "lottery", "Lottery", {}
+
+    award_match = _AWARD_PATH_RE.match(raw_path)
+    if award_match:
+        thing_type, thing_id = award_match.groups()
+        meta = {
+            "thing_type": thing_type.lower(),
+            "thing_id": str(thing_id)[:24],
+        }
+        kind = str(request.values.get("kind") or request.values.get("award") or "").strip()
+        if kind:
+            meta["award_kind"] = kind[:80]
+            meta["kind"] = kind[:80]
+        raw_quantity = request.values.get("amount") or request.values.get("quantity")
+        try:
+            quantity = max(1, min(30, int(raw_quantity or 1)))
+        except (TypeError, ValueError):
+            quantity = 1
+        meta["batch_quantity"] = quantity
+        meta["amount"] = str(quantity)
+        return "awards", "Awards", meta
+
     return None
 
 
@@ -132,8 +155,6 @@ def _gift_details(bank_module, row, statement_user):
     if path_match and not target:
         target = path_match.group(1)
 
-    # Older rows predate gift_message/receiver capture. The transfer notification
-    # is authoritative and already contains both the sender and the optional note.
     if target and (not actor or not message):
         recovered_actor, recovered_message = _notification_details(
             bank_module.g.db,
@@ -180,8 +201,8 @@ def _gift_description(bank_module, row, statement_user):
     return headline + note
 
 
-def _repair_misclassified_casino_rows():
-    """Repair rows produced while gift enrichment incorrectly outranked casino context."""
+def _repair_misclassified_rows():
+    """Repair rows produced before authoritative request classification existed."""
     from files.__main__ import engine
 
     if engine.dialect.name != "postgresql":
@@ -201,6 +222,14 @@ def _repair_misclassified_casino_rows():
             WHERE (category = 'gifts' OR label = 'Gift')
               AND LOWER(COALESCE(origin_path, '')) LIKE '/casino/%'
         """))
+        # Any balance mutation whose HTTP origin is the award endpoint is an
+        # award purchase/payout, even if an older stale context labeled it Gift.
+        conn.execute(text("""
+            UPDATE economy_ledger
+            SET category = 'awards', label = 'Awards'
+            WHERE COALESCE(origin_path, '') ~ '^/award/(post|comment)/[0-9]+$'
+              AND (category <> 'awards' OR COALESCE(label, '') <> 'Awards')
+        """))
 
 
 def install_gift_ledger_enrichment():
@@ -208,21 +237,17 @@ def install_gift_ledger_enrichment():
     ledger = importlib.import_module("files.helpers.economy_ledger")
     bank = importlib.import_module("files.routes.bank_statement")
 
-    # Clean rows created by the earlier bad precedence before rendering them.
-    _repair_misclassified_casino_rows()
+    _repair_misclassified_rows()
 
     if not getattr(ledger, "_gift_context_enriched", False):
         original_caller_context = ledger._caller_context
 
         def caller_context(account):
-            # Casino/lottery paths are authoritative and must beat all stack-based
-            # gift inference. This prevents slot pulls from ever becoming gifts.
             route_context = _request_classification()
             if route_context is not None:
                 return route_context
 
-            # Gift enrichment only activates on the actual transfer endpoint.
-            # Do not scan arbitrary requests and guess from unrelated frames.
+            # Gift enrichment activates only on a real transfer endpoint.
             if has_request_context():
                 path_match = _TRANSFER_PATH_RE.match(str(request.path or ""))
                 if path_match:
@@ -241,7 +266,11 @@ def install_gift_ledger_enrichment():
         def transaction_description(row, statement_user):
             path = str(row.get("origin_path") or "")
             label = str(row.get("label") or "")
-            if row.get("category") == "gifts" or label == "Gift" or _TRANSFER_PATH_RE.match(path):
+            # Only actual transfer rows are gifts. A stale `Gift` label on an
+            # authoritative award/casino route must never override its route.
+            if _TRANSFER_PATH_RE.match(path) or (
+                row.get("category") == "gifts" and not _AWARD_PATH_RE.match(path)
+            ):
                 return _gift_description(bank, row, statement_user)
             return original_description(row, statement_user)
 
