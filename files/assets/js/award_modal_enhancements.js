@@ -214,7 +214,8 @@
 		const tipRect = tooltip.getBoundingClientRect();
 		const edge = 8;
 		const gap = 9;
-		let left = rect.left + (rect.width - tipRect.width) / 2;
+		const targetCenter = rect.left + rect.width / 2;
+		let left = targetCenter - tipRect.width / 2;
 		left = Math.max(edge, Math.min(left, window.innerWidth - tipRect.width - edge));
 
 		let top = rect.top - tipRect.height - gap;
@@ -227,6 +228,8 @@
 			top = Math.max(edge, window.innerHeight - tipRect.height - edge);
 		}
 
+		const arrowLeft = Math.max(12, Math.min(targetCenter - left, tipRect.width - 12));
+		tooltip.style.setProperty('--award-tooltip-arrow-left', `${Math.round(arrowLeft)}px`);
 		tooltip.classList.toggle('is-below', below);
 		tooltip.style.left = `${Math.round(left)}px`;
 		tooltip.style.top = `${Math.round(top)}px`;
