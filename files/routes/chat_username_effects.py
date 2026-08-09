@@ -1,9 +1,70 @@
+import fcntl
+import os
+from pathlib import Path
+
 from flask import g, request
 
 from files.__main__ import app, limiter
 from files.classes import User
 from files.helpers.config.const import DEFAULT_RATELIMIT
 from files.routes.wrappers import auth_required, get_ID
+
+
+_CHAT_CSS = Path('files/assets/css/chat.css')
+_CHAT_STYLE_LOCK = '/tmp/obsession-chat-removed-style.lock'
+_CHAT_REMOVED_STYLE = r'''
+
+/* obsession-admin-removed-message-v1
+   Removed chat content is intentionally unmistakable to moderators. */
+body#chat #chat-window .chat-line.chat-removed {
+	position: relative !important;
+	background: rgba(220, 35, 58, .18) !important;
+	border-left: 3px solid #ef2343 !important;
+	box-shadow: inset 0 0 0 1px rgba(239, 35, 67, .08) !important;
+}
+
+body#chat #chat-window .chat-line.chat-removed .chat-message,
+body#chat #chat-window .chat-line.chat-removed .chat-removed-original,
+body#chat #chat-window .chat-line.chat-removed .chat-removed-original *,
+body#chat #chat-window .chat-line.chat-removed .chat-removal-notice,
+body#chat #chat-window .chat-line.chat-removed .chat-removal-notice * {
+	color: #ff6b7d !important;
+}
+
+body#chat #chat-window .chat-line.chat-removed .chat-removal-notice {
+	background: rgba(220, 35, 58, .14) !important;
+	border-left-color: #ef2343 !important;
+}
+
+@media (min-width: 768px) {
+	body#chat #chat-window .chat-line.chat-removed {
+		padding: 7px 10px !important;
+		margin-top: 4px !important;
+		margin-bottom: 4px !important;
+	}
+}
+
+@media (max-width: 767.98px) {
+	body#chat #chat-window .chat-line.chat-removed {
+		padding: 7px 8px !important;
+		border-radius: 2px !important;
+	}
+}
+'''
+
+
+def _install_removed_chat_style():
+	with open(_CHAT_STYLE_LOCK, 'w', encoding='utf-8') as lock:
+		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+		source = _CHAT_CSS.read_text(encoding='utf-8')
+		if 'obsession-admin-removed-message-v1' in source:
+			return
+		temp = _CHAT_CSS.with_name(f'.{_CHAT_CSS.name}.{os.getpid()}.tmp')
+		temp.write_text(source.rstrip() + _CHAT_REMOVED_STYLE + '\n', encoding='utf-8')
+		os.replace(temp, _CHAT_CSS)
+
+
+_install_removed_chat_style()
 
 
 @app.get('/api/chat/username-effects')
