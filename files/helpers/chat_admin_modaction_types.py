@@ -25,19 +25,18 @@ CHAT_ADMIN_MODACTION_TYPES = {
     },
 }
 
-# Normalize timeout icons to classes that definitely exist in the site's
-# Font Awesome bundle. The old `fa-comment-check` / `fa-comment-slash`
-# definitions are not consistently available and could render blank or fall
-# back to confusing history/undo glyphs on different modlog surfaces.
+# Use one coherent timeout metaphor everywhere. These are standard Font
+# Awesome icons and avoid the misleading green checkmark / verified look.
+# Color belongs to the modlog action tile, not the filter dropdown itself.
 CHAT_TIMEOUT_MODACTION_TYPES = {
     'chat_timeout': {
         'str': 'timed out {self.target_link} from speaking in {self.note}',
-        'icon': 'fa-clock',
+        'icon': 'fa-hourglass-half',
         'color': 'bg-danger',
     },
     'chat_untimeout': {
         'str': 'removed the chat timeout from {self.target_link} in {self.note}',
-        'icon': 'fa-check',
+        'icon': 'fa-hourglass-end',
         'color': 'bg-success',
     },
 }
