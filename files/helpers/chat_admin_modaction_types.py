@@ -25,6 +25,17 @@ CHAT_ADMIN_MODACTION_TYPES = {
     },
 }
 
+# Timeout actions already keep their destination/duration inside `note` and
+# interpolate that note directly into their configured action string. The
+# generic ModAction formatter normally appends notes again in parentheses,
+# which made untimeout entries render as `in Chat (Chat)`. Route both timeout
+# kinds through the same one-pass formatter as the other public-chat actions.
+CHAT_CUSTOM_STRING_KINDS = frozenset({
+    *CHAT_ADMIN_MODACTION_TYPES,
+    'chat_timeout',
+    'chat_untimeout',
+})
+
 _installed = False
 
 
@@ -45,7 +56,7 @@ def install_chat_admin_modaction_types() -> None:
     if not getattr(original_getter, '_chat_admin_modaction_string', False):
         @lazy
         def string_with_chat_actions(self):
-            if self.kind in CHAT_ADMIN_MODACTION_TYPES:
+            if self.kind in CHAT_CUSTOM_STRING_KINDS:
                 return self.action_type['str'].format(self=self)
             return original_getter(self)
 
