@@ -13,6 +13,9 @@
 		currencyLabel: 'Wishcoins/Wishbux',
 	};
 
+	let hoverTooltip = null;
+	let hoverTarget = null;
+
 	function quantityInput() {
 		return document.getElementById('award-quantity');
 	}
@@ -64,7 +67,7 @@
 		const purchaseCount = Math.max(0, amount - inventoryUsed);
 		const totalPrice = purchaseCount * state.price;
 		const totalBasePrice = purchaseCount * state.basePrice;
-		const totalSavings = Math.max(0, totalBasePrice - totalPrice);
+		const hasDiscount = totalBasePrice > totalPrice;
 		const canGive = purchaseCount === 0 || state.unlimited || affordablePurchaseCount() >= purchaseCount;
 
 		button.disabled = !canGive;
@@ -72,18 +75,15 @@
 		if (purchaseCount === 0) {
 			priceSummary.innerHTML = `<span class="award-summary-owned">Using ${inventoryUsed} owned award${inventoryUsed === 1 ? '' : 's'} — no charge</span>`;
 		} else {
-			const inventoryPrefix = inventoryUsed
+			const ownedPrefix = inventoryUsed
 				? `<span class="award-summary-owned">${inventoryUsed} owned</span><span class="award-summary-separator">·</span>`
 				: '';
-			const purchaseLabel = purchaseCount > 1 ? `${purchaseCount} purchased` : 'Purchase';
-			const priceMarkup = totalSavings > 0
+			const countLabel = purchaseCount > 1 ? `${purchaseCount} purchased` : 'Purchase';
+			const prices = hasDiscount
 				? `<span class="award-summary-original">${money(totalBasePrice)}</span><strong class="award-summary-current">${money(totalPrice)}</strong>`
 				: `<strong class="award-summary-current">${money(totalPrice)}</strong>`;
-			const savingsMarkup = totalSavings > 0
-				? `<span class="award-summary-save">Save ${money(totalSavings)}</span>`
-				: '';
 
-			priceSummary.innerHTML = `${inventoryPrefix}<span>${purchaseLabel}</span><span class="award-summary-separator">·</span>${priceMarkup}<span>${state.currencyLabel}</span>${savingsMarkup}`;
+			priceSummary.innerHTML = `${ownedPrefix}<span>${countLabel}</span><span class="award-summary-separator">·</span>${prices}<span>${state.currencyLabel}</span>`;
 		}
 
 		if (!canGive) {
@@ -124,7 +124,7 @@
 			note.placeholder = 'Insert new flair here, or leave empty to extend the current flair.';
 			note.maxLength = 100;
 		} else {
-			label.textContent = 'Note (optional):';
+			label.innerHTML = 'Note <span>(optional)</span>';
 			note.placeholder = 'Add a message for the recipient...';
 			note.maxLength = 200;
 		}
@@ -165,18 +165,10 @@
 		if (!choice) return;
 
 		choice.dataset.owned = String(state.owned);
-		const badges = choice.querySelector('.award-card-badges');
-		let ownedBadge = choice.querySelector('.award-owned-badge');
-
-		if (state.owned > 0) {
-			if (!ownedBadge && badges) {
-				ownedBadge = document.createElement('span');
-				ownedBadge.className = 'award-owned-badge';
-				badges.appendChild(ownedBadge);
-			}
-			if (ownedBadge) ownedBadge.textContent = `×${state.owned} owned`;
-		} else if (ownedBadge) {
-			ownedBadge.remove();
+		const ownedLabel = choice.querySelector('.award-owned-count');
+		if (ownedLabel) {
+			if (state.owned > 0) ownedLabel.textContent = `${state.owned} owned`;
+			else ownedLabel.remove();
 		}
 	}
 
@@ -211,6 +203,73 @@
 		}
 	};
 
+	function hideAwardTooltip() {
+		if (hoverTooltip) hoverTooltip.remove();
+		hoverTooltip = null;
+		hoverTarget = null;
+	}
+
+	function positionAwardTooltip(target) {
+		if (!hoverTooltip || !target) return;
+		const rect = target.getBoundingClientRect();
+		const tipRect = hoverTooltip.getBoundingClientRect();
+		const gap = 8;
+		const edge = 8;
+
+		let left = rect.left + rect.width / 2 - tipRect.width / 2;
+		left = Math.max(edge, Math.min(left, window.innerWidth - tipRect.width - edge));
+
+		let top = rect.bottom + gap;
+		if (top + tipRect.height > window.innerHeight - edge) {
+			top = rect.top - tipRect.height - gap;
+		}
+		top = Math.max(edge, top);
+
+		hoverTooltip.style.left = `${Math.round(left)}px`;
+		hoverTooltip.style.top = `${Math.round(top)}px`;
+	}
+
+	function showAwardTooltip(target) {
+		const text = target?.dataset?.awardTooltip;
+		if (!text) return;
+		if (hoverTarget === target && hoverTooltip) return;
+		hideAwardTooltip();
+
+		hoverTarget = target;
+		hoverTooltip = document.createElement('div');
+		hoverTooltip.className = 'award-hover-tooltip';
+		hoverTooltip.setAttribute('role', 'tooltip');
+		hoverTooltip.textContent = text;
+		document.body.appendChild(hoverTooltip);
+		positionAwardTooltip(target);
+	}
+
+	function initAwardTooltips() {
+		document.addEventListener('mouseover', (event) => {
+			const target = event.target.closest?.('#awardModal .award-choice[data-award-tooltip]');
+			if (!target || target.contains(event.relatedTarget)) return;
+			showAwardTooltip(target);
+		});
+
+		document.addEventListener('mouseout', (event) => {
+			const target = event.target.closest?.('#awardModal .award-choice[data-award-tooltip]');
+			if (!target || target.contains(event.relatedTarget)) return;
+			if (hoverTarget === target) hideAwardTooltip();
+		});
+
+		document.addEventListener('focusin', (event) => {
+			const target = event.target.closest?.('#awardModal .award-choice[data-award-tooltip]');
+			if (target) showAwardTooltip(target);
+		});
+
+		document.addEventListener('focusout', (event) => {
+			if (hoverTarget === event.target) hideAwardTooltip();
+		});
+
+		window.addEventListener('resize', hideAwardTooltip, {passive: true});
+		window.addEventListener('scroll', hideAwardTooltip, {passive: true, capture: true});
+	}
+
 	function init() {
 		const input = quantityInput();
 		if (input) {
@@ -229,7 +288,12 @@
 		if (note) note.addEventListener('input', resetConfirmation);
 
 		const modal = document.getElementById('awardModal');
-		if (modal) modal.addEventListener('show.bs.modal', resetConfirmation);
+		if (modal) {
+			modal.addEventListener('show.bs.modal', resetConfirmation);
+			modal.addEventListener('hidden.bs.modal', hideAwardTooltip);
+		}
+
+		initAwardTooltips();
 	}
 
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once: true});
