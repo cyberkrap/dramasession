@@ -11,8 +11,8 @@
 			</div>
 			<div id="awardModalBody" class="modal-body">
 				<div class="award-tabs" role="tablist">
-					<button type="button" class="award-tab active" data-award-tab="content"><i class="fas fa-sparkles"></i> Content</button>
-					<button type="button" class="award-tab" data-award-tab="author"><i class="fas fa-user"></i> Author</button>
+					<button type="button" class="award-tab active" data-award-tab="content"><i class="fas fa-sparkles"></i><span>Effect on Content</span></button>
+					<button type="button" class="award-tab" data-award-tab="author"><i class="fas fa-user"></i><span>Effect on Author</span></button>
 				</div>
 
 				{% set singleton_awards = ['checkmark', 'eye', 'alt', 'unblockable', 'fish', 'beano', 'offsitementions'] %}
@@ -30,7 +30,6 @@
 								<button type="button"
 									class="award-choice"
 									id="{{award.kind}}"
-									data-award-tooltip="{{tooltip_text}}{% if savings > 0 %} · {{base_price|number}} → {{price|number}} {{currency_label}}{% else %} · {{price|number}} {{currency_label}}{% endif %}"
 									data-price="{{price}}"
 									data-base-price="{{base_price}}"
 									data-owned="{{owned}}"
@@ -43,6 +42,11 @@
 									<span class="award-price-block">
 										{% if savings > 0 %}<span class="award-price-original">{{base_price|number}}</span>{% endif %}
 										<span class="award-price-current">{{price|number}}</span>
+									</span>
+									<span class="award-inline-tooltip" role="tooltip">
+										<strong>{{award.title}}</strong>
+										<span>{{tooltip_text}}</span>
+										<small>{% if savings > 0 %}<s>{{base_price|number}}</s> {{price|number}} {{currency_label}}{% else %}{{price|number}} {{currency_label}}{% endif %}</small>
 									</span>
 								</button>
 							{% endfor %}
