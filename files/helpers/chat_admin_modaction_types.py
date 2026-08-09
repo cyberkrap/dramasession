@@ -25,32 +25,50 @@ CHAT_ADMIN_MODACTION_TYPES = {
     },
 }
 
+# Normalize timeout icons to classes that definitely exist in the site's
+# Font Awesome bundle. The old `fa-comment-check` / `fa-comment-slash`
+# definitions are not consistently available and could render blank or fall
+# back to confusing history/undo glyphs on different modlog surfaces.
+CHAT_TIMEOUT_MODACTION_TYPES = {
+    'chat_timeout': {
+        'str': 'timed out {self.target_link} from speaking in {self.note}',
+        'icon': 'fa-clock',
+        'color': 'bg-danger',
+    },
+    'chat_untimeout': {
+        'str': 'removed the chat timeout from {self.target_link} in {self.note}',
+        'icon': 'fa-check',
+        'color': 'bg-success',
+    },
+}
+
+ALL_CHAT_MODACTION_TYPES = {
+    **CHAT_ADMIN_MODACTION_TYPES,
+    **CHAT_TIMEOUT_MODACTION_TYPES,
+}
+
 # Timeout actions already keep their destination/duration inside `note` and
 # interpolate that note directly into their configured action string. The
 # generic ModAction formatter normally appends notes again in parentheses,
-# which made untimeout entries render as `in Chat (Chat)`. Route both timeout
-# kinds through the same one-pass formatter as the other public-chat actions.
-CHAT_CUSTOM_STRING_KINDS = frozenset({
-    *CHAT_ADMIN_MODACTION_TYPES,
-    'chat_timeout',
-    'chat_untimeout',
-})
+# which made untimeout entries render as `in Chat (Chat)`. Route all public
+# chat actions through a one-pass formatter.
+CHAT_CUSTOM_STRING_KINDS = frozenset(ALL_CHAT_MODACTION_TYPES)
 
 _installed = False
 
 
 def install_chat_admin_modaction_types() -> None:
-    """Teach ModAction and every modlog filter set about chat admin actions."""
+    """Teach ModAction and every modlog filter set about public-chat actions."""
     global _installed
     if _installed:
         return
 
     # There are two moderation-log filter dictionaries: the ordinary admin
-    # filter and the higher-privilege filter. Register chat actions in both so
-    # they appear no matter which administrator view is being rendered.
-    MODACTION_TYPES.update(CHAT_ADMIN_MODACTION_TYPES)
-    MODACTION_TYPES_FILTERED.update(CHAT_ADMIN_MODACTION_TYPES)
-    MODACTION_TYPES__FILTERED.update(CHAT_ADMIN_MODACTION_TYPES)
+    # filter and the higher-privilege filter. Register/update chat actions in
+    # all of them so labels, icons and filtering stay consistent everywhere.
+    MODACTION_TYPES.update(ALL_CHAT_MODACTION_TYPES)
+    MODACTION_TYPES_FILTERED.update(ALL_CHAT_MODACTION_TYPES)
+    MODACTION_TYPES__FILTERED.update(ALL_CHAT_MODACTION_TYPES)
 
     original_getter = ModAction.string.fget
     if not getattr(original_getter, '_chat_admin_modaction_string', False):
