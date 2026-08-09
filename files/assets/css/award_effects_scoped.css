@@ -1,0 +1,130 @@
+.award-effect-target {
+	position: relative !important;
+}
+
+.content-award-effects {
+	position: absolute;
+	inset: 0;
+	z-index: 18;
+	overflow: hidden;
+	pointer-events: none;
+	border-radius: inherit;
+}
+
+.award-effect-target > :not(.content-award-effects) {
+	position: relative;
+	z-index: 1;
+}
+
+/* Fireflies stay inside the exact awarded post/comment. */
+.award-firefly {
+	position: absolute;
+	left: var(--x);
+	top: var(--y);
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	background: #ffe85a;
+	box-shadow: 0 0 4px #ffe85a, 0 0 9px rgba(255,232,90,.85);
+	opacity: .25;
+	animation: award-firefly-drift var(--duration) ease-in-out var(--delay) infinite alternate;
+}
+
+.award-firefly:nth-child(3n) {
+	width: 3px;
+	height: 3px;
+}
+
+@keyframes award-firefly-drift {
+	0% { transform: translate(0, 0) scale(.65); opacity: .18; }
+	45% { opacity: 1; }
+	100% { transform: translate(var(--dx), var(--dy)) scale(1.15); opacity: .45; }
+}
+
+/* Ricardo is intentionally emoji-sized instead of a viewport-sized dancer. */
+.award-ricardo {
+	position: absolute;
+	width: 44px;
+	height: 44px;
+	object-fit: contain;
+	filter: drop-shadow(0 2px 4px rgba(0,0,0,.45));
+	animation: award-ricardo-bob 2.6s ease-in-out infinite alternate;
+}
+
+.award-ricardo-1 { left: 8px; bottom: 8px; }
+.award-ricardo-2 { right: 8px; bottom: 8px; animation-delay: -.8s; }
+.award-ricardo-3 { right: 8px; top: 8px; animation-delay: -1.5s; }
+
+@keyframes award-ricardo-bob {
+	from { transform: translateY(0) rotate(-3deg); }
+	to { transform: translateY(-7px) rotate(3deg); }
+}
+
+.award-firework {
+	position: absolute;
+	width: 62px;
+	height: 62px;
+	op: 90%;
+	left: 50%;
+	opacity: 0;
+}
+
+.award-firework img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.award-wholesome {
+	position: absolute;
+	width: 38px;
+	height: 34px;
+	object-fit: contain;
+	animation: award-wholesome-float 6s ease-in-out infinite alternate;
+}
+
+.award-wholesome-1 { left: 5%; top: 12%; }
+.award-wholesome-2 { right: 5%; top: 18%; animation-delay: -1.5s; }
+.award-wholesome-3 { left: 15%; bottom: 8%; animation-delay: -3s; }
+.award-wholesome-4 { right: 15%; bottom: 10%; animation-delay: -4.5s; }
+
+@keyframes award-wholesome-float {
+	from { transform: translate(0, 0) rotate(-5deg); }
+	to { transform: translate(18px, -12px) rotate(5deg); }
+}
+
+.award-spark {
+	position: absolute;
+	left: var(--x);
+	top: var(--y);
+	width: 5px;
+	height: 5px;
+	border-radius: 1px;
+	background: #b87532;
+	box-shadow: 0 0 5px rgba(255,170,70,.45);
+	animation: award-spark-flicker 2.2s ease-in-out var(--delay) infinite;
+}
+
+@keyframes award-spark-flicker {
+	0%, 100% { transform: translateY(7px) scale(.6) rotate(0deg); opacity: .1; }
+	50% { transform: translateY(-8px) scale(1.15) rotate(90deg); opacity: .9; }
+}
+
+/* Keep menus and popovers above content effects. */
+.award-effect-target .dropdown-menu,
+.award-effect-target .popover,
+.award-effect-target [role="dialog"] {
+	z-index: 30;
+}
+
+@media (max-width: 720px) {
+	.award-ricardo {
+		width: 34px;
+		height: 34px;
+	}
+
+	.award-firework {
+		width: 48px;
+		height: 48px;
+	}
+}
