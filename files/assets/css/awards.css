@@ -14,7 +14,7 @@
 	animation-timing-function: linear !important;
 }
 
-/*seal*/
+/* wholesome */
 .wholesome img {
 	width: 100px !important;
 	height: 89.5px !important;
@@ -40,7 +40,7 @@
 	100% {transform: translateY(85vh)}
 }
 
-/*train*/
+/* train */
 .train img {
 	width: 100px !important;
 	height: 51px !important;
@@ -66,7 +66,7 @@
 	to {transform: translateX(99vw)}
 }
 
-/*scooter*/
+/* scooter */
 .scooter img {
 	width: 100px !important;
 	height: 135px !important;
@@ -82,7 +82,7 @@
 .scooter:nth-child(even) {animation-direction: reverse;}
 .scooter:nth-child(even) img {transform: scaleX(-1);}
 
-/*confetti — scoped to the exact awarded post/comment*/
+/* Confetti uses the original colorful rDrama asset and stays on the exact awarded content. */
 #post-root > .card:has(.award-kind-confetti),
 .comment-body:has(.award-kind-confetti) {
 	position: relative;
@@ -95,13 +95,12 @@
 	inset: 0;
 	z-index: 20;
 	pointer-events: none;
-	background-image: url(/assets/images/confetti.webp?v=20260809-confetti);
+	background-image: url(/assets/images/confetti2.webp?v=20260809-confetti2);
 	background-repeat: repeat;
 	background-position: top left;
 	background-size: 800px 450px;
 }
 
-/* Keep the effect visible but do not let it interfere with menus, links, or controls. */
 #post-root > .card:has(.award-kind-confetti) .dropdown-menu,
 #post-root > .card:has(.award-kind-confetti) .popover,
 .comment-body:has(.award-kind-confetti) .dropdown-menu,
@@ -116,12 +115,12 @@
 	}
 }
 
-/*fireworks*/
+/* fireworks */
 .firework img {
 	max-width: 15rem;
 }
 
-/*ricardo*/
+/* ricardo / Celebration */
 .ricardo {
 	position: fixed !important;
 	bottom: 0;
@@ -160,7 +159,6 @@
 	100% {bottom: 20vh}
 }
 
-
 @keyframes ricardo2 {
 	0% { opacity: 1; left: 0; right: unset;}
 	18% {opacity: 0; left: 0; right: unset;}
@@ -186,24 +184,35 @@
 	100% {transform: translateX(-15vw) rotate(180deg); top: 0; bottom: unset;}
 }
 
-@keyframes tilt {
-	0% {transform: rotate(0deg);}
-	25% {transform: rotate({{p.award_count("tilt", v)}}deg);}
-	75% {transform: rotate(-{{p.award_count("tilt", v)}}deg);}
-	100% {transform: rotate(0deg);}
+/* Tilt used to contain raw Jinja in this static CSS file, so browsers discarded it. */
+@keyframes awardTilt {
+	0%, 100% {transform: rotate(0deg);}
+	25% {transform: rotate(2deg);}
+	75% {transform: rotate(-2deg);}
 }
-@media (max-width: 720px) {
-	@keyframes tilt {
-		0% {transform: rotate(0deg);}
-		25% {transform: rotate({{p.award_count("tilt", v)/4}}deg);}
-		75% {transform: rotate(-{{p.award_count("tilt", v)/4}}deg);}
-		100% {transform: rotate(0deg);}
-	}
-}
-.tilt {
-	animation-name: tilt;
-	animation-duration: 60s !important;
+
+.tilt,
+.actual-post:has(.award-kind-tilt),
+.comment-body:has(.award-kind-tilt) {
+	animation-name: awardTilt;
+	animation-duration: 12s !important;
 	animation-iteration-count: infinite !important;
 	animation-direction: alternate !important;
-	animation-timing-function: linear !important;
+	animation-timing-function: ease-in-out !important;
+	transform-origin: center center;
+}
+
+@media (max-width: 720px) {
+	@keyframes awardTilt {
+		0%, 100% {transform: rotate(0deg);}
+		25% {transform: rotate(.7deg);}
+		75% {transform: rotate(-.7deg);}
+	}
+}
+
+/* Night Glow also works on comment/listing render paths that only expose the award marker. */
+.actual-post:has(.award-kind-glowie),
+.comment-body:has(.award-kind-glowie) {
+	color: lightgreen;
+	text-shadow: 1px 1px 1px darkgreen, 0 0 5px green;
 }
