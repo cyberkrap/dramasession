@@ -13,6 +13,9 @@
 		currencyLabel: 'Wishcoins/Wishbux',
 	};
 
+	let activeTooltip = null;
+	let activeTooltipTarget = null;
+
 	function quantityInput() {
 		return document.getElementById('award-quantity');
 	}
@@ -200,6 +203,62 @@
 		}
 	};
 
+	function hideAwardTooltip() {
+		if (activeTooltip) activeTooltip.remove();
+		activeTooltip = null;
+		activeTooltipTarget = null;
+	}
+
+	function positionAwardTooltip(target, tooltip) {
+		const rect = target.getBoundingClientRect();
+		const tipRect = tooltip.getBoundingClientRect();
+		const edge = 8;
+		const gap = 9;
+		let left = rect.left + (rect.width - tipRect.width) / 2;
+		left = Math.max(edge, Math.min(left, window.innerWidth - tipRect.width - edge));
+
+		let top = rect.top - tipRect.height - gap;
+		let below = false;
+		if (top < edge) {
+			below = true;
+			top = rect.bottom + gap;
+		}
+		if (top + tipRect.height > window.innerHeight - edge) {
+			top = Math.max(edge, window.innerHeight - tipRect.height - edge);
+		}
+
+		tooltip.classList.toggle('is-below', below);
+		tooltip.style.left = `${Math.round(left)}px`;
+		tooltip.style.top = `${Math.round(top)}px`;
+	}
+
+	function showAwardTooltip(choice) {
+		const source = choice.querySelector('.award-inline-tooltip');
+		if (!source) return;
+		if (activeTooltipTarget === choice && activeTooltip) return;
+		hideAwardTooltip();
+
+		const tooltip = document.createElement('div');
+		tooltip.className = 'award-floating-tooltip';
+		tooltip.setAttribute('role', 'tooltip');
+		tooltip.innerHTML = source.innerHTML;
+		document.body.appendChild(tooltip);
+		activeTooltip = tooltip;
+		activeTooltipTarget = choice;
+		positionAwardTooltip(choice, tooltip);
+	}
+
+	function bindAwardTooltips() {
+		for (const choice of document.querySelectorAll('#awardModal .award-choice')) {
+			if (choice.dataset.awardTooltipBound === '1') continue;
+			choice.dataset.awardTooltipBound = '1';
+			choice.addEventListener('mouseenter', () => showAwardTooltip(choice));
+			choice.addEventListener('mouseleave', hideAwardTooltip);
+			choice.addEventListener('focus', () => showAwardTooltip(choice));
+			choice.addEventListener('blur', hideAwardTooltip);
+		}
+	}
+
 	function init() {
 		const input = quantityInput();
 		if (input) {
@@ -217,8 +276,15 @@
 		const note = document.getElementById('note');
 		if (note) note.addEventListener('input', resetConfirmation);
 
+		bindAwardTooltips();
 		const modal = document.getElementById('awardModal');
-		if (modal) modal.addEventListener('show.bs.modal', resetConfirmation);
+		if (modal) {
+			modal.addEventListener('show.bs.modal', resetConfirmation);
+			modal.addEventListener('shown.bs.modal', bindAwardTooltips);
+			modal.addEventListener('hidden.bs.modal', hideAwardTooltip);
+		}
+		window.addEventListener('resize', hideAwardTooltip, {passive: true});
+		window.addEventListener('scroll', hideAwardTooltip, {passive: true, capture: true});
 	}
 
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once: true});
