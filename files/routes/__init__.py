@@ -56,6 +56,9 @@ except RuntimeError:
 	pass
 try:
 	patch_award_batch_source()
+except RuntimeError:
+	pass
+try:
 	patch_award_templates_source()
 except RuntimeError:
 	pass
