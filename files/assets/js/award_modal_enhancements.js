@@ -13,9 +13,6 @@
 		currencyLabel: 'Wishcoins/Wishbux',
 	};
 
-	let hoverTooltip = null;
-	let hoverTarget = null;
-
 	function quantityInput() {
 		return document.getElementById('award-quantity');
 	}
@@ -203,73 +200,6 @@
 		}
 	};
 
-	function hideAwardTooltip() {
-		if (hoverTooltip) hoverTooltip.remove();
-		hoverTooltip = null;
-		hoverTarget = null;
-	}
-
-	function positionAwardTooltip(target) {
-		if (!hoverTooltip || !target) return;
-		const rect = target.getBoundingClientRect();
-		const tipRect = hoverTooltip.getBoundingClientRect();
-		const gap = 8;
-		const edge = 8;
-
-		let left = rect.left + rect.width / 2 - tipRect.width / 2;
-		left = Math.max(edge, Math.min(left, window.innerWidth - tipRect.width - edge));
-
-		let top = rect.bottom + gap;
-		if (top + tipRect.height > window.innerHeight - edge) {
-			top = rect.top - tipRect.height - gap;
-		}
-		top = Math.max(edge, top);
-
-		hoverTooltip.style.left = `${Math.round(left)}px`;
-		hoverTooltip.style.top = `${Math.round(top)}px`;
-	}
-
-	function showAwardTooltip(target) {
-		const text = target?.dataset?.awardTooltip;
-		if (!text) return;
-		if (hoverTarget === target && hoverTooltip) return;
-		hideAwardTooltip();
-
-		hoverTarget = target;
-		hoverTooltip = document.createElement('div');
-		hoverTooltip.className = 'award-hover-tooltip';
-		hoverTooltip.setAttribute('role', 'tooltip');
-		hoverTooltip.textContent = text;
-		document.body.appendChild(hoverTooltip);
-		positionAwardTooltip(target);
-	}
-
-	function initAwardTooltips() {
-		document.addEventListener('mouseover', (event) => {
-			const target = event.target.closest?.('#awardModal .award-choice[data-award-tooltip]');
-			if (!target || target.contains(event.relatedTarget)) return;
-			showAwardTooltip(target);
-		});
-
-		document.addEventListener('mouseout', (event) => {
-			const target = event.target.closest?.('#awardModal .award-choice[data-award-tooltip]');
-			if (!target || target.contains(event.relatedTarget)) return;
-			if (hoverTarget === target) hideAwardTooltip();
-		});
-
-		document.addEventListener('focusin', (event) => {
-			const target = event.target.closest?.('#awardModal .award-choice[data-award-tooltip]');
-			if (target) showAwardTooltip(target);
-		});
-
-		document.addEventListener('focusout', (event) => {
-			if (hoverTarget === event.target) hideAwardTooltip();
-		});
-
-		window.addEventListener('resize', hideAwardTooltip, {passive: true});
-		window.addEventListener('scroll', hideAwardTooltip, {passive: true, capture: true});
-	}
-
 	function init() {
 		const input = quantityInput();
 		if (input) {
@@ -288,12 +218,7 @@
 		if (note) note.addEventListener('input', resetConfirmation);
 
 		const modal = document.getElementById('awardModal');
-		if (modal) {
-			modal.addEventListener('show.bs.modal', resetConfirmation);
-			modal.addEventListener('hidden.bs.modal', hideAwardTooltip);
-		}
-
-		initAwardTooltips();
+		if (modal) modal.addEventListener('show.bs.modal', resetConfirmation);
 	}
 
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once: true});
