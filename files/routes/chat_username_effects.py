@@ -6,6 +6,7 @@ from flask import g, request
 
 from files.__main__ import app, limiter
 from files.classes import User
+from files.helpers.chat_admin_modlog_source import patch_chat_admin_modlog_source
 from files.helpers.config.const import DEFAULT_RATELIMIT
 from files.routes.wrappers import auth_required, get_ID
 
@@ -65,6 +66,9 @@ def _install_removed_chat_style():
 
 
 _install_removed_chat_style()
+# __main__ imports this module immediately before files.routes.chat in the chat
+# service, so the source patch is guaranteed to run before chat handlers load.
+patch_chat_admin_modlog_source()
 
 
 @app.get('/api/chat/username-effects')
