@@ -6,46 +6,80 @@
 	<div class="modal-dialog modal-dialog-scrollable modal-dialog-centered awardmodal">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Give Award</h5>
+				<div>
+					<h5 class="modal-title">Give Award</h5>
+					<div class="award-modal-subtitle">Pick an effect. Hover any award to see exactly what it does.</div>
+				</div>
 				<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><i class="far fa-times"></i></button>
 			</div>
 			<div id="awardModalBody" class="modal-body">
 				<div class="award-tabs" role="tablist">
-					<button type="button" class="award-tab active" data-award-tab="content"><i class="fas fa-award"></i> Effect on Content</button>
-					<button type="button" class="award-tab" data-award-tab="author"><i class="fas fa-award"></i> Effect on Author</button>
+					<button type="button" class="award-tab active" data-award-tab="content"><i class="fas fa-sparkles"></i><span>Effect on Content</span></button>
+					<button type="button" class="award-tab" data-award-tab="author"><i class="fas fa-user"></i><span>Effect on Author</span></button>
 				</div>
 
 				{% set singleton_awards = ['checkmark', 'eye', 'alt', 'unblockable', 'fish', 'beano', 'offsitementions'] %}
 				{% for panel, cosmetic in [('content', true), ('author', false)] %}
-					<div class="awards-wrapper award-panel{% if panel != 'content' %} d-none{% endif %}" data-award-panel="{{panel}}">
-						{% for award in v.user_awards if award.cosmetic == cosmetic %}
-							{% set price = (award.price*v.discount)|int %}
-							{% set owned = award.owned|default(0)|int %}
-							{% set singleton = award.kind in singleton_awards %}
-							<button type="button"
-								class="award-choice"
-								data-bs-toggle="tooltip"
-								data-bs-placement="bottom"
-								data-bs-container="body"
-								title="{{award.title}} — {{award.description or 'A community effect from the Obsession collection.'}}"
-								id="{{award.kind}}"
-								data-price="{{price}}"
-								data-owned="{{owned}}"
-								data-singleton="{{'true' if singleton else 'false'}}"
-								data-nonce="{{g.nonce}}"
-								data-onclick="pick('{{award.kind}}', {{price}}, {{v.coins}}, {{v.marseybux}}, {{'true' if v.has_unlimited_spending else 'false'}}, 'marseybux', {{owned}})">
-								<i class="{{award.icon}} {{award.color}}"></i>
-								<span class="award-name">{{award.title}}</span>
-								<span class="award-price">{% if owned > 0 %}{{owned}} owned{% else %}Price: {{price|number}}{% endif %}</span>
-							</button>
-						{% endfor %}
-					</div>
+					<section class="award-panel{% if panel != 'content' %} d-none{% endif %}" data-award-panel="{{panel}}">
+						<div class="award-panel-intro">
+							<div>
+								<strong>{{'Content effects' if panel == 'content' else 'Profile & account effects'}}</strong>
+								<span>{{'Changes how this post or comment appears.' if panel == 'content' else 'Applies an effect or upgrade to the author.'}}</span>
+							</div>
+							<span class="award-panel-hint"><i class="fas fa-circle-info"></i> Hover for details</span>
+						</div>
+						<div class="awards-wrapper">
+							{% for award in v.user_awards if award.cosmetic == cosmetic %}
+								{% set base_price = award.price|int %}
+								{% set price = (award.price*v.discount)|int %}
+								{% set owned = award.owned|default(0)|int %}
+								{% set singleton = award.kind in singleton_awards %}
+								{% set savings = base_price - price %}
+								{% set savings_pct = (((savings * 100) / base_price)|round|int) if base_price > 0 and savings > 0 else 0 %}
+								{% set currency_label = 'Wishbux' if award.kind == 'benefactor' else 'Wishcoins/Wishbux' %}
+								<button type="button"
+									class="award-choice"
+									data-bs-toggle="tooltip"
+									data-bs-placement="bottom"
+									data-bs-container="body"
+									title="{{award.title}} — {{award.description or 'A community effect from the Obsession collection.'}}{% if savings > 0 %} · Original price: {{base_price|number}} {{currency_label}} · Your price: {{price|number}} · Save {{savings_pct}}%{% else %} · Price: {{price|number}} {{currency_label}}{% endif %}"
+									id="{{award.kind}}"
+									data-price="{{price}}"
+									data-base-price="{{base_price}}"
+									data-savings-percent="{{savings_pct}}"
+									data-owned="{{owned}}"
+									data-singleton="{{'true' if singleton else 'false'}}"
+									data-nonce="{{g.nonce}}"
+									data-onclick="pick('{{award.kind}}', {{price}}, {{v.coins}}, {{v.marseybux}}, {{'true' if v.has_unlimited_spending else 'false'}}, 'marseybux', {{owned}})">
+									<span class="award-card-badges">
+										{% if savings_pct > 0 %}<span class="award-discount-badge">Save {{savings_pct}}%</span>{% endif %}
+										{% if owned > 0 %}<span class="award-owned-badge">×{{owned}} owned</span>{% endif %}
+									</span>
+									<span class="award-icon-wrap"><i class="{{award.icon}} {{award.color}}"></i></span>
+									<span class="award-name">{{award.title}}</span>
+									<span class="award-price-block">
+										{% if savings > 0 %}
+											<span class="award-price-original">{{base_price|number}}</span>
+											<span class="award-price-current">{{price|number}}</span>
+										{% else %}
+											<span class="award-price-current">{{price|number}}</span>
+										{% endif %}
+									</span>
+									<span class="award-price-caption">{{'your price' if savings > 0 else 'price'}}</span>
+									<span class="award-help-icon" aria-hidden="true"><i class="fas fa-circle-info"></i></span>
+								</button>
+							{% endfor %}
+						</div>
+					</section>
 				{% endfor %}
 
 				<div class="award-note-wrap">
-					<label id="notelabel" for="note">Note (optional):</label>
+					<div class="award-note-heading">
+						<label id="notelabel" for="note">Note <span>(optional)</span></label>
+						<span>Included with the award notification</span>
+					</div>
 					<input autocomplete="off" id="kind" hidden>
-					<textarea autocomplete="off" id="note" maxlength="200" class="form-control" placeholder="Note to include in award notification..."></textarea>
+					<textarea autocomplete="off" id="note" maxlength="200" class="form-control" placeholder="Add a message for the recipient..."></textarea>
 					<div class="award-note-tools">
 						<button type="button" class="btn btn-secondary btn-sm" data-nonce="{{g.nonce}}" data-onclick="loadEmojis('note')" data-bs-toggle="modal" data-bs-target="#emojiModal" title="Add Emoji"><i class="fas fa-smile-beam"></i></button>
 						<button type="button" class="btn btn-secondary btn-sm" data-nonce="{{g.nonce}}" data-onclick="getGifs('note')" data-bs-toggle="modal" data-bs-target="#gifModal" title="Add GIF"><strong>GIF</strong></button>
@@ -53,10 +87,15 @@
 				</div>
 
 				<div class="award-modal-footer">
-					<span id="award-price-summary" class="award-price-summary">Choose an award</span>
-					<label class="award-quantity-label" for="award-quantity">Quantity</label>
-					<input id="award-quantity" class="form-control award-quantity" type="number" min="1" max="30" step="1" value="1" disabled>
-					<button type="button" id="giveaward" class="awardbtn btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="giveaward(this)" disabled>Give Award</button>
+					<div class="award-order-summary">
+						<span class="award-order-label">Selection</span>
+						<span id="award-price-summary" class="award-price-summary">Choose an award</span>
+					</div>
+					<div class="award-actions">
+						<label class="award-quantity-label" for="award-quantity">Qty</label>
+						<input id="award-quantity" class="form-control award-quantity" type="number" min="1" max="30" step="1" value="1" disabled aria-label="Award quantity">
+						<button type="button" id="giveaward" class="awardbtn btn btn-primary" data-nonce="{{g.nonce}}" data-onclick="giveaward(this)" disabled>Give Award</button>
+					</div>
 				</div>
 			</div>
 		</div>
