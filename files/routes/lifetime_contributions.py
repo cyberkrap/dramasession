@@ -6,7 +6,6 @@ from files.__main__ import app, limiter
 from files.classes import ModAction, User
 from files.helpers.admin_economy_ui import install_admin_economy_ui
 from files.helpers.config.const import DEFAULT_RATELIMIT, DEFAULT_RATELIMIT_SLOWER, PERMS
-from files.helpers.contribution_badges import sync_cumulative_contribution_badges
 from files.helpers.economy_ledger import set_economy_context
 from files.helpers.get import get_user
 from files.helpers.lifetime_contributions import (
@@ -124,7 +123,7 @@ def manage_lifetime_contribution(v: User):
 	action = (request.form.get('action') or 'set').strip().lower()
 	if action == 'clear':
 		clear_contribution_override(g.db, user.id)
-		total_cents = sync_cumulative_contribution_badges(g.db, user)
+		total_cents = effective_contribution_cents(g.db, user.id)
 		message = f'Lifetime donation override cleared for @{user.username}. Effective total: ${total_cents / 100:,.2f}.'
 	else:
 		raw_amount = (request.form.get('amount') or '').strip().replace(',', '')
@@ -135,7 +134,7 @@ def manage_lifetime_contribution(v: User):
 		if amount_cents < 0:
 			return redirect('/admin/economy?error=' + quote('Lifetime donation amount cannot be negative.'))
 		set_contribution_override(g.db, user.id, amount_cents, v.id)
-		total_cents = sync_cumulative_contribution_badges(g.db, user)
+		total_cents = effective_contribution_cents(g.db, user.id)
 		message = f'Lifetime donation set to ${total_cents / 100:,.2f} for @{user.username}.'
 
 	g.db.add(ModAction(
