@@ -71,6 +71,17 @@ def _award_title(kind):
     return kind.replace("-", " ").replace("_", " ").title()
 
 
+def _award_quantity(meta, path):
+    raw = meta.get("batch_quantity")
+    if raw is None and _AWARD_CONTENT_RE.match(path):
+        raw = meta.get("amount")
+    try:
+        quantity = int(raw or 1)
+    except (TypeError, ValueError):
+        quantity = 1
+    return max(1, min(quantity, 30))
+
+
 def _award_context_from_history(row, user_id):
     path = row.get("origin_path") or ""
     match = _AWARD_CONTENT_RE.match(path)
@@ -102,6 +113,7 @@ def _transaction_description(row, statement_user):
     if row.get("category") == "awards" or label == "Awards" or _AWARD_BUY_RE.match(path) or _AWARD_CONTENT_RE.match(path):
         kind = meta.get("award_kind") or meta.get("kind") or meta.get("award")
         thing_type = meta.get("thing_type")
+        quantity = _award_quantity(meta, path)
         try:
             thing_id = int(meta.get("thing_id") or 0) or None
         except (TypeError, ValueError):
@@ -119,15 +131,16 @@ def _transaction_description(row, statement_user):
 
         title = meta.get("award_title") or _award_title(kind)
         award_link = _link("/shop", title)
+        award_word = "Award" if quantity == 1 else "Awards"
         if thing_type in {"post", "comment"} and thing_id:
             href = f"/{thing_type}/{thing_id}" + ("#context" if thing_type == "comment" else "")
             content_link = _link(href, f"this {thing_type}")
             if amount < 0:
-                return Markup("Cost of 1 {} award on {}").format(award_link, content_link)
-            return Markup("{} award payout from {}").format(award_link, content_link)
+                return Markup("Cost of {} {} {} on {}").format(quantity, award_link, award_word, content_link)
+            return Markup("Payout from {} {} {} on {}").format(quantity, award_link, award_word, content_link)
         if amount < 0:
-            return Markup("Cost of 1 {} award").format(award_link)
-        return Markup("{} award payout").format(award_link)
+            return Markup("Cost of {} {} {}").format(quantity, award_link, award_word)
+        return Markup("Payout from {} {} {}").format(quantity, award_link, award_word)
 
     if label == "Hat shop" or _HAT_BUY_RE.match(path):
         name = meta.get("item_name")
@@ -346,9 +359,11 @@ def link_profile_balances_to_bank_statement(response):
     voting_link = f'<a href="/@{username}/voted/posts">Voting history</a>'
     bank_link = f'<a href="/@{username}/bank">Bank Statement</a>'
     if views_link in body and viewed_link not in body:
-        body = body.replace(views_link, views_link + "\n\t\t\t\t\t" + viewed_link, 1)
+        body = body.replace(views_link, views_link + "\
+\t\t\t\t\t" + viewed_link, 1)
     if voting_link in body and bank_link not in body:
-        body = body.replace(voting_link, voting_link + "\n\t\t\t\t\t" + bank_link, 1)
+        body = body.replace(voting_link, voting_link + "\
+\t\t\t\t\t" + bank_link, 1)
 
     response.set_data(body)
     response.headers.pop("Content-Length", None)
