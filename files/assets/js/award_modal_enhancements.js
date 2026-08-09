@@ -4,11 +4,13 @@
 	const state = {
 		kind: '',
 		price: 0,
+		basePrice: 0,
 		coins: 0,
 		wishbux: 0,
 		owned: 0,
 		unlimited: false,
 		singleton: false,
+		currencyLabel: 'Wishcoins/Wishbux',
 	};
 
 	function quantityInput() {
@@ -47,6 +49,10 @@
 		return Math.floor(state.coins / state.price) + Math.floor(state.wishbux / state.price);
 	}
 
+	function money(value) {
+		return Number(value || 0).toLocaleString('en-US');
+	}
+
 	function updateSummary() {
 		const input = quantityInput();
 		const button = giveButton();
@@ -57,18 +63,32 @@
 		const inventoryUsed = Math.min(amount, state.owned);
 		const purchaseCount = Math.max(0, amount - inventoryUsed);
 		const totalPrice = purchaseCount * state.price;
+		const totalBasePrice = purchaseCount * state.basePrice;
+		const totalSavings = Math.max(0, totalBasePrice - totalPrice);
 		const canGive = purchaseCount === 0 || state.unlimited || affordablePurchaseCount() >= purchaseCount;
 
 		button.disabled = !canGive;
-		if (inventoryUsed && purchaseCount) {
-			priceSummary.textContent = `Uses ${inventoryUsed} owned · Price: ${totalPrice.toLocaleString('en-US')} Wishcoins/Wishbux`;
-		} else if (inventoryUsed) {
-			priceSummary.textContent = `Uses ${inventoryUsed} owned award${inventoryUsed === 1 ? '' : 's'}`;
+
+		if (purchaseCount === 0) {
+			priceSummary.innerHTML = `<span class="award-summary-owned">Using ${inventoryUsed} owned award${inventoryUsed === 1 ? '' : 's'} — no charge</span>`;
 		} else {
-			priceSummary.textContent = `Price: ${totalPrice.toLocaleString('en-US')} Wishcoins/Wishbux`;
+			const inventoryPrefix = inventoryUsed
+				? `<span class="award-summary-owned">${inventoryUsed} owned</span><span class="award-summary-separator">·</span>`
+				: '';
+			const purchaseLabel = purchaseCount > 1 ? `${purchaseCount} purchased` : 'Purchase';
+			const priceMarkup = totalSavings > 0
+				? `<span class="award-summary-original">${money(totalBasePrice)}</span><strong class="award-summary-current">${money(totalPrice)}</strong>`
+				: `<strong class="award-summary-current">${money(totalPrice)}</strong>`;
+			const savingsMarkup = totalSavings > 0
+				? `<span class="award-summary-save">Save ${money(totalSavings)}</span>`
+				: '';
+
+			priceSummary.innerHTML = `${inventoryPrefix}<span>${purchaseLabel}</span><span class="award-summary-separator">·</span>${priceMarkup}<span>${state.currencyLabel}</span>${savingsMarkup}`;
 		}
 
-		if (!canGive) priceSummary.textContent += ' · insufficient balance';
+		if (!canGive) {
+			priceSummary.insertAdjacentHTML('beforeend', '<span class="award-summary-insufficient">Insufficient balance</span>');
+		}
 	}
 
 	window.pick = function(kind, price, coins, marseybux, unlimitedSpending = false, currency = 'marseybux', owned = 0) {
@@ -78,9 +98,11 @@
 		state.wishbux = parseInt(marseybux, 10) || 0;
 		state.owned = parseInt(owned, 10) || 0;
 		state.unlimited = unlimitedSpending === true || unlimitedSpending === 'true';
+		state.currencyLabel = kind === 'benefactor' ? 'Wishbux' : 'Wishcoins/Wishbux';
 
 		const selected = document.getElementById(kind);
 		state.singleton = !!selected && selected.dataset.singleton === 'true';
+		state.basePrice = selected ? (parseInt(selected.dataset.basePrice, 10) || state.price) : state.price;
 		document.getElementById('kind').value = kind;
 
 		for (const choice of document.querySelectorAll('#awardModal .award-choice.picked')) {
@@ -103,7 +125,7 @@
 			note.maxLength = 100;
 		} else {
 			label.textContent = 'Note (optional):';
-			note.placeholder = 'Note to include in award notification...';
+			note.placeholder = 'Add a message for the recipient...';
 			note.maxLength = 200;
 		}
 
@@ -141,9 +163,21 @@
 		state.owned = Math.max(0, state.owned - inventoryUsed);
 		const choice = document.getElementById(state.kind);
 		if (!choice) return;
+
 		choice.dataset.owned = String(state.owned);
-		const label = choice.querySelector('.award-price');
-		if (label) label.textContent = state.owned > 0 ? `${state.owned} owned` : `Price: ${state.price.toLocaleString('en-US')}`;
+		const badges = choice.querySelector('.award-card-badges');
+		let ownedBadge = choice.querySelector('.award-owned-badge');
+
+		if (state.owned > 0) {
+			if (!ownedBadge && badges) {
+				ownedBadge = document.createElement('span');
+				ownedBadge.className = 'award-owned-badge';
+				badges.appendChild(ownedBadge);
+			}
+			if (ownedBadge) ownedBadge.textContent = `×${state.owned} owned`;
+		} else if (ownedBadge) {
+			ownedBadge.remove();
+		}
 	}
 
 	window.giveaward = async function(button) {
