@@ -1,0 +1,264 @@
+#awardModal .modal-dialog.awardmodal {
+	width: min(1180px, calc(100vw - 32px));
+	max-width: 1180px;
+	margin: 1rem auto;
+}
+
+#awardModal .modal-content {
+	background: #050505;
+	color: #f2f2f2;
+	border: 1px solid rgba(255,255,255,.08);
+	border-radius: 5px;
+	box-shadow: 0 18px 60px rgba(0,0,0,.6);
+}
+
+#awardModal .modal-header {
+	padding: 1.25rem 1rem .65rem;
+	border-bottom: 0;
+}
+
+#awardModal .modal-title {
+	font-size: 1.15rem;
+	font-weight: 700;
+}
+
+#awardModal .close {
+	color: #9b9b9b;
+	font-size: 1.25rem;
+}
+
+#awardModal .modal-body {
+	padding: .35rem 1rem 1rem;
+}
+
+#awardModal .award-tabs {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	margin: 0 .75rem 1rem;
+	border: 1px solid var(--primary);
+	background: #000;
+}
+
+#awardModal .award-tab {
+	min-height: 35px;
+	padding: .55rem .75rem;
+	border: 0;
+	color: #c8c8c8;
+	background: #000;
+	font-size: .82rem;
+	font-weight: 800;
+	letter-spacing: .22em;
+	text-transform: uppercase;
+}
+
+#awardModal .award-tab + .award-tab {
+	border-left: 1px solid var(--primary);
+}
+
+#awardModal .award-tab.active {
+	color: #fff;
+	background: var(--primary);
+}
+
+#awardModal .award-tab i {
+	margin-right: .45rem;
+}
+
+#awardModal .awards-wrapper {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+	gap: .2rem .45rem;
+	align-items: stretch;
+	padding: .15rem .75rem .65rem;
+}
+
+#awardModal .award-choice {
+	min-width: 0;
+	min-height: 78px;
+	padding: .55rem .3rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: .15rem;
+	color: #f0f0f0;
+	border: 0;
+	border-radius: 3px;
+	background: transparent;
+	transition: background .12s ease, transform .12s ease;
+}
+
+#awardModal .award-choice:hover {
+	background: rgba(255,255,255,.07);
+	transform: translateY(-1px);
+}
+
+#awardModal .award-choice.picked {
+	color: #fff;
+	background: var(--primary);
+}
+
+#awardModal .award-choice > i {
+	font-size: 1.12rem;
+	line-height: 1;
+	margin-bottom: .25rem;
+}
+
+#awardModal .award-name {
+	font-size: .82rem;
+	font-weight: 750;
+	line-height: 1.15;
+	text-align: center;
+	white-space: normal;
+}
+
+#awardModal .award-price {
+	font-size: .74rem;
+	line-height: 1.15;
+	color: #c7c7c7;
+	text-align: center;
+}
+
+#awardModal .award-choice.picked .award-price,
+#awardModal .award-choice.picked > i {
+	color: #fff !important;
+}
+
+#awardModal .award-note-wrap {
+	margin-top: 1rem;
+}
+
+#awardModal #notelabel {
+	margin: 0 0 .4rem;
+	font-size: .9rem;
+	font-weight: 700;
+}
+
+#awardModal #note {
+	min-height: 58px;
+	max-height: 150px;
+	resize: vertical;
+	color: #eee;
+	background: #020202;
+	border: 1px solid var(--primary);
+	border-radius: 4px;
+}
+
+#awardModal #note:focus {
+	box-shadow: 0 0 0 2px rgba(255,0,0,.12);
+}
+
+#awardModal .award-note-tools {
+	display: flex;
+	gap: .35rem;
+	margin-top: .1rem;
+}
+
+#awardModal .award-note-tools .btn {
+	min-width: 34px;
+	padding: .28rem .45rem;
+	border: 1px solid var(--primary);
+	border-radius: 3px;
+	color: #fff;
+	background: #050505;
+}
+
+#awardModal .award-modal-footer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: .45rem;
+	margin-top: .75rem;
+}
+
+#awardModal .award-price-summary {
+	margin-right: .4rem;
+	font-size: .78rem;
+	color: #d0d0d0;
+	text-align: right;
+}
+
+#awardModal .award-quantity-label {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+}
+
+#awardModal .award-quantity {
+	width: 44px;
+	height: 36px;
+	padding: .25rem .2rem;
+	color: #fff;
+	background: #050505;
+	border: 1px solid var(--primary);
+	border-radius: 3px;
+	text-align: center;
+}
+
+#awardModal .award-quantity:disabled {
+	opacity: .45;
+}
+
+#awardModal #giveaward {
+	min-width: 108px;
+	height: 36px;
+	padding: .35rem .7rem;
+	border: 1px solid var(--primary);
+	border-radius: 3px;
+}
+
+@media (max-width: 760px) {
+	#awardModal .modal-dialog.awardmodal {
+		width: calc(100vw - 12px);
+		margin: .35rem auto;
+	}
+
+	#awardModal .modal-header {
+		padding: .9rem .7rem .45rem;
+	}
+
+	#awardModal .modal-body {
+		padding: .25rem .55rem .75rem;
+	}
+
+	#awardModal .award-tabs {
+		margin-inline: .2rem;
+	}
+
+	#awardModal .award-tab {
+		padding: .5rem .2rem;
+		font-size: .68rem;
+		letter-spacing: .1em;
+	}
+
+	#awardModal .awards-wrapper {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		padding-inline: .15rem;
+		gap: .15rem;
+	}
+
+	#awardModal .award-choice {
+		min-height: 72px;
+		padding-inline: .15rem;
+	}
+
+	#awardModal .award-name {
+		font-size: .72rem;
+	}
+
+	#awardModal .award-price {
+		font-size: .66rem;
+	}
+
+	#awardModal .award-modal-footer {
+		flex-wrap: wrap;
+	}
+
+	#awardModal .award-price-summary {
+		width: 100%;
+		margin: 0 0 .25rem;
+		text-align: right;
+	}
+}
