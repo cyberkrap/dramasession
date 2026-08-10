@@ -20,7 +20,7 @@ from .provider import (
 )
 
 
-CRAPPY_MAX_ATTEMPTS = 3
+CRAPPY_MAX_ATTEMPTS = 4
 CRAPPY_PROCESSING_STALE_SECONDS = 300
 CRAPPY_POST_CONTEXT_LIMIT = 12000
 CRAPPY_COMMENT_CONTEXT_LIMIT = 4000
@@ -235,7 +235,14 @@ def process_crappy_request(db, request_id: int) -> None:
                 queued.status = "failed"
             else:
                 queued.status = "pending"
-                queued.available_utc = now + min(300, 5 * (2 ** max(0, queued.attempts - 1)))
+                retry_after = getattr(exc, "retry_after_seconds", None)
+                try:
+                    retry_after = int(retry_after) if retry_after is not None else None
+                except (TypeError, ValueError):
+                    retry_after = None
+                if retry_after is None:
+                    retry_after = min(600, 15 * (2 ** max(0, queued.attempts - 1)))
+                queued.available_utc = now + max(1, min(retry_after, 3600))
             queued.error = f"{type(exc).__name__}: {exc}"[:2000]
             queued.updated_utc = now
             db.add(queued)
