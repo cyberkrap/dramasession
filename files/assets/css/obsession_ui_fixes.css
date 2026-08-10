@@ -164,3 +164,95 @@ body#shop .obs-hat-preview img.profile-pic-75-hat {
 	background-clip: border-box !important;
 	-webkit-background-clip: border-box !important;
 }
+
+/* Desktop chat uses the remaining viewport after the shared header instead of
+   guessing a fixed pixel height. This keeps the composer fully visible. */
+@media (min-width: 992px) {
+	body#chat {
+		display: flex !important;
+		flex-direction: column !important;
+		height: 100dvh !important;
+		min-height: 0 !important;
+		overflow: hidden !important;
+	}
+
+	body#chat > header,
+	body#chat > nav {
+		flex: 0 0 auto !important;
+	}
+
+	body#chat > .container.pb-4 {
+		flex: 1 1 0 !important;
+		width: calc(100% - 2rem) !important;
+		max-width: 1500px !important;
+		height: auto !important;
+		min-height: 0 !important;
+		margin-bottom: 0 !important;
+		padding-top: 10px !important;
+		padding-bottom: 12px !important;
+		overflow: hidden !important;
+	}
+
+	body#chat #main-content-row {
+		height: 100% !important;
+		min-height: 0 !important;
+		margin-top: 0 !important;
+		margin-bottom: 0 !important;
+		overflow: hidden !important;
+	}
+
+	body#chat #main-content-col {
+		display: flex !important;
+		flex-direction: column !important;
+		height: 100% !important;
+		min-height: 0 !important;
+		padding-bottom: 0 !important;
+		overflow: hidden !important;
+	}
+
+	body#chat #main-content-col > #shrink {
+		display: flex !important;
+		flex: 1 1 0 !important;
+		flex-direction: column !important;
+		min-height: 0 !important;
+		overflow: hidden !important;
+	}
+
+	body#chat #chat-window {
+		flex: 1 1 0 !important;
+		min-height: 0 !important;
+		max-height: none !important;
+		overflow-y: auto !important;
+	}
+
+	body#chat #quotes,
+	body#chat #chat-typing-row,
+	body#chat #chat-status,
+	body#chat #message {
+		flex: 0 0 auto !important;
+	}
+
+	body#chat #main-content-col > #message {
+		position: relative !important;
+		bottom: auto !important;
+		margin: 6px 0 0 !important;
+		padding-bottom: 8px !important;
+	}
+
+	body#chat #input-text {
+		min-height: 44px !important;
+		max-height: 126px !important;
+	}
+
+	body#chat .chat-online-column {
+		height: 100% !important;
+		min-height: 0 !important;
+		overflow: hidden !important;
+	}
+
+	body#chat .chat-online-column #online {
+		height: calc(100% - 42px) !important;
+		max-height: none !important;
+		overflow-y: auto !important;
+	}
+}
