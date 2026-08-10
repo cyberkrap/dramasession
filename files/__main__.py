@@ -42,11 +42,11 @@ def _startup_check():
 	to startup with obviously invalid values that won't work anyway
 	'''
 	if not SITE: raise TypeError("SITE environment variable must exist and not be None")
-	if SITE.startswith('.'): raise ValueError("Domain must not start with a dot")
+	if SITE.startswith('.'): raise ValueError("Domain must not start with dot")
 
 app.config['SERVER_NAME'] = SITE
 app.config['SECRET_KEY'] = environ.get('SECRET_KEY').strip()
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 3153600
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000
 _startup_check()
 if not IS_LOCALHOST:
 	app.config["SESSION_COOKIE_SECURE"] = True
@@ -117,6 +117,8 @@ from files.routes.chat_username_effects import *
 
 if app.config['SERVICE'] == Service.RDRAMA:
 	from files.routes import *
+	from files.helpers.wall_pin_sort import install_wall_pin_sort
+	install_wall_pin_sort(app)
 	from files.helpers.underage_ban_wall import install_underage_ban_wall
 	install_underage_ban_wall(app)
 
