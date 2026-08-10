@@ -32,5 +32,6 @@ from .paypal import *
 from .sub_logs import *
 from .media import *
 from .push_subscriptions import *
+from .crappy import *
 
 from .chat import *
