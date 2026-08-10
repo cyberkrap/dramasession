@@ -1,8 +1,11 @@
+import os
 import secrets
 
 from sqlalchemy import func
+from werkzeug.security import check_password_hash
 
 from files.classes import CrappyRequest, User
+from files.helpers.security import hash_password
 
 from .config import CRAPPY_USERNAME
 
@@ -31,6 +34,26 @@ def ensure_crappy_account(db) -> User:
     return user
 
 
+def _apply_configured_login_password(user: User) -> bool:
+    """Optionally bootstrap/reset Crappy's interactive login password from Railway."""
+    password = (os.environ.get("CRAPPY_LOGIN_PASSWORD") or "").strip()
+    if not password:
+        return False
+
+    if not 8 <= len(password) <= 100:
+        print(
+            "CRAPPY_LOGIN_PASSWORD ignored: password must be between 8 and 100 characters",
+            flush=True,
+        )
+        return False
+
+    if user.passhash and check_password_hash(user.passhash, password):
+        return False
+
+    user.passhash = hash_password(password)
+    return True
+
+
 def install_crappy(engine, db_session_factory=None, enabled: bool = False) -> None:
     CrappyRequest.__table__.create(bind=engine, checkfirst=True)
     if not enabled or db_session_factory is None:
@@ -38,7 +61,9 @@ def install_crappy(engine, db_session_factory=None, enabled: bool = False) -> No
 
     db = db_session_factory()
     try:
-        ensure_crappy_account(db)
+        user = ensure_crappy_account(db)
+        if _apply_configured_login_password(user):
+            db.add(user)
         db.commit()
     finally:
         db.close()
