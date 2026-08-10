@@ -5,7 +5,9 @@ from typing import Iterable
 
 
 class CrappyProviderError(RuntimeError):
-    pass
+    def __init__(self, message: str, retry_after_seconds: int | None = None):
+        super().__init__(message)
+        self.retry_after_seconds = retry_after_seconds
 
 
 @dataclass(frozen=True)
