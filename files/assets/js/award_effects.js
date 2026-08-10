@@ -4,13 +4,22 @@
 	const rendered = new WeakMap();
 	const visualKinds = ['confetti', 'fireflies', 'ricardo', 'firework', 'wholesome', 'shit'];
 
+	function isStandaloneThread() {
+		return document.body && document.body.id === 'thread';
+	}
+
 	function targetForIcon(icon) {
+		if (!isStandaloneThread()) return null;
+
 		const comment = icon.closest('.comment-body');
 		if (comment) return comment;
+
 		const directPost = icon.closest('#post-root > .card');
 		if (directPost) return directPost;
-		const card = icon.closest('.card');
-		if (card && !card.closest('.modal')) return card;
+
+		// Deliberately do not fall back to an arbitrary .card here. Award visual
+		// effects belong to the opened thread only, never homepage/profile/search
+		// feed cards or unrelated cards rendered alongside the thread.
 		return null;
 	}
 
@@ -42,18 +51,42 @@
 		return `${min + Math.random() * (max - min)}%`;
 	}
 
+	function animateFirefly(dot, dx, dy, duration) {
+		if (typeof dot.animate !== 'function') return;
+
+		// Use WAAPI as the primary animation so generic theme/button animation
+		// rules cannot accidentally freeze the effect. CSS remains a fallback for
+		// browsers without Element.animate().
+		dot.style.animation = 'none';
+		dot.animate([
+			{transform: 'translate3d(0, 0, 0) scale(.55)', opacity: .15},
+			{transform: `translate3d(${dx * .38}px, ${dy * .35}px, 0) scale(1.18)`, opacity: 1, offset: .42},
+			{transform: `translate3d(${dx}px, ${dy}px, 0) scale(.78)`, opacity: .32}
+		], {
+			duration,
+			delay: -Math.random() * duration,
+			iterations: Infinity,
+			direction: 'alternate',
+			easing: 'ease-in-out'
+		});
+	}
+
 	function addFireflies(layer, count) {
 		const total = Math.min(24, 7 + count * 4);
 		for (let i = 0; i < total; i++) {
 			const dot = document.createElement('span');
+			const dx = -55 + Math.random() * 110;
+			const dy = -38 + Math.random() * 76;
+			const duration = 2600 + Math.random() * 3600;
 			dot.className = 'award-firefly';
 			dot.style.setProperty('--x', randomPercent());
 			dot.style.setProperty('--y', randomPercent(4, 92));
-			dot.style.setProperty('--dx', `${-24 + Math.random() * 48}px`);
-			dot.style.setProperty('--dy', `${-18 + Math.random() * 36}px`);
+			dot.style.setProperty('--dx', `${dx}px`);
+			dot.style.setProperty('--dy', `${dy}px`);
 			dot.style.setProperty('--delay', `${-Math.random() * 5}s`);
-			dot.style.setProperty('--duration', `${3.5 + Math.random() * 4}s`);
+			dot.style.setProperty('--duration', `${duration}ms`);
 			layer.appendChild(dot);
+			animateFirefly(dot, dx, dy, duration);
 		}
 	}
 
@@ -133,7 +166,7 @@
 	}
 
 	function renderTarget(target) {
-		if (!(target instanceof HTMLElement)) return;
+		if (!(target instanceof HTMLElement) || !isStandaloneThread()) return;
 		const counts = countsForTarget(target);
 		const signature = fingerprint(counts);
 		if (rendered.get(target) === signature) return;
@@ -160,6 +193,7 @@
 	}
 
 	function scan(root = document) {
+		if (!isStandaloneThread()) return;
 		const icons = [];
 		if (root instanceof HTMLElement && /(^|\s)award-kind-/.test(root.className || '')) icons.push(root);
 		root.querySelectorAll?.('[class*="award-kind-"]').forEach((icon) => icons.push(icon));
@@ -172,6 +206,7 @@
 	}
 
 	function init() {
+		if (!isStandaloneThread()) return;
 		scan(document);
 		const observer = new MutationObserver((mutations) => {
 			for (const mutation of mutations) {
