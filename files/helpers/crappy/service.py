@@ -9,15 +9,9 @@ from files.classes import Comment, CommentVote, CrappyRequest, Notification, Use
 from files.helpers.config.const import COMMENT_MAX_DEPTH
 from files.helpers.sanitize import sanitize, sanitize_raw_body
 
-from .config import crappy_provider_name
-from .gemini import GeminiCrappyProvider
+from .factory import get_crappy_provider
 from .install import ensure_crappy_account
-from .provider import (
-    CrappyMessage,
-    CrappyProvider,
-    CrappyProviderError,
-    CrappyProviderRequest,
-)
+from .provider import CrappyMessage, CrappyProviderError, CrappyProviderRequest
 
 
 CRAPPY_MAX_ATTEMPTS = 4
@@ -33,13 +27,6 @@ class CrappyIneligibleRequest(RuntimeError):
     pass
 
 
-def get_crappy_provider() -> CrappyProvider:
-    provider = crappy_provider_name()
-    if provider == "gemini":
-        return GeminiCrappyProvider()
-    raise CrappyProviderError(f"Unsupported Crappy provider: {provider}")
-
-
 def _trim(value: str | None, limit: int) -> str:
     text = (value or "").strip()
     if len(text) <= limit:
@@ -47,7 +34,7 @@ def _trim(value: str | None, limit: int) -> str:
     return text[: max(0, limit - 20)].rstrip() + "\n[…truncated…]"
 
 
-def _build_comment_provider_request(db, queued: CrappyRequest) -> CrappyProviderRequest:
+def _load_comment_source(db, queued: CrappyRequest) -> tuple[Comment, User]:
     trigger = db.get(Comment, queued.source_id)
     if not trigger or trigger.deleted_utc or trigger.is_banned:
         raise CrappyIneligibleRequest("The triggering comment is no longer available")
@@ -63,12 +50,26 @@ def _build_comment_provider_request(db, queued: CrappyRequest) -> CrappyProvider
     requester = db.get(User, queued.requester_id)
     if not requester:
         raise CrappyIneligibleRequest("The requesting user no longer exists")
+    if requester.shadowbanned:
+        raise CrappyIneligibleRequest("Crappy does not publish replies to shadowbanned content")
+
+    return trigger, requester
+
+
+def _build_comment_provider_request(db, queued: CrappyRequest) -> CrappyProviderRequest:
+    trigger, requester = _load_comment_source(db, queued)
+    post = trigger.post
 
     ancestor_lines = []
     parent = trigger.parent_comment
     count = 0
     while parent is not None and count < CRAPPY_MAX_ANCESTORS:
-        if not parent.deleted_utc and not parent.is_banned and parent.author:
+        if (
+            not parent.deleted_utc
+            and not parent.is_banned
+            and parent.author
+            and not parent.author.shadowbanned
+        ):
             ancestor_lines.append(
                 f"@{parent.author.username}: {_trim(parent.body, CRAPPY_COMMENT_CONTEXT_LIMIT)}"
             )
@@ -122,10 +123,9 @@ def _render_comment_body(db, text: str) -> tuple[str, str]:
 
 
 def _publish_comment_reply(db, queued: CrappyRequest, response_text: str) -> Comment:
-    trigger = db.get(Comment, queued.source_id)
-    if not trigger or not trigger.post:
-        raise CrappyIneligibleRequest("The source comment disappeared before reply publication")
-
+    # Re-check visibility after the provider call. The source may have been
+    # deleted, banned, made private, or shadowbanned while the model was running.
+    trigger, requester = _load_comment_source(db, queued)
     post = trigger.post
     crappy = ensure_crappy_account(db)
     body, body_html = _render_comment_body(db, response_text)
@@ -154,8 +154,8 @@ def _publish_comment_reply(db, queued: CrappyRequest, response_text: str) -> Com
     db.add(post)
     db.add(crappy)
 
-    if queued.requester_id != crappy.id:
-        db.add(Notification(user_id=queued.requester_id, comment_id=reply.id))
+    if requester.id != crappy.id:
+        db.add(Notification(user_id=requester.id, comment_id=reply.id))
 
     return reply
 
