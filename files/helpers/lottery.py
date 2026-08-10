@@ -1,5 +1,5 @@
 import time
-from random import choice
+from random import choices
 
 from flask import g
 from sqlalchemy import *
@@ -26,37 +26,38 @@ def get_users_participating_in_lottery():
 def get_active_lottery_stats():
 	active_lottery = ensure_lottery_session()
 	participating_users = get_users_participating_in_lottery()
-
 	return None if active_lottery is None else active_lottery.stats, len(participating_users)
 
 
 def end_lottery_session():
 	active_lottery = get_active_lottery()
-
-	if (active_lottery is None):
+	if active_lottery is None:
 		return False, "There is no active lottery!"
 
 	participating_users = get_users_participating_in_lottery()
-	raffle = []
-	for user in participating_users:
-		for _ in range(user.currently_held_lottery_tickets):
-			raffle.append(user.id)
+	total_tickets = sum(user.currently_held_lottery_tickets for user in participating_users)
 
-	if len(raffle) == 0:
+	if total_tickets == 0:
 		active_lottery.is_active = False
 		g.db.add(active_lottery)
 		g.db.commit()
 		return True, "Lottery ended with no participants!"
 
-	winner = choice(raffle)
+	# Weighted selection preserves exactly the same per-ticket odds without
+	# constructing a potentially enormous in-memory raffle list.
+	winning_user = choices(
+		participating_users,
+		weights=[user.currently_held_lottery_tickets for user in participating_users],
+		k=1,
+	)[0]
+	winner = winning_user.id
 	active_lottery.winner_id = winner
-	winning_user = next(filter(lambda x: x.id == winner, participating_users))
 	winning_user.pay_account('coins', active_lottery.prize, skip_if_unlimited=True)
 	winning_user.total_lottery_winnings += active_lottery.prize
 	badge_grant(user=winning_user, badge_id=LOTTERY_WINNER_BADGE_ID)
 
 	for user in participating_users:
-		chance_to_win = user.currently_held_lottery_tickets / len(raffle) * 100
+		chance_to_win = user.currently_held_lottery_tickets / total_tickets * 100
 		chance_to_win = str(chance_to_win)[:3]
 		if user.id == winner:
 			notification_text = f'You won {active_lottery.prize} coins in the lottershe! ' \
@@ -68,11 +69,9 @@ def end_lottery_session():
 		user.currently_held_lottery_tickets = 0
 
 	active_lottery.is_active = False
-
 	g.db.add(winning_user)
 	g.db.add(active_lottery)
 	g.db.commit() # Intentionally commit early because cron runs with other tasks
-
 	return True, f'{winning_user.username} won {active_lottery.prize} coins!'
 
 
@@ -99,7 +98,6 @@ def start_new_lottery_session(preserve_schedule=False):
 	lottery = Lottery()
 	lottery.ends_at = next_end
 	lottery.is_active = True
-
 	g.db.add(lottery)
 	g.db.commit() # Intentionally commit early, not autocommitted from cron
 	return lottery
@@ -117,13 +115,11 @@ def ensure_lottery_session():
 
 def check_if_end_lottery_task():
 	active_lottery = get_active_lottery()
-
 	if active_lottery is None:
 		start_new_lottery_session()
 		return True
-	elif active_lottery.timeleft > 0:
+	if active_lottery.timeleft > 0:
 		return False
-
 	start_new_lottery_session(preserve_schedule=True)
 	return True
 
@@ -134,12 +130,12 @@ def lottery_ticket_net_value():
 
 def purchase_lottery_tickets(v, quantity=1):
 	if quantity < 1:
-		return False, f"Must purchase one or more lottershe tickets!"
-	elif not v.can_spend('coins', LOTTERY_TICKET_COST * quantity):
+		return False, "Must purchase one or more lottershe tickets!"
+	if not v.can_spend('coins', LOTTERY_TICKET_COST * quantity):
 		return False, f"Lottery tickets cost {LOTTERY_TICKET_COST} coins each!"
 
 	most_recent_lottery = ensure_lottery_session()
-	if (most_recent_lottery is None):
+	if most_recent_lottery is None:
 		return False, "There is no active lottery!"
 
 	if not v.charge_account('coins', LOTTERY_TICKET_COST * quantity):
@@ -151,17 +147,16 @@ def purchase_lottery_tickets(v, quantity=1):
 	most_recent_lottery.prize += net_ticket_value
 	most_recent_lottery.tickets_sold += quantity
 
-	if quantity == 1: return True, f'Successfully purchased {quantity} lottershe ticket!'
+	if quantity == 1:
+		return True, f'Successfully purchased {quantity} lottershe ticket!'
 	return True, f'Successfully purchased {quantity} lottershe tickets!'
 
 
 def grant_lottery_tickets_to_user(v, quantity):
 	active_lottery = ensure_lottery_session()
 	prize_value = lottery_ticket_net_value() * quantity
-
 	if active_lottery:
 		v.currently_held_lottery_tickets += quantity
 		v.total_held_lottery_tickets += quantity
-
 		active_lottery.prize += prize_value
 		active_lottery.tickets_sold += quantity
