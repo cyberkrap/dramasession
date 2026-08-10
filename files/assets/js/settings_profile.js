@@ -94,7 +94,7 @@ function updatebgselection(){
 			]
 		},
 		{
-			folder: "movie",
+			folder: "movies",
 			backgrounds:
 			[
 				"obsession.webp",
