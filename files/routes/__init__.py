@@ -26,6 +26,7 @@ from files.routes.allroutes import *
 from files.routes.jinja2 import *
 
 # Repair legacy route source before the affected modules are imported.
+from files.helpers.background_source_fix import patch_background_validation_source
 from files.helpers.runtime_source_fixes import (
 	patch_award_currency_source,
 	patch_badge_gift_message_source,
@@ -78,6 +79,7 @@ except RuntimeError:
 	pass
 patch_comment_attachment_source()
 patch_youtube_anthem_source()
+patch_background_validation_source()
 
 # import routes :)
 from .admin import *
