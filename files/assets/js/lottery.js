@@ -1,38 +1,35 @@
 let purchaseQuantity = 1;
+
 const lotteryOnReady = function () {
 	checkLotteryStats();
 
-	// Show ticket being pulled.
 	const ticketPulled = document.getElementById("lotteryTicketPulled");
 	const purchaseTicket = document.getElementById("purchaseTicket");
 
-	purchaseTicket.addEventListener("click", () => {
-	ticketPulled.style.display = "block";
+	if (purchaseTicket && ticketPulled) {
+		purchaseTicket.addEventListener("click", () => {
+			ticketPulled.style.display = "flex";
+			setTimeout(() => {
+				ticketPulled.style.display = "none";
+				purchaseTicket.disabled = false;
+			}, 1780);
+		});
+	}
 
-	setTimeout(() => {
-		ticketPulled.style.display = "none";
-		ticketPulled.src =
-		"/i/rDrama/lottery_active.webp?v=2000&t=" +
-		new Date().getTime();
-		purchaseTicket.disabled = false;
-	}, 1780);
-	});
-
-	// Update the quantity field
-	const purchaseQuantityField = document.getElementById(
-	"totalQuantityOfTickets"
-	);
+	const purchaseQuantityField = document.getElementById("totalQuantityOfTickets");
 	const purchaseTotalCostField = document.getElementById("totalCostOfTickets");
-	const ticketPurchaseQuantityInput = document.getElementById(
-	"ticketPurchaseQuantity"
-	);
+	const ticketPurchaseQuantityInput = document.getElementById("ticketPurchaseQuantity");
 
-	ticketPurchaseQuantityInput.addEventListener("change", (event) => {
-	const value = Math.max(1, parseInt(event.target.value))
-	purchaseQuantity = value
-	purchaseQuantityField.innerText = value
-	purchaseTotalCostField.innerText = formatNumber(value * 12)
-	});
+	if (ticketPurchaseQuantityInput) {
+		ticketPurchaseQuantityInput.addEventListener("change", (event) => {
+			const parsed = parseInt(event.target.value, 10);
+			const value = Number.isFinite(parsed) ? Math.max(1, parsed) : 1;
+			event.target.value = value;
+			purchaseQuantity = value;
+			purchaseQuantityField.innerText = value;
+			purchaseTotalCostField.innerText = formatNumber(value * 12);
+		});
+	}
 };
 
 function purchaseLotteryTicket() {
@@ -43,30 +40,24 @@ function checkLotteryStats() {
 	return handleLotteryRequest("active", "GET");
 }
 
-// Admin
 function ensureIntent() {
-	return window.confirm("Are you sure you want to end the current lottery?");
+	return window.confirm("Are you sure you want to override the current lottery session?");
 }
 
 function startLotterySession() {
 	checkLotteryStats();
-
 	if (ensureIntent()) {
-	return handleLotteryRequest("start", "POST", () =>
-		location.reload()
-	);
+		return handleLotteryRequest("start", "POST", () => location.reload());
 	}
 }
 
 function endLotterySession() {
 	checkLotteryStats();
-
 	if (ensureIntent()) {
-	return handleLotteryRequest("end", "POST", () => location.reload());
+		return handleLotteryRequest("end", "POST", () => location.reload());
 	}
 }
 
-// Composed
 function handleLotteryRequest(uri, method, callback = () => {}) {
 	const form = new FormData();
 	form.append("formkey", formkey());
@@ -80,109 +71,97 @@ function handleLotteryResponse(xhr, method, callback) {
 	let response;
 
 	try {
-	response = JSON.parse(xhr.response);
+		response = JSON.parse(xhr.response);
 	} catch (error) {
-	console.error(error);
+		console.error(error);
 	}
 
 	if (method === "POST") {
-	const succeeded =
-		xhr.status >= 200 && xhr.status < 300 && response && response.message;
+		const succeeded = xhr.status >= 200 && xhr.status < 300 && response && response.message;
 
-	if (succeeded) {
-		// Display success.
-		const toast = document.getElementById("lottery-post-success");
-		const toastMessage = document.getElementById("lottery-post-success-text");
-
-		toastMessage.innerText = response.message;
-
-		bootstrap.Toast.getOrCreateInstance(toast).show();
-
-		callback();
-	} else {
-		// Display error.
-		const toast = document.getElementById("lottery-post-error");
-		const toastMessage = document.getElementById("lottery-post-error-text");
-
-		toastMessage.innerText =
-		(response && response.error) || "Error, please try again later.";
-
-		bootstrap.Toast.getOrCreateInstance(toast).show();
-	}
+		if (succeeded) {
+			const toast = document.getElementById("lottery-post-success");
+			const toastMessage = document.getElementById("lottery-post-success-text");
+			if (toast && toastMessage) {
+				toastMessage.innerText = response.message;
+				bootstrap.Toast.getOrCreateInstance(toast).show();
+			}
+			callback();
+		} else {
+			const toast = document.getElementById("lottery-post-error");
+			const toastMessage = document.getElementById("lottery-post-error-text");
+			if (toast && toastMessage) {
+				toastMessage.innerText = (response && response.error) || "Error, please try again later.";
+				bootstrap.Toast.getOrCreateInstance(toast).show();
+			}
+		}
 	}
 
 	if (response && response.stats) {
-	lastStats = response.stats;
+		const { user, lottery, participants } = response.stats;
+		const [
+			prizeImage,
+			prizeField,
+			timeLeftField,
+			ticketsSoldThisSessionField,
+			participantsThisSessionField,
+			ticketsHeldCurrentField,
+			ticketsHeldTotalField,
+			winningsField,
+			purchaseTicketButton,
+		] = [
+			"prize-image",
+			"prize",
+			"timeLeft",
+			"ticketsSoldThisSession",
+			"participantsThisSession",
+			"ticketsHeldCurrent",
+			"ticketsHeldTotal",
+			"winnings",
+			"purchaseTicket",
+		].map((id) => document.getElementById(id));
 
-	const { user, lottery, participants } = response.stats;
-	const [
-		prizeImage,
-		prizeField,
-		timeLeftField,
-		ticketsSoldThisSessionField,
-		participantsThisSessionField,
-		ticketsHeldCurrentField,
-		ticketsHeldTotalField,
-		winningsField,
-		purchaseTicketButton,
-	] = [
-		"prize-image",
-		"prize",
-		"timeLeft",
-		"ticketsSoldThisSession",
-		"participantsThisSession",
-		"ticketsHeldCurrent",
-		"ticketsHeldTotal",
-		"winnings",
-		"purchaseTicket",
-	].map((id) => document.getElementById(id));
-
-	if (lottery) {
-		prizeImage.style.display = "inline";
-		prizeField.textContent = formatNumber(lottery.prize);
-		timeLeftField.textContent = formatTimeLeft(lottery.timeLeft);
-
-		if (participants) {
-		participantsThisSessionField.textContent = formatNumber(participants);
+		if (lottery) {
+			if (prizeImage) prizeImage.style.display = "inline";
+			if (prizeField) prizeField.textContent = formatNumber(lottery.prize);
+			if (timeLeftField) timeLeftField.textContent = formatTimeLeft(lottery.timeLeft);
+			if (participantsThisSessionField) participantsThisSessionField.textContent = formatNumber(participants || 0);
+			if (ticketsSoldThisSessionField) ticketsSoldThisSessionField.textContent = formatNumber(lottery.ticketsSoldThisSession);
+			if (ticketsHeldCurrentField) ticketsHeldCurrentField.textContent = formatNumber(user.ticketsHeld.current);
+			if (purchaseTicketButton) purchaseTicketButton.disabled = false;
+		} else {
+			if (prizeImage) prizeImage.style.display = "none";
+			[prizeField, timeLeftField, ticketsSoldThisSessionField, participantsThisSessionField, ticketsHeldCurrentField]
+				.filter(Boolean)
+				.forEach((element) => (element.textContent = "-"));
+			if (purchaseTicketButton) purchaseTicketButton.disabled = true;
 		}
 
-		ticketsSoldThisSessionField.textContent = formatNumber(lottery.ticketsSoldThisSession);
-		ticketsHeldCurrentField.textContent = formatNumber(user.ticketsHeld.current);
-	} else {
-		prizeImage.style.display = "none";
-		[
-		prizeField,
-		timeLeftField,
-		ticketsSoldThisSessionField,
-		participantsThisSessionField,
-		ticketsHeldCurrentField,
-		].forEach((e) => (e.textContent = "-"));
-		purchaseTicketButton.disabled = true;
-	}
+		if (ticketsHeldTotalField) ticketsHeldTotalField.textContent = formatNumber(user.ticketsHeld.total);
+		if (winningsField) winningsField.textContent = formatNumber(user.winnings);
 
-	ticketsHeldTotalField.textContent = formatNumber(user.ticketsHeld.total);
-	winningsField.textContent = formatNumber(user.winnings);
-
-	const [endButton, startButton] = [
-		"endLotterySession",
-		"startLotterySession",
-	].map((id) => document.getElementById(id));
-	if (response.stats.lottery) {
-		endButton.style.display = "block";
-		startButton.style.display = "none";
-	} else {
-		endButton.style.display = "none";
-		startButton.style.display = "block";
-	}
+		const endButton = document.getElementById("endLotterySession");
+		const startButton = document.getElementById("startLotterySession");
+		if (endButton && startButton) {
+			if (lottery) {
+				endButton.style.display = "block";
+				startButton.style.display = "none";
+			} else {
+				endButton.style.display = "none";
+				startButton.style.display = "block";
+			}
+		}
 	}
 }
 
 function formatTimeLeft(secondsLeft) {
-	const minutesLeft = Math.floor(secondsLeft / 60);
-	const seconds = secondsLeft % 60;
-	const minutes = minutesLeft % 60;
-	const hours = Math.floor(minutesLeft / 60);
+	const total = Math.max(0, Number(secondsLeft) || 0);
+	const days = Math.floor(total / 86400);
+	const hours = Math.floor((total % 86400) / 3600);
+	const minutes = Math.floor((total % 3600) / 60);
+	const seconds = total % 60;
 
+	if (days > 0) return `${days}d, ${hours}h, ${minutes}m, ${seconds}s`;
 	return `${hours}h, ${minutes}m, ${seconds}s`;
 }
 
