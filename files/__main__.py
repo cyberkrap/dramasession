@@ -8,13 +8,13 @@ from sys import argv, stdout
 
 import gevent
 from flask import Flask
-from flask_caching import Cache
 from flask_compress import Compress
 from flask_limiter import Limiter
 from werkzeug.middleware.proxy_fix import ProxyFix
 from sqlalchemy import *
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from files.helpers.cache import cache
 from files.helpers.config.const import *
 from files.helpers.const_stateful import const_initialize
 from files.helpers.settings import reload_settings, start_watching_settings
@@ -94,7 +94,7 @@ const_initialize(db_session)
 reload_settings()
 start_watching_settings()
 
-cache = Cache(app)
+cache.init_app(app)
 Compress(app)
 
 from files.routes.allroutes import *
