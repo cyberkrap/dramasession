@@ -43,6 +43,41 @@
 	}
 }
 
+/* Keep the desktop Support CTA identical on every route. Some admin/listing
+ * stylesheets redefine generic Bootstrap button sizing, so scope this to the
+ * one navbar donate link rather than changing buttons site-wide. */
+#navbar .navbar-nav a[href="/donate"].btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-sizing: border-box !important;
+	min-width: 74px !important;
+	height: 34px !important;
+	min-height: 34px !important;
+	padding: 0 13px !important;
+	margin: 0 !important;
+	font-size: 14px !important;
+	font-weight: 700 !important;
+	line-height: 1 !important;
+	letter-spacing: 0 !important;
+	white-space: nowrap !important;
+}
+
+#navbar .navbar-nav a[href="/donate"].btn > i {
+	display: none !important;
+}
+
+/* The ellipsis trigger used to remain painted over its own open moderation
+ * menu. Hide only the trigger while expanded; it returns as soon as the menu
+ * closes. This applies to both post and comment action menus. */
+.dropdown-actions > button[data-bs-toggle="dropdown"][aria-expanded="true"] {
+	visibility: hidden !important;
+}
+
+.dropdown-actions > .dropdown-menu.show {
+	z-index: 2002 !important;
+}
+
 body.award-modal-open #awards-container,
 body.award-modal-open .bug {
 	visibility: hidden !important;
