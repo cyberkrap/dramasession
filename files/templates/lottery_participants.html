@@ -1,0 +1,49 @@
+{% extends "default.html" %}
+{% block pagetitle %}Lottery Participants{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width: 980px;">
+	<div class="d-flex align-items-end justify-content-between flex-wrap mb-3" style="gap: .75rem;">
+		<div>
+			<h3 class="mb-1">Lottery Participants</h3>
+			<div class="text-muted small">Current draw, ranked by tickets held.</div>
+		</div>
+		<a href="/lottershe" class="btn btn-secondary btn-sm">Back to lottery</a>
+	</div>
+
+	<div class="card overflow-hidden">
+		<div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+			<span class="font-weight-bold">{{participants|length}} participant{% if participants|length != 1 %}s{% endif %}</span>
+			<span class="text-muted small">{{total_tickets}} ticket{% if total_tickets != 1 %}s{% endif %} held</span>
+		</div>
+
+		{% if participants %}
+		<div class="overflow-x-auto">
+			<table class="table table-striped mb-0">
+				<thead>
+					<tr>
+						<th style="width: 70px;">#</th>
+						<th>Name</th>
+						<th class="text-right">Tickets Held</th>
+						<th class="text-right">Share</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for user in participants %}
+					<tr>
+						<td class="font-weight-bold">{{loop.index}}</td>
+						<td>{% include "user_in_table.html" %}</td>
+						<td class="text-right font-weight-bold">{{user.currently_held_lottery_tickets}}</td>
+						<td class="text-right text-muted">
+							{% if total_tickets %}{{'%.1f'|format((user.currently_held_lottery_tickets / total_tickets) * 100)}}%{% else %}0%{% endif %}
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		{% else %}
+		<div class="text-center text-muted py-5">No tickets have been bought in this draw yet.</div>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}
