@@ -10,6 +10,14 @@ function post(url) {
 
 function updatebgselection(){
 	const bgselector = document.getElementById("backgroundSelector");
+	const moviesCategory = "Movies";
+	if (!Array.from(bgselector.options).some(option => option.value === moviesCategory)) {
+		const option = document.createElement("option");
+		option.value = moviesCategory;
+		option.textContent = moviesCategory;
+		bgselector.appendChild(option);
+	}
+
 	const backgrounds = [
 		{
 			folder: "glitter",
@@ -83,6 +91,13 @@ function updatebgselection(){
 				"3.webp",
 				"4.webp",
 				"5.webp",
+			]
+		},
+		{
+			folder: "movie",
+			backgrounds:
+			[
+				"obsession.webp",
 			]
 		},
 	]
