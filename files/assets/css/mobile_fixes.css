@@ -67,15 +67,43 @@
 	display: none !important;
 }
 
-/* The ellipsis trigger used to remain painted over its own open moderation
- * menu. Hide only the trigger while expanded; it returns as soon as the menu
- * closes. This applies to both post and comment action menus. */
-.dropdown-actions > button[data-bs-toggle="dropdown"][aria-expanded="true"] {
-	visibility: hidden !important;
+/* Bootstrap's base button rule leaves a browser focus ring painted after a
+ * mouse/touch click. Suppress only pointer-style focus; keyboard focus-visible
+ * remains intact for accessibility. */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) {
+	outline: none !important;
+	box-shadow: none !important;
 }
 
-.dropdown-actions > .dropdown-menu.show {
-	z-index: 2002 !important;
+/* Moderation/action dropdowns: closed ellipsis triggers must stay in the
+ * normal stacking order so a trigger from the next post/comment can never sit
+ * on top of an already-open menu. Only the dropdown that is actually open is
+ * elevated. The active three-dot trigger itself remains visible. */
+.post-actions .dropdown-actions,
+.comment-actions .dropdown-actions {
+	position: relative;
+	z-index: auto !important;
+}
+
+.post-actions .dropdown-actions.show,
+.comment-actions .dropdown-actions.show {
+	z-index: 4001 !important;
+}
+
+.post-actions .dropdown-actions.show > .dropdown-menu.show,
+.comment-actions .dropdown-actions.show > .dropdown-menu.show {
+	z-index: 4002 !important;
+}
+
+/* Lift the card/comment containing the open menu above neighboring content as
+ * well. :has() is supported by the browsers currently used by the site; the
+ * elevated .dropdown-actions above is still a fallback if unavailable. */
+.actual-post:has(.dropdown-actions.show),
+.comment-body:has(.dropdown-actions.show) {
+	position: relative !important;
+	z-index: 4000 !important;
 }
 
 body.award-modal-open #awards-container,
