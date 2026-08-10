@@ -12,6 +12,7 @@ from .config.const import *
 
 LOTTERY_WINNER_BADGE_ID = 137
 
+
 def get_active_lottery():
 	return g.db.query(Lottery).order_by(Lottery.id.desc()).filter(Lottery.is_active).one_or_none()
 
@@ -19,11 +20,11 @@ def get_active_lottery():
 def get_users_participating_in_lottery():
 	return g.db.query(User) \
 		.filter(User.currently_held_lottery_tickets > 0) \
-		.order_by(User.currently_held_lottery_tickets.desc()).all()
+		.order_by(User.currently_held_lottery_tickets.desc(), User.id.asc()).all()
 
 
 def get_active_lottery_stats():
-	active_lottery = get_active_lottery()
+	active_lottery = ensure_lottery_session()
 	participating_users = get_users_participating_in_lottery()
 
 	return None if active_lottery is None else active_lottery.stats, len(participating_users)
@@ -43,6 +44,8 @@ def end_lottery_session():
 
 	if len(raffle) == 0:
 		active_lottery.is_active = False
+		g.db.add(active_lottery)
+		g.db.commit()
 		return True, "Lottery ended with no participants!"
 
 	winner = choice(raffle)
@@ -73,34 +76,61 @@ def end_lottery_session():
 	return True, f'{winning_user.username} won {active_lottery.prize} coins!'
 
 
-def start_new_lottery_session():
-	end_lottery_session()
+def start_new_lottery_session(preserve_schedule=False):
+	"""End the current draw if needed and start the next seven-day draw.
+
+	Cron rollovers preserve the existing weekly cadence instead of drifting by a
+	few minutes every cycle. Manual admin starts intentionally begin a fresh
+	seven-day window from the moment the override is used.
+	"""
+	active_lottery = get_active_lottery()
+	previous_end = active_lottery.ends_at if active_lottery else None
+	if active_lottery:
+		end_lottery_session()
+
+	epoch_time = int(time.time())
+	if preserve_schedule and previous_end:
+		next_end = previous_end + LOTTERY_DURATION
+		while next_end <= epoch_time:
+			next_end += LOTTERY_DURATION
+	else:
+		next_end = epoch_time + LOTTERY_DURATION
 
 	lottery = Lottery()
-	epoch_time = int(time.time())
-	# Subtract 4 minutes from one cycle so cronjob interval doesn't cause the
-	# time to drift toward over multiple cycles.
-	one_week_from_now = epoch_time + LOTTERY_DURATION - (4 * 60)
-	lottery.ends_at = one_week_from_now
+	lottery.ends_at = next_end
 	lottery.is_active = True
 
 	g.db.add(lottery)
 	g.db.commit() # Intentionally commit early, not autocommitted from cron
+	return lottery
+
+
+def ensure_lottery_session():
+	"""Guarantee there is a live draw without requiring an admin bootstrap."""
+	active_lottery = get_active_lottery()
+	if active_lottery is None:
+		return start_new_lottery_session()
+	if active_lottery.timeleft <= 0:
+		return start_new_lottery_session(preserve_schedule=True)
+	return active_lottery
 
 
 def check_if_end_lottery_task():
 	active_lottery = get_active_lottery()
 
 	if active_lottery is None:
-		return False
+		start_new_lottery_session()
+		return True
 	elif active_lottery.timeleft > 0:
 		return False
 
-	start_new_lottery_session()
+	start_new_lottery_session(preserve_schedule=True)
 	return True
+
 
 def lottery_ticket_net_value():
 	return LOTTERY_TICKET_COST - LOTTERY_SINK_RATE
+
 
 def purchase_lottery_tickets(v, quantity=1):
 	if quantity < 1:
@@ -108,7 +138,7 @@ def purchase_lottery_tickets(v, quantity=1):
 	elif not v.can_spend('coins', LOTTERY_TICKET_COST * quantity):
 		return False, f"Lottery tickets cost {LOTTERY_TICKET_COST} coins each!"
 
-	most_recent_lottery = get_active_lottery()
+	most_recent_lottery = ensure_lottery_session()
 	if (most_recent_lottery is None):
 		return False, "There is no active lottery!"
 
@@ -121,12 +151,12 @@ def purchase_lottery_tickets(v, quantity=1):
 	most_recent_lottery.prize += net_ticket_value
 	most_recent_lottery.tickets_sold += quantity
 
-
 	if quantity == 1: return True, f'Successfully purchased {quantity} lottershe ticket!'
 	return True, f'Successfully purchased {quantity} lottershe tickets!'
 
+
 def grant_lottery_tickets_to_user(v, quantity):
-	active_lottery = get_active_lottery()
+	active_lottery = ensure_lottery_session()
 	prize_value = lottery_ticket_net_value() * quantity
 
 	if active_lottery:
