@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 
 import requests
 
@@ -70,13 +71,34 @@ class GeminiCrappyProvider(CrappyProvider):
         return "\n".join(chunks).strip()
 
     @staticmethod
-    def _retry_after(response) -> int | None:
+    def _duration_seconds(value) -> int | None:
+        text = str(value or "").strip().lower()
+        match = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)s", text)
+        if not match:
+            return None
+        try:
+            return max(1, int(float(match.group(1)) + 0.999))
+        except (TypeError, ValueError):
+            return None
+
+    @classmethod
+    def _retry_after(cls, response, error_payload: dict | None = None) -> int | None:
         value = response.headers.get("Retry-After")
         if value:
             try:
                 return max(1, int(float(value)))
             except (TypeError, ValueError):
                 pass
+
+        error = error_payload.get("error", {}) if isinstance(error_payload, dict) else {}
+        for item in error.get("details") or []:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("@type") or "").endswith("google.rpc.RetryInfo"):
+                parsed = cls._duration_seconds(item.get("retryDelay"))
+                if parsed is not None:
+                    return parsed
+
         if response.status_code == 429:
             return 30
         if response.status_code >= 500:
@@ -110,6 +132,7 @@ class GeminiCrappyProvider(CrappyProvider):
 
         if response.status_code != 200:
             detail = response.text[:500]
+            error_payload = None
             try:
                 error_payload = response.json()
                 detail = str(error_payload.get("error", {}).get("message") or detail)[:500]
@@ -117,7 +140,7 @@ class GeminiCrappyProvider(CrappyProvider):
                 pass
             raise CrappyProviderError(
                 f"Gemini returned HTTP {response.status_code}: {detail}",
-                retry_after_seconds=self._retry_after(response),
+                retry_after_seconds=self._retry_after(response, error_payload),
             )
 
         try:
