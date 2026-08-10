@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 
@@ -10,6 +11,7 @@ from .provider import (
     CrappyProviderError,
     CrappyProviderRequest,
     CrappyProviderResponse,
+    CrappyToolExecutor,
 )
 
 
@@ -51,6 +53,18 @@ class GeminiCrappyProvider(CrappyProvider):
         return "\n\n".join(system_blocks), "\n\n".join(input_blocks)
 
     @staticmethod
+    def _tool_payload(request: CrappyProviderRequest) -> list[dict]:
+        return [
+            {
+                "type": "function",
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": tool.parameters,
+            }
+            for tool in request.tools
+        ]
+
+    @staticmethod
     def _extract_text(data: dict) -> str:
         if isinstance(data.get("output_text"), str) and data["output_text"].strip():
             return data["output_text"].strip()
@@ -69,6 +83,14 @@ class GeminiCrappyProvider(CrappyProvider):
                     chunks.append(str(output["text"]))
 
         return "\n".join(chunks).strip()
+
+    @staticmethod
+    def _function_calls(data: dict) -> list[dict]:
+        calls = []
+        for step in data.get("steps") or []:
+            if isinstance(step, dict) and step.get("type") == "function_call":
+                calls.append(step)
+        return calls
 
     @staticmethod
     def _duration_seconds(value) -> int | None:
@@ -105,16 +127,7 @@ class GeminiCrappyProvider(CrappyProvider):
             return 15
         return None
 
-    def generate(self, request: CrappyProviderRequest) -> CrappyProviderResponse:
-        system_instruction, input_text = self._compile_request(request)
-        payload = {
-            "model": self.model,
-            "input": input_text,
-            "store": False,
-        }
-        if system_instruction:
-            payload["system_instruction"] = system_instruction
-
+    def _post_interaction(self, payload: dict) -> dict:
         try:
             response = requests.post(
                 GEMINI_INTERACTIONS_URL,
@@ -144,19 +157,100 @@ class GeminiCrappyProvider(CrappyProvider):
             )
 
         try:
-            data = response.json()
+            return response.json()
         except ValueError as exc:
             raise CrappyProviderError(
                 "Gemini returned invalid JSON", retry_after_seconds=15
             ) from exc
 
-        text = self._extract_text(data)
-        if not text:
-            raise CrappyProviderError("Gemini returned no text output")
+    def generate(
+        self,
+        request: CrappyProviderRequest,
+        tool_executor: CrappyToolExecutor | None = None,
+    ) -> CrappyProviderResponse:
+        system_instruction, input_text = self._compile_request(request)
+        tools = self._tool_payload(request)
 
-        return CrappyProviderResponse(
-            text=text,
-            provider=self.name,
-            model=str(data.get("model") or self.model),
-            request_id=str(data.get("id") or "") or None,
+        # Keep tool calling stateless. Gemini requires every model-generated step
+        # (including thought/function_call steps) to be replayed exactly on each
+        # subsequent request when store=false.
+        history: list[dict] = [
+            {"type": "user_input", "content": input_text}
+        ]
+        last_data: dict = {}
+
+        for round_index in range(request.max_tool_rounds + 1):
+            payload = {
+                "model": self.model,
+                "input": history,
+                "store": False,
+            }
+            if system_instruction:
+                payload["system_instruction"] = system_instruction
+            if tools:
+                payload["tools"] = tools
+
+            data = self._post_interaction(payload)
+            last_data = data
+            steps = [step for step in (data.get("steps") or []) if isinstance(step, dict)]
+            history.extend(steps)
+
+            calls = self._function_calls(data)
+            if not calls:
+                text = self._extract_text(data)
+                if not text:
+                    raise CrappyProviderError("Gemini returned no text output")
+                return CrappyProviderResponse(
+                    text=text,
+                    provider=self.name,
+                    model=str(data.get("model") or self.model),
+                    request_id=str(data.get("id") or "") or None,
+                )
+
+            if tool_executor is None or not tools:
+                raise CrappyProviderError(
+                    "Gemini requested a tool but no Crappy tool executor is available"
+                )
+            if round_index >= request.max_tool_rounds:
+                raise CrappyProviderError("Crappy exceeded the maximum tool-call rounds")
+
+            for call in calls:
+                name = str(call.get("name") or "").strip()
+                call_id = str(call.get("id") or "").strip()
+                arguments = call.get("arguments")
+                if not isinstance(arguments, dict):
+                    arguments = {}
+
+                try:
+                    result = tool_executor(name, arguments)
+                    result_payload = {"ok": True, "data": result}
+                except Exception as exc:
+                    # Tool failures are model-visible data, not provider/network
+                    # failures. This lets Crappy explain that a lookup is unavailable
+                    # instead of retrying the whole queue job.
+                    result_payload = {
+                        "ok": False,
+                        "error": f"{type(exc).__name__}: {exc}"[:1000],
+                    }
+
+                history.append(
+                    {
+                        "type": "function_result",
+                        "name": name,
+                        "call_id": call_id,
+                        "result": [
+                            {
+                                "type": "text",
+                                "text": json.dumps(
+                                    result_payload,
+                                    ensure_ascii=False,
+                                    separators=(",", ":"),
+                                ),
+                            }
+                        ],
+                    }
+                )
+
+        raise CrappyProviderError(
+            f"Gemini tool loop ended without text output ({last_data.get('id') or 'unknown interaction'})"
         )

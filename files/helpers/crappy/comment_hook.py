@@ -35,7 +35,7 @@ def _eligible_comment(comment: Comment) -> bool:
         crappy_enabled()
         and comment
         and not comment.is_bot
-        and comment.parent_submission is not None
+        and (comment.parent_submission is not None or comment.wall_user_id is not None)
         and int(comment.level or 1) < COMMENT_MAX_DEPTH
         and _contains_crappy_mention(comment.body)
     )

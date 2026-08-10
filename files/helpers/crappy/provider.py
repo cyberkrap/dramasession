@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Any, Callable, Iterable
 
 
 class CrappyProviderError(RuntimeError):
@@ -17,12 +17,29 @@ class CrappyMessage:
 
 
 @dataclass(frozen=True)
+class CrappyToolDefinition:
+    name: str
+    description: str
+    parameters: dict[str, Any]
+
+
+CrappyToolExecutor = Callable[[str, dict[str, Any]], Any]
+
+
+@dataclass(frozen=True)
 class CrappyProviderRequest:
     messages: tuple[CrappyMessage, ...]
+    tools: tuple[CrappyToolDefinition, ...] = ()
+    max_tool_rounds: int = 4
 
     @classmethod
-    def from_messages(cls, messages: Iterable[CrappyMessage]) -> "CrappyProviderRequest":
-        return cls(tuple(messages))
+    def from_messages(
+        cls,
+        messages: Iterable[CrappyMessage],
+        tools: Iterable[CrappyToolDefinition] = (),
+        max_tool_rounds: int = 4,
+    ) -> "CrappyProviderRequest":
+        return cls(tuple(messages), tuple(tools), max(0, int(max_tool_rounds)))
 
 
 @dataclass(frozen=True)
@@ -36,5 +53,9 @@ class CrappyProviderResponse:
 class CrappyProvider:
     name = "base"
 
-    def generate(self, request: CrappyProviderRequest) -> CrappyProviderResponse:
+    def generate(
+        self,
+        request: CrappyProviderRequest,
+        tool_executor: CrappyToolExecutor | None = None,
+    ) -> CrappyProviderResponse:
         raise NotImplementedError
