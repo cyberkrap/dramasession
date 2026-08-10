@@ -22,7 +22,9 @@ mkdir -p "$LOG_DIRECTORY" "$ASSET_SUBMISSIONS_ROOT" "$COMMUNITY_ASSET_ROOT" \
 	/data/images /data/audio /data/videos /data/songs /data/chat_images /data/dm_images \
 	/data/assets/images/emojis /data/assets/images/hats /data/default_assets \
 	"$COMMUNITY_ASSET_ROOT/banners" "$COMMUNITY_ASSET_ROOT/sidebar" \
-	"$ASSET_SUBMISSIONS_ROOT/banner_submissions" "$ASSET_SUBMISSIONS_ROOT/sidebar_submissions"
+	"$ASSET_SUBMISSIONS_ROOT/banner_submissions" "$ASSET_SUBMISSIONS_ROOT/sidebar_submissions" \
+	"$ASSET_SUBMISSIONS_ROOT/marseys/pending" "$ASSET_SUBMISSIONS_ROOT/marseys/approved" \
+	"$ASSET_SUBMISSIONS_ROOT/marseys/original" "$ASSET_SUBMISSIONS_ROOT/hats"
 
 link_data_dir() {
 	name="$1"
@@ -68,6 +70,14 @@ if [ -d /app/files/assets/images/Obsession/defaults ] && [ ! -L /app/files/asset
 fi
 ln -sfn /data/default_assets /app/files/assets/images/Obsession/defaults
 copy_and_link /app/asset_submissions "$ASSET_SUBMISSIONS_ROOT"
+
+# Legacy emote/hat routes still address /asset_submissions directly. Point that
+# path at the Railway volume too, so approved custom assets survive redeploys.
+if [ -e /asset_submissions ] && [ ! -L /asset_submissions ]; then
+	cp -a /asset_submissions/. "$ASSET_SUBMISSIONS_ROOT/" 2>/dev/null || true
+	rm -rf /asset_submissions
+fi
+ln -sfn "$ASSET_SUBMISSIONS_ROOT" /asset_submissions
 
 if [ ! -f "$DEFAULT_ASSETS_FILE" ]; then
 	cp /app/files/assets/default_assets.json "$DEFAULT_ASSETS_FILE"

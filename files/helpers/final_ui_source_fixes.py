@@ -67,6 +67,10 @@ def patch_asset_submission_directories_source():
 		if hat_save_fixed not in source:
 			if hat_save not in source: raise RuntimeError("Could not locate the hat upload save block")
 			source = source.replace(hat_save, hat_save_fixed, 1)
+		source = source.replace(
+			"Someone already submitted a marsey with this name!",
+			"Someone already submitted an emoji with this name!",
+		)
 		if source != original_source: _atomic_write(_ASSET_SUBMISSIONS_PATH, source)
 
 
