@@ -1,7 +1,12 @@
 let purchaseQuantity = 1;
+let lotteryCountdownSeconds = null;
+let lotteryCountdownTimer = null;
+let lotteryResyncTimer = null;
+let lotteryRolloverCheckPending = false;
 
 const lotteryOnReady = function () {
 	checkLotteryStats();
+	startLotteryCountdownClock();
 
 	const ticketPulled = document.getElementById("lotteryTicketPulled");
 	const purchaseTicket = document.getElementById("purchaseTicket");
@@ -30,6 +35,12 @@ const lotteryOnReady = function () {
 			purchaseTotalCostField.innerText = formatNumber(value * 12);
 		});
 	}
+
+	// Browsers throttle background tabs. Resync immediately when the user comes
+	// back so the displayed countdown never drifts after tab suspension.
+	document.addEventListener("visibilitychange", () => {
+		if (!document.hidden) checkLotteryStats();
+	});
 };
 
 function purchaseLotteryTicket() {
@@ -124,12 +135,15 @@ function handleLotteryResponse(xhr, method, callback) {
 		if (lottery) {
 			if (prizeImage) prizeImage.style.display = "inline";
 			if (prizeField) prizeField.textContent = formatNumber(lottery.prize);
-			if (timeLeftField) timeLeftField.textContent = formatTimeLeft(lottery.timeLeft);
+			setLotteryCountdown(lottery.timeLeft);
+			if (timeLeftField) timeLeftField.textContent = formatTimeLeft(lotteryCountdownSeconds);
 			if (participantsThisSessionField) participantsThisSessionField.textContent = formatNumber(participants || 0);
 			if (ticketsSoldThisSessionField) ticketsSoldThisSessionField.textContent = formatNumber(lottery.ticketsSoldThisSession);
 			if (ticketsHeldCurrentField) ticketsHeldCurrentField.textContent = formatNumber(user.ticketsHeld.current);
 			if (purchaseTicketButton) purchaseTicketButton.disabled = false;
+			lotteryRolloverCheckPending = false;
 		} else {
+			lotteryCountdownSeconds = null;
 			if (prizeImage) prizeImage.style.display = "none";
 			[prizeField, timeLeftField, ticketsSoldThisSessionField, participantsThisSessionField, ticketsHeldCurrentField]
 				.filter(Boolean)
@@ -154,8 +168,37 @@ function handleLotteryResponse(xhr, method, callback) {
 	}
 }
 
+function setLotteryCountdown(secondsLeft) {
+	lotteryCountdownSeconds = Math.max(0, Math.floor(Number(secondsLeft) || 0));
+}
+
+function startLotteryCountdownClock() {
+	if (lotteryCountdownTimer) clearInterval(lotteryCountdownTimer);
+	if (lotteryResyncTimer) clearInterval(lotteryResyncTimer);
+
+	lotteryCountdownTimer = window.setInterval(() => {
+		if (lotteryCountdownSeconds === null) return;
+
+		lotteryCountdownSeconds = Math.max(0, lotteryCountdownSeconds - 1);
+		const timeLeftField = document.getElementById("timeLeft");
+		if (timeLeftField) timeLeftField.textContent = formatTimeLeft(lotteryCountdownSeconds);
+
+		// Once the timer reaches zero, ask the server for the newly rolled-over
+		// weekly session exactly once rather than leaving 0s on screen forever.
+		if (lotteryCountdownSeconds === 0 && !lotteryRolloverCheckPending) {
+			lotteryRolloverCheckPending = true;
+			window.setTimeout(() => checkLotteryStats(), 1200);
+		}
+	}, 1000);
+
+	// Correct any clock drift without making a request every second.
+	lotteryResyncTimer = window.setInterval(() => {
+		if (!document.hidden) checkLotteryStats();
+	}, 60000);
+}
+
 function formatTimeLeft(secondsLeft) {
-	const total = Math.max(0, Number(secondsLeft) || 0);
+	const total = Math.max(0, Math.floor(Number(secondsLeft) || 0));
 	const days = Math.floor(total / 86400);
 	const hours = Math.floor((total % 86400) / 3600);
 	const minutes = Math.floor((total % 3600) / 60);
