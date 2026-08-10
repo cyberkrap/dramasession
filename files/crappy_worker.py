@@ -9,7 +9,6 @@ configure_tldextract_offline()
 
 from files.helpers.const_stateful import const_initialize
 from files.helpers.crappy.config import crappy_enabled
-from files.helpers.crappy.service import claim_next_crappy_request, process_crappy_request
 
 
 def main() -> None:
@@ -20,6 +19,11 @@ def main() -> None:
     engine = create_engine(database_url, pool_pre_ping=True)
     db_session = scoped_session(sessionmaker(bind=engine, autoflush=False))
     const_initialize(db_session)
+
+    # The sanitizer imports stateful emote lists by value. Import the Crappy
+    # service only after const_initialize() so the worker sees the populated
+    # lists, matching the normal web-process startup order.
+    from files.helpers.crappy.service import claim_next_crappy_request, process_crappy_request
 
     print("Crappy worker started", flush=True)
     while True:
