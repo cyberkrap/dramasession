@@ -242,7 +242,7 @@ def process_crappy_request(db, request_id: int) -> None:
                     retry_after = None
                 if retry_after is None:
                     retry_after = min(600, 15 * (2 ** max(0, queued.attempts - 1)))
-                queued.available_utc = now + max(1, min(retry_after, 3600))
+                queued.available_utc = now + max(1, min(retry_after, 86400))
             queued.error = f"{type(exc).__name__}: {exc}"[:2000]
             queued.updated_utc = now
             db.add(queued)
