@@ -113,6 +113,13 @@ install_age_verification(
 	db_session,
 	ensure_badge=app.config['SERVICE'] == Service.RDRAMA,
 )
+
+from files.helpers.crappy.config import crappy_enabled
+from files.helpers.crappy.comment_hook import install_crappy_comment_hook
+from files.helpers.crappy.install import install_crappy
+install_crappy(engine, db_session, enabled=crappy_enabled())
+install_crappy_comment_hook()
+
 from files.routes.chat_username_effects import *
 
 if app.config['SERVICE'] == Service.RDRAMA:
