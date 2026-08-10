@@ -9,16 +9,16 @@ from files.helpers.config.const import SITE_NAME
 
 
 LEGACY_DEFAULT_OBSESSION_BACKGROUND = "/i/backgrounds/pixelart/5.webp"
-DEFAULT_OBSESSION_BACKGROUND = "/i/backgrounds/movie/obsession.webp"
+DEFAULT_OBSESSION_BACKGROUND = "/i/backgrounds/movies/obsession.webp"
 DEFAULT_OBSESSION_BACKGROUND_FILE = (
 	Path(__file__).resolve().parents[1]
 	/ "assets"
 	/ "images"
 	/ "backgrounds"
-	/ "movie"
+	/ "movies"
 	/ "obsession.webp"
 )
-_BACKGROUND_MIGRATION_KEY = "default_background:obsession_movie_v1"
+_BACKGROUND_MIGRATION_KEY = "default_background:obsession_movies_v1"
 _INSTALLED = False
 
 
