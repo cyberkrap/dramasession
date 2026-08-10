@@ -42,7 +42,7 @@ def _startup_check():
 	to startup with obviously invalid values that won't work anyway
 	'''
 	if not SITE: raise TypeError("SITE environment variable must exist and not be None")
-	if SITE.startswith('.'): raise ValueError("Domain must not start with dot")
+	if SITE.startswith('.'): raise ValueError("Domain must not start with a dot")
 
 app.config['SERVER_NAME'] = SITE
 app.config['SECRET_KEY'] = environ.get('SECRET_KEY').strip()
