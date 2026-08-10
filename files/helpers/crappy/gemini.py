@@ -69,6 +69,20 @@ class GeminiCrappyProvider(CrappyProvider):
 
         return "\n".join(chunks).strip()
 
+    @staticmethod
+    def _retry_after(response) -> int | None:
+        value = response.headers.get("Retry-After")
+        if value:
+            try:
+                return max(1, int(float(value)))
+            except (TypeError, ValueError):
+                pass
+        if response.status_code == 429:
+            return 30
+        if response.status_code >= 500:
+            return 15
+        return None
+
     def generate(self, request: CrappyProviderRequest) -> CrappyProviderResponse:
         system_instruction, input_text = self._compile_request(request)
         payload = {
@@ -90,21 +104,28 @@ class GeminiCrappyProvider(CrappyProvider):
                 timeout=(5, 45),
             )
         except requests.RequestException as exc:
-            raise CrappyProviderError(f"Gemini request failed: {exc}") from exc
+            raise CrappyProviderError(
+                f"Gemini request failed: {exc}", retry_after_seconds=15
+            ) from exc
 
         if response.status_code != 200:
             detail = response.text[:500]
             try:
-                payload = response.json()
-                detail = str(payload.get("error", {}).get("message") or detail)[:500]
+                error_payload = response.json()
+                detail = str(error_payload.get("error", {}).get("message") or detail)[:500]
             except (ValueError, AttributeError):
                 pass
-            raise CrappyProviderError(f"Gemini returned HTTP {response.status_code}: {detail}")
+            raise CrappyProviderError(
+                f"Gemini returned HTTP {response.status_code}: {detail}",
+                retry_after_seconds=self._retry_after(response),
+            )
 
         try:
             data = response.json()
         except ValueError as exc:
-            raise CrappyProviderError("Gemini returned invalid JSON") from exc
+            raise CrappyProviderError(
+                "Gemini returned invalid JSON", retry_after_seconds=15
+            ) from exc
 
         text = self._extract_text(data)
         if not text:
