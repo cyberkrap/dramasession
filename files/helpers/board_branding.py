@@ -10,6 +10,7 @@ from files.helpers.config.const import SITE_NAME
 
 _BOARD_COST = 15_000
 _ADMIN_ONLY_BOARD = "onlymods"
+_ADMIN_POST_ONLY_BOARD = "announcement"
 _INSTALLED_ATTR = "_obsession_board_branding_installed"
 
 
@@ -25,6 +26,10 @@ def _is_admin_only_board(value):
 	return str(value or "").strip().lower() == _ADMIN_ONLY_BOARD
 
 
+def _is_admin_post_only_board(value):
+	return str(value or "").strip().lower() == _ADMIN_POST_ONLY_BOARD
+
+
 def _is_admin_only_board_path(path):
 	path = str(path or "")
 	return (
@@ -32,6 +37,14 @@ def _is_admin_only_board_path(path):
 		or path.startswith(f"/b/{_ADMIN_ONLY_BOARD}/")
 		or path.startswith(f"/h/{_ADMIN_ONLY_BOARD}/")
 	)
+
+
+def _is_admin_post_only_submit_path(path):
+	path = str(path or "").rstrip("/")
+	return path in {
+		f"/b/{_ADMIN_POST_ONLY_BOARD}/submit",
+		f"/h/{_ADMIN_POST_ONLY_BOARD}/submit",
+	}
 
 
 def _request_viewer(explicit_viewer=None):
@@ -240,6 +253,18 @@ def install_board_branding(app):
 				if request.method == "GET" and not g.is_api_or_xhr:
 					return render_template("errors/admin_only_board.html", v=v), 403
 				abort(403, "This board is for administrators only.")
+
+		# /b/announcement stays fully public and interactive, but creating a
+		# thread there is reserved for site administrators. Enforce both the
+		# board-specific submit URL and generic /submit posts that name the board.
+		announcement_submission = _is_admin_post_only_submit_path(path)
+		if request.method == "POST" and path.rstrip("/") == "/submit":
+			announcement_submission = announcement_submission or _is_admin_post_only_board(request.values.get("sub"))
+		if announcement_submission:
+			from files.routes.wrappers import get_logged_in_user
+			v = get_logged_in_user()
+			if not _is_site_admin(v):
+				abort(403, "Only administrators can post in /b/announcement.")
 
 		canonical = _canonical_path(path)
 		if canonical:
