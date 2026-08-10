@@ -33,7 +33,6 @@ def lottery_buy(v:User):
 	success, message = purchase_lottery_tickets(v, quantity)
 	lottery, participants = get_active_lottery_stats()
 
-
 	if success:
 		return {"message": message, "stats": {"user": v.lottery_stats, "lottery": lottery, "participants": participants}}
 	else:
@@ -46,12 +45,33 @@ def lottery_buy(v:User):
 @auth_required
 def lottery_active(v:User):
 	lottery, participants = get_active_lottery_stats()
-
 	return {"message": "", "stats": {"user": v.lottery_stats, "lottery": lottery, "participants": participants}}
+
+
+@app.get("/lottery/participants")
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@auth_required
+def lottery_participants(v:User):
+	ensure_lottery_session()
+	participants = get_users_participating_in_lottery()
+	total_tickets = sum(user.currently_held_lottery_tickets for user in participants)
+	return render_template(
+		"lottery_participants.html",
+		v=v,
+		participants=participants,
+		total_tickets=total_tickets,
+	)
+
 
 @app.get("/admin/lottery/participants")
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
 @admin_level_required(PERMS['LOTTERY_VIEW_PARTICIPANTS'])
 def lottery_admin(v):
 	participants = get_users_participating_in_lottery()
-	return render_template("admin/lottery.html", v=v, participants=participants)
+	total_tickets = sum(user.currently_held_lottery_tickets for user in participants)
+	return render_template(
+		"lottery_participants.html",
+		v=v,
+		participants=participants,
+		total_tickets=total_tickets,
+	)
