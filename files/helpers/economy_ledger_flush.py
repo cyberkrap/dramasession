@@ -9,17 +9,38 @@ def install_economy_ledger_flush_fix():
     from files.classes import User
     from files.helpers import economy_ledger as ledger
 
-    # Vote-earned Wishcoins are intentionally invisible in Bank Statement.
-    # Do not depend on stack inspection for this: wrappers/helpers can change the
-    # call stack over time, while the vote endpoint itself is authoritative.
+    # Routes whose economic meaning is unambiguous are authoritative.  This is
+    # deliberately outside the stack-inspecting ledger helper so infrastructure
+    # wrappers can never rename a transaction by accident.
     if not getattr(ledger, "_vote_path_suppression_installed", False):
         original_caller_context = ledger._caller_context
 
         def caller_context(account):
             if has_request_context():
-                path = str(request.path or "").lower()
+                raw_path = str(request.path or "")
+                path = raw_path.lower()
+
+                # Vote-earned Wishcoins affect the live balance but are intentionally
+                # invisible in Bank Statement.
                 if path == "/vote" or path.startswith("/vote/"):
                     return "__skip__", "", {}
+
+                # Buying a username effect is a Shop purchase, never a gift.
+                if path.startswith("/shop/effects/") and path.endswith("/buy"):
+                    bits = raw_path.strip("/").split("/")
+                    effect_key = bits[2] if len(bits) >= 4 else ""
+                    return "shop", "Username effect", {
+                        "item_key": effect_key[:80],
+                    }
+
+                # Approving a submitted emote pays its author 250 Wishcoins.  Keep
+                # that reward visible even when the author is also an administrator.
+                if path.startswith("/admin/approve/marsey/"):
+                    name = raw_path.rsplit("/", 1)[-1]
+                    return "other", "Emote approval reward", {
+                        "item_name": name[:120],
+                    }
+
             return original_caller_context(account)
 
         ledger._caller_context = caller_context
