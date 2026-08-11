@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import os
 import re
+import threading
+import time
 
 import requests
 
@@ -17,6 +19,59 @@ from .provider import (
 
 GEMINI_INTERACTIONS_URL = "https://generativelanguage.googleapis.com/v1/interactions"
 DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
+DEFAULT_GEMINI_RPM = 10.0
+
+_rate_lock = threading.Lock()
+_next_request_at = 0.0
+_provider_cooldown_until = 0.0
+
+
+def _configured_rpm() -> float:
+    raw = (os.environ.get("CRAPPY_GEMINI_RPM") or str(DEFAULT_GEMINI_RPM)).strip().lower()
+    if raw in {"0", "off", "false", "disabled"}:
+        return 0.0
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_GEMINI_RPM
+    return max(1.0, min(value, 120.0))
+
+
+def _wait_for_request_slot() -> None:
+    """Pace all Gemini calls in this worker, including tool-call followups."""
+    global _next_request_at
+
+    rpm = _configured_rpm()
+    if rpm <= 0:
+        return
+
+    interval = 60.0 / rpm
+    while True:
+        with _rate_lock:
+            now = time.monotonic()
+            ready_at = max(_next_request_at, _provider_cooldown_until)
+            wait_for = ready_at - now
+            if wait_for <= 0:
+                _next_request_at = now + interval
+                return
+        time.sleep(min(wait_for, 1.0))
+
+
+def _set_provider_cooldown(seconds: int | float | None) -> None:
+    global _provider_cooldown_until
+
+    try:
+        delay = float(seconds or 0)
+    except (TypeError, ValueError):
+        delay = 0.0
+    if delay <= 0:
+        return
+
+    with _rate_lock:
+        _provider_cooldown_until = max(
+            _provider_cooldown_until,
+            time.monotonic() + min(delay, 86400.0),
+        )
 
 
 class GeminiCrappyProvider(CrappyProvider):
@@ -122,12 +177,14 @@ class GeminiCrappyProvider(CrappyProvider):
                     return parsed
 
         if response.status_code == 429:
-            return 30
+            return 60
         if response.status_code >= 500:
             return 15
         return None
 
     def _post_interaction(self, payload: dict) -> dict:
+        _wait_for_request_slot()
+
         try:
             response = requests.post(
                 GEMINI_INTERACTIONS_URL,
@@ -151,9 +208,17 @@ class GeminiCrappyProvider(CrappyProvider):
                 detail = str(error_payload.get("error", {}).get("message") or detail)[:500]
             except (ValueError, AttributeError):
                 pass
+
+            retry_after = self._retry_after(response, error_payload)
+            if response.status_code == 429:
+                # A 429 applies to the Gemini project, not just one queue row.
+                # Cool down the whole worker so the next queued mention does not
+                # immediately hammer the same exhausted quota window.
+                _set_provider_cooldown(retry_after or 60)
+
             raise CrappyProviderError(
                 f"Gemini returned HTTP {response.status_code}: {detail}",
-                retry_after_seconds=self._retry_after(response, error_payload),
+                retry_after_seconds=retry_after,
             )
 
         try:
