@@ -91,7 +91,26 @@
 		);
 	}
 
-	function showExpandedImage(url) {
+	function hideVisibleProfilePopovers() {
+		if (typeof bootstrap === 'undefined') return Promise.resolve();
+
+		const triggers = Array.from(document.querySelectorAll(triggerSelector))
+			.filter(trigger => trigger.getAttribute('aria-describedby'));
+		if (!triggers.length) return Promise.resolve();
+
+		return Promise.all(triggers.map(trigger => new Promise(resolve => {
+			const instance = bootstrap.Popover.getInstance(trigger);
+			if (!instance) {
+				resolve();
+				return;
+			}
+
+			trigger.addEventListener('hidden.bs.popover', resolve, {once: true});
+			instance.hide();
+		})));
+	}
+
+	async function showExpandedImage(url) {
 		const source = String(url || '').trim();
 		const modal = document.getElementById('expandImageModal');
 		const image = document.getElementById('desktop-expanded-image');
@@ -101,6 +120,8 @@
 		const expandedSource = source.replace('200w.webp', 'giphy.webp');
 		image.src = expandedSource;
 		imageLink.href = expandedSource;
+
+		await hideVisibleProfilePopovers();
 		bootstrap.Modal.getOrCreateInstance(modal).show();
 	}
 
@@ -118,13 +139,13 @@
 		target.addEventListener('click', event => {
 			event.preventDefault();
 			event.stopPropagation();
-			showExpandedImage(url);
+			void showExpandedImage(url);
 		});
 		target.addEventListener('keydown', event => {
 			if (event.key !== 'Enter' && event.key !== ' ') return;
 			event.preventDefault();
 			event.stopPropagation();
-			showExpandedImage(url);
+			void showExpandedImage(url);
 		});
 	}
 
