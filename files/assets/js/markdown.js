@@ -23,8 +23,37 @@ marked.use({
 });
 
 const reDisableBeforeUnload = /^\/submit|^\/h\/[a-zA-Z0-9_\-]{3,20}\/submit/;
+const markdownComposerSelector = 'textarea[data-preview], input[data-preview]';
 const emojiPreviewCatalog = new Map();
 let emojiPreviewCatalogReady = false;
+
+function markdownComposerIsDirty(input) {
+	return input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement
+		? input.value !== input.defaultValue
+		: false;
+}
+
+function hasUnsavedMarkdownComposer() {
+	return Array.from(document.querySelectorAll(markdownComposerSelector)).some(markdownComposerIsDirty);
+}
+
+function unsavedMarkdownComposerWarning(e) {
+	if (!hasUnsavedMarkdownComposer()) return;
+	e.preventDefault();
+	e.returnValue = '';
+	return '';
+}
+
+function syncMarkdownBeforeUnload() {
+	if (reDisableBeforeUnload.test(location.pathname)) {
+		if (window.onbeforeunload === unsavedMarkdownComposerWarning) window.onbeforeunload = null;
+		return;
+	}
+
+	window.onbeforeunload = hasUnsavedMarkdownComposer()
+		? unsavedMarkdownComposerWarning
+		: null;
+}
 
 fetch('/emojis', {headers: {'xhr': 'xhr'}})
 	.then(response => response.ok ? response.json() : [])
@@ -34,7 +63,7 @@ fetch('/emojis', {headers: {'xhr': 'xhr'}})
 			emojiPreviewCatalog.set(String(item.name).toLowerCase(), item.url || `/e/${encodeURIComponent(item.name)}.webp`);
 		}
 		emojiPreviewCatalogReady = true;
-		for (const input of document.querySelectorAll('textarea[data-preview], input[data-preview]')) {
+		for (const input of document.querySelectorAll(markdownComposerSelector)) {
 			if (input.value) input.dispatchEvent(new Event('input'));
 		}
 	})
@@ -43,16 +72,7 @@ fetch('/emojis', {headers: {'xhr': 'xhr'}})
 function markdown(t) {
 	let input = t.value;
 
-	if (!reDisableBeforeUnload.test(location.pathname)) {
-		if (!window.onbeforeunload) {
-			window.onbeforeunload = function (e) {
-				e = e || window.event;
-				if (e) e.returnValue = 'Any string';
-				return 'Any string';
-			};
-		}
-		else if (!input) window.onbeforeunload = null;
-	}
+	syncMarkdownBeforeUnload();
 
 	if (!input.includes('```') && !input.includes('<pre>')) input = input.replace(/\n/g, '\n\n');
 	input = input.replace(/\|\|(.*?)\|\|/g, '<spoiler>$1</spoiler>');
