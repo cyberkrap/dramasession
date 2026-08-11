@@ -1,7 +1,7 @@
 from sqlalchemy import event, func
 from sqlalchemy.orm import Session
 
-from files.classes import Comment, CrappyRequest, User
+from files.classes import Comment, CrappyRequest, Submission, User
 from files.helpers.config.const import COMMENT_MAX_DEPTH
 
 from .config import CRAPPY_USERNAME, crappy_enabled
@@ -47,6 +47,40 @@ def _crappy_account_id(session: Session) -> int | None:
     return crappy_id or None
 
 
+def _is_implicit_crappy_conversation(
+    session: Session,
+    comment: Comment,
+    crappy_id: int,
+) -> bool:
+    # Crappy's own profile wall is always conversational.
+    if comment.wall_user_id == crappy_id:
+        return True
+
+    # A direct reply to one of Crappy's comments is conversational regardless
+    # of which post/profile wall contains the thread.
+    if comment.parent_comment_id:
+        parent_author_id = (
+            session.query(Comment.author_id)
+            .filter(Comment.id == comment.parent_comment_id)
+            .scalar()
+        )
+        if parent_author_id == crappy_id:
+            return True
+
+    # Every human comment anywhere under a post authored by Crappy is an
+    # invocation. This is what makes AMA/megathread posts work naturally.
+    if comment.parent_submission:
+        post_author_id = (
+            session.query(Submission.author_id)
+            .filter(Submission.id == comment.parent_submission)
+            .scalar()
+        )
+        if post_author_id == crappy_id:
+            return True
+
+    return False
+
+
 def _eligible_comment(session: Session, comment: Comment) -> bool:
     if not (
         crappy_enabled()
@@ -61,11 +95,11 @@ def _eligible_comment(session: Session, comment: Comment) -> bool:
     if crappy_id and comment.author_id == crappy_id:
         return False
 
-    # Crappy's own profile wall behaves like a direct conversation: every human
-    # comment there is an invocation. Everywhere else still requires @Crappy.
-    if crappy_id and comment.wall_user_id == crappy_id:
+    if crappy_id and _is_implicit_crappy_conversation(session, comment, crappy_id):
         return True
 
+    # Everywhere outside a Crappy-owned conversation still requires an
+    # explicit mention.
     return _contains_crappy_mention(comment.body)
 
 
