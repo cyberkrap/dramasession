@@ -91,57 +91,74 @@
 		);
 	}
 
-	function makeBannerClickable(profile, data) {
+	function showExpandedImage(url) {
+		const source = String(url || '').trim();
+		const modal = document.getElementById('expandImageModal');
+		const image = document.getElementById('desktop-expanded-image');
+		const imageLink = document.getElementById('desktop-expanded-image-wrap-link');
+		if (!source || !modal || !image || !imageLink || typeof bootstrap === 'undefined') return;
+
+		const expandedSource = source.replace('200w.webp', 'giphy.webp');
+		image.src = expandedSource;
+		imageLink.href = expandedSource;
+		bootstrap.Modal.getOrCreateInstance(modal).show();
+	}
+
+	function bindExpandedImage(target, url, label) {
+		if (!target || !url) return;
+
+		target.style.setProperty('cursor', 'zoom-in', 'important');
+		target.setAttribute('role', 'button');
+		target.setAttribute('tabindex', '0');
+		target.setAttribute('aria-label', label);
+
+		if (target.dataset.obsExpandedImageReady === '1') return;
+		target.dataset.obsExpandedImageReady = '1';
+
+		target.addEventListener('click', event => {
+			event.preventDefault();
+			event.stopPropagation();
+			showExpandedImage(url);
+		});
+		target.addEventListener('keydown', event => {
+			if (event.key !== 'Enter' && event.key !== ' ') return;
+			event.preventDefault();
+			event.stopPropagation();
+			showExpandedImage(url);
+		});
+	}
+
+	function makeBannerExpandable(profile, data) {
 		const banner = profile.querySelector('.pop-banner');
 		const bannerUrl = String(data.bannerurl || '').trim();
 		if (!banner || !bannerUrl) return;
 
 		banner.src = bannerUrl;
-		let link = banner.closest('a.obs-popover-banner-link');
-		if (!link) {
-			link = document.createElement('a');
-			link.className = 'obs-popover-banner-link';
-			banner.before(link);
-			link.append(banner);
-		}
-
-		link.href = bannerUrl;
-		link.target = '_blank';
-		link.rel = 'noopener noreferrer';
-		link.title = 'Open profile banner';
-		link.setAttribute('aria-label', `Open @${data.username || 'user'} profile banner`);
-		link.style.display = 'block';
-		link.style.lineHeight = '0';
-		link.style.cursor = 'zoom-in';
+		bindExpandedImage(
+			banner,
+			bannerUrl,
+			`Expand @${data.username || 'user'} profile banner`,
+		);
 	}
 
-	function makeAvatarClickableAndCentered(profile, data) {
-		let wrapper = profile.querySelector('.popover-profile-identity .profile-pic-75-wrapper');
+	function makeAvatarExpandableAndCentered(profile, data) {
+		const wrapper = profile.querySelector('.popover-profile-identity .profile-pic-75-wrapper');
 		const profileUrl = String(data.profile_url || '').trim();
 		if (!wrapper) return;
-
-		if (!(wrapper instanceof HTMLAnchorElement) && profileUrl) {
-			const link = document.createElement('a');
-			link.className = wrapper.className;
-			wrapper.replaceWith(link);
-			while (wrapper.firstChild) link.append(wrapper.firstChild);
-			wrapper = link;
-		}
-
-		if (wrapper instanceof HTMLAnchorElement && profileUrl) {
-			wrapper.href = profileUrl;
-			wrapper.target = '_blank';
-			wrapper.rel = 'noopener noreferrer';
-			wrapper.title = 'Open profile picture';
-			wrapper.setAttribute('aria-label', `Open @${data.username || 'user'} profile picture`);
-		}
 
 		wrapper.style.setProperty('position', 'relative', 'important');
 		wrapper.style.setProperty('display', 'block', 'important');
 		wrapper.style.setProperty('box-sizing', 'border-box', 'important');
 		wrapper.style.setProperty('padding', '0', 'important');
 		wrapper.style.setProperty('text-decoration', 'none', 'important');
-		wrapper.style.setProperty('cursor', profileUrl ? 'zoom-in' : 'default', 'important');
+
+		if (profileUrl) {
+			bindExpandedImage(
+				wrapper,
+				profileUrl,
+				`Expand @${data.username || 'user'} profile picture`,
+			);
+		}
 
 		const picture = wrapper.querySelector('.pop-picture');
 		if (picture) {
@@ -165,8 +182,8 @@
 	}
 
 	function repairMedia(profile, data) {
-		makeBannerClickable(profile, data);
-		makeAvatarClickableAndCentered(profile, data);
+		makeBannerExpandable(profile, data);
+		makeAvatarExpandableAndCentered(profile, data);
 	}
 
 	function repairPopover(trigger) {
