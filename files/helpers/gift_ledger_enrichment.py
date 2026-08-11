@@ -1,20 +1,16 @@
-"""Gift-specific enrichment for the economy ledger and bank statement.
+"""Gift-specific bank statement enrichment and historical ledger repair.
 
-Keeps transfer behavior untouched while preserving the useful human context:
-who sent/received the gift and the optional gift message. Older ledger rows can
-recover that context from the existing AutoJanny transfer notification.
-
-Request paths with unambiguous meaning (casino, lottery, awards) are classified
-before any stack-based inference. A balance mutation made by one of those routes
-must never inherit stale Gift context.
+A ledger row is only a gift when its HTTP origin is an actual currency-transfer
+endpoint.  Earlier versions wrapped economy_ledger._caller_context from this
+module; because this filename itself contains ``gift``, the stack-based fallback
+could see the wrapper before the real caller and incorrectly classify unrelated
+balance changes as gifts.  Do not wrap caller classification from this module.
 """
 
 import html
 import importlib
-import inspect
 import re
 
-from flask import has_request_context, request
 from markupsafe import Markup, escape
 from sqlalchemy import func, text
 
@@ -28,89 +24,13 @@ _BLOCKQUOTE_RE = re.compile(r"<blockquote[^>]*>(.*?)</blockquote>", re.I | re.S)
 _TAG_RE = re.compile(r"<[^>]+>")
 
 
-def _username(value):
-    return str(getattr(value, "username", "") or "")[:80]
-
-
-def _request_classification():
-    """Return authoritative classification for routes with unambiguous meaning."""
-    if not has_request_context():
-        return None
-
-    raw_path = str(request.path or "")
-    path = raw_path.lower()
-    if path.startswith("/casino/slots"):
-        return "casino", "Slots", {}
-    if path.startswith("/casino/twentyone") or path.startswith("/casino/blackjack"):
-        return "casino", "Blackjack", {}
-    if path.startswith("/casino/roulette"):
-        return "casino", "Roulette", {}
-    if path.startswith("/casino/"):
-        return "casino", "Casino", {}
-    if path.startswith("/lottery") or path.startswith("/lottershe"):
-        return "lottery", "Lottery", {}
-
-    award_match = _AWARD_PATH_RE.match(raw_path)
-    if award_match:
-        thing_type, thing_id = award_match.groups()
-        meta = {
-            "thing_type": thing_type.lower(),
-            "thing_id": str(thing_id)[:24],
-        }
-        kind = str(request.values.get("kind") or request.values.get("award") or "").strip()
-        if kind:
-            meta["award_kind"] = kind[:80]
-            meta["kind"] = kind[:80]
-        raw_quantity = request.values.get("amount") or request.values.get("quantity")
-        try:
-            quantity = max(1, min(30, int(raw_quantity or 1)))
-        except (TypeError, ValueError):
-            quantity = 1
-        meta["batch_quantity"] = quantity
-        meta["amount"] = str(quantity)
-        return "awards", "Awards", meta
-
-    return None
-
-
-def _gift_frame_context(account):
-    """Read the real transfer_currency locals without changing that function."""
-    frame = inspect.currentframe()
-    try:
-        frame = frame.f_back if frame else None
-        for _ in range(18):
-            if frame is None:
-                break
-            if frame.f_code.co_name == "transfer_currency":
-                local = frame.f_locals
-                actor = local.get("v")
-                receiver = local.get("receiver")
-                reason = str(local.get("reason") or "").strip()
-                meta = {}
-                if _username(actor):
-                    meta["actor_username"] = _username(actor)
-                if _username(receiver):
-                    meta["target_username"] = _username(receiver)
-                if reason:
-                    meta["gift_message"] = reason[:500]
-                if getattr(account, "id", None) == getattr(actor, "id", None):
-                    meta["account_role"] = "sender"
-                elif getattr(account, "id", None) == getattr(receiver, "id", None):
-                    meta["account_role"] = "recipient"
-                return meta
-            frame = frame.f_back
-    finally:
-        del frame
-    return None
-
-
 def _plain_text(fragment):
     value = _TAG_RE.sub("", fragment or "")
     return html.unescape(value).strip()
 
 
 def _notification_details(db, target_username, created_utc):
-    """Recover old gift sender/message from the recipient's transfer notification."""
+    """Recover an old gift sender/message from the recipient notification."""
     if not target_username or not created_utc:
         return None, None
 
@@ -148,7 +68,9 @@ def _gift_details(bank_module, row, statement_user):
     amount = int(row.get("amount") or 0)
     role = meta.get("account_role")
     actor = str(meta.get("actor_username") or "").strip() or None
-    target = str(meta.get("target_username") or meta.get("username") or meta.get("target") or "").strip() or None
+    target = str(
+        meta.get("target_username") or meta.get("username") or meta.get("target") or ""
+    ).strip() or None
     message = str(meta.get("gift_message") or meta.get("reason") or "").strip() or None
 
     path_match = _TRANSFER_PATH_RE.match(path)
@@ -202,13 +124,19 @@ def _gift_description(bank_module, row, statement_user):
 
 
 def _repair_misclassified_rows():
-    """Repair rows produced before authoritative request classification existed."""
+    """Repair historical rows polluted by the old gift-context wrapper."""
     from files.__main__ import engine
 
     if engine.dialect.name != "postgresql":
         return
 
     with engine.begin() as conn:
+        # Vote rewards/reversals never belong in Bank Statement.
+        conn.execute(text("""
+            DELETE FROM economy_ledger
+            WHERE LOWER(COALESCE(origin_path, '')) LIKE '/vote/%'
+        """))
+
         conn.execute(text("""
             UPDATE economy_ledger
             SET category = 'casino',
@@ -222,43 +150,72 @@ def _repair_misclassified_rows():
             WHERE (category = 'gifts' OR label = 'Gift')
               AND LOWER(COALESCE(origin_path, '')) LIKE '/casino/%'
         """))
-        # Any balance mutation whose HTTP origin is the award endpoint is an
-        # award purchase/payout, even if an older stale context labeled it Gift.
+
+        conn.execute(text("""
+            UPDATE economy_ledger
+            SET category = 'lottery', label = 'Lottery'
+            WHERE (category = 'gifts' OR label = 'Gift')
+              AND (
+                LOWER(COALESCE(origin_path, '')) LIKE '/lottery%'
+                OR LOWER(COALESCE(origin_path, '')) LIKE '/lottershe%'
+              )
+        """))
+
+        # Award inventory purchases and awards applied to content.
         conn.execute(text("""
             UPDATE economy_ledger
             SET category = 'awards', label = 'Awards'
-            WHERE COALESCE(origin_path, '') ~ '^/award/(post|comment)/[0-9]+$'
-              AND (category <> 'awards' OR COALESCE(label, '') <> 'Awards')
+            WHERE (category = 'gifts' OR label = 'Gift')
+              AND (
+                COALESCE(origin_path, '') ~ '^/award/(post|comment)/[0-9]+$'
+                OR COALESCE(origin_path, '') ~ '^/buy/[^/]+$'
+              )
+        """))
+
+        # Username-effect purchases were a major visible casualty of the old bug.
+        conn.execute(text("""
+            UPDATE economy_ledger
+            SET category = 'shop', label = 'Username effect'
+            WHERE (category = 'gifts' OR label = 'Gift')
+              AND LOWER(COALESCE(origin_path, '')) ~ '^/shop/effects/[^/]+/buy$'
+        """))
+
+        conn.execute(text("""
+            UPDATE economy_ledger
+            SET category = 'shop', label = 'Hat shop'
+            WHERE (category = 'gifts' OR label = 'Gift')
+              AND LOWER(COALESCE(origin_path, '')) ~ '^/buy_hat/[0-9]+$'
+        """))
+
+        # Approving a submitted emote pays its author 250 Wishcoins.  These rows
+        # were repeatedly appearing as "Gift received" because of the wrapper bug.
+        conn.execute(text("""
+            UPDATE economy_ledger
+            SET category = 'other', label = 'Emote approval reward'
+            WHERE (category = 'gifts' OR label = 'Gift')
+              AND currency = 'coins'
+              AND amount = 250
+              AND LOWER(COALESCE(origin_path, '')) LIKE '/admin/approve/marsey/%'
+        """))
+
+        # A transaction is not a gift merely because stale Gift metadata leaked
+        # into it.  For any remaining row with a known non-transfer HTTP origin,
+        # clear the false gift classification.  Its normal path-based renderer can
+        # then describe it, or safely fall back to Balance credit/deduction.
+        conn.execute(text("""
+            UPDATE economy_ledger
+            SET category = 'other', label = NULL
+            WHERE (category = 'gifts' OR label = 'Gift')
+              AND COALESCE(origin_path, '') <> ''
+              AND COALESCE(origin_path, '') !~* '^/@[^/]+/transfer[-_](bux|coins)$'
         """))
 
 
 def install_gift_ledger_enrichment():
-    """Patch the already-installed ledger wrapper and bank renderer in-place."""
-    ledger = importlib.import_module("files.helpers.economy_ledger")
+    """Repair false gifts and make gift rendering proof-based, not label-based."""
     bank = importlib.import_module("files.routes.bank_statement")
 
     _repair_misclassified_rows()
-
-    if not getattr(ledger, "_gift_context_enriched", False):
-        original_caller_context = ledger._caller_context
-
-        def caller_context(account):
-            route_context = _request_classification()
-            if route_context is not None:
-                return route_context
-
-            # Gift enrichment activates only on a real transfer endpoint.
-            if has_request_context():
-                path_match = _TRANSFER_PATH_RE.match(str(request.path or ""))
-                if path_match:
-                    gift_meta = _gift_frame_context(account) or {}
-                    gift_meta.setdefault("target_username", path_match.group(1))
-                    return "gifts", "Gift", gift_meta
-
-            return original_caller_context(account)
-
-        ledger._caller_context = caller_context
-        ledger._gift_context_enriched = True
 
     if not getattr(bank, "_gift_description_enriched", False):
         original_description = bank._transaction_description
@@ -266,12 +223,23 @@ def install_gift_ledger_enrichment():
         def transaction_description(row, statement_user):
             path = str(row.get("origin_path") or "")
             label = str(row.get("label") or "")
-            # Only actual transfer rows are gifts. A stale `Gift` label on an
-            # authoritative award/casino route must never override its route.
-            if _TRANSFER_PATH_RE.match(path) or (
-                row.get("category") == "gifts" and not _AWARD_PATH_RE.match(path)
-            ):
+
+            # Only the real transfer endpoint is allowed to render as a gift.
+            if _TRANSFER_PATH_RE.match(path):
                 return _gift_description(bank, row, statement_user)
+
+            if label == "Emote approval reward":
+                return bank._link("/submit/marseys", "Emote approval reward")
+
+            # Historical corrupted rows can still exist with no trustworthy path.
+            # Never call them gifts without proof; let the normal renderer infer
+            # from the path or fall back to a neutral balance description.
+            if row.get("category") == "gifts" or label == "Gift":
+                cleaned = dict(row)
+                cleaned["category"] = "other"
+                cleaned["label"] = ""
+                return original_description(cleaned, statement_user)
+
             return original_description(row, statement_user)
 
         bank._transaction_description = transaction_description
