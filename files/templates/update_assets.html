@@ -24,7 +24,7 @@
 							</div>
 
 							<label class="mt-3" for="name">Name</label>
-							<input autocomplete="off" type="text" id="name" class="form-control" name="name" maxlength="30" placeholder="Required" {% if name %}value="{{name}}"{% endif %} required>
+							<input autocomplete="off" type="text" id="name" class="form-control" name="name" maxlength="{% if type == 'Hat' %}50{% else %}30{% endif %}" placeholder="Required" {% if name %}value="{{name}}"{% endif %} required>
 
 							{% if type == "Marsey" %}
 							<label class="mt-3" for="tags">Tags</label>
