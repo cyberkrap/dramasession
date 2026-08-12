@@ -218,7 +218,7 @@ body#userpage .profile-badge-glare:focus-visible {
 					<h2>Awards received</h2>
 					<div id="profile--awards" class="profile-awards">
 						{% for a in u.received_awards %}
-							<span class="profile-award"><i class="{{a['icon']}} {{a['color']}} fa-fw" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{a['title']}}"></i><strong>{{a['count']}}</strong></span>
+							<span class="profile-award"><i class="{{a['icon']}} {{a['color']}} fa-fw" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{a['title']}} Award given by @{{a.user.username}}"></i><strong>{{a['count']}}</strong></span>
 						{% endfor %}
 					</div>
 				</section>
@@ -239,7 +239,7 @@ body#userpage .profile-badge-glare:focus-visible {
 						<button type="button" class="btn btn-danger" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/block?username={{u.username}}')">Block</button>
 					</div>
 
-					<form class="d-none toggleable profile-action-form" id="message" action="/@{{u.username}}/message" data-nonce="{{g.nonce}}" data-onsubmit="sendMessage(this)">
+					<form class="d-none toggleable profile-action-form" id="message" action="/@{{u.username}}/message" data-inline-images-enabled="{{1 if get_setting('dm_images') and not g.is_tor else 0}}" data-nonce="{{g.nonce}}" data-onsubmit="sendMessage(this)">
 						<input hidden name="formkey" value="{{v|formkey}}">
 						<textarea autocomplete="off" id="input-message" form="message" name="message" rows="3" minlength="1" maxlength="10000" class="form-control" data-preview="message-preview" data-nonce="{{g.nonce}}" data-oninput="markdown(this)"></textarea>
 						<div class="profile-form-actions">
