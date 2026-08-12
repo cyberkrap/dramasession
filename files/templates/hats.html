@@ -25,7 +25,7 @@
         </div>
     </header>
 
-    <section class="obs-shop-toolbar" aria-label="Hat filters">
+    <section class="obs-shop-toolbar" aria-label="Hat filters and sorting">
         <label class="obs-shop-search">
             <i class="fas fa-search" aria-hidden="true"></i>
             <input class="form-control" type="search" placeholder="Search hats or descriptions" data-shop-search autocomplete="off">
@@ -36,6 +36,16 @@
             <option value="equipped">Equipped</option>
             <option value="available">Not owned</option>
         </select>
+        <select class="form-control obs-shop-filter" data-shop-sort aria-label="Sort hats">
+            <option value="default">Default order</option>
+            <option value="price-desc">Most expensive</option>
+            <option value="price-asc">Least expensive</option>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="owners">Most owners</option>
+            <option value="obtained">Recently obtained</option>
+            <option value="name">Name A-Z</option>
+        </select>
         <span class="obs-shop-result-count" data-shop-count>{{hats|length}} hats</span>
     </section>
 
@@ -45,12 +55,17 @@
             {% set owned = hat.id in owned_hat_ids %}
             {% set equipped = hat.id in v.equipped_hat_ids %}
             {% set hat_display_name = hat.name | replace('MARSEY', 'COMMUNITY') | replace('Marsey', 'Community') | replace('marsey', 'community') | replace('rDrama', 'Obsession') | replace('rdrama', 'Obsession') | replace('WPD', 'Obsession') %}
-            {% set owner_count = hat.number_sold(g.db) %}
+            {% set owner_count = owner_counts.get(hat.id, 0) %}
             {% set hat_description = hat.censored_description(v) | replace('MARSEY', 'COMMUNITY EMOTE') | replace('Marsey', 'community emote') | replace('marsey', 'community emote') | replace('rDrama', 'Obsession') | replace('rdrama', 'Obsession') | replace('WPD', 'Obsession') %}
             <article class="obs-shop-card obs-hat-card"
                 data-shop-card
                 data-state="{% if equipped %}equipped{% elif owned %}owned{% else %}available{% endif %}"
-                data-search="{{(hat_display_name ~ ' ' ~ hat_description ~ ' ' ~ user.username)|lower}}">
+                data-search="{{(hat_display_name ~ ' ' ~ hat_description ~ ' ' ~ user.username)|lower}}"
+                data-sort-name="{{hat_display_name|lower}}"
+                data-sort-price="{{hat.price or 0}}"
+                data-sort-created="{{hat.created_utc or 0}}"
+                data-sort-owners="{{owner_count}}"
+                data-sort-obtained="{{obtained_utc_by_hat.get(hat.id, 0)}}">
                 <div class="obs-hat-preview" aria-label="{{hat_display_name}} preview">
                     <div class="profile-pic-75-wrapper">
                         <img loading="lazy" alt="" src="{{v.profile_url}}" class="profile-pic-75">
@@ -108,4 +123,5 @@
     </div>
 </div>
 <script defer src="{{'js/obsession_shop.js' | asset}}"></script>
+<script defer src="{{'js/hat_shop_sort.js' | asset}}"></script>
 {% endblock %}

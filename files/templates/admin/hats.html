@@ -3,7 +3,7 @@
 {% block head_final %}
 <style nonce="{{g.nonce}}">
 .hat-admin {
-	max-width: 1120px;
+	max-width: 1320px;
 	margin: 0 auto;
 	padding: 30px 18px 64px;
 }
@@ -29,19 +29,23 @@
 }
 .hat-admin-search {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-columns: minmax(260px, 1fr) minmax(170px, 220px) auto;
 	gap: 8px;
 	margin-bottom: 18px;
+}
+.hat-admin-search .form-control,
+.hat-admin-search .btn {
+	min-height: 42px;
 }
 .hat-admin-list {
 	border-top: 1px solid rgba(255,255,255,.12);
 }
 .hat-admin-row {
 	display: grid;
-	grid-template-columns: 72px minmax(0, 1fr) 120px 96px auto;
-	gap: 14px;
-	align-items: center;
-	padding: 13px 0;
+	grid-template-columns: 72px minmax(0, 1fr) auto;
+	gap: 16px;
+	align-items: start;
+	padding: 16px 0;
 	border-bottom: 1px solid rgba(255,255,255,.1);
 }
 .hat-admin-preview {
@@ -56,30 +60,46 @@
 	max-height: 82px;
 	object-fit: contain;
 }
-.hat-admin-name {
-	font-weight: 800;
-	overflow-wrap: anywhere;
+.hat-admin-main {
+	min-width: 0;
 }
-.hat-admin-description {
-	margin-top: 3px;
+.hat-admin-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 14px;
+	margin-bottom: 9px;
 	color: var(--muted, #aaa);
-	font-size: .84rem;
-	line-height: 1.35;
-	overflow-wrap: anywhere;
+	font-size: .75rem;
 }
-.hat-admin-author,
-.hat-admin-metric {
-	font-size: .84rem;
+.hat-admin-edit {
+	display: grid;
+	grid-template-columns: minmax(170px, .65fr) 120px minmax(260px, 1.35fr) auto;
+	gap: 10px;
+	align-items: end;
+	margin: 0;
 }
-.hat-admin-author span,
-.hat-admin-metric span {
+.hat-admin-field {
+	min-width: 0;
+	margin: 0;
+}
+.hat-admin-field > span {
 	display: block;
+	margin-bottom: 5px;
 	color: var(--muted, #aaa);
-	font-size: .72rem;
-	margin-bottom: 2px;
+	font-size: .7rem;
+	font-weight: 700;
+}
+.hat-admin-field .form-control {
+	width: 100%;
+	min-height: 40px;
+}
+.hat-admin-save,
+.hat-admin-delete .btn {
+	min-height: 40px;
+	white-space: nowrap;
 }
 .hat-admin-delete {
-	margin: 0;
+	margin: 25px 0 0;
 }
 .hat-admin-pagination {
 	display: flex;
@@ -91,6 +111,14 @@
 	padding: 30px 0;
 	color: var(--muted, #aaa);
 	text-align: center;
+}
+@media (max-width: 980px) {
+	.hat-admin-edit {
+		grid-template-columns: minmax(0, 1fr) 120px auto;
+	}
+	.hat-admin-description-field {
+		grid-column: 1 / -1;
+	}
 }
 @media (max-width: 760px) {
 	.hat-admin {
@@ -104,25 +132,39 @@
 		grid-template-columns: 1fr;
 	}
 	.hat-admin-row {
-		grid-template-columns: 58px minmax(0, 1fr) auto;
+		grid-template-columns: 54px minmax(0, 1fr);
 		gap: 10px;
 	}
 	.hat-admin-preview {
-		width: 52px;
-		height: 68px;
+		width: 50px;
+		height: 66px;
 	}
 	.hat-admin-preview img {
-		max-width: 52px;
-		max-height: 68px;
+		max-width: 50px;
+		max-height: 66px;
 	}
-	.hat-admin-author,
-	.hat-admin-metric {
-		grid-column: 2;
+	.hat-admin-edit {
+		grid-template-columns: minmax(0, 1fr) 100px;
+	}
+	.hat-admin-description-field,
+	.hat-admin-save {
+		grid-column: 1 / -1;
 	}
 	.hat-admin-delete {
-		grid-column: 3;
-		grid-row: 1 / span 3;
-		align-self: center;
+		grid-column: 2;
+		margin: 0;
+	}
+	.hat-admin-delete .btn {
+		width: 100%;
+	}
+}
+@media (max-width: 460px) {
+	.hat-admin-edit {
+		grid-template-columns: 1fr;
+	}
+	.hat-admin-description-field,
+	.hat-admin-save {
+		grid-column: auto;
 	}
 }
 </style>
@@ -145,7 +187,14 @@
 
 	<form method="get" class="hat-admin-search">
 		<input class="form-control" type="search" name="q" value="{{q}}" maxlength="64" placeholder="Search hat name or description" aria-label="Search hats">
-		<button class="btn btn-secondary" type="submit">Search</button>
+		<select class="form-control" name="sort" aria-label="Sort hats">
+			<option value="name" {% if sort == 'name' %}selected{% endif %}>Name A-Z</option>
+			<option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+			<option value="price-desc" {% if sort == 'price-desc' %}selected{% endif %}>Most expensive</option>
+			<option value="price-asc" {% if sort == 'price-asc' %}selected{% endif %}>Least expensive</option>
+			<option value="owners" {% if sort == 'owners' %}selected{% endif %}>Most owners</option>
+		</select>
+		<button class="btn btn-secondary" type="submit">Apply</button>
 	</form>
 
 	<div class="hat-admin-list">
@@ -154,22 +203,37 @@
 			<div class="hat-admin-preview">
 				<img loading="lazy" src="/i/hats/{{hat.name|urlencode}}.webp" alt="{{hat.name}}">
 			</div>
-			<div>
-				<div class="hat-admin-name">{{hat.name}}</div>
-				<div class="hat-admin-description">{{hat.description}}</div>
-			</div>
-			<div class="hat-admin-author">
-				<span>Author</span>
-				<a href="{{hat.author.url}}">@{{hat.author.username}}</a>
-			</div>
-			<div class="hat-admin-metric">
-				<span>Price / owners</span>
-				{{hat.price}} / {{owner_counts.get(hat.id, 0)}}
+			<div class="hat-admin-main">
+				<div class="hat-admin-meta">
+					<span>by <a href="{{hat.author.url}}">@{{hat.author.username}}</a></span>
+					<span>{{owner_counts.get(hat.id, 0)}} owner{{macros.plural(owner_counts.get(hat.id, 0))}}</span>
+					<span>Hat ID {{hat.id}}</span>
+				</div>
+				<form class="hat-admin-edit" method="post" action="/admin/hats/{{hat.id}}/update">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<input type="hidden" name="page" value="{{page}}">
+					<input type="hidden" name="q" value="{{q}}">
+					<input type="hidden" name="sort" value="{{sort}}">
+					<label class="hat-admin-field">
+						<span>Name</span>
+						<input class="form-control" type="text" name="name" value="{{hat.name}}" maxlength="50" pattern='[a-zA-Z0-9\-() ,_]{1,50}' required>
+					</label>
+					<label class="hat-admin-field">
+						<span>Price</span>
+						<input class="form-control" type="number" name="price" value="{{hat.price}}" min="0" max="2000000000" step="1" required>
+					</label>
+					<label class="hat-admin-field hat-admin-description-field">
+						<span>Description</span>
+						<input class="form-control" type="text" name="description" value="{{hat.description}}" maxlength="300" pattern='[^<>&\n\t]{1,300}' required>
+					</label>
+					<button class="btn btn-primary btn-sm hat-admin-save" type="submit">Save changes</button>
+				</form>
 			</div>
 			<form class="hat-admin-delete" method="post" action="/admin/hats/{{hat.id}}/delete" onsubmit="return confirm('Delete this approved hat from the shop and every owner?')">
 				<input type="hidden" name="formkey" value="{{v|formkey}}">
 				<input type="hidden" name="page" value="{{page}}">
 				<input type="hidden" name="q" value="{{q}}">
+				<input type="hidden" name="sort" value="{{sort}}">
 				<button class="btn btn-danger btn-sm" type="submit">Delete</button>
 			</form>
 		</div>
@@ -181,10 +245,10 @@
 	{% if page > 1 or next_exists %}
 	<nav class="hat-admin-pagination" aria-label="Hat manager pages">
 		{% if page > 1 %}
-			<a class="btn btn-secondary btn-sm" href="?page={{page - 1}}{% if q %}&q={{q|urlencode}}{% endif %}">Previous</a>
+			<a class="btn btn-secondary btn-sm" href="?page={{page - 1}}&sort={{sort|urlencode}}{% if q %}&q={{q|urlencode}}{% endif %}">Previous</a>
 		{% endif %}
 		{% if next_exists %}
-			<a class="btn btn-secondary btn-sm" href="?page={{page + 1}}{% if q %}&q={{q|urlencode}}{% endif %}">Next</a>
+			<a class="btn btn-secondary btn-sm" href="?page={{page + 1}}&sort={{sort|urlencode}}{% if q %}&q={{q|urlencode}}{% endif %}">Next</a>
 		{% endif %}
 	</nav>
 	{% endif %}
