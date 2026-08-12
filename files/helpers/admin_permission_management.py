@@ -1,10 +1,8 @@
 import json
-import os
 import re
 import time
 from pathlib import Path
 
-import fcntl
 from flask import abort, g
 from sqlalchemy import text
 
@@ -17,15 +15,14 @@ from files.helpers.config.const import CURRENCY_ADMIN_PERMISSIONS, PERMS, SITE_N
 OLD_HEAD_ADMIN_LEVEL = 5
 HEAD_ADMIN_LEVEL_V2 = max(int(requirement) for requirement in PERMS.values()) + 1
 _MIGRATION_KEY = f"admin_permissions:head_level_v2:{SITE_NAME}"
-_TEMPLATE_PATH = Path("files/templates/admin/administrators.html")
-_SOURCE_LOCK = "/tmp/obsession-admin-permission-management.lock"
-
 _PERMISSION_PATTERN = re.compile(
     r"""(?:PERMS\s*\[\s*['\"]([A-Z0-9_]+)['\"]\s*\]|has_permission\(\s*['\"]([A-Z0-9_]+)['\"]\s*\))"""
 )
 
+# Keep inherited constants available to old source paths, but don't expose
+# deployment-specific/dead rDrama/WPD capabilities as grantable TOC access.
 _TOC_HIDDEN_PERMISSIONS = {
-    "ADMIN_HOME_VISIBLE",
+    "ADMIN_HOME_VISIBLE",  # every administrator has this unconditionally
     "NOTIFICATIONS_REDDIT",
     "NOTIFICATIONS_SPECIFIC_WPD_COMMENTS",
     "NOTIFICATIONS_HOLE_INACTIVITY_DELETION",
@@ -48,6 +45,8 @@ _SECTION_ORDER = (
     ("economy", "Economy"),
 )
 
+# Permission names remain the server authority. These labels explain what the
+# current TOC routes/actions behind those names actually allow.
 _META = {
     "CHAT": ("moderation", "Moderate public chat", "Use public-chat moderation controls, including timeouts and reversals."),
     "POST_COMMENT_MODERATION": ("moderation", "Moderate posts & comments", "Remove, approve, pin, inspect, and otherwise moderate site content."),
@@ -76,11 +75,11 @@ _META = {
     "VIEW_ACTIVE_USERS": ("users", "View active-session lists", "See currently logged-in and recently logged-out users."),
     "VIEW_LAST_ACTIVE": ("users", "View last-active times", "See private last-active timestamps on profiles."),
     "VIEW_PRIVATE_PROFILES": ("users", "View private profiles", "Open profiles that are private to normal members."),
-    "USER_BLOCKS_VISIBLE": ("users", "View block relationships", "Inspect who a user blocks or is blocked by where supported."),
+    "USER_BLOCKS_VISIBLE": ("users", "View block relationships", "Inspect block relationships where supported."),
     "USER_FOLLOWS_VISIBLE": ("users", "View follow relationships", "Inspect follower and following lists regardless of normal visibility."),
     "USER_VOTERS_VISIBLE": ("users", "View user voting history", "Inspect supporter, critic, and voting-history views on profiles."),
     "VIEW_VOTE_BUTTONS_ON_USER_PAGE": ("users", "Use profile voting controls", "Keep voting controls available on user and profile views."),
-    "USER_MODERATION_TOOLS_VISIBLE": ("users", "Use profile moderation tools", "Show and use profile moderation tools such as resetting profile media."),
+    "USER_MODERATION_TOOLS_VISIBLE": ("users", "Use profile moderation tools", "Use profile moderation tools such as resetting profile media."),
     "ADMIN_MOP_VISIBLE": ("users", "Show administrator identity", "Display the administrator indicator where admin identity is exposed."),
 
     "VIEW_MODMAIL": ("messages", "View modmail", "Open and review member-to-staff modmail threads."),
@@ -199,6 +198,10 @@ def permission_groups():
 
 
 def _migrate_existing_heads():
+    # Old TOC treated every numeric admin level >= 5 as Head Administrator,
+    # while inherited granular permissions still reach level 6. Move accounts
+    # that already had effective full-head access above every granular level
+    # exactly once; delegated L5/L6 permissions created later stay granular.
     with engine.begin() as connection:
         connection.execute(text("""
             CREATE TABLE IF NOT EXISTS persistent_site_content (
@@ -295,84 +298,6 @@ def _save_admin_permissions(admin_routes, actor, user, permissions):
     g.db.add(ModAction(kind="admin_permissions", user_id=actor.id, target_user_id=user.id))
 
 
-def _atomic_write(path, content):
-    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    temporary.write_text(content, encoding="utf-8")
-    os.replace(temporary, path)
-
-
-def _patch_admin_template():
-    if not _TEMPLATE_PATH.exists():
-        return
-    with open(_SOURCE_LOCK, "w", encoding="utf-8") as lock:
-        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-        source = _TEMPLATE_PATH.read_text(encoding="utf-8")
-        original = source
-
-        old_gate = "{% if preset_key not in ('head', 'head_economy') or (preset_key == 'head' and v.has_admin_economy_permissions) %}"
-        new_gate = "{% if preset_key not in ('head', 'head_economy') or v.has_admin_economy_permissions %}"
-        source = source.replace(old_gate, new_gate)
-
-        start_marker = '\t\t\t\t\t\t\t\t\t<p class="text-muted small">Only permissions you already hold can be granted. Economy permissions are restricted to the head administrator.</p>'
-        end_marker = '\t\t\t\t\t\t\t\t\t<button type="submit" class="btn btn-primary">Save custom access</button>'
-        start = source.find(start_marker)
-        end = source.find(end_marker, start + 1) if start >= 0 else -1
-        if start < 0 or end < 0:
-            raise RuntimeError("Could not locate administrator custom-permission controls")
-
-        replacement = """\t\t\t\t\t\t\t\t\t<p class="text-muted small">Only permissions you already hold can be granted. This list comes from permissions used by current TOC code; retired rDrama/WPD-only controls are omitted.</p>
-\t\t\t\t\t\t\t\t\t{% for group in permission_groups if group.key != 'economy' %}
-\t\t\t\t\t\t\t\t\t\t<h4 class="mt-3 mb-1">{{group.label}}</h4>
-\t\t\t\t\t\t\t\t\t\t<div class="admin-permission-grid">
-\t\t\t\t\t\t\t\t\t\t\t{% for permission in group.permissions %}
-\t\t\t\t\t\t\t\t\t\t\t\t<label class="admin-permission-option" title="{{permission.description}}">
-\t\t\t\t\t\t\t\t\t\t\t\t\t<input type="checkbox" name="permissions" value="{{permission.name}}" {% if admin.has_permission(permission.name) %}checked{% endif %}>
-\t\t\t\t\t\t\t\t\t\t\t\t\t<span><strong>{{permission.label}}</strong><br><span class="text-muted">{{permission.description}}</span></span>
-\t\t\t\t\t\t\t\t\t\t\t\t\t<small>L{{permission.level}}</small>
-\t\t\t\t\t\t\t\t\t\t\t\t</label>
-\t\t\t\t\t\t\t\t\t\t\t{% endfor %}
-\t\t\t\t\t\t\t\t\t\t</div>
-\t\t\t\t\t\t\t\t\t{% endfor %}
-\t\t\t\t\t\t\t\t\t{% if v.has_admin_economy_permissions %}
-\t\t\t\t\t\t\t\t\t\t{% for group in permission_groups if group.key == 'economy' %}
-\t\t\t\t\t\t\t\t\t\t\t<div class="admin-economy-permissions">
-\t\t\t\t\t\t\t\t\t\t\t\t<h4>{{group.label}}</h4>
-\t\t\t\t\t\t\t\t\t\t\t\t<p class="text-muted small">You have full Economy authority, so you can delegate or revoke these permissions on other administrator accounts.</p>
-\t\t\t\t\t\t\t\t\t\t\t\t<div class="admin-permission-grid">
-\t\t\t\t\t\t\t\t\t\t\t\t\t{% for permission in group.permissions %}
-\t\t\t\t\t\t\t\t\t\t\t\t\t\t<label class="admin-permission-option" title="{{permission.description}}">
-\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<input type="checkbox" name="permissions" value="{{permission.name}}" {% if admin.has_permission(permission.name) %}checked{% endif %}>
-\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span><strong>{{permission.label}}</strong><br><span class="text-muted">{{permission.description}}</span></span>
-\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<small>Economy</small>
-\t\t\t\t\t\t\t\t\t\t\t\t\t\t</label>
-\t\t\t\t\t\t\t\t\t\t\t\t\t{% endfor %}
-\t\t\t\t\t\t\t\t\t\t\t\t</div>
-\t\t\t\t\t\t\t\t\t\t\t</div>
-\t\t\t\t\t\t\t\t\t\t{% endfor %}
-\t\t\t\t\t\t\t\t\t{% endif %}
-"""
-        source = source[:start] + replacement + source[end:]
-
-        old_reference = """\t\t\t{% for group in permission_groups %}
-\t\t\t\t<div class="admin-reference-level"><h3>Level {{group.level}}</h3><div class="admin-chip-list">{% for permission_name in group.permissions %}<span class="admin-permission-chip{% if permission_name in currency_permissions %} admin-permission-chip-economy{% endif %}">{{permission_name.replace('_', ' ').title()}}</span>{% endfor %}</div></div>
-\t\t\t{% endfor %}"""
-        new_reference = """\t\t\t{% for group in permission_groups %}
-\t\t\t\t<div class="admin-reference-level"><h3>{{group.label}}</h3><div class="admin-chip-list">{% for permission in group.permissions %}<span class="admin-permission-chip{% if permission.currency %} admin-permission-chip-economy{% endif %}" title="{{permission.description}}">{{permission.label}} · L{{permission.level}}</span>{% endfor %}</div></div>
-\t\t\t{% endfor %}"""
-        if old_reference not in source:
-            raise RuntimeError("Could not locate administrator permission reference")
-        source = source.replace(old_reference, new_reference, 1)
-        source = source.replace(
-            "Higher levels include the permissions listed at lower levels. Economy access is always explicit.",
-            "Permissions are grouped by the current TOC capability they control. Economy access is always explicit and delegatable only by Head Administrator + Economy.",
-        )
-
-        if old_gate in source:
-            raise RuntimeError("Administrator preset gate repair was incomplete")
-        if source != original:
-            _atomic_write(_TEMPLATE_PATH, source)
-
-
 def install_admin_permission_management():
     if SITE_NAME != "Obsession":
         return
@@ -383,4 +308,3 @@ def install_admin_permission_management():
     admin_routes._permission_groups = permission_groups
     admin_routes._preset_permissions = lambda preset: _preset_permissions(admin_routes, preset)
     admin_routes._save_admin_permissions = lambda actor, user, permissions: _save_admin_permissions(admin_routes, actor, user, permissions)
-    _patch_admin_template()
