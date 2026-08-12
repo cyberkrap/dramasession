@@ -229,7 +229,7 @@ def admin_hat_delete(hat_id, v):
     for candidate in candidates:
         try:
             os.remove(candidate)
-        except FileNotFoundError:
+        except OSError:
             pass
 
     try:
