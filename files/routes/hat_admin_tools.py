@@ -102,6 +102,9 @@ def _install_hat_submission_tracking():
 
             actor = getattr(g, "v", None)
             approved_name = (request.values.get("name") or pending_name).strip()
+            if was_pending and hat:
+                hat.created_utc = int(time.time())
+                g.db.add(hat)
             if was_pending and actor and author_id and not _recent_hat_action("approve_hat", approved_name):
                 g.db.add(ModAction(
                     kind="approve_hat",
@@ -156,6 +159,14 @@ def _admin_hat_params(**extra):
     }
     params.update(extra)
     return urlencode(params)
+
+
+def _system_hat_names():
+    names = {"Santa Hat III", "Winter Cap", "Present Bow", "Cakeday"}
+    for value in forced_hats.values():
+        if isinstance(value, (tuple, list)) and value:
+            names.add(str(value[0]))
+    return names
 
 
 def _hat_rename_moves(old_name, new_name):
@@ -317,6 +328,9 @@ def admin_hat_update(hat_id, v):
     old_price = hat.price
     if old_name == new_name and old_description == description and old_price == price:
         return redirect(f"/admin/hats?{_admin_hat_params(msg='No hat changes to save.')}")
+
+    if new_name != old_name and old_name in _system_hat_names():
+        return redirect(f"/admin/hats?{_admin_hat_params(error='This system hat name is used by automatic site behavior and cannot be renamed safely.')}")
 
     if new_name != old_name:
         duplicate = (
