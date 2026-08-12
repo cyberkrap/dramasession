@@ -256,16 +256,15 @@ def admin_hats(v):
             .all()
         )
 
+    all_hats.sort(key=lambda hat: hat.name.lower())
     if sort_name == "newest":
-        all_hats.sort(key=lambda hat: (hat.created_utc or 0, hat.name.lower()), reverse=True)
+        all_hats.sort(key=lambda hat: hat.created_utc or 0, reverse=True)
     elif sort_name == "price-desc":
-        all_hats.sort(key=lambda hat: (hat.price or 0, hat.name.lower()), reverse=True)
+        all_hats.sort(key=lambda hat: hat.price or 0, reverse=True)
     elif sort_name == "price-asc":
-        all_hats.sort(key=lambda hat: (hat.price or 0, hat.name.lower()))
+        all_hats.sort(key=lambda hat: hat.price or 0)
     elif sort_name == "owners":
-        all_hats.sort(key=lambda hat: (owner_counts.get(hat.id, 0), hat.name.lower()), reverse=True)
-    else:
-        all_hats.sort(key=lambda hat: hat.name.lower())
+        all_hats.sort(key=lambda hat: owner_counts.get(hat.id, 0), reverse=True)
 
     total = len(all_hats)
     start = (page - 1) * ADMIN_HATS_PAGE_SIZE
@@ -360,7 +359,8 @@ def admin_hat_update(hat_id, v):
         raise
 
     _purge_hat_names(old_name, new_name)
-    return redirect(f"/admin/hats?{_admin_hat_params(msg=f\"'{new_name}' updated.\")}")
+    message = f"'{new_name}' updated."
+    return redirect(f"/admin/hats?{_admin_hat_params(msg=message)}")
 
 
 @app.post("/admin/hats/<int:hat_id>/delete")
