@@ -134,6 +134,8 @@ if FEATURES['ASSET_SUBMISSIONS']:
 	from .asset_submissions import *
 	from .emote_admin import *
 	from .emote_admin_tools import *
+	if FEATURES['HATS']:
+		from .hat_admin_tools import *
 from .report_fixes import *
 from .special import *
 from .push_notifs import *
