@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -106,6 +107,28 @@ class GeminiCrappyProvider(CrappyProvider):
         if not input_blocks:
             raise CrappyProviderError("Crappy provider request has no user content")
         return "\n\n".join(system_blocks), "\n\n".join(input_blocks)
+
+    @staticmethod
+    def _input_content(request: CrappyProviderRequest, input_text: str) -> list[dict]:
+        content: list[dict] = [{"type": "text", "text": input_text}]
+        for media in request.media:
+            if media.kind != "image" or not media.data or not media.mime_type.startswith("image/"):
+                continue
+            if media.source:
+                content.append(
+                    {
+                        "type": "text",
+                        "text": f"Attached TOC image from {media.source}:",
+                    }
+                )
+            content.append(
+                {
+                    "type": "image",
+                    "mime_type": media.mime_type,
+                    "data": base64.b64encode(media.data).decode("ascii"),
+                }
+            )
+        return content
 
     @staticmethod
     def _tool_payload(request: CrappyProviderRequest) -> list[dict]:
@@ -240,7 +263,10 @@ class GeminiCrappyProvider(CrappyProvider):
         # (including thought/function_call steps) to be replayed exactly on each
         # subsequent request when store=false.
         history: list[dict] = [
-            {"type": "user_input", "content": input_text}
+            {
+                "type": "user_input",
+                "content": self._input_content(request, input_text),
+            }
         ]
         last_data: dict = {}
 
