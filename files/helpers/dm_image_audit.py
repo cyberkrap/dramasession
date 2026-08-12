@@ -11,11 +11,12 @@ from flask import g, render_template, request
 from files.__main__ import app, limiter
 from files.classes import Comment, User
 from files.classes.media import Media
-from files.helpers.config.const import DEFAULT_RATELIMIT, LOG_DIRECTORY, MODMAIL_ID, PERMS, SITE, SITE_FULL
+from files.helpers.config.const import DEFAULT_RATELIMIT, LOG_DIRECTORY, MODMAIL_ID, PERMS, SITE_FULL
 from files.routes.wrappers import admin_level_required, get_ID
 
 _LOG_PATH = Path(LOG_DIRECTORY) / "dm_images.log"
 _LOCK_PATH = "/tmp/obsession-dm-image-audit.lock"
+_SITE_NETLOC = urlparse(SITE_FULL).netloc.lower()
 _IMAGE_URL_RE = re.compile(r"""(?P<url>https?://[^\s\"'<>]+/(?:images|dm_images)/[A-Za-z0-9._-]+\.webp(?:\?[^\s\"'<>]*)?|/(?:images|dm_images)/[A-Za-z0-9._-]+\.webp(?:\?[^\s\"'<>]*)?)""", re.I)
 
 
@@ -39,7 +40,7 @@ def _normalize_image_url(value):
     try: parsed = urlparse(value)
     except ValueError: return None
     if parsed.scheme:
-        if parsed.scheme not in {"http", "https"} or (parsed.netloc and parsed.netloc.lower() != SITE.lower()):
+        if parsed.scheme not in {"http", "https"} or (parsed.netloc and parsed.netloc.lower() != _SITE_NETLOC):
             return None
         path = parsed.path
     else:
@@ -125,7 +126,7 @@ def _local_images(comment, actor_id):
         url = _normalize_image_url(match.group("url"))
         if not url or url in found: continue
         path = urlparse(url).path
-        exists = g.db.query(Media.id).filter(Media.kind == "image", Media.filename == path, Media.user_id == actor_id).first()
+        exists = g.db.query(Media.filename).filter(Media.kind == "image", Media.filename == path, Media.user_id == actor_id).first()
         if exists: found.append(url)
     return found
 
