@@ -11,7 +11,14 @@ from files.__main__ import app, limiter
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
 @auth_required
 def hats(v:User):
-	owned_hat_ids = [x.hat_id for x in v.owned_hats]
+	owned_hats = list(v.owned_hats)
+	owned_hat_ids = [x.hat_id for x in owned_hats]
+	obtained_utc_by_hat = {x.hat_id: x.created_utc or 0 for x in owned_hats}
+	owner_counts = dict(
+		g.db.query(Hat.hat_id, func.count(Hat.user_id))
+		.group_by(Hat.hat_id)
+		.all()
+	)
 
 	if v.equipped_hat_ids:
 		equipped = g.db.query(HatDef, User).join(HatDef.author).filter(HatDef.submitter_id == None, HatDef.id.in_(owned_hat_ids), HatDef.id.in_(v.equipped_hat_ids)).order_by(HatDef.price, HatDef.name).all()
@@ -25,7 +32,16 @@ def hats(v:User):
 
 	sales = g.db.query(func.sum(User.coins_spent_on_hats)).scalar()
 	num_of_hats = g.db.query(HatDef).filter(HatDef.submitter_id == None).count()
-	return render_template("hats.html", owned_hat_ids=owned_hat_ids, hats=hats, v=v, sales=sales, num_of_hats=num_of_hats)
+	return render_template(
+		"hats.html",
+		owned_hat_ids=owned_hat_ids,
+		owner_counts=owner_counts,
+		obtained_utc_by_hat=obtained_utc_by_hat,
+		hats=hats,
+		v=v,
+		sales=sales,
+		num_of_hats=num_of_hats,
+	)
 
 @app.post("/buy_hat/<int:hat_id>")
 @limiter.limit('100/minute;1000/3 days')
