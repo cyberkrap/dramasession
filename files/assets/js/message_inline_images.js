@@ -1,27 +1,56 @@
 (() => {
 	'use strict';
 
-	const selector = 'textarea[id^="reply-form-body-"]';
+	const selector = 'textarea[id^="reply-form-body-"], form#message textarea#input-message';
 	const installed = new WeakSet();
 	const pendingUploads = new WeakMap();
 	const savedSelections = new WeakMap();
 
 	function composerFor(textarea) {
-		return textarea.closest('[id^="reply-message-"]');
+		if (textarea.id === 'input-message') {
+			const form = textarea.closest('form#message');
+			const action = form?.getAttribute('action') || '';
+			return /^\/@[^/]+\/message(?:$|\?)/.test(action) ? form : null;
+		}
+		return textarea.closest('[id^="reply-message-"]') || textarea.closest('.comment-box-wrapper');
 	}
 
-	function replyButtonFor(textarea) {
+	function isMessageComposer(composer, textarea) {
+		return textarea.id === 'input-message' || Boolean(composer?.id?.startsWith('reply-message-'));
+	}
+
+	function toolbarFor(composer) {
+		return composer?.querySelector('.comment-format, .profile-form-actions') || null;
+	}
+
+	function submitButtonFor(composer, textarea) {
+		if (textarea.id === 'input-message') {
+			return composer?.querySelector('button[type="submit"], input[type="submit"]') || null;
+		}
 		const id = textarea.id.replace('reply-form-body-', '');
 		return document.getElementById(`save-reply-to-${id}`);
 	}
 
 	function setPending(textarea, delta) {
-		const next = Math.max(0, (pendingUploads.get(textarea) || 0) + delta);
+		const current = pendingUploads.get(textarea) || 0;
+		const next = Math.max(0, current + delta);
 		pendingUploads.set(textarea, next);
-		const button = replyButtonFor(textarea);
-		if (button) {
-			button.disabled = next > 0;
-			button.classList.toggle('disabled', next > 0);
+
+		const composer = composerFor(textarea);
+		const button = submitButtonFor(composer, textarea);
+		if (!button) return;
+
+		if (current === 0 && next > 0) {
+			button.dataset.inlineUploadWasDisabled = button.disabled ? '1' : '0';
+			button.disabled = true;
+			button.classList.add('disabled');
+		} else if (next === 0) {
+			const wasDisabled = button.dataset.inlineUploadWasDisabled === '1';
+			delete button.dataset.inlineUploadWasDisabled;
+			if (!wasDisabled) {
+				button.disabled = false;
+				button.classList.remove('disabled');
+			}
 		}
 	}
 
@@ -32,8 +61,12 @@
 		meta = document.createElement('div');
 		meta.className = 'message-inline-image-meta';
 		meta.innerHTML = '<span class="message-inline-image-status" aria-live="polite"></span><span class="message-inline-image-help">Images upload immediately and are inserted where your cursor is. You can also paste or drop images into the text box.</span>';
+
 		const inputGroup = textarea.closest('.input-group');
+		const toolbar = toolbarFor(composer);
 		if (inputGroup) inputGroup.after(meta);
+		else if (toolbar) toolbar.after(meta);
+		else textarea.after(meta);
 		return meta;
 	}
 
@@ -47,17 +80,11 @@
 	}
 
 	function rememberSelection(textarea) {
-		savedSelections.set(textarea, {
-			start: textarea.selectionStart,
-			end: textarea.selectionEnd,
-		});
+		savedSelections.set(textarea, {start: textarea.selectionStart, end: textarea.selectionEnd});
 	}
 
 	function selectionFor(textarea) {
-		return savedSelections.get(textarea) || {
-			start: textarea.selectionStart,
-			end: textarea.selectionEnd,
-		};
+		return savedSelections.get(textarea) || {start: textarea.selectionStart, end: textarea.selectionEnd};
 	}
 
 	function insertAt(textarea, markdown, selection) {
@@ -88,10 +115,13 @@
 
 	async function upload(textarea, {files = [], urls = [], selection = null, fallbackText = ''}) {
 		if (!files.length && !urls.length) return false;
+		const composer = composerFor(textarea);
+		if (!composer) return false;
 		const target = selection || selectionFor(textarea);
 		const form = new FormData();
-		const key = typeof formkey === 'function' ? formkey() : null;
+		const key = typeof formkey === 'function' ? formkey() : composer.querySelector('input[name="formkey"]')?.value;
 		if (key) form.append('formkey', key);
+		if (isMessageComposer(composer, textarea)) form.append('context', 'message');
 		files.forEach(file => form.append('file', file));
 		urls.forEach(url => form.append('url', url));
 
@@ -122,24 +152,75 @@
 		}
 	}
 
+	function imageOnlyInput(input) {
+		const accept = (input?.getAttribute('accept') || '').split(',').map(value => value.trim()).filter(Boolean);
+		return accept.length > 0 && accept.every(value => value.startsWith('image/'));
+	}
+
+	function createInlineInput(textarea, toolbar, beforeNode = null) {
+		const safeId = textarea.id.replace(/[^A-Za-z0-9_-]/g, '-');
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.id = `inline-image-upload-${safeId}`;
+		input.multiple = true;
+		input.accept = 'image/*';
+		input.hidden = true;
+
+		const label = document.createElement('label');
+		label.htmlFor = input.id;
+		label.className = 'btn btn-secondary inline-image-upload-label inline-editor-control inline-editor-control-square';
+		label.title = 'Upload images at the cursor';
+		label.innerHTML = '<span><i class="fas fa-images" aria-hidden="true"></i></span>';
+		label.appendChild(input);
+
+		if (beforeNode) toolbar.insertBefore(label, beforeNode);
+		else toolbar.appendChild(label);
+		return {input, label, filename: null};
+	}
+
+	function prepareInlineInput(composer, textarea, toolbar) {
+		const existing = composer.querySelector('input[type="file"][id^="file-upload-reply-"]');
+		if (existing && imageOnlyInput(existing)) {
+			const label = composer.querySelector(`label[for="${CSS.escape(existing.id)}"]`);
+			const filename = label?.querySelector('[id^="filename-show-reply-"]') || null;
+
+			existing.multiple = true;
+			existing.accept = 'image/*';
+			existing.removeAttribute('name');
+			if (label) {
+				label.classList.add('inline-image-upload-label', 'inline-editor-control', 'inline-editor-control-square');
+				label.title = 'Upload images at the cursor';
+			}
+			return {input: existing, label, filename};
+		}
+
+		if (existing) {
+			const attachmentLabel = composer.querySelector(`label[for="${CSS.escape(existing.id)}"]`);
+			if (attachmentLabel) {
+				attachmentLabel.classList.add('inline-editor-control', 'inline-editor-control-square');
+				attachmentLabel.title = 'Attach image, video, or audio';
+			}
+		}
+
+		const submit = submitButtonFor(composer, textarea);
+		return createInlineInput(textarea, toolbar, textarea.id === 'input-message' ? submit : null);
+	}
+
 	function install(textarea) {
 		if (!(textarea instanceof HTMLTextAreaElement) || installed.has(textarea)) return;
 		const composer = composerFor(textarea);
-		if (!composer) return;
-		const input = composer.querySelector('input[type="file"][id^="file-upload-reply-"]');
-		if (!input) return;
+		const toolbar = toolbarFor(composer);
+		if (!composer || !toolbar) return;
+
+		const existingInput = composer.querySelector('input[type="file"][id^="file-upload-reply-"]');
+		if (textarea.id !== 'input-message' && !existingInput) return;
+		if (existingInput?.disabled) return;
 
 		installed.add(textarea);
-		input.multiple = true;
-		input.accept = 'image/*';
-		input.removeAttribute('name');
+		composer.classList.add('inline-image-composer');
+		toolbar.classList.add('inline-editor-toolbar');
 
-		const label = composer.querySelector(`label[for="${CSS.escape(input.id)}"]`);
-		const filename = label?.querySelector('[id^="filename-show-reply-"]');
-		const toolbar = input.closest('.comment-format');
-		if (toolbar) toolbar.classList.add('inline-editor-toolbar');
-		if (label) label.classList.add('inline-editor-control', 'inline-editor-control-square');
-
+		const {input, label, filename} = prepareInlineInput(composer, textarea, toolbar);
 		const resetFilename = () => {
 			input.value = '';
 			if (filename) filename.innerHTML = '<i class="fas fa-images"></i>';
@@ -147,22 +228,23 @@
 		resetFilename();
 
 		if (label) {
-			label.title = 'Upload images at the cursor';
 			label.addEventListener('pointerdown', () => rememberSelection(textarea));
 			label.addEventListener('keydown', () => rememberSelection(textarea));
 		}
 
-		const emoji = toolbar?.querySelector('button[data-onclick*="loadEmojis"]');
+		const emoji = toolbar.querySelector('button[data-onclick*="loadEmojis"]');
 		if (emoji) emoji.classList.add('inline-editor-control', 'inline-editor-control-square');
 
 		let urlButton = composer.querySelector('.message-inline-image-url');
-		if (!urlButton && toolbar) {
+		if (!urlButton) {
 			urlButton = document.createElement('button');
 			urlButton.type = 'button';
 			urlButton.className = 'btn btn-secondary message-inline-image-url inline-editor-control inline-editor-control-wide';
 			urlButton.innerHTML = '<i class="fas fa-link" aria-hidden="true"></i><span>Image URL</span>';
 			urlButton.title = 'Import an image URL at the cursor';
-			label ? label.after(urlButton) : toolbar.append(urlButton);
+			const submit = submitButtonFor(composer, textarea);
+			if (textarea.id === 'input-message' && submit) toolbar.insertBefore(urlButton, submit);
+			else label ? label.after(urlButton) : toolbar.append(urlButton);
 		}
 
 		ensureMeta(composer, textarea);
@@ -171,7 +253,7 @@
 		input.addEventListener('change', () => {
 			const allFiles = Array.from(input.files || []);
 			const files = allFiles.filter(file => file.type.startsWith('image/'));
-			if (files.length !== allFiles.length) setStatus(textarea, 'Only images can be inserted into messages.', true);
+			if (files.length !== allFiles.length) setStatus(textarea, 'Only images can be inserted into the editor.', true);
 			if (!files.length) {
 				resetFilename();
 				return;
@@ -180,8 +262,8 @@
 			upload(textarea, {files, selection: target}).finally(resetFilename);
 		});
 
-		urlButton?.addEventListener('pointerdown', () => rememberSelection(textarea));
-		urlButton?.addEventListener('click', () => {
+		urlButton.addEventListener('pointerdown', () => rememberSelection(textarea));
+		urlButton.addEventListener('click', () => {
 			const value = window.prompt('Paste an image URL to import and host on Obsession:');
 			if (!value) return;
 			upload(textarea, {urls: [value.trim()], selection: selectionFor(textarea)});
@@ -192,6 +274,7 @@
 			const target = {start: textarea.selectionStart, end: textarea.selectionEnd};
 			if (files.length) {
 				event.preventDefault();
+				event.stopPropagation();
 				upload(textarea, {files, selection: target});
 				return;
 			}
@@ -199,6 +282,7 @@
 			const pasted = event.clipboardData?.getData('text/plain')?.trim() || '';
 			if (/^https?:\/\/\S+$/i.test(pasted)) {
 				event.preventDefault();
+				event.stopPropagation();
 				upload(textarea, {urls: [pasted], selection: target, fallbackText: pasted});
 			}
 		});
@@ -214,10 +298,8 @@
 			const files = Array.from(event.dataTransfer?.files || []).filter(file => file.type.startsWith('image/'));
 			if (!files.length) return;
 			event.preventDefault();
-			upload(textarea, {
-				files,
-				selection: {start: textarea.selectionStart, end: textarea.selectionEnd},
-			});
+			event.stopPropagation();
+			upload(textarea, {files, selection: {start: textarea.selectionStart, end: textarea.selectionEnd}});
 		});
 	}
 

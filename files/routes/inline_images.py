@@ -10,6 +10,7 @@ from flask import abort, g, request
 from files.__main__ import app, limiter
 from files.helpers.config.const import *
 from files.helpers.media import media_ratelimit, process_image
+from files.helpers.settings import get_setting
 from files.helpers.support import patron_limit
 from files.routes.wrappers import auth_required
 
@@ -137,6 +138,10 @@ def upload_inline_images(v):
 	if g.is_tor:
 		abort(403, "Image uploads are not allowed through TOR!")
 
+	context = (request.form.get("context") or "").strip().lower()
+	if context == "message" and not get_setting("dm_images"):
+		abort(403, "Image uploads in messages are currently disabled.")
+
 	uploads = [item for item in request.files.getlist("file") if item and item.filename]
 	remote_urls = [item.strip() for item in request.form.getlist("url") if item.strip()]
 	total_items = len(uploads) + len(remote_urls)
@@ -153,7 +158,7 @@ def upload_inline_images(v):
 
 	for upload in uploads:
 		if not (upload.content_type or "").startswith("image/"):
-			abort(415, "Only images can be inserted into the post editor.")
+			abort(415, "Only images can be inserted into the editor.")
 		filename = _new_image_path()
 		upload.save(filename)
 		stored_path = process_image(filename, v)
