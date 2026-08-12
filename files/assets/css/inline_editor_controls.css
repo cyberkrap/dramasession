@@ -1,4 +1,4 @@
-/* Shared inline-image controls for post creation and message replies. */
+/* Shared inline-image controls for post creation, comments, and messages. */
 .inline-editor-toolbar {
 	display: flex !important;
 	flex-wrap: wrap;
@@ -88,7 +88,8 @@ label[for="file-upload-submit"] {
 }
 
 label[for="file-upload-submit"] > div,
-[id^="reply-message-"] label[for^="file-upload-reply-"] > div {
+.inline-image-composer label.inline-editor-control > div,
+.inline-image-composer label.inline-editor-control > span {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -97,12 +98,12 @@ label[for="file-upload-submit"] > div,
 	line-height: 1;
 }
 
-[id^="reply-message-"] .comment-format.inline-editor-toolbar {
+.inline-image-composer .inline-editor-toolbar {
 	min-width: 0;
 }
 
-[id^="reply-message-"] .comment-format > button.inline-editor-control-square,
-[id^="reply-message-"] .comment-format > label.inline-editor-control-square {
+.inline-image-composer .comment-format > button.inline-editor-control-square,
+.inline-image-composer .comment-format > label.inline-editor-control-square {
 	width: 38px !important;
 	min-width: 38px !important;
 	height: 38px !important;
@@ -110,14 +111,14 @@ label[for="file-upload-submit"] > div,
 	padding: 0 !important;
 }
 
-[id^="reply-message-"] .comment-format > button.message-inline-image-url {
+.inline-image-composer .message-inline-image-url {
 	width: auto !important;
 	min-width: max-content;
 	max-width: 150px;
 	padding: 0 11px !important;
 }
 
-[id^="reply-message-"] .message-inline-image-meta {
+.inline-image-composer .message-inline-image-meta {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: baseline;
@@ -129,12 +130,21 @@ label[for="file-upload-submit"] > div,
 	line-height: 1.35;
 }
 
-[id^="reply-message-"] .message-inline-image-status:empty {
+.inline-image-composer .message-inline-image-status:empty {
 	display: none;
 }
 
-[id^="reply-message-"] .message-inline-image-help {
+.inline-image-composer .message-inline-image-help {
 	opacity: .68;
+}
+
+.profile-action-form.inline-image-composer .profile-form-actions.inline-editor-toolbar {
+	width: 100%;
+}
+
+.profile-action-form.inline-image-composer .profile-form-actions > input[type="submit"],
+.profile-action-form.inline-image-composer .profile-form-actions > button[type="submit"] {
+	margin-left: auto;
 }
 
 @media (max-width: 575.98px) {
@@ -210,8 +220,9 @@ label[for="file-upload-submit"] > div,
 		line-height: 1.35;
 	}
 
-	[id^="reply-message-"] .comment-format > button.inline-editor-control-square,
-	[id^="reply-message-"] .comment-format > label.inline-editor-control-square {
+	.inline-image-composer .comment-format > button.inline-editor-control-square,
+	.inline-image-composer .comment-format > label.inline-editor-control-square,
+	.profile-action-form.inline-image-composer .inline-editor-control-square {
 		width: 36px !important;
 		min-width: 36px !important;
 		height: 36px !important;
@@ -219,18 +230,26 @@ label[for="file-upload-submit"] > div,
 		padding: 0 !important;
 	}
 
-	[id^="reply-message-"] .comment-format > button.message-inline-image-url {
-		width: auto !important;
-		padding-inline: 10px !important;
+	.inline-image-composer .message-inline-image-url {
+		width: 36px !important;
+		min-width: 36px !important;
+		max-width: 36px !important;
+		padding: 0 !important;
+		font-size: 0 !important;
+		overflow: hidden;
 	}
 
-	[id^="reply-message-"] .message-inline-image-meta {
+	.inline-image-composer .message-inline-image-url i {
+		font-size: 14px !important;
+	}
+
+	.inline-image-composer .message-inline-image-meta {
 		display: block;
 		margin-top: 8px;
 		font-size: 11px;
 	}
 
-	[id^="reply-message-"] .message-inline-image-status:not(:empty) {
+	.inline-image-composer .message-inline-image-status:not(:empty) {
 		display: block;
 		margin-bottom: 3px;
 	}
