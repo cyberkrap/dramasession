@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 
 import fcntl
 from flask import g, render_template, request
+from sqlalchemy import or_
+
 from files.__main__ import app, limiter
 from files.classes import Comment, User
 from files.classes.media import Media
@@ -139,22 +141,53 @@ def _recipient(comment):
     if comment.top_comment_id:
         top = g.db.get(Comment, comment.top_comment_id)
         if top and top.sentto == MODMAIL_ID: return "Modmail", "Modmail"
+        if top and top.sentto:
+            # A reply remains part of the same DM thread. If the current author
+            # is the root recipient, the audit recipient is the root sender;
+            # otherwise it is still the root recipient.
+            if comment.author_id == top.sentto:
+                sender = g.db.get(User, top.author_id)
+                if sender: return sender.username, str(sender.id)
+            recipient = g.db.get(User, top.sentto)
+            if recipient: return recipient.username, str(recipient.id)
     return "Unknown", ""
+
+
+def _audit_item(comment, actor, url):
+    recipient, recipient_id = _recipient(comment)
+    if recipient == "Unknown": return None
+    sent_epoch = int(comment.created_utc or time.time())
+    return {"url": url, "sender": actor.username, "sender_id": str(actor.id), "recipient": recipient,
+            "recipient_id": str(recipient_id), "sent_utc": _format_utc(sent_epoch),
+            "sent_epoch": sent_epoch, "explicit_date": True}
+
+
+def _historical_entries():
+    comments = g.db.query(Comment).filter(
+        Comment.parent_submission.is_(None),
+        Comment.wall_user_id.is_(None),
+        or_(Comment.body_html.ilike("%/images/%"), Comment.body_html.ilike("%/dm_images/%")),
+    ).order_by(Comment.created_utc.desc()).all()
+    entries = []
+    for comment in comments:
+        actor = g.db.get(User, comment.author_id)
+        if not actor: continue
+        for url in _local_images(comment, actor.id):
+            item = _audit_item(comment, actor, url)
+            if item: entries.append(item)
+    return entries
 
 
 def _audit(comment, actor):
     urls = _local_images(comment, actor.id)
     if not urls: return
-    recipient, recipient_id = _recipient(comment)
-    sent_epoch = int(comment.created_utc or time.time())
     current = read_dm_image_log()
     for url in urls:
-        if any(x["url"] == url and x["sender_id"] == str(actor.id) and x["recipient_id"] == str(recipient_id)
-               and x["sent_epoch"] and abs(x["sent_epoch"] - sent_epoch) <= 30 for x in current):
+        item = _audit_item(comment, actor, url)
+        if not item: continue
+        if any(x["url"] == item["url"] and x["sender_id"] == item["sender_id"] and x["recipient_id"] == item["recipient_id"]
+               and x["sent_epoch"] and abs(x["sent_epoch"] - item["sent_epoch"]) <= 30 for x in current):
             continue
-        item = {"url": url, "sender": actor.username, "sender_id": str(actor.id), "recipient": recipient,
-                "recipient_id": str(recipient_id), "sent_utc": _format_utc(sent_epoch),
-                "sent_epoch": sent_epoch, "explicit_date": True}
         _append(item); current.append(item)
 
 
@@ -193,7 +226,8 @@ def _wrap(endpoint):
 @limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
 @admin_level_required(PERMS["VIEW_DM_IMAGES"])
 def dm_images_audit(v):
-    return render_template("admin/dm_images.html", v=v, items=read_dm_image_log())
+    items = _dedupe(read_dm_image_log() + _historical_entries())
+    return render_template("admin/dm_images.html", v=v, items=items)
 
 
 def install_dm_image_audit():
