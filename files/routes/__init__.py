@@ -157,6 +157,7 @@ install_alt_link_fixes()
 from files.classes import User
 from files.__main__ import engine
 from files.helpers.admin_patron_rewards import install_admin_patron_rewards
+from files.helpers.admin_permission_management import install_admin_permission_management
 from files.helpers.award_batch_runtime import repair_existing_award_batches
 from files.helpers.badge_branding import install_badge_branding
 from files.helpers.ban_hats import install_ban_hat_support
@@ -165,6 +166,7 @@ from files.helpers.chat_admin_modaction_types import install_chat_admin_modactio
 from files.helpers.contribution_badges import install_cumulative_contribution_badges
 from files.helpers.default_follow import install_default_following
 from files.helpers.default_user_background import install_default_user_background
+from files.helpers.dm_image_audit import install_dm_image_audit
 from files.helpers.economy_ledger import install_economy_ledger
 from files.helpers.economy_ledger_flush import install_economy_ledger_flush_fix
 from files.helpers.gift_ledger_enrichment import install_gift_ledger_enrichment
@@ -191,6 +193,8 @@ install_economy_ledger_flush_fix()
 repair_existing_award_batches(engine)
 install_patron_branding()
 install_persistent_site_content()
+install_admin_permission_management()
+install_dm_image_audit()
 install_private_economy_modactions(engine)
 install_user_activity_defaults(engine, User)
 install_signup_rewards(engine)

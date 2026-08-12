@@ -1,5 +1,5 @@
 {% extends "default.html" %}
-{% block pagetitle %}DM Imagtes{% endblock %}
+{% block pagetitle %}DM Images{% endblock %}
 {% block content %}
 <h2>DM Images</h2>
 <div class="overflow-x-auto">
@@ -10,6 +10,7 @@
 				<th>Image</th>
 				<th>Sender</th>
 				<th>Sent To</th>
+				<th>Sent</th>
 			</tr>
 		</thead>
 
@@ -17,30 +18,33 @@
 			<tr>
 				<td>{{loop.index}}</td>
 				<td>
-					<a href="{{item[0]}}" target="_blank">
-						<img alt="![]({{item[0]}})" src="{{item[0]}}" loading="lazy" class="dm_img">
+					<a href="{{item.url}}" target="_blank" rel="noopener">
+						<img alt="DM image" src="{{item.url}}" loading="lazy" class="dm_img">
 					</a>
 				</td>
 				<td>
-					{% if item[1] != "Unknown" %}
-						<a href="/id/{{item[2]}}">
-							<img loading="lazy" src="/pp/{{item[2]}}">
-							@{{item[1]}}
+					{% if item.sender != "Unknown" and item.sender_id %}
+						<a href="/id/{{item.sender_id}}">
+							<img loading="lazy" src="/pp/{{item.sender_id}}">
+							@{{item.sender}}
 						</a>
+					{% else %}
+						Unknown
 					{% endif %}
 				</td>
 				<td>
-					{% if item[1] != "Unknown" %}
-						{% if item[3] == "Modmail" %}
-							Modmail
-						{% else %}
-							<a href="/id/{{item[4]}}">
-								<img loading="lazy" src="/pp/{{item[4]}}">
-								@{{item[3]}}
-							</a>
-						{% endif %}
+					{% if item.recipient == "Modmail" %}
+						Modmail
+					{% elif item.recipient != "Unknown" and item.recipient_id %}
+						<a href="/id/{{item.recipient_id}}">
+							<img loading="lazy" src="/pp/{{item.recipient_id}}">
+							@{{item.recipient}}
+						</a>
+					{% else %}
+						Unknown
 					{% endif %}
 				</td>
+				<td class="text-nowrap">{{item.sent_utc}}</td>
 			</tr>
 		{% endfor %}
 	</table>
