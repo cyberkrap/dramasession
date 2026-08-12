@@ -47,6 +47,7 @@ from files.helpers.final_ui_source_fixes import (
 	patch_live_banner_source,
 	patch_marseys_source,
 )
+from files.helpers.hat_submission_fixes import patch_hat_submission_source
 from files.helpers.username_effect_template_fixes import patch_comment_username_effects_source
 
 disable_retired_awards()
@@ -71,6 +72,10 @@ try:
 	patch_custom_emote_sources()
 	patch_live_banner_source()
 	patch_marseys_source()
+except RuntimeError:
+	pass
+try:
+	patch_hat_submission_source()
 except RuntimeError:
 	pass
 try:
