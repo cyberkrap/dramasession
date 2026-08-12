@@ -1,0 +1,192 @@
+{% extends "default.html" %}
+{% block pagetitle %}Manage Hats{% endblock %}
+{% block head_final %}
+<style nonce="{{g.nonce}}">
+.hat-admin {
+	max-width: 1120px;
+	margin: 0 auto;
+	padding: 30px 18px 64px;
+}
+.hat-admin-header {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 18px;
+	margin-bottom: 20px;
+}
+.hat-admin-header h1 {
+	margin: 0;
+	font-size: 2rem;
+}
+.hat-admin-header p {
+	margin: 6px 0 0;
+	color: var(--muted, #aaa);
+}
+.hat-admin-links {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.hat-admin-search {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 8px;
+	margin-bottom: 18px;
+}
+.hat-admin-list {
+	border-top: 1px solid rgba(255,255,255,.12);
+}
+.hat-admin-row {
+	display: grid;
+	grid-template-columns: 72px minmax(0, 1fr) 120px 96px auto;
+	gap: 14px;
+	align-items: center;
+	padding: 13px 0;
+	border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.hat-admin-preview {
+	display: grid;
+	place-items: center;
+	width: 64px;
+	height: 82px;
+	overflow: hidden;
+}
+.hat-admin-preview img {
+	max-width: 64px;
+	max-height: 82px;
+	object-fit: contain;
+}
+.hat-admin-name {
+	font-weight: 800;
+	overflow-wrap: anywhere;
+}
+.hat-admin-description {
+	margin-top: 3px;
+	color: var(--muted, #aaa);
+	font-size: .84rem;
+	line-height: 1.35;
+	overflow-wrap: anywhere;
+}
+.hat-admin-author,
+.hat-admin-metric {
+	font-size: .84rem;
+}
+.hat-admin-author span,
+.hat-admin-metric span {
+	display: block;
+	color: var(--muted, #aaa);
+	font-size: .72rem;
+	margin-bottom: 2px;
+}
+.hat-admin-delete {
+	margin: 0;
+}
+.hat-admin-pagination {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	margin-top: 20px;
+}
+.hat-admin-empty {
+	padding: 30px 0;
+	color: var(--muted, #aaa);
+	text-align: center;
+}
+@media (max-width: 760px) {
+	.hat-admin {
+		padding: 22px 10px 48px;
+	}
+	.hat-admin-header {
+		align-items: stretch;
+		flex-direction: column;
+	}
+	.hat-admin-search {
+		grid-template-columns: 1fr;
+	}
+	.hat-admin-row {
+		grid-template-columns: 58px minmax(0, 1fr) auto;
+		gap: 10px;
+	}
+	.hat-admin-preview {
+		width: 52px;
+		height: 68px;
+	}
+	.hat-admin-preview img {
+		max-width: 52px;
+		max-height: 68px;
+	}
+	.hat-admin-author,
+	.hat-admin-metric {
+		grid-column: 2;
+	}
+	.hat-admin-delete {
+		grid-column: 3;
+		grid-row: 1 / span 3;
+		align-self: center;
+	}
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="hat-admin">
+	<header class="hat-admin-header">
+		<div>
+			<h1>Manage Hats</h1>
+			<p>{{total}} approved hats. {{pending_count}} waiting for review.</p>
+		</div>
+		<div class="hat-admin-links">
+			<a class="btn btn-secondary btn-sm" href="/submit/hats">Review submissions</a>
+			<a class="btn btn-secondary btn-sm" href="/admin/update/hats">Replace hat image</a>
+		</div>
+	</header>
+
+	{% if msg %}{{macros.alert(msg, false)}}{% endif %}
+	{% if error %}{{macros.alert(error, true)}}{% endif %}
+
+	<form method="get" class="hat-admin-search">
+		<input class="form-control" type="search" name="q" value="{{q}}" maxlength="64" placeholder="Search hat name or description" aria-label="Search hats">
+		<button class="btn btn-secondary" type="submit">Search</button>
+	</form>
+
+	<div class="hat-admin-list">
+	{% for hat in hats %}
+		<div class="hat-admin-row">
+			<div class="hat-admin-preview">
+				<img loading="lazy" src="/i/hats/{{hat.name|urlencode}}.webp" alt="{{hat.name}}">
+			</div>
+			<div>
+				<div class="hat-admin-name">{{hat.name}}</div>
+				<div class="hat-admin-description">{{hat.description}}</div>
+			</div>
+			<div class="hat-admin-author">
+				<span>Author</span>
+				<a href="{{hat.author.url}}">@{{hat.author.username}}</a>
+			</div>
+			<div class="hat-admin-metric">
+				<span>Price / owners</span>
+				{{hat.price}} / {{owner_counts.get(hat.id, 0)}}
+			</div>
+			<form class="hat-admin-delete" method="post" action="/admin/hats/{{hat.id}}/delete" onsubmit="return confirm('Delete this approved hat from the shop and every owner?')">
+				<input type="hidden" name="formkey" value="{{v|formkey}}">
+				<input type="hidden" name="page" value="{{page}}">
+				<input type="hidden" name="q" value="{{q}}">
+				<button class="btn btn-danger btn-sm" type="submit">Delete</button>
+			</form>
+		</div>
+	{% else %}
+		<div class="hat-admin-empty">No approved hats match this search.</div>
+	{% endfor %}
+	</div>
+
+	{% if page > 1 or next_exists %}
+	<nav class="hat-admin-pagination" aria-label="Hat manager pages">
+		{% if page > 1 %}
+			<a class="btn btn-secondary btn-sm" href="?page={{page - 1}}{% if q %}&q={{q|urlencode}}{% endif %}">Previous</a>
+		{% endif %}
+		{% if next_exists %}
+			<a class="btn btn-secondary btn-sm" href="?page={{page + 1}}{% if q %}&q={{q|urlencode}}{% endif %}">Next</a>
+		{% endif %}
+	</nav>
+	{% endif %}
+</div>
+{% endblock %}
