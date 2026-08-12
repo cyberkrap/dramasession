@@ -157,6 +157,7 @@ install_alt_link_fixes()
 from files.classes import User
 from files.__main__ import engine
 from files.helpers.admin_patron_rewards import install_admin_patron_rewards
+from files.helpers import admin_permission_management as admin_permission_management
 from files.helpers.admin_permission_management import install_admin_permission_management
 from files.helpers.award_batch_runtime import repair_existing_award_batches
 from files.helpers.badge_branding import install_badge_branding
@@ -193,6 +194,13 @@ install_economy_ledger_flush_fix()
 repair_existing_award_batches(engine)
 install_patron_branding()
 install_persistent_site_content()
+if not FEATURES['ASSET_SUBMISSIONS']:
+	admin_permission_management._TOC_HIDDEN_PERMISSIONS.update({
+		'MODERATE_PENDING_SUBMITTED_ASSETS',
+		'UPDATE_ASSETS',
+		'VIEW_PENDING_SUBMITTED_HATS',
+		'VIEW_PENDING_SUBMITTED_MARSEYS',
+	})
 install_admin_permission_management()
 install_dm_image_audit()
 install_private_economy_modactions(engine)
