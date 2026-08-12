@@ -26,9 +26,6 @@ _GENERIC_EMOJI_RE = re.compile(
     "]",
     re.UNICODE,
 )
-_GENERIC_EMOTICON_RE = re.compile(
-    r"(?<!\w)(?:<3|[:;=8xX][\-^']?[)(DPp/\\|])(?!\w)"
-)
 _SEARCH_STOP_WORDS = {
     "a", "an", "and", "are", "as", "at", "be", "for", "from", "in", "is",
     "it", "of", "on", "or", "that", "the", "this", "to", "with",
@@ -220,11 +217,10 @@ def search_toc_emotes(db, query: str, limit: int = 8) -> dict[str, Any]:
 
 
 def normalize_crappy_output(db, text: str) -> str:
-    """Enforce TOC-native emotes and strip generic internet emoji/emoticons."""
+    """Ban generic Unicode emoji while preserving text emoticons and valid TOC emotes."""
     output = str(text or "")
     output = _GENERIC_EMOJI_RE.sub("", output)
     output = output.replace("\uFE0F", "").replace("\u200D", "").replace("\u20E3", "")
-    output = _GENERIC_EMOTICON_RE.sub("", output)
 
     active_names = set(_active_emote_catalog(db))
 
