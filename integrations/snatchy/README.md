@@ -30,16 +30,28 @@ TOC environment:
 - `SNATCHY_WEBHOOK_SECRET` — required before imports can run.
 - `SNATCHY_BOARD` — optional destination override; defaults to `obsession`.
 
-Devvit global app setting:
+Reddit installation settings:
 
 - `toc_webhook_secret` — must equal `SNATCHY_WEBHOOK_SECRET`.
-- `enabled` — optional; `0`, `false`, `off`, or `disabled` disables imports.
+- `enabled` — optional; defaults to enabled.
 
-## Human setup still required
+## Fetch Domains
 
-1. Put a long random value in Railway as `SNATCHY_WEBHOOK_SECRET`.
-2. From this directory, create/login to the Devvit app and set the same value with `npx devvit settings set toc_webhook_secret`.
-3. Playtest/install the app on `r/obsessionmovie`.
-4. Complete Reddit's external HTTP/domain review for `theobsessionclub.com` if prompted.
+Snatchy makes outbound HTTPS requests only to `theobsessionclub.com`, specifically the TOC Snatchy ingestion endpoint used to deliver signed Reddit submission events.
+
+## Data handling
+
+See [PRIVACY.md](./PRIVACY.md) and [TERMS.md](./TERMS.md).
+
+## Deployment
+
+Unpublished Devvit uploads can only be installed on small test subreddits. Because `r/obsessionmovie` is over that limit, Snatchy must be published and reviewed by Reddit before it can be installed there.
+
+1. Keep `SNATCHY_WEBHOOK_SECRET` configured on TOC.
+2. Upload the current app version with `npx devvit upload`.
+3. Add the Terms and Privacy URLs from this repository to the app details in the Reddit Developer Portal.
+4. Run `npx devvit publish` to submit the unlisted app for review. Do not use `--public`; Snatchy is intended for `r/obsessionmovie`, not the public App Directory.
+5. After approval, install with `npx devvit install obsessionmovie`.
+6. Open the installation settings for `r/obsessionmovie`, set `toc_webhook_secret` to the same TOC secret, and leave `enabled` on.
 
 There is no manual Snatchy account creation, TOC bot token, or board-name setting.
