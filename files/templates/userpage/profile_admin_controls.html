@@ -1,0 +1,72 @@
+{% set bot_control = bot_profile_state(u) %}
+<details class="mx-3 my-2 border-bottom pb-2">
+	<summary class="font-weight-bold" style="cursor:pointer;">Advanced profile administration</summary>
+	<div class="py-3">
+		{% if bot_control.is_bot %}
+			<h6>Bot controls</h6>
+			<form action="/admin/profile/{{u.id}}/bot-controls" method="post" class="mb-4">
+				<input type="hidden" name="formkey" value="{{v|formkey}}">
+				<div class="custom-control custom-checkbox mb-2">
+					<input class="custom-control-input" type="checkbox" id="bot-enabled-{{u.id}}" name="enabled" value="1"{% if bot_control.enabled %} checked{% endif %}>
+					<label class="custom-control-label" for="bot-enabled-{{u.id}}">Bot enabled</label>
+				</div>
+				<div class="d-flex flex-wrap align-items-end">
+					<div class="mr-2 mb-2">
+						<label class="text-small" for="bot-post-limit-{{u.id}}">Posts/day <span class="text-muted">({{bot_control.posts_today}} today)</span></label>
+						<input class="form-control" id="bot-post-limit-{{u.id}}" type="number" min="0" max="100000" name="daily_post_limit" value="{{bot_control.daily_post_limit if bot_control.daily_post_limit is not none else ''}}" placeholder="Unlimited">
+					</div>
+					<div class="mr-2 mb-2">
+						<label class="text-small" for="bot-comment-limit-{{u.id}}">Comments/day <span class="text-muted">({{bot_control.comments_today}} today)</span></label>
+						<input class="form-control" id="bot-comment-limit-{{u.id}}" type="number" min="0" max="100000" name="daily_comment_limit" value="{{bot_control.daily_comment_limit if bot_control.daily_comment_limit is not none else ''}}" placeholder="Unlimited">
+					</div>
+					<button class="btn btn-primary mb-2" type="submit">Save bot controls</button>
+				</div>
+			</form>
+		{% endif %}
+
+		<h6>Identity & profile</h6>
+		<div class="row">
+			<div class="col-lg-6">
+				<form action="/admin/profile/{{u.id}}/username" method="post" class="mb-3">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<label class="text-small" for="forced-username-{{u.id}}">Force username</label>
+					<div class="input-group">
+						<input class="form-control" id="forced-username-{{u.id}}" name="username" value="{{u.username}}" maxlength="30" required>
+						<div class="input-group-append"><button class="btn btn-warning" type="submit">Change</button></div>
+					</div>
+				</form>
+				<form action="/admin/profile/{{u.id}}/wipe-reserved-username" method="post" class="mb-3">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<button class="btn btn-danger" type="submit"{% if not u.original_username %} disabled{% endif %}>Wipe reserved username{% if u.original_username %} (@{{u.original_username}}){% endif %}</button>
+				</form>
+			</div>
+			<div class="col-lg-6">
+				<form action="/admin/profile/{{u.id}}/bio" method="post" class="mb-3">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<label class="text-small" for="admin-bio-{{u.id}}">Bio</label>
+					<textarea class="form-control mb-2" id="admin-bio-{{u.id}}" name="bio" rows="4" maxlength="1500">{{u.bio or ''}}</textarea>
+					<button class="btn btn-primary" type="submit">Save bio</button>
+				</form>
+			</div>
+		</div>
+
+		<form action="/admin/profile/{{u.id}}/profile-css" method="post" class="mb-4">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<label class="text-small" for="admin-profile-css-{{u.id}}">Profile CSS</label>
+			<textarea class="form-control mb-2" id="admin-profile-css-{{u.id}}" name="profilecss" rows="3" maxlength="6000">{{u.profilecss or ''}}</textarea>
+			<button class="btn btn-primary" type="submit">Save profile CSS</button>
+		</form>
+
+		<h6>Profile media</h6>
+		<div class="d-flex flex-wrap">
+			{% for kind, label in [('picture', 'Profile picture'), ('banner', 'Banner'), ('background', 'Profile background')] %}
+				<form action="/admin/profile/{{u.id}}/image/{{kind}}" method="post" enctype="multipart/form-data" class="mr-3 mb-3">
+					<input type="hidden" name="formkey" value="{{v|formkey}}">
+					<label class="text-small d-block" for="admin-{{kind}}-{{u.id}}">{{label}}</label>
+					<input id="admin-{{kind}}-{{u.id}}" type="file" name="file" accept="image/*" required>
+					<button class="btn btn-secondary btn-sm ml-1" type="submit">Upload</button>
+				</form>
+			{% endfor %}
+		</div>
+	</div>
+</details>

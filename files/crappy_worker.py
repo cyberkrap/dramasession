@@ -9,6 +9,7 @@ configure_tldextract_offline()
 
 from files.helpers.const_stateful import const_initialize
 from files.helpers.crappy.config import crappy_enabled
+from files.helpers.bot_controls import install_bot_controls, install_crappy_service_guard
 
 
 def main() -> None:
@@ -19,6 +20,7 @@ def main() -> None:
     engine = create_engine(database_url, pool_pre_ping=True)
     db_session = scoped_session(sessionmaker(bind=engine, autoflush=False))
     const_initialize(db_session)
+    install_bot_controls(engine)
 
     # The sanitizer imports stateful emote lists by value. Import the Crappy
     # service only after const_initialize() so the worker sees the populated
@@ -27,7 +29,11 @@ def main() -> None:
         defer_transient_provider_failure,
         recover_recent_rate_limited_requests,
     )
-    from files.helpers.crappy.service import claim_next_crappy_request, process_crappy_request
+    import files.helpers.crappy.service as crappy_service
+
+    install_crappy_service_guard(crappy_service)
+    claim_next_crappy_request = crappy_service.claim_next_crappy_request
+    process_crappy_request = crappy_service.process_crappy_request
 
     recovery_db = db_session()
     try:

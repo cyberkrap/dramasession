@@ -2,8 +2,9 @@ import os
 
 from flask import abort, g, request
 
-from files.__main__ import app
+from files.__main__ import app, engine
 from files.classes import ModAction, User
+from files.helpers.bot_controls import install_bot_controls, install_native_bot_action_guards
 from files.helpers.config.const import PERMS
 from files.helpers.config import modaction_types as modaction_config
 from files.routes.wrappers import admin_level_required, get_logged_in_user
@@ -82,3 +83,12 @@ def wipe_profile_anthem(user_id, v: User):
         target_user_id=user.id,
     ))
     return {"message": f"@{user.username}'s profile anthem was removed."}
+
+
+# Install the shared bot policy after legacy route modules are loaded. The
+# helper also replaces route-level references imported from actions.py.
+install_bot_controls(engine)
+install_native_bot_action_guards()
+
+# Keep advanced profile moderation isolated from this compatibility module.
+from .profile_admin_tools import *  # noqa: E402,F401,F403
