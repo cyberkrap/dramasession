@@ -23,9 +23,13 @@ async function getConfig(): Promise<{
   enabled: boolean;
   webhookSecret: string;
 }> {
-  const enabledSetting = await settings.get<string>('enabled');
+  const enabledSetting = await settings.get<boolean | string>('enabled');
+  const enabled = typeof enabledSetting === 'boolean'
+    ? enabledSetting
+    : !enabledSetting || !['0', 'false', 'off', 'disabled'].includes(String(enabledSetting).toLowerCase());
+
   return {
-    enabled: !enabledSetting || !['0', 'false', 'off', 'disabled'].includes(enabledSetting.toLowerCase()),
+    enabled,
     webhookSecret: ((await settings.get<string>('toc_webhook_secret')) || '').trim(),
   };
 }
