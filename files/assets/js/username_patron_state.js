@@ -25,10 +25,6 @@
 		if (!(target instanceof HTMLElement)) return;
 		target.classList.remove('patron', 'username-effect-plate');
 		target.style.removeProperty('background-color');
-		target.style.removeProperty('color');
-		target.style.removeProperty('-webkit-text-fill-color');
-		target.style.removeProperty('-webkit-background-clip');
-		target.style.removeProperty('background-clip');
 		target.style.removeProperty('--username-effect-text-color');
 		if (target.classList.contains('username-effect-host')) {
 			target.classList.add('username-effect', 'username-effect-text');
@@ -63,23 +59,11 @@
 		scan(document);
 		new MutationObserver(mutations => {
 			for (const mutation of mutations) {
-				if (mutation.type === 'attributes') {
-					const target = mutation.target;
-					if (target instanceof Element && target.matches('[data-username-effect-patron="0"]')) {
-						syncDirectTarget(target);
-					}
-					continue;
-				}
 				mutation.addedNodes.forEach(node => {
 					if (node instanceof Element) scan(node);
 				});
 			}
-		}).observe(document.body, {
-			childList: true,
-			subtree: true,
-			attributes: true,
-			attributeFilter: ['class'],
-		});
+		}).observe(document.body, {childList: true, subtree: true});
 	}
 
 	if (document.readyState === 'loading') {
