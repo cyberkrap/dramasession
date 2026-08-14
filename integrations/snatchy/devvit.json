@@ -22,12 +22,11 @@
     }
   },
   "settings": {
-    "global": {
+    "subreddit": {
       "toc_webhook_secret": {
         "type": "string",
         "label": "TOC webhook secret",
-        "helpText": "Shared HMAC secret used to authenticate Snatchy requests to The Obsession Club.",
-        "isSecret": true
+        "helpText": "Shared HMAC secret used to authenticate Snatchy requests to The Obsession Club."
       },
       "enabled": {
         "type": "boolean",
