@@ -33,18 +33,23 @@ _ADMIN_PROFILE_ACTIONS = {
     },
     "force_username_change": {
         "str": "force-changed the username of {self.target_link}",
-        "icon": "fa-user-edit",
+        "icon": "fa-edit",
         "color": "bg-primary",
     },
     "wipe_reserved_username": {
         "str": "wiped the reserved username of {self.target_link}",
-        "icon": "fa-eraser",
+        "icon": "fa-times",
         "color": "bg-danger",
     },
     "edit_user_bio": {
         "str": "edited the bio of {self.target_link}",
-        "icon": "fa-address-card",
+        "icon": "fa-edit",
         "color": "bg-primary",
+    },
+    "wipe_user_bio": {
+        "str": "wiped profile bio of {self.target_link}",
+        "icon": "fa-times",
+        "color": "bg-danger",
     },
     "edit_user_profile_css": {
         "str": "edited the profile CSS of {self.target_link}",
@@ -53,7 +58,7 @@ _ADMIN_PROFILE_ACTIONS = {
     },
     "set_profile_picture": {
         "str": "changed the profile picture of {self.target_link}",
-        "icon": "fa-user-circle",
+        "icon": "fa-image",
         "color": "bg-primary",
     },
     "set_profile_banner": {
@@ -63,7 +68,7 @@ _ADMIN_PROFILE_ACTIONS = {
     },
     "set_profile_background": {
         "str": "changed the profile background of {self.target_link}",
-        "icon": "fa-images",
+        "icon": "fa-image",
         "color": "bg-primary",
     },
 }
@@ -200,6 +205,7 @@ def admin_wipe_reserved_username(user_id, v: User):
 @admin_level_required(PERMS["USER_MODERATION_TOOLS_VISIBLE"])
 def admin_edit_user_bio(user_id, v: User):
     user = _target_user(user_id, v)
+    old_bio = (user.bio or "").strip()
     bio = (request.form.get("bio") or "")[:1500].strip()
     if bio:
         bio_html = sanitize(bio)
@@ -211,7 +217,8 @@ def admin_edit_user_bio(user_id, v: User):
         user.bio = None
         user.bio_html = None
     g.db.add(user)
-    _log(v, user, "edit_user_bio")
+    if bio != old_bio:
+        _log(v, user, "edit_user_bio" if bio else "wipe_user_bio")
     return redirect(f"/@{user.username}")
 
 

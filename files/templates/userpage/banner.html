@@ -119,7 +119,7 @@ body#userpage .profile-badge-glare:focus-visible {
 						<span {% if u.active_patron %}class="patron" style="background-color:#{{u.name_color}}"{% endif %}>{{u.user_name}}</span>
 					</h1>
 					<div class="profile-identity-icons">
-						{% if u.username != u.original_username %}
+						{% if u.original_username and u.username != u.original_username %}
 							<i id="profile--origname" class="fas fa-user-tag" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Original Username: @{{u.original_username}}"></i>
 						{% endif %}
 						{% if FEATURES['PATRON_ICONS'] and u.active_patron %}
@@ -311,6 +311,7 @@ body#userpage .profile-badge-glare:focus-visible {
 					<a href="/@{{u.username}}/upvoting">Supported</a>
 					<a href="/@{{u.username}}/downvoting">Downvoted</a>
 					<a href="/@{{u.username}}/voted/posts">Voting history</a>
+					<a href="/@{{u.username}}/modlog">Mod History</a>
 				</section>
 			{% endif %}
 		</aside>
@@ -319,7 +320,10 @@ body#userpage .profile-badge-glare:focus-visible {
 	{% if v and v.id != u.id and v.admin_level >= PERMS['USER_MODERATION_TOOLS_VISIBLE'] %}
 		<details class="profile-moderation">
 			<summary><span><i class="fas fa-shield-alt mr-2"></i>Moderation tools</span><i class="fas fa-chevron-down"></i></summary>
-			<div class="profile-moderation__body">{{userpage_admintools.userAdminTools('desktop')}}</div>
+			<div class="profile-moderation__body">
+				{{userpage_admintools.userAdminTools('desktop')}}
+				{% include 'userpage/profile_admin_controls.html' %}
+			</div>
 		</details>
 	{% endif %}
 </section>

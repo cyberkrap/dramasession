@@ -35,9 +35,6 @@
 {% block content %}
 {%- include 'userpage/banner.html' -%}
 {%- include 'userpage/header.html' -%}
-{% if v and v.id != u.id and v.admin_level >= PERMS['USER_MODERATION_TOOLS_VISIBLE'] %}
-	{%- include 'userpage/profile_admin_controls.html' -%}
-{% endif %}
 {% block userpage_content required %}{% endblock %}
 <div id="profile-connections-mount" class="profile-connections-mount" aria-live="polite"></div>
 {% if FEATURES['USERS_PROFILE_SONG'] and u.song %}

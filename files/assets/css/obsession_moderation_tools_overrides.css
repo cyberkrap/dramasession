@@ -116,6 +116,175 @@
 	box-shadow: none !important;
 }
 
+/* Profile administration belongs inside the existing moderation panel. */
+.profile-moderation .profile-admin-tools {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	gap: 12px !important;
+	grid-column: 1 / -1 !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	margin-top: 14px !important;
+	padding-top: 14px !important;
+	border-top: 1px solid var(--mod-border) !important;
+	box-sizing: border-box !important;
+}
+
+.profile-moderation .profile-admin-tools__heading {
+	grid-column: 1 / -1 !important;
+	margin: 0 !important;
+	color: var(--mod-muted) !important;
+	font-size: .72rem !important;
+	font-weight: 760 !important;
+	letter-spacing: .04em !important;
+	text-transform: uppercase !important;
+}
+
+.profile-moderation .profile-admin-card {
+	min-width: 0 !important;
+	margin: 0 !important;
+	padding: 13px !important;
+	border: 1px solid var(--mod-border) !important;
+	border-radius: 10px !important;
+	background: var(--mod-card) !important;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025) !important;
+	box-sizing: border-box !important;
+}
+
+.profile-moderation .profile-admin-card--wide {
+	grid-column: 1 / -1 !important;
+}
+
+.profile-moderation .profile-admin-card__title {
+	margin: 0 0 10px !important;
+	color: #f4f2f5 !important;
+	font-size: .84rem !important;
+	font-weight: 800 !important;
+}
+
+.profile-moderation .profile-admin-inline {
+	display: grid !important;
+	grid-template-columns: minmax(0, 1fr) auto !important;
+	gap: 8px !important;
+	align-items: start !important;
+	width: 100% !important;
+}
+
+.profile-moderation .profile-admin-inline .form-control,
+.profile-moderation .profile-admin-bot-grid .form-control {
+	margin-bottom: 0 !important;
+}
+
+.profile-moderation .profile-admin-card textarea.form-control {
+	height: auto !important;
+	min-height: 110px !important;
+	padding: 10px 11px !important;
+	line-height: 1.35 !important;
+	resize: vertical !important;
+}
+
+.profile-moderation .profile-admin-bot-grid {
+	display: grid !important;
+	grid-template-columns: minmax(145px, .8fr) repeat(2, minmax(170px, 1fr)) auto !important;
+	gap: 10px !important;
+	align-items: end !important;
+	width: 100% !important;
+	min-width: 0 !important;
+}
+
+.profile-moderation .profile-admin-bot-enabled {
+	align-self: center !important;
+	margin: 0 !important;
+}
+
+.profile-moderation .profile-admin-media-grid {
+	display: grid !important;
+	grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+	gap: 12px !important;
+	width: 100% !important;
+	min-width: 0 !important;
+}
+
+.profile-moderation .profile-admin-media-form {
+	display: block !important;
+	min-width: 0 !important;
+	margin: 0 !important;
+	padding: 10px !important;
+	border: 1px solid var(--mod-border) !important;
+	border-radius: 8px !important;
+	background: rgba(3, 3, 5, .42) !important;
+	box-sizing: border-box !important;
+}
+
+.profile-moderation .profile-admin-file {
+	display: block !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+	color: #d8d5dc !important;
+	font-size: .75rem !important;
+	overflow: hidden !important;
+}
+
+.profile-moderation .profile-admin-card > .btn,
+.profile-moderation .profile-admin-card > form > .btn,
+.profile-moderation .profile-admin-save,
+.profile-moderation .profile-admin-media-form .btn {
+	max-width: 100% !important;
+}
+
+@media (max-width: 900px) {
+	.profile-moderation .profile-admin-bot-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	}
+
+	.profile-moderation .profile-admin-bot-enabled {
+		align-self: end !important;
+	}
+
+	.profile-moderation .profile-admin-save {
+		width: 100% !important;
+	}
+
+	.profile-moderation .profile-admin-media-grid {
+		grid-template-columns: 1fr !important;
+	}
+}
+
+@media (max-width: 720px) {
+	.profile-moderation__body {
+		padding: 10px !important;
+	}
+
+	.profile-moderation .admintools-user-lower-desktop,
+	.profile-moderation .admintools-user-lower-mobile {
+		grid-template-columns: 1fr !important;
+		gap: 9px !important;
+	}
+
+	.profile-moderation .actionbtns > .btn,
+	.profile-moderation .actionbtns > a,
+	.profile-moderation .actionbtns form > .btn,
+	.profile-moderation .actionbtns form > button,
+	.profile-moderation .actionbtns form > input[type="submit"],
+	.profile-moderation .moderation-asset-actions .btn,
+	.profile-moderation .moderation-asset-actions form .btn,
+	.profile-moderation .moderation-asset-actions form input[type="submit"] {
+		flex: 1 1 100% !important;
+		width: 100% !important;
+		max-width: none !important;
+	}
+
+	.profile-moderation .profile-admin-tools {
+		grid-template-columns: 1fr !important;
+		gap: 9px !important;
+	}
+
+	.profile-moderation .profile-admin-card--wide {
+		grid-column: auto !important;
+	}
+}
+
 @media (max-width: 560px) {
 	.profile-moderation .profile-flair-controls {
 		grid-template-columns: 40px minmax(0, 1fr) !important;
@@ -123,6 +292,17 @@
 
 	.profile-moderation .profile-flair-submit {
 		grid-column: 1 / -1 !important;
+		width: 100% !important;
+	}
+}
+
+@media (max-width: 500px) {
+	.profile-moderation .profile-admin-bot-grid,
+	.profile-moderation .profile-admin-inline {
+		grid-template-columns: 1fr !important;
+	}
+
+	.profile-moderation .profile-admin-inline .btn {
 		width: 100% !important;
 	}
 }
