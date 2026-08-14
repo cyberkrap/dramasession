@@ -1,6 +1,6 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
-  "name": "snatchy-toc",
+  "name": "the-obsession-club",
   "server": {
     "dir": "dist/server",
     "entry": "index.cjs"
@@ -19,6 +19,21 @@
       "domains": [
         "theobsessionclub.com"
       ]
+    }
+  },
+  "settings": {
+    "global": {
+      "toc_webhook_secret": {
+        "type": "string",
+        "label": "TOC webhook secret",
+        "helpText": "Shared HMAC secret used to authenticate Snatchy requests to The Obsession Club.",
+        "isSecret": true
+      },
+      "enabled": {
+        "type": "boolean",
+        "label": "Enable Snatchy imports",
+        "defaultValue": true
+      }
     }
   }
 }
