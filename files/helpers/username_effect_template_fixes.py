@@ -2,10 +2,28 @@ import os
 import tempfile
 from pathlib import Path
 
+from files.helpers.profile_admin_economy_fixes import (
+	install_profile_admin_permissions,
+	patch_profile_admin_economy_sources,
+	patch_username_patron_markers,
+)
+
 
 _COMMENTS_TEMPLATE = Path("files/templates/comments.html")
 _HEADER_TEMPLATE = Path("files/templates/header.html")
 _HTML_HEAD_TEMPLATE = Path("files/templates/util/html_head.html")
+
+
+# This helper is imported before the route modules. Register the granular
+# permissions and repair the legacy source paths before their decorators/functions
+# are loaded.
+install_profile_admin_permissions()
+try:
+	patch_profile_admin_economy_sources()
+except RuntimeError:
+	# Match the existing source-fix behavior: a stale marker must not prevent the
+	# whole site from starting. Individual routes retain their prior behavior.
+	pass
 
 
 def _atomic_write(path, content):
@@ -46,14 +64,7 @@ def _patch_shared_patron_state_source():
 
 
 def patch_comment_username_effects_source():
-	"""Put effect metadata on the exact comment username element.
-
-	The popover JSON remains available for profile popovers, but animated username
-	effects must not depend on parsing that larger attribute. Direct metadata also
-	lets dynamically inserted comments initialize immediately through the existing
-	MutationObserver. Shared patron state is normalized here as well so expired
-	patron rows cannot turn a normal username effect into a nameplate.
-	"""
+	"""Put effect metadata on the exact comment username element."""
 	_patch_shared_patron_state_source()
 
 	source = _COMMENTS_TEMPLATE.read_text(encoding="utf-8")
@@ -73,4 +84,8 @@ def patch_comment_username_effects_source():
 
 	if source != original:
 		_atomic_write(_COMMENTS_TEMPLATE, source)
+
+	# The marker pass runs after the comment span exists, and also covers table
+	# views / DM-like listings that never had popover patron metadata.
+	patch_username_patron_markers()
 	return True

@@ -9,6 +9,7 @@ function toggleElement(id, id2) {
 }
 
 const TRANSFER_TAX = Number(document.getElementById('tax')?.textContent || 0);
+const VIEWER_UNLIMITED_SPENDING = document.getElementById('viewer-unlimited-spending')?.dataset.enabled === '1';
 
 function updateTax() {
 	const amount = parseInt(document.getElementById('coin-transfer-amount')?.value || 0);
@@ -37,7 +38,7 @@ function transferCoins(t) {
 	}, () => {
 		const ownBalance = document.getElementById('user-coins-amount');
 		const profileBalance = document.getElementById('profile-coins-amount');
-		if (ownBalance) ownBalance.innerText = formatNumber(Number(ownBalance.innerText.replaceAll(',', '')) - amount);
+		if (ownBalance && !VIEWER_UNLIMITED_SPENDING) ownBalance.innerText = formatNumber(Number(ownBalance.innerText.replaceAll(',', '')) - amount);
 		if (profileBalance) profileBalance.innerText = formatNumber(Number(profileBalance.innerText.replaceAll(',', '')) + transferred);
 	});
 	setTimeout(() => t.disabled = false, 2000);
@@ -57,7 +58,7 @@ function transferBux(t) {
 	}, () => {
 		const ownBalance = document.getElementById('user-bux-amount');
 		const profileBalance = document.getElementById('profile-bux-amount');
-		if (ownBalance) ownBalance.innerText = formatNumber(Number(ownBalance.innerText.replaceAll(',', '')) - amount);
+		if (ownBalance && !VIEWER_UNLIMITED_SPENDING) ownBalance.innerText = formatNumber(Number(ownBalance.innerText.replaceAll(',', '')) - amount);
 		if (profileBalance) profileBalance.innerText = formatNumber(Number(profileBalance.innerText.replaceAll(',', '')) + amount);
 	});
 	setTimeout(() => t.disabled = false, 2000);

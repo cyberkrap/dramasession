@@ -11,6 +11,7 @@
 
 	function usernameTarget(trigger) {
 		if (!(trigger instanceof Element)) return null;
+		if (trigger.matches('[data-username-effect-user]')) return trigger;
 		const explicit = trigger.querySelector(':scope > [data-username-effect-user]');
 		if (explicit) return explicit;
 		const spans = Array.from(trigger.children).filter(child =>
@@ -34,31 +35,51 @@
 		}
 	}
 
+	function syncDirectTarget(target) {
+		if (!(target instanceof HTMLElement)) return;
+		if (target.dataset.usernameEffectPatron !== '0') return;
+		clearExpiredPlate(target);
+	}
+
 	function syncTrigger(trigger) {
 		const data = popoverData(trigger);
 		if (data.active_patron !== false) return;
 		const target = usernameTarget(trigger);
-		if (!target) return;
-		if (target.classList.contains('patron') || target.classList.contains('username-effect-plate')) {
-			clearExpiredPlate(target);
-		}
+		if (target) clearExpiredPlate(target);
 	}
 
 	function scan(root = document) {
-		const selector = '.user-name[data-pop-info]';
-		if (root instanceof Element && root.matches(selector)) syncTrigger(root);
-		root.querySelectorAll?.(selector).forEach(syncTrigger);
+		const triggerSelector = '.user-name[data-pop-info]';
+		const directSelector = '[data-username-effect-patron="0"]';
+		if (root instanceof Element) {
+			if (root.matches(triggerSelector)) syncTrigger(root);
+			if (root.matches(directSelector)) syncDirectTarget(root);
+		}
+		root.querySelectorAll?.(triggerSelector).forEach(syncTrigger);
+		root.querySelectorAll?.(directSelector).forEach(syncDirectTarget);
 	}
 
 	function initialize() {
 		scan(document);
 		new MutationObserver(mutations => {
 			for (const mutation of mutations) {
+				if (mutation.type === 'attributes') {
+					const target = mutation.target;
+					if (target instanceof Element && target.matches('[data-username-effect-patron="0"]')) {
+						syncDirectTarget(target);
+					}
+					continue;
+				}
 				mutation.addedNodes.forEach(node => {
 					if (node instanceof Element) scan(node);
 				});
 			}
-		}).observe(document.body, {childList: true, subtree: true});
+		}).observe(document.body, {
+			childList: true,
+			subtree: true,
+			attributes: true,
+			attributeFilter: ['class'],
+		});
 	}
 
 	if (document.readyState === 'loading') {

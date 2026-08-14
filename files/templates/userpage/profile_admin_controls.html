@@ -1,8 +1,13 @@
+{% set can_bot_controls = v.has_permission('BOT_CONTROLS') %}
+{% set can_identity = v.has_permission('USER_PROFILE_IDENTITY') %}
+{% set can_profile_edit = v.has_permission('USER_PROFILE_EDIT') %}
+{% set can_profile_assets = v.has_permission('USER_PROFILE_ASSETS') %}
 {% set bot_control = bot_profile_state(u) %}
+{% if can_bot_controls or can_identity or can_profile_edit or can_profile_assets %}
 <div class="profile-admin-tools">
 	<div class="profile-admin-tools__heading">Profile administration</div>
 
-	{% if bot_control.is_bot %}
+	{% if can_bot_controls and bot_control.is_bot %}
 		<form action="/admin/profile/{{u.id}}/bot-controls" method="post" class="profile-admin-card profile-admin-card--wide profile-admin-bot-card">
 			<input type="hidden" name="formkey" value="{{v|formkey}}">
 			<div class="profile-admin-card__title"><i class="fas fa-robot mr-2" aria-hidden="true"></i>Bot controls</div>
@@ -24,49 +29,54 @@
 		</form>
 	{% endif %}
 
-	<div class="profile-admin-card">
-		<div class="profile-admin-card__title"><i class="fas fa-user mr-2" aria-hidden="true"></i>Identity</div>
-		<form action="/admin/profile/{{u.id}}/username" method="post">
-			<input type="hidden" name="formkey" value="{{v|formkey}}">
-			<label class="text-small" for="forced-username-{{u.id}}">Force username</label>
-			<div class="profile-admin-inline">
-				<input class="form-control" id="forced-username-{{u.id}}" name="username" value="{{u.username}}" maxlength="30" required>
-				<button class="btn btn-warning" type="submit">Change</button>
-			</div>
-		</form>
-		{% if u.original_username %}
+	{% if can_identity %}
+		<div class="profile-admin-card">
+			<div class="profile-admin-card__title"><i class="fas fa-user mr-2" aria-hidden="true"></i>Identity</div>
+			<form action="/admin/profile/{{u.id}}/username" method="post">
+				<input type="hidden" name="formkey" value="{{v|formkey}}">
+				<label class="text-small" for="forced-username-{{u.id}}">Force username</label>
+				<div class="profile-admin-inline">
+					<input class="form-control" id="forced-username-{{u.id}}" name="username" value="{{u.username}}" maxlength="30" required>
+					<button class="btn btn-warning" type="submit">Change</button>
+				</div>
+			</form>
 			<form action="/admin/profile/{{u.id}}/wipe-reserved-username" method="post" class="mt-2">
 				<input type="hidden" name="formkey" value="{{v|formkey}}">
-				<button class="btn btn-danger w-100" type="submit">Wipe reserved username (@{{u.original_username}})</button>
+				<button class="btn btn-danger w-100" type="submit"{% if not u.original_username %} disabled title="This user has no reserved username"{% endif %}>Wipe reserved username{% if u.original_username %} (@{{u.original_username}}){% endif %}</button>
 			</form>
-		{% endif %}
-	</div>
-
-	<form action="/admin/profile/{{u.id}}/bio" method="post" class="profile-admin-card">
-		<input type="hidden" name="formkey" value="{{v|formkey}}">
-		<div class="profile-admin-card__title"><i class="fas fa-edit mr-2" aria-hidden="true"></i>Bio</div>
-		<textarea class="form-control" id="admin-bio-{{u.id}}" name="bio" rows="5" maxlength="1500">{{u.bio or ''}}</textarea>
-		<button class="btn btn-primary mt-2" type="submit">Save bio</button>
-	</form>
-
-	<form action="/admin/profile/{{u.id}}/profile-css" method="post" class="profile-admin-card">
-		<input type="hidden" name="formkey" value="{{v|formkey}}">
-		<div class="profile-admin-card__title"><i class="fas fa-code mr-2" aria-hidden="true"></i>Profile CSS</div>
-		<textarea class="form-control" id="admin-profile-css-{{u.id}}" name="profilecss" rows="5" maxlength="6000">{{u.profilecss or ''}}</textarea>
-		<button class="btn btn-primary mt-2" type="submit">Save profile CSS</button>
-	</form>
-
-	<div class="profile-admin-card profile-admin-card--wide profile-admin-media-card">
-		<div class="profile-admin-card__title"><i class="fas fa-image mr-2" aria-hidden="true"></i>Profile media</div>
-		<div class="profile-admin-media-grid">
-			{% for kind, label in [('picture', 'Profile picture'), ('banner', 'Banner'), ('background', 'Profile background')] %}
-				<form action="/admin/profile/{{u.id}}/image/{{kind}}" method="post" enctype="multipart/form-data" class="profile-admin-media-form">
-					<input type="hidden" name="formkey" value="{{v|formkey}}">
-					<label class="text-small d-block" for="admin-{{kind}}-{{u.id}}">{{label}}</label>
-					<input id="admin-{{kind}}-{{u.id}}" class="profile-admin-file" type="file" name="file" accept="image/*" required>
-					<button class="btn btn-secondary mt-2" type="submit">Upload</button>
-				</form>
-			{% endfor %}
 		</div>
-	</div>
+	{% endif %}
+
+	{% if can_profile_edit %}
+		<form action="/admin/profile/{{u.id}}/bio" method="post" class="profile-admin-card">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<div class="profile-admin-card__title"><i class="fas fa-edit mr-2" aria-hidden="true"></i>Bio</div>
+			<textarea class="form-control" id="admin-bio-{{u.id}}" name="bio" rows="5" maxlength="1500">{{u.bio or ''}}</textarea>
+			<button class="btn btn-primary mt-2" type="submit">Save bio</button>
+		</form>
+
+		<form action="/admin/profile/{{u.id}}/profile-css" method="post" class="profile-admin-card">
+			<input type="hidden" name="formkey" value="{{v|formkey}}">
+			<div class="profile-admin-card__title"><i class="fas fa-code mr-2" aria-hidden="true"></i>Profile CSS</div>
+			<textarea class="form-control" id="admin-profile-css-{{u.id}}" name="profilecss" rows="5" maxlength="6000">{{u.profilecss or ''}}</textarea>
+			<button class="btn btn-primary mt-2" type="submit">Save profile CSS</button>
+		</form>
+	{% endif %}
+
+	{% if can_profile_assets %}
+		<div class="profile-admin-card profile-admin-card--wide profile-admin-media-card">
+			<div class="profile-admin-card__title"><i class="fas fa-image mr-2" aria-hidden="true"></i>Profile media</div>
+			<div class="profile-admin-media-grid">
+				{% for kind, label in [('picture', 'Profile picture'), ('banner', 'Banner'), ('background', 'Profile background')] %}
+					<form action="/admin/profile/{{u.id}}/image/{{kind}}" method="post" enctype="multipart/form-data" class="profile-admin-media-form">
+						<input type="hidden" name="formkey" value="{{v|formkey}}">
+						<label class="text-small d-block" for="admin-{{kind}}-{{u.id}}">{{label}}</label>
+						<input id="admin-{{kind}}-{{u.id}}" class="profile-admin-file" type="file" name="file" accept="image/*" required>
+						<button class="btn btn-secondary mt-2" type="submit">Upload</button>
+					</form>
+				{% endfor %}
+			</div>
+		</div>
+	{% endif %}
 </div>
+{% endif %}

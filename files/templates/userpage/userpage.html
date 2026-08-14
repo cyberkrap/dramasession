@@ -47,7 +47,8 @@
 
 <div id="username" class="d-none">{{u.username}}</div>
 {% if v %}
-<div id='tax' class="d-none">{% if v.patron or u.patron %}0{% else %}0.03{% endif %}</div>
+<div id='tax' class="d-none">{% if v.active_patron or u.active_patron %}0{% else %}0.03{% endif %}</div>
+<div id="viewer-unlimited-spending" class="d-none" data-enabled="{{1 if v.has_unlimited_spending else 0}}"></div>
 <script defer src="{{'js/userpage_v.js' | asset}}"></script>
 {% endif %}
 <script defer src="{{'js/userpage.js' | asset}}"></script>
