@@ -12,6 +12,7 @@ from files.helpers.profile_admin_economy_fixes import (
 _COMMENTS_TEMPLATE = Path("files/templates/comments.html")
 _HEADER_TEMPLATE = Path("files/templates/header.html")
 _HTML_HEAD_TEMPLATE = Path("files/templates/util/html_head.html")
+_USERNAME_EFFECTS_ASSET = Path("files/assets/js/username_effects.js")
 
 
 # This helper is imported before the route modules. Register the granular
@@ -85,7 +86,9 @@ def patch_comment_username_effects_source():
 	if source != original:
 		_atomic_write(_COMMENTS_TEMPLATE, source)
 
-	# The marker pass runs after the comment span exists, and also covers table
-	# views / DM-like listings that never had popover patron metadata.
+	# This marker pass rewrites username_effects.js through a temp file. mkstemp
+	# creates that file as 0600, which prevents nginx from serving the asset.
+	# Restore normal static-asset readability immediately after the patch.
 	patch_username_patron_markers()
+	os.chmod(_USERNAME_EFFECTS_ASSET, 0o644)
 	return True
