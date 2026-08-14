@@ -19,7 +19,6 @@
       "domains": [
         "theobsessionclub.com"
       ]
-    },
-    "redis": true
+    }
   }
 }

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  buildDeletedSourceEditForm,
+  buildImportPayload,
+  buildSourceDeletedPayload,
   buildTocBody,
-  buildTocForm,
   canonicalRedditPostUrl,
   redditUrl,
 } from './importer.ts';
@@ -56,28 +56,53 @@ test('renders Reddit images inline in TOC markdown', () => {
   assert.doesNotMatch(body, /\[Linked content\]/);
 });
 
-test('uses the Reddit id URL as the unique TOC URL and carries NSFW', () => {
-  const form = buildTocForm({
+test('builds a signed-webhook payload with the fixed Reddit source metadata', () => {
+  const payload = buildImportPayload({
     post: {
       id: 't3_abc',
       title: 'Image post',
       permalink: '/r/obsessionmovie/comments/abc/image_post/',
       url: 'https://i.redd.it/example.jpg',
       nsfw: true,
+      createdAt: 1760000000,
+    },
+    authorName: 'poster',
+    subredditName: 'r/obsessionmovie',
+  });
+
+  assert.equal(payload.action, 'import');
+  assert.equal(payload.source, 'reddit');
+  assert.equal(payload.subreddit, 'obsessionmovie');
+  assert.equal(payload.redditPostId, 't3_abc');
+  assert.equal(payload.redditAuthor, 'poster');
+  assert.equal(payload.over18, true);
+  assert.equal(payload.createdUtc, 1760000000);
+  assert.equal(payload.sourcePermalink, 'https://www.reddit.com/r/obsessionmovie/comments/abc/image_post/');
+});
+
+test('source deletion payload contains no copied Reddit content', () => {
+  const payload = buildSourceDeletedPayload('t3_abc', 'obsessionmovie');
+  assert.deepEqual(payload, {
+    action: 'source_deleted',
+    source: 'reddit',
+    subreddit: 'obsessionmovie',
+    redditPostId: 't3_abc',
+  });
+  assert.equal('title' in payload, false);
+  assert.equal('body' in payload, false);
+});
+
+test('import payload has no TOC board or bot access token fields', () => {
+  const payload = buildImportPayload({
+    post: {
+      id: 't3_abc',
+      title: 'Theory',
+      permalink: '/r/obsessionmovie/comments/abc/theory/',
     },
     authorName: 'poster',
     subredditName: 'obsessionmovie',
-    tocBoard: 'obsession',
   });
 
-  assert.equal(form.get('url'), 'https://www.reddit.com/comments/abc');
-  assert.equal(form.get('sub'), 'obsession');
-  assert.equal(form.get('over_18'), '1');
-});
-
-test('author deletion edit keeps the TOC thread but removes copied content', () => {
-  const form = buildDeletedSourceEditForm();
-  assert.equal(form.get('title'), '[Deleted Reddit post]');
-  assert.doesNotMatch(form.get('body') || '', /u\//);
-  assert.match(form.get('body') || '', /TOC discussion is preserved/);
+  assert.equal('tocBoard' in payload, false);
+  assert.equal('tocAccessToken' in payload, false);
 });

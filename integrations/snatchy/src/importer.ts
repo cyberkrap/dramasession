@@ -11,6 +11,27 @@ export type RedditPostEvent = {
   isVideo?: boolean;
   mediaUrls?: string[];
   galleryImages?: string[];
+  createdAt?: number;
+};
+
+export type SnatchyImportPayload = {
+  action: 'import';
+  source: 'reddit';
+  subreddit: string;
+  redditPostId: string;
+  redditAuthor: string;
+  sourcePermalink: string;
+  createdUtc?: number;
+  title: string;
+  body: string;
+  over18: boolean;
+};
+
+export type SnatchyDeletePayload = {
+  action: 'source_deleted';
+  source: 'reddit';
+  subreddit: string;
+  redditPostId: string;
 };
 
 export function redditUrl(pathOrUrl: string): string {
@@ -73,32 +94,44 @@ export function buildTocBody(args: {
   return parts.join('\n\n');
 }
 
-export function buildTocForm(args: {
+export function buildImportPayload(args: {
   post: RedditPostEvent;
   authorName: string;
   subredditName: string;
-  tocBoard: string;
-}): URLSearchParams {
-  const { post, authorName, subredditName, tocBoard } = args;
+}): SnatchyImportPayload {
+  const { post, authorName, subredditName } = args;
   if (!post.title?.trim()) throw new Error('Reddit post has no title');
   if (!post.permalink?.trim()) throw new Error('Reddit post has no permalink');
   if (!post.id?.trim()) throw new Error('Reddit post has no id');
 
-  const form = new URLSearchParams();
-  form.set('title', post.title.trim());
-  form.set('body', buildTocBody({ post, authorName, subredditName }));
-  // This title-independent URL is unique per Reddit submission, so TOC's
-  // existing repost detector cannot collapse two Reddit posts sharing a link.
-  form.set('url', canonicalRedditPostUrl(post.id));
-  form.set('sub', tocBoard.trim());
-  form.set('notify', 'off');
-  if (post.nsfw) form.set('over_18', '1');
-  return form;
+  const payload: SnatchyImportPayload = {
+    action: 'import',
+    source: 'reddit',
+    subreddit: subredditName.trim().replace(/^r\//i, ''),
+    redditPostId: post.id.trim(),
+    redditAuthor: authorName.trim(),
+    sourcePermalink: redditUrl(post.permalink),
+    title: post.title.trim(),
+    body: buildTocBody({ post, authorName, subredditName }),
+    over18: Boolean(post.nsfw),
+  };
+
+  if (Number.isFinite(post.createdAt)) {
+    payload.createdUtc = post.createdAt;
+  }
+
+  return payload;
 }
 
-export function buildDeletedSourceEditForm(): URLSearchParams {
-  const form = new URLSearchParams();
-  form.set('title', '[Deleted Reddit post]');
-  form.set('body', 'The original Reddit post was deleted by its author. The TOC discussion is preserved here.');
-  return form;
+export function buildSourceDeletedPayload(
+  postId: string,
+  subredditName: string
+): SnatchyDeletePayload {
+  if (!postId.trim()) throw new Error('Reddit post has no id');
+  return {
+    action: 'source_deleted',
+    source: 'reddit',
+    subreddit: subredditName.trim().replace(/^r\//i, ''),
+    redditPostId: postId.trim(),
+  };
 }
