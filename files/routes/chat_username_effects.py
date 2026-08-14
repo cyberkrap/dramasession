@@ -12,7 +12,9 @@ from files.routes.wrappers import auth_required, get_ID
 
 
 _CHAT_CSS = Path('files/assets/css/chat.css')
+_CHAT_ROUTE = Path('files/routes/chat.py')
 _CHAT_STYLE_LOCK = '/tmp/obsession-chat-removed-style.lock'
+_CHAT_SOURCE_LOCK = '/tmp/obsession-chat-active-patron.lock'
 _CHAT_REMOVED_STYLE = r'''
 
 /* obsession-admin-removed-message-v1
@@ -65,9 +67,31 @@ def _install_removed_chat_style():
 		os.replace(temp, _CHAT_CSS)
 
 
+def _patch_chat_active_patron_source():
+	"""Keep chat nameplates tied to current patron entitlement, not stale tier rows."""
+	with open(_CHAT_SOURCE_LOCK, 'w', encoding='utf-8') as lock:
+		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+		source = _CHAT_ROUTE.read_text(encoding='utf-8')
+		original = source
+		source = source.replace(
+			'"patron": bool(author and author.patron),',
+			'"patron": bool(author and author.active_patron),',
+		)
+		source = source.replace(
+			'entry = [v.username, v.id, v.name_color, bool(v.patron)]',
+			'entry = [v.username, v.id, v.name_color, bool(v.active_patron)]',
+		)
+		if source == original:
+			return
+		temp = _CHAT_ROUTE.with_name(f'.{_CHAT_ROUTE.name}.{os.getpid()}.tmp')
+		temp.write_text(source, encoding='utf-8')
+		os.replace(temp, _CHAT_ROUTE)
+
+
 _install_removed_chat_style()
+_patch_chat_active_patron_source()
 # __main__ imports this module immediately before files.routes.chat in the chat
-# service, so the source patch is guaranteed to run before chat handlers load.
+# service, so the source patches are guaranteed to run before chat handlers load.
 patch_chat_admin_modlog_source()
 
 
@@ -101,7 +125,7 @@ def chat_username_effects(v):
 				'effects': user.active_username_effects,
 				'effect_color': user.username_effect_text_color,
 				'name_color': user.name_color,
-				'patron': bool(user.patron),
+				'patron': bool(user.active_patron),
 			}
 			for user in users
 		}

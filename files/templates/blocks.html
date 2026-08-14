@@ -13,8 +13,8 @@
 {% for user in users %}
 	<tr>
 		<td>{{loop.index}}</td>
-		<td><a style="font-weight:bold;color:#{{user.name_color}}" href="/@{{user.username}}"><span {% if user.patron %}class="patron" style="background-color:#{{user.name_color}}"{% endif %}>{{user.user_name}}</span></a></td>
-		<td><a style="font-weight:bold;color:#{{targets[loop.index-1].name_color}}" href="/@{{targets[loop.index-1].username}}"><span {% if targets[loop.index-1].patron %}class="patron" style="background-color:#{{targets[loop.index-1].name_color}}"{% endif %}>{{targets[loop.index-1].user_name}}</span></a></td>
+		<td><a style="font-weight:bold;color:#{{user.name_color}}" href="/@{{user.username}}"><span {% if user.active_patron %}class="patron" style="background-color:#{{user.name_color}}"{% endif %}>{{user.user_name}}</span></a></td>
+		<td><a style="font-weight:bold;color:#{{targets[loop.index-1].name_color}}" href="/@{{targets[loop.index-1].username}}"><span {% if targets[loop.index-1].active_patron %}class="patron" style="background-color:#{{targets[loop.index-1].name_color}}"{% endif %}>{{targets[loop.index-1].user_name}}</span></a></td>
 	</tr>
 {% endfor %}
 </table>

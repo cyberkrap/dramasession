@@ -4,6 +4,8 @@ from pathlib import Path
 
 
 _COMMENTS_TEMPLATE = Path("files/templates/comments.html")
+_HEADER_TEMPLATE = Path("files/templates/header.html")
+_HTML_HEAD_TEMPLATE = Path("files/templates/util/html_head.html")
 
 
 def _atomic_write(path, content):
@@ -20,14 +22,40 @@ def _atomic_write(path, content):
 			pass
 
 
+def _patch_shared_patron_state_source():
+	"""Use active patron entitlement anywhere shared username chrome is rendered."""
+	header = _HEADER_TEMPLATE.read_text(encoding="utf-8")
+	header_original = header
+	header = header.replace(
+		'{% if v.patron %}class="patron" style="background-color:#{{v.name_color}}"{% endif %}',
+		'{% if v.active_patron %}class="patron" style="background-color:#{{v.name_color}}"{% endif %}',
+	)
+	if header != header_original:
+		_atomic_write(_HEADER_TEMPLATE, header)
+
+	head = _HTML_HEAD_TEMPLATE.read_text(encoding="utf-8")
+	head_original = head
+	marker = "\t\t<script defer src=\"{{'js/username_effects.js' | asset}}\"></script>"
+	state_script = "\t\t<script defer src=\"{{'js/username_patron_state.js' | asset}}\"></script>"
+	if state_script not in head:
+		if marker not in head:
+			raise RuntimeError("Could not locate the username effects script include")
+		head = head.replace(marker, state_script + "\n" + marker, 1)
+	if head != head_original:
+		_atomic_write(_HTML_HEAD_TEMPLATE, head)
+
+
 def patch_comment_username_effects_source():
 	"""Put effect metadata on the exact comment username element.
 
 	The popover JSON remains available for profile popovers, but animated username
 	effects must not depend on parsing that larger attribute. Direct metadata also
 	lets dynamically inserted comments initialize immediately through the existing
-	MutationObserver.
+	MutationObserver. Shared patron state is normalized here as well so expired
+	patron rows cannot turn a normal username effect into a nameplate.
 	"""
+	_patch_shared_patron_state_source()
+
 	source = _COMMENTS_TEMPLATE.read_text(encoding="utf-8")
 	original = source
 

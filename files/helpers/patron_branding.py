@@ -78,6 +78,17 @@ def install_patron_branding():
 	global _INSTALLED
 	if _INSTALLED:
 		return
+
+	# Raw ``User.patron`` can outlive the paid entitlement. Publish the canonical
+	# active state with popover data so generic username renderers can remove a
+	# stale patron plate before applying a username effect.
+	original_json_popover = User.json_popover
+	def json_popover_with_patron_state(user, viewer):
+		data = dict(original_json_popover(user, viewer))
+		data["active_patron"] = bool(user.active_patron)
+		return data
+
+	User.json_popover = json_popover_with_patron_state
 	User.patron_tooltip = property(_patron_tooltip)
 	app.before_request(_sync_contribution_badge_definitions)
 	_INSTALLED = True
