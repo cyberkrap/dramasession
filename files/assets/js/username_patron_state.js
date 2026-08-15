@@ -31,22 +31,59 @@
 		}
 	}
 
-	function setPatronState(target, active) {
+	function ensureFreeloaderTextTarget(target, data = {}) {
+		if (!(target instanceof HTMLElement)) return null;
+		clearExpiredPlate(target);
+
+		if (target.dataset.usernameEffectFreeloaderText === '1') {
+			target.dataset.usernameEffectPatron = '0';
+			return target;
+		}
+
+		target.classList.add('username-effect-text-container');
+		target.dataset.usernameEffectPatron = '0';
+
+		let inner = target.querySelector(':scope > [data-username-effect-freeloader-text="1"]');
+		if (!inner) {
+			inner = document.createElement('span');
+			inner.dataset.usernameEffectFreeloaderText = '1';
+			while (target.firstChild) inner.append(target.firstChild);
+			target.append(inner);
+		}
+
+		const userId = target.dataset.usernameEffectUser || data.id;
+		const effects = target.dataset.usernameEffects || (Array.isArray(data.username_effects) ? data.username_effects.join(',') : data.username_effects);
+		const color = target.dataset.usernameEffectColor || data.username_effect_color;
+
+		if (userId) inner.dataset.usernameEffectUser = String(userId);
+		if (effects) inner.dataset.usernameEffects = String(effects);
+		if (color) inner.dataset.usernameEffectColor = String(color);
+		inner.dataset.usernameEffectPatron = '0';
+
+		// Keep layout/popover behavior on the outer username element. The effect
+		// itself belongs only to this inner glyph span, exactly like the working
+		// profile-page name renderer.
+		target.removeAttribute('data-username-effects');
+		target.removeAttribute('data-username-effect-color');
+		return inner;
+	}
+
+	function setPatronState(target, active, data = {}) {
 		if (!(target instanceof HTMLElement)) return;
 		target.dataset.usernameEffectPatron = active ? '1' : '0';
-		if (!active) clearExpiredPlate(target);
+		if (!active) ensureFreeloaderTextTarget(target, data);
 	}
 
 	function syncDirectTarget(target) {
 		if (!(target instanceof HTMLElement)) return;
-		if (target.dataset.usernameEffectPatron === '0') clearExpiredPlate(target);
+		if (target.dataset.usernameEffectPatron === '0') ensureFreeloaderTextTarget(target);
 	}
 
 	function syncTrigger(trigger) {
 		const data = popoverData(trigger);
 		if (typeof data.active_patron !== 'boolean') return;
 		const target = usernameTarget(trigger);
-		if (target) setPatronState(target, data.active_patron);
+		if (target) setPatronState(target, data.active_patron, data);
 	}
 
 	function scan(root = document) {
