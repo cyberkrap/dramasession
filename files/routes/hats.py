@@ -3,6 +3,7 @@ from sqlalchemy import func
 from files.classes.hats import *
 from files.helpers.alerts import *
 from files.helpers.config.const import *
+from files.helpers.get import get_user
 from files.helpers.useractions import *
 from files.routes.wrappers import *
 from files.__main__ import app, limiter
@@ -93,6 +94,61 @@ def buy_hat(v:User, hat_id):
 		badge_grant(user=v, badge_id=152)
 
 	return {"message": f"'{hat.name}' bought!"}
+
+
+@app.post("/gift_hat/<int:hat_id>")
+@limiter.limit(DEFAULT_RATELIMIT_SLOWER, key_func=get_ID)
+@auth_required
+def gift_hat(v:User, hat_id):
+	try: hat_id = int(hat_id)
+	except: abort(404, "Hat not found!")
+
+	hat_def = g.db.query(HatDef).filter_by(submitter_id=None, id=hat_id).one_or_none()
+	if not hat_def: abort(404, "Hat not found!")
+
+	username = str(request.values.get("username") or "").strip().lstrip("@")
+	if not username: abort(400, "Enter a username to receive the gift.")
+
+	recipient_lookup = get_user(username, graceful=True)
+	if not recipient_lookup: abort(404, "That user does not exist.")
+	if recipient_lookup.id == v.id: abort(400, "You cannot gift a hat to yourself.")
+
+	locked_users = {
+		user.id: user
+		for user in g.db.query(User)
+		.filter(User.id.in_([v.id, recipient_lookup.id]))
+		.with_for_update()
+		.all()
+	}
+	sender = locked_users.get(v.id)
+	recipient = locked_users.get(recipient_lookup.id)
+	if not sender or not recipient: abort(404, "One of those accounts no longer exists.")
+
+	owned_hat = g.db.query(Hat).filter_by(user_id=sender.id, hat_id=hat_id).with_for_update().one_or_none()
+	if not owned_hat: abort(403, "You can only gift a hat you currently own.")
+
+	recipient_hat = g.db.query(Hat).filter_by(user_id=recipient.id, hat_id=hat_id).one_or_none()
+	if recipient_hat: abort(409, f"@{recipient.username} already owns {hat_def.name}.")
+
+	g.db.delete(owned_hat)
+	g.db.flush()
+	g.db.add(Hat(user_id=recipient.id, hat_id=hat_id, equipped=False))
+	g.db.flush()
+
+	recipient_hat_count = g.db.query(func.count(Hat.hat_id)).filter(Hat.user_id == recipient.id).scalar() or 0
+	if recipient_hat_count >= 250:
+		badge_grant(user=recipient, badge_id=154)
+	elif recipient_hat_count >= 100:
+		badge_grant(user=recipient, badge_id=153)
+	elif recipient_hat_count >= 25:
+		badge_grant(user=recipient, badge_id=152)
+
+	send_repeatable_notification(
+		recipient.id,
+		f"@{sender.username} has gifted you the hat {hat_def.name}. You can equip it in the [Hats Shop](/hats)."
+	)
+
+	return {"message": f"'{hat_def.name}' transferred to @{recipient.username}."}
 
 
 @app.post("/equip_hat/<int:hat_id>")
