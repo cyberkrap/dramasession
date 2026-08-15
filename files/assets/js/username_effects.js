@@ -88,12 +88,29 @@
 		) || null;
 	}
 
+	function freeloaderTextTarget(element) {
+		if (!(element instanceof Element)) return null;
+		if (element.matches('[data-username-effect-freeloader-text="1"]')) return element;
+		const inner = element.querySelector(':scope > [data-username-effect-freeloader-text="1"]');
+		if (!inner) return null;
+
+		// This wrapper may have been registered from popover metadata before the
+		// freeloader state was normalized. Tear that registration down completely
+		// so only the inner glyph span can ever paint an effect image.
+		unregister(element);
+		clearVisual(element, true);
+		return inner;
+	}
+
 	function resolveTarget(host, profile = false) {
 		if (!(host instanceof Element)) return null;
 		if (profile || host.id === 'profile--name') {
 			if (isPatronPlate(host)) return host;
 			return host.querySelector(':scope > .patron, .patron') || wrapFirstTextToken(host);
 		}
+
+		const isolated = freeloaderTextTarget(host);
+		if (isolated) return isolated;
 		if (isPatronPlate(host)) return host;
 		if (host.matches('span, strong, b, bdi, h1, h2, h3, h4, h5')) return host;
 		const patron = host.querySelector(':scope > .patron');
@@ -103,7 +120,8 @@
 				child instanceof Element && child.tagName === 'SPAN' &&
 				!child.matches('.pronouns, [class*="pronoun"], [class*="flair"]')
 			);
-			return spans[spans.length - 1] || null;
+			const candidate = spans[spans.length - 1] || null;
+			return freeloaderTextTarget(candidate) || candidate;
 		}
 		return null;
 	}
