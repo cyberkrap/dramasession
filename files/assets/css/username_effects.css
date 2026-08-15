@@ -80,6 +80,28 @@
 	filter: none !important;
 }
 
+/* Generic listings/messages keep layout on the outer username node while the
+   isolated child receives the texture. Never let the outer host paint a box. */
+.username-effect-text-container.username-effect-host,
+.username-effect-text-container.username-effect-host.username-effect--ready {
+	color: inherit !important;
+	-webkit-text-fill-color: currentColor !important;
+	background-color: transparent !important;
+	background-image: none !important;
+	-webkit-background-clip: border-box !important;
+	background-clip: border-box !important;
+	text-shadow: inherit !important;
+	filter: none !important;
+}
+
+[data-username-effect-freeloader-text="1"] {
+	display: inline-block;
+	padding: 0 !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
 /* Never hide a username before its WebP is decoded. */
 .username-effect:not(.username-effect--ready),
 .username-effect-text:not(.username-effect--ready) {
