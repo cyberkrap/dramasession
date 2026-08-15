@@ -31,22 +31,27 @@
 		}
 	}
 
+	function setPatronState(target, active) {
+		if (!(target instanceof HTMLElement)) return;
+		target.dataset.usernameEffectPatron = active ? '1' : '0';
+		if (!active) clearExpiredPlate(target);
+	}
+
 	function syncDirectTarget(target) {
 		if (!(target instanceof HTMLElement)) return;
-		if (target.dataset.usernameEffectPatron !== '0') return;
-		clearExpiredPlate(target);
+		if (target.dataset.usernameEffectPatron === '0') clearExpiredPlate(target);
 	}
 
 	function syncTrigger(trigger) {
 		const data = popoverData(trigger);
-		if (data.active_patron !== false) return;
+		if (typeof data.active_patron !== 'boolean') return;
 		const target = usernameTarget(trigger);
-		if (target) clearExpiredPlate(target);
+		if (target) setPatronState(target, data.active_patron);
 	}
 
 	function scan(root = document) {
 		const triggerSelector = '.user-name[data-pop-info]';
-		const directSelector = '[data-username-effect-patron="0"]';
+		const directSelector = '[data-username-effect-patron]';
 		if (root instanceof Element) {
 			if (root.matches(triggerSelector)) syncTrigger(root);
 			if (root.matches(directSelector)) syncDirectTarget(root);

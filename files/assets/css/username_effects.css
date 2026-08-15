@@ -52,6 +52,34 @@
 	image-rendering: auto;
 }
 
+/* active_patron=false is authoritative. Even if old markup still carries a
+   stale .patron class, freeloaders always render the effect inside the glyphs. */
+[data-username-effect-patron="0"].username-effect-host,
+[data-username-effect-patron="0"].username-effect-plate {
+	display: inline-block !important;
+	padding: 0 !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background-color: transparent !important;
+}
+
+[data-username-effect-patron="0"].username-effect-host.username-effect--ready,
+[data-username-effect-patron="0"].username-effect-plate.username-effect--ready {
+	color: transparent !important;
+	-webkit-text-fill-color: transparent !important;
+	background-color: transparent !important;
+	background-image: var(--username-effect-image) !important;
+	background-position: center center !important;
+	background-repeat: no-repeat !important;
+	background-size: 100% 100% !important;
+	background-origin: content-box !important;
+	-webkit-background-clip: text !important;
+	background-clip: text !important;
+	text-shadow: none !important;
+	filter: none !important;
+}
+
 /* Never hide a username before its WebP is decoded. */
 .username-effect:not(.username-effect--ready),
 .username-effect-text:not(.username-effect--ready) {
@@ -62,7 +90,9 @@
 	.username-effect,
 	.username-effect-text,
 	.username-effect.username-effect--ready,
-	.username-effect-text.username-effect--ready {
+	.username-effect-text.username-effect--ready,
+	[data-username-effect-patron="0"].username-effect-host.username-effect--ready,
+	[data-username-effect-patron="0"].username-effect-plate.username-effect--ready {
 		color: inherit !important;
 		-webkit-text-fill-color: currentColor !important;
 		background-image: none !important;
