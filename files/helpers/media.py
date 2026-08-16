@@ -165,21 +165,29 @@ def process_image(filename:str, v, resize=0, trim=False, uploader_id:Optional[in
 			abort(413, f"Max image/audio size is {MAX_IMAGE_AUDIO_SIZE_MB} MB ({MAX_IMAGE_AUDIO_SIZE_MB_PATRON} MB for paypigs)")
 		return None
 
+	needs_conversion = True
 	try:
 		with Image.open(filename) as i:
-			if not IMAGE_CONVERTER:
-				_remove_failed_image(filename)
-				if has_request:
-					abort(422, "Image conversion is temporarily unavailable. Please try again later.")
-				return None
-			params = [IMAGE_CONVERTER]
-			if resize == 99: params.append(f"{filename}[0]")
-			else: params.append(filename)
-			params.extend(["-coalesce", "-quality", "88", "-strip", "-auto-orient"])
-			if trim and len(list(Iterator(i))) == 1:
-				params.append("-trim")
-			if resize and i.width > resize:
-				params.extend(["-resize", f"{resize}>"])
+			# Upload routes save every incoming image to a .webp destination before
+			# process_image runs. If the upload is already a valid WebP and no resize
+			# or trim is requested, converting WebP -> WebP again is pointless and can
+			# fail on deployments whose ImageMagick build lacks a WebP decoder even
+			# though Pillow can read the file just fine. Keep the validated WebP as-is.
+			needs_conversion = not (i.format == 'WEBP' and not resize and not trim)
+			if needs_conversion:
+				if not IMAGE_CONVERTER:
+					_remove_failed_image(filename)
+					if has_request:
+						abort(422, "Image conversion is temporarily unavailable. Please try again later.")
+					return None
+				params = [IMAGE_CONVERTER]
+				if resize == 99: params.append(f"{filename}[0]")
+				else: params.append(filename)
+				params.extend(["-coalesce", "-quality", "88", "-strip", "-auto-orient"])
+				if trim and len(list(Iterator(i))) == 1:
+					params.append("-trim")
+				if resize and i.width > resize:
+					params.extend(["-resize", f"{resize}>"])
 	except (UnidentifiedImageError, OSError) as e:
 		print(f"Couldn't identify an image for {filename}; deleting... (user {v.id if v else '-no user-'})")
 		try:
@@ -189,26 +197,27 @@ def process_image(filename:str, v, resize=0, trim=False, uploader_id:Optional[in
 			abort(415, "The uploaded file is not a valid image.")
 		return None
 
-	params.append(filename)
-	try:
-		subprocess.run(
-			params,
-			timeout=MAX_IMAGE_CONVERSION_TIMEOUT,
-			check=True,
-			stdout=subprocess.PIPE,
-			stderr=subprocess.PIPE,
-		)
-	except (subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError) as error:
-		_log_image_conversion_failure(error)
-		_remove_failed_image(filename)
-		if isinstance(error, subprocess.TimeoutExpired):
+	if needs_conversion:
+		params.append(filename)
+		try:
+			subprocess.run(
+				params,
+				timeout=MAX_IMAGE_CONVERSION_TIMEOUT,
+				check=True,
+				stdout=subprocess.PIPE,
+				stderr=subprocess.PIPE,
+			)
+		except (subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError) as error:
+			_log_image_conversion_failure(error)
+			_remove_failed_image(filename)
+			if isinstance(error, subprocess.TimeoutExpired):
+				if has_request:
+					abort(413, ("An uploaded image took too long to convert to WEBP. "
+							"Please convert it to WEBP elsewhere then upload it again."))
+				return None
 			if has_request:
-				abort(413, ("An uploaded image took too long to convert to WEBP. "
-						"Please convert it to WEBP elsewhere then upload it again."))
+				abort(422, "That image could not be converted. Please try another image.")
 			return None
-		if has_request:
-			abort(422, "That image could not be converted. Please try another image.")
-		return None
 
 	if resize:
 		if os.stat(filename).st_size > MAX_IMAGE_SIZE_BANNER_RESIZED_MB * 1024 * 1024:
