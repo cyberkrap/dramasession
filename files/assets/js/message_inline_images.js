@@ -153,11 +153,6 @@
 		}
 	}
 
-	function imageOnlyInput(input) {
-		const accept = (input?.getAttribute('accept') || '').split(',').map(value => value.trim()).filter(Boolean);
-		return accept.length > 0 && accept.every(value => value.startsWith('image/'));
-	}
-
 	function createInlineInput(textarea, toolbar, beforeNode = null) {
 		const safeId = textarea.id.replace(/[^A-Za-z0-9_-]/g, '-');
 		const input = document.createElement('input');
@@ -170,7 +165,7 @@
 		const label = document.createElement('label');
 		label.htmlFor = input.id;
 		label.className = 'btn btn-secondary inline-image-upload-label inline-editor-control inline-editor-control-square';
-		label.title = 'Upload images at the cursor';
+		label.title = 'Upload multiple images at the cursor';
 		label.innerHTML = '<span><i class="fas fa-images" aria-hidden="true"></i></span>';
 		label.appendChild(input);
 
@@ -181,7 +176,7 @@
 
 	function prepareInlineInput(composer, textarea, toolbar) {
 		const existing = composer.querySelector('input[type="file"][id^="file-upload-reply-"]');
-		if (existing && imageOnlyInput(existing)) {
+		if (existing) {
 			const label = composer.querySelector(`label[for="${CSS.escape(existing.id)}"]`);
 			const filename = label?.querySelector('[id^="filename-show-reply-"]') || null;
 
@@ -190,17 +185,9 @@
 			existing.removeAttribute('name');
 			if (label) {
 				label.classList.add('inline-image-upload-label', 'inline-editor-control', 'inline-editor-control-square');
-				label.title = 'Upload images at the cursor';
+				label.title = 'Upload multiple images at the cursor';
 			}
 			return {input: existing, label, filename};
-		}
-
-		if (existing) {
-			const attachmentLabel = composer.querySelector(`label[for="${CSS.escape(existing.id)}"]`);
-			if (attachmentLabel) {
-				attachmentLabel.classList.add('inline-editor-control', 'inline-editor-control-square');
-				attachmentLabel.title = 'Attach image, video, or audio';
-			}
 		}
 
 		const submit = submitButtonFor(composer, textarea);
@@ -214,12 +201,16 @@
 		if (!composer || !toolbar) return;
 
 		const existingInput = composer.querySelector('input[type="file"][id^="file-upload-reply-"]');
-		if (textarea.id !== 'input-message' && !existingInput) return;
+		if (!isMessageComposer(composer, textarea) && !existingInput) return;
 		if (existingInput?.disabled) return;
 
 		installed.add(textarea);
 		composer.classList.add('inline-image-composer');
 		toolbar.classList.add('inline-editor-toolbar');
+
+		for (const node of Array.from(toolbar.childNodes)) {
+			if (node.nodeType === Node.TEXT_NODE && !String(node.textContent || '').replace(/\u00a0/g, '').trim()) node.remove();
+		}
 
 		const {input, label, filename} = prepareInlineInput(composer, textarea, toolbar);
 		const resetFilename = () => {

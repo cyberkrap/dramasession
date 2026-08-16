@@ -102,15 +102,7 @@ label[for="file-upload-submit"] > div,
 	min-width: 0;
 }
 
-/* Comment reply boxes already contain the original mixed-media attachment picker.
-   The inline-image helper must never expose its second image-only picker here. */
-.inline-image-composer .comment-format > label.btn.inline-image-upload-label,
-.comment-format > label.btn.inline-image-upload-label {
-	display: none !important;
-}
-
-/* The legacy template puts literal non-breaking spaces between controls. Zero
-   those anonymous flex items and give every real control one geometry. */
+/* Comment and message composers share one authoritative multi-image uploader. */
 .inline-image-composer .comment-format {
 	display: flex !important;
 	flex-wrap: wrap !important;
@@ -295,7 +287,12 @@ body#chat .chat-gif-action {
 		min-width: 36px !important;
 		height: 36px !important;
 		min-height: 36px !important;
+		margin: 0 !important;
 		padding: 0 !important;
+	}
+
+	.inline-image-composer .comment-format {
+		gap: 6px !important;
 	}
 
 	.inline-image-composer .message-inline-image-url {
