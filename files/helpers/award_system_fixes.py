@@ -146,10 +146,9 @@ def patch_award_batch_source():
 		if assignment_at == -1:
 			raise RuntimeError("Could not locate award target assignment")
 		emoji_assignment = assignment_marker + '''\tif kind == "wholesome":
-\t\t# Keep the inventory/catalog key stable while persisting the selected emoji
-\t\t# on the applied relationship itself. AwardRelationship exposes this again
-\t\t# as the base `wholesome` kind plus an effect token for the renderer.
-\t\taward.kind = f"wholesome:{emoji_name}"
+\t\t# `kind` is a legacy VARCHAR(20) catalog key. Keep it exactly `wholesome`
+\t\t# and persist the selected emoji in its dedicated metadata column.
+\t\taward.emoji_name = emoji_name
 '''
 		source = source[:assignment_at] + source[assignment_at:].replace(assignment_marker, emoji_assignment, 1)
 

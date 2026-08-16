@@ -33,6 +33,26 @@ def ensure_paypal_schema(cursor):
 	cursor.execute(PAYPAL_SCHEMA.read_text(encoding="utf-8"))
 
 
+def ensure_award_effect_schema(cursor):
+	"""Keep per-award effect metadata out of the legacy VARCHAR(20) kind column."""
+	cursor.execute(
+		"""
+		ALTER TABLE public.award_relationships
+		ADD COLUMN IF NOT EXISTS emoji_name VARCHAR(80)
+		"""
+	)
+	# A short-lived implementation encoded Emoji metadata as `wholesome:name`.
+	# Migrate any rows that fit the old kind column, then restore the stable key.
+	cursor.execute(
+		"""
+		UPDATE public.award_relationships
+		SET emoji_name = COALESCE(NULLIF(emoji_name, ''), split_part(kind, ':', 2)),
+			kind = 'wholesome'
+		WHERE kind LIKE 'wholesome:%'
+		"""
+	)
+
+
 def initialize():
 	with connect_with_retry() as connection:
 		with connection.cursor() as cursor:
@@ -47,7 +67,8 @@ def initialize():
 			cursor.execute("SELECT 1 FROM public.production_deployment WHERE deployment_key = 'schema-and-seed'")
 			if cursor.fetchone():
 				ensure_paypal_schema(cursor)
-				print("Production database initialization already completed; PayPal schema verified.", flush=True)
+				ensure_award_effect_schema(cursor)
+				print("Production database initialization already completed; auxiliary schemas verified.", flush=True)
 				return
 
 			cursor.execute("SELECT to_regclass('public.users')")
@@ -60,6 +81,7 @@ def initialize():
 			cursor.execute(SCHEMA.read_text(encoding="utf-8"))
 			cursor.execute(SEED.read_text(encoding="utf-8"))
 			ensure_paypal_schema(cursor)
+			ensure_award_effect_schema(cursor)
 
 			for table in ("award_relationships", "badge_defs", "casino_games", "comment_options", "comments", "hat_defs", "lotteries", "modactions", "oauth_apps", "subactions", "submission_options", "submissions", "users"):
 				cursor.execute("SELECT pg_get_serial_sequence(%s, 'id')", (f"public.{table}",))

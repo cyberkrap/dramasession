@@ -17,6 +17,7 @@ class AwardRelationship(Base):
 	submission_id = Column(Integer, ForeignKey("submissions.id"))
 	comment_id = Column(Integer, ForeignKey("comments.id"))
 	kind = Column(String, nullable=False)
+	emoji_name = Column(String(80))
 	awarded_utc = Column(Integer)
 	created_utc = Column(Integer)
 	price_paid = Column(Integer, default = 0, nullable=False)
@@ -35,14 +36,20 @@ class AwardRelationship(Base):
 	@property
 	@lazy
 	def base_kind(self):
+		# Legacy Emoji-award rows briefly encoded the selected emoji in `kind`.
+		# Production startup normalizes those rows, but keep this tolerant so a
+		# partially migrated database can still render safely.
 		return str(self.kind or '').split(':', 1)[0]
 
 	@property
 	@lazy
-	def emoji_name(self):
-		if self.base_kind != 'wholesome' or ':' not in str(self.kind or ''):
+	def effect_emoji_name(self):
+		if self.base_kind != 'wholesome':
 			return None
-		name = str(self.kind).split(':', 1)[1].strip()
+
+		name = str(self.emoji_name or '').strip()
+		if not name and ':' in str(self.kind or ''):
+			name = str(self.kind).split(':', 1)[1].strip()
 		if not name or len(name) > 80:
 			return None
 		if not all(char.isalnum() or char in '_-' for char in name):
@@ -74,6 +81,6 @@ class AwardRelationship(Base):
 	@lazy
 	def class_list(self):
 		classes = self.type['icon']+' '+self.type['color']+f' award-kind-{self.base_kind}'
-		if self.emoji_name:
-			classes += f' award-emoji-name-{self.emoji_name}'
+		if self.effect_emoji_name:
+			classes += f' award-emoji-name-{self.effect_emoji_name}'
 		return classes
