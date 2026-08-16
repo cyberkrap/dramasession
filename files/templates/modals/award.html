@@ -1,6 +1,7 @@
 <link rel="stylesheet" href="{{'css/award_modal.css' | asset}}">
 <script defer src="{{'js/award_modal.js' | asset}}"></script>
 <script defer src="{{'js/award_modal_enhancements.js' | asset}}"></script>
+<script defer src="{{'js/award_emoji_modal_stack.js' | asset}}"></script>
 
 <div class="modal fade" id="awardModal" tabindex="-1">
 	<div class="modal-dialog modal-dialog-scrollable modal-dialog-centered awardmodal">
@@ -59,7 +60,7 @@
 					<div class="award-emoji-controls">
 						<img id="award-emoji-preview" class="award-emoji-preview d-none" alt="">
 						<input autocomplete="off" type="text" id="award-emoji-input" class="award-emoji-input allow-emojis" aria-hidden="true" tabindex="-1">
-						<button type="button" id="award-emoji-picker" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="pickAwardEmoji()" data-bs-toggle="modal" data-bs-target="#emojiModal"><i class="fas fa-smile-beam"></i> <span>Pick an Emoji</span></button>
+						<button type="button" id="award-emoji-picker" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="pickAwardEmoji();openAwardEmojiStack()"><i class="fas fa-smile-beam"></i> <span>Pick an Emoji</span></button>
 					</div>
 				</div>
 
