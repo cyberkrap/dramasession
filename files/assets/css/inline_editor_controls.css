@@ -102,16 +102,18 @@ label[for="file-upload-submit"] > div,
 	min-width: 0;
 }
 
-/* Comment reply boxes already have the original mixed-media attachment picker.
-   Do not render a second image-only picker beside it. Paste/drop and Image URL
-   still use the immediate inline-image path. */
-.comment-box-wrapper.inline-image-composer .inline-image-upload-label {
+/* Comment reply boxes already contain the original mixed-media attachment picker.
+   The inline-image helper must never expose its second image-only picker here. */
+.inline-image-composer .comment-format > .inline-image-upload-label,
+.comment-format > .inline-image-upload-label {
 	display: none !important;
 }
 
 /* The legacy template puts literal non-breaking spaces between controls. Zero
    those anonymous flex items and give every real control one geometry. */
 .inline-image-composer .comment-format {
+	display: flex !important;
+	flex-wrap: wrap !important;
 	align-items: center !important;
 	gap: 8px !important;
 	font-size: 0;
@@ -140,6 +142,9 @@ label[for="file-upload-submit"] > div,
 .inline-image-composer .comment-format > label.btn i,
 .inline-image-composer .comment-format > button.btn span,
 .inline-image-composer .comment-format > label.btn span {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
 	margin: 0 !important;
 	line-height: 1 !important;
 }
@@ -154,11 +159,21 @@ label[for="file-upload-submit"] > div,
 }
 
 .inline-image-composer .message-inline-image-url {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-sizing: border-box !important;
 	width: auto !important;
 	min-width: max-content;
 	max-width: 150px;
+	height: 38px !important;
+	min-height: 38px !important;
+	margin: 0 !important;
 	padding: 0 11px !important;
+	gap: 7px !important;
 	font-size: 14px !important;
+	line-height: 1 !important;
+	border-radius: 7px !important;
 }
 
 .inline-image-composer .message-inline-image-meta {
@@ -287,6 +302,8 @@ body#chat .chat-gif-action {
 		width: 36px !important;
 		min-width: 36px !important;
 		max-width: 36px !important;
+		height: 36px !important;
+		min-height: 36px !important;
 		padding: 0 !important;
 		font-size: 0 !important;
 		overflow: hidden;
