@@ -104,8 +104,8 @@ label[for="file-upload-submit"] > div,
 
 /* Comment reply boxes already contain the original mixed-media attachment picker.
    The inline-image helper must never expose its second image-only picker here. */
-.inline-image-composer .comment-format > .inline-image-upload-label,
-.comment-format > .inline-image-upload-label {
+.inline-image-composer .comment-format > label.btn.inline-image-upload-label,
+.comment-format > label.btn.inline-image-upload-label {
 	display: none !important;
 }
 
