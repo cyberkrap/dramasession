@@ -140,6 +140,32 @@
 					{%- endif %}
 					<div class="d-lg-flex border-bottom">
 						<div class="title w-lg-25">
+							<label for="profile-background">Profile Background</label>
+						</div>
+						<div class="title w-lg-75 text-md-center">
+							{% if v.profile_background %}
+								<img loading="lazy" alt="your profile background" src="{{v.profile_background}}" class="banner-pic-135">
+							{% else %}
+								<div class="text-small text-muted py-3">No profile background set.</div>
+							{% endif %}
+						</div>
+						<div class="body w-lg-100 my-auto">
+							<div class="d-flex flex-wrap align-items-center">
+								<form action="/settings/profile_background" method="post" enctype="multipart/form-data" class="mr-2 mb-2">
+									<input hidden name="formkey" value="{{v|formkey}}">
+									<label class="btn btn-secondary text-capitalize mb-0">
+										Update<input autocomplete="off" type="file" {% if g.is_tor %}disabled{% endif %} accept="image/*" hidden name="file" data-nonce="{{g.nonce}}" onchange_submit>
+									</label>
+								</form>
+								{% if v.profile_background %}
+									<button type="button" class="btn btn-danger mb-2" data-nonce="{{g.nonce}}" data-onclick="postToastReload(this,'/settings/profile_background','DELETE')">Remove</button>
+								{% endif %}
+							</div>
+							<div class="text-small text-muted mt-2">All image files are supported. Max file size is {% if v and v.patron %}16{% else %}8{% endif %} MB.</div>
+						</div>
+					</div>
+					<div class="d-lg-flex border-bottom">
+						<div class="title w-lg-25">
 							<label for="name">Username</label>
 						</div>
 						<div class="body w-lg-100">
@@ -158,7 +184,7 @@
 					{{common.line_text_section('pronouns', '/settings/pronouns_change', 'pronouns', 'Pronouns', v.pronouns, '{2-5 characters} / {2-5 characters}', 'Enter pronouns here', 'Change Pronouns', false, 3, 11, '([a-zA-Z]{1,5})/[a-zA-Z]{1,5}(/[a-zA-Z]{1,5})?', FEATURES['PRONOUNS'], false)}}
 					{# common.line_text_section(id, form_action, form_name, section_title, contents, below_text, placeholder_text, button_text, show_marseys, minlength, maxlength, pattern, show_if, disabled) #}
 					{{common.line_text_section('flair', '/settings/title_change', 'title', 'Flair', v.customtitleplain, 'Limit of 100 characters', 'Enter a flair here', 'Change Flair', true, 0, 100, '.*', true, v.flairchanged)}}
-					{{common.color_section('flaircolor', '/settings/titlecolor', 'titlecolor', 'Flair Color', v.titlecolor)}}
+					{{common.color_section('flaircolor', '/settings/titlecolor', 'flaircolor', 'Flair Color', v.titlecolor)}}
 					{% if v.verified %}
 						{{common.color_section('verifiedcolor', '/settings/verifiedcolor', 'verifiedcolor', 'Checkmark Color', v.verifiedcolor)}}
 						{{common.line_text_section('checkmark_text', '/settings/checkmark_text', 'checkmark-text', 'Checkmark Text', v.verified, 'Limit of 100 characters', 'Enter checkmark hover text here', 'Change Text', false, 0, 100, '.*', v.verified, false)}}
