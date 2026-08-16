@@ -102,6 +102,48 @@ label[for="file-upload-submit"] > div,
 	min-width: 0;
 }
 
+/* Comment reply boxes already have the original mixed-media attachment picker.
+   Do not render a second image-only picker beside it. Paste/drop and Image URL
+   still use the immediate inline-image path. */
+.comment-box-wrapper.inline-image-composer .inline-image-upload-label {
+	display: none !important;
+}
+
+/* The legacy template puts literal non-breaking spaces between controls. Zero
+   those anonymous flex items and give every real control one geometry. */
+.inline-image-composer .comment-format {
+	align-items: center !important;
+	gap: 8px !important;
+	font-size: 0;
+}
+
+.inline-image-composer .comment-format > button.btn:not(.message-inline-image-url),
+.inline-image-composer .comment-format > label.btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	box-sizing: border-box !important;
+	width: 38px !important;
+	min-width: 38px !important;
+	height: 38px !important;
+	min-height: 38px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 13px !important;
+	line-height: 1 !important;
+	vertical-align: middle !important;
+	border-radius: 7px !important;
+	box-shadow: none !important;
+}
+
+.inline-image-composer .comment-format > button.btn i,
+.inline-image-composer .comment-format > label.btn i,
+.inline-image-composer .comment-format > button.btn span,
+.inline-image-composer .comment-format > label.btn span {
+	margin: 0 !important;
+	line-height: 1 !important;
+}
+
 .inline-image-composer .comment-format > button.inline-editor-control-square,
 .inline-image-composer .comment-format > label.inline-editor-control-square {
 	width: 38px !important;
@@ -116,6 +158,7 @@ label[for="file-upload-submit"] > div,
 	min-width: max-content;
 	max-width: 150px;
 	padding: 0 11px !important;
+	font-size: 14px !important;
 }
 
 .inline-image-composer .message-inline-image-meta {
@@ -145,6 +188,14 @@ label[for="file-upload-submit"] > div,
 .profile-action-form.inline-image-composer .profile-form-actions > input[type="submit"],
 .profile-action-form.inline-image-composer .profile-form-actions > button[type="submit"] {
 	margin-left: auto;
+}
+
+/* Public chat uses the same compact square treatment as its emoji/image tools. */
+body#chat .chat-gif-action {
+	font-size: 11px !important;
+	font-weight: 800 !important;
+	letter-spacing: -.02em;
+	line-height: 1 !important;
 }
 
 @media (max-width: 575.98px) {
@@ -220,6 +271,8 @@ label[for="file-upload-submit"] > div,
 		line-height: 1.35;
 	}
 
+	.inline-image-composer .comment-format > button.btn:not(.message-inline-image-url),
+	.inline-image-composer .comment-format > label.btn,
 	.inline-image-composer .comment-format > button.inline-editor-control-square,
 	.inline-image-composer .comment-format > label.inline-editor-control-square,
 	.profile-action-form.inline-image-composer .inline-editor-control-square {

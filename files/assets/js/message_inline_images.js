@@ -5,6 +5,7 @@
 	const installed = new WeakSet();
 	const pendingUploads = new WeakMap();
 	const savedSelections = new WeakMap();
+	const CHAT_GIF_CATEGORIES = ['Agree', 'Laugh', 'Confused', 'Sad', 'Happy', 'Love', 'Scared', 'Angry', 'Cringe', 'OMG', 'Why', 'No'];
 
 	function composerFor(textarea) {
 		if (textarea.id === 'input-message') {
@@ -308,12 +309,164 @@
 		root.querySelectorAll?.(selector).forEach(install);
 	}
 
+	function ensureChatGifModal() {
+		let modal = document.getElementById('chat-gif-modal');
+		if (modal) return modal;
+
+		modal = document.createElement('div');
+		modal.className = 'modal fade';
+		modal.id = 'chat-gif-modal';
+		modal.tabIndex = -1;
+		modal.innerHTML = `
+			<div class="modal-dialog modal-dialog-scrollable modal-dialog-centered p-3" style="max-width:min(900px,100%)!important">
+				<div class="modal-content">
+					<div class="modal-header border-bottom-0 p-3">
+						<div class="form-group d-flex align-items-center w-100 mb-0">
+							<button type="button" class="btn btn-link mr-2 chat-gif-back" title="Categories" aria-label="Categories"><i class="fas fa-long-arrow-left text-muted"></i></button>
+							<input autocomplete="off" type="search" class="form-control" id="chat-gif-search" placeholder="Search GIFs">
+							<button type="button" class="btn btn-link ml-2" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times text-muted"></i></button>
+						</div>
+					</div>
+					<div class="modal-body pt-0">
+						<div id="chat-gif-status" class="text-center text-muted small py-2 d-none"></div>
+						<div id="chat-gif-results" class="gif-categories" style="text-align:center"></div>
+						<div class="text-center text-muted small pt-2">Powered by GIPHY</div>
+					</div>
+				</div>
+			</div>`;
+		document.body.appendChild(modal);
+
+		const search = modal.querySelector('#chat-gif-search');
+		const back = modal.querySelector('.chat-gif-back');
+		search.addEventListener('keydown', event => {
+			if (event.key !== 'Enter') return;
+			event.preventDefault();
+			searchChatGifs(search.value);
+		});
+		back.addEventListener('click', showChatGifCategories);
+		modal.addEventListener('shown.bs.modal', () => search.focus());
+		return modal;
+	}
+
+	function setChatGifStatus(message) {
+		const status = document.getElementById('chat-gif-status');
+		if (!status) return;
+		status.textContent = message || '';
+		status.classList.toggle('d-none', !message);
+	}
+
+	function showChatGifCategories() {
+		const modal = ensureChatGifModal();
+		const results = modal.querySelector('#chat-gif-results');
+		const search = modal.querySelector('#chat-gif-search');
+		search.value = '';
+		setChatGifStatus('');
+		results.replaceChildren();
+		for (const category of CHAT_GIF_CATEGORIES) {
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'btn btn-secondary m-1';
+			button.textContent = category;
+			button.addEventListener('click', () => searchChatGifs(category));
+			results.appendChild(button);
+		}
+	}
+
+	async function searchChatGifs(searchTerm) {
+		const term = String(searchTerm || '').trim();
+		if (!term) {
+			showChatGifCategories();
+			return;
+		}
+		const modal = ensureChatGifModal();
+		const results = modal.querySelector('#chat-gif-results');
+		const search = modal.querySelector('#chat-gif-search');
+		search.value = term;
+		results.replaceChildren();
+		setChatGifStatus('Loading GIFs...');
+
+		try {
+			const response = await fetch(`/giphy?searchTerm=${encodeURIComponent(term)}&limit=48`, {
+				credentials: 'same-origin',
+				headers: {'Accept': 'application/json'},
+			});
+			const payload = await response.json();
+			if (payload?.error === 'not_configured') throw new Error('GIF integration is not configured.');
+			if (!response.ok || payload?.error === 'unavailable') throw new Error('GIF service is temporarily unavailable.');
+			const gifs = Array.isArray(payload?.data) ? payload.data : [];
+			if (!gifs.length) {
+				setChatGifStatus('No matching GIFs found.');
+				return;
+			}
+			setChatGifStatus('');
+			for (const gif of gifs) {
+				if (!gif?.id) continue;
+				const url = `https://media.giphy.com/media/${encodeURIComponent(gif.id)}/giphy.webp`;
+				const image = document.createElement('img');
+				image.className = 'giphy';
+				image.loading = 'lazy';
+				image.src = url;
+				image.alt = 'GIF';
+				image.tabIndex = 0;
+				const choose = () => {
+					const textarea = document.getElementById('input-text');
+					if (!textarea) return;
+					insertAt(textarea, url, selectionFor(textarea));
+					bootstrap.Modal.getOrCreateInstance(modal).hide();
+				};
+				image.addEventListener('click', choose);
+				image.addEventListener('keydown', event => {
+					if (event.key === 'Enter' || event.key === ' ') {
+						event.preventDefault();
+						choose();
+					}
+				});
+				results.appendChild(image);
+			}
+		} catch (error) {
+			setChatGifStatus(error.message || 'GIF service is temporarily unavailable.');
+		}
+	}
+
+	function installChatGifPicker() {
+		const composer = document.getElementById('message');
+		const textarea = document.getElementById('input-text');
+		if (!composer || !textarea || document.getElementById('chat-gif-btn')) return;
+
+		const control = document.createElement('span');
+		control.className = 'chat-compose-control';
+		const button = document.createElement('button');
+		button.type = 'button';
+		button.id = 'chat-gif-btn';
+		button.className = 'btn btn-secondary chat-compose-action chat-gif-action';
+		button.title = 'Add GIF';
+		button.setAttribute('aria-label', 'Add GIF');
+		button.textContent = 'GIF';
+		control.appendChild(button);
+
+		const firstControl = composer.querySelector(':scope > .chat-compose-control');
+		if (firstControl) composer.insertBefore(control, firstControl);
+		else composer.prepend(control);
+
+		button.addEventListener('pointerdown', () => rememberSelection(textarea));
+		button.addEventListener('click', () => {
+			rememberSelection(textarea);
+			const modal = ensureChatGifModal();
+			showChatGifCategories();
+			bootstrap.Modal.getOrCreateInstance(modal).show();
+		});
+	}
+
 	function start() {
 		scan();
+		installChatGifPicker();
 		new MutationObserver(mutations => {
 			for (const mutation of mutations) {
 				for (const node of mutation.addedNodes) {
-					if (node instanceof Element) scan(node);
+					if (node instanceof Element) {
+						scan(node);
+						if (node.id === 'message' || node.querySelector?.('#message')) installChatGifPicker();
+					}
 				}
 			}
 		}).observe(document.body, {childList: true, subtree: true});
