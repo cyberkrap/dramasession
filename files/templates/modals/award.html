@@ -54,6 +54,15 @@
 					</section>
 				{% endfor %}
 
+				<div id="award-emoji-wrap" class="award-emoji-wrap d-none">
+					<label>Emoji:</label>
+					<div class="award-emoji-controls">
+						<img id="award-emoji-preview" class="award-emoji-preview d-none" alt="">
+						<input autocomplete="off" type="text" id="award-emoji-input" class="award-emoji-input allow-emojis" aria-hidden="true" tabindex="-1">
+						<button type="button" id="award-emoji-picker" class="btn btn-secondary" data-nonce="{{g.nonce}}" data-onclick="pickAwardEmoji()" data-bs-toggle="modal" data-bs-target="#emojiModal"><i class="fas fa-smile-beam"></i> <span>Pick an Emoji</span></button>
+					</div>
+				</div>
+
 				<div class="award-note-wrap">
 					<label id="notelabel" for="note">Note <span>(optional)</span></label>
 					<input autocomplete="off" id="kind" hidden>

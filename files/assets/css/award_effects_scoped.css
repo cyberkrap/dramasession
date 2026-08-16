@@ -41,30 +41,38 @@
 	100% { transform: translate(var(--dx), var(--dy)) scale(1.15); opacity: .45; }
 }
 
-/* Ricardo is intentionally emoji-sized instead of a viewport-sized dancer. */
-.award-ricardo {
+/* Ricardo's wrapper owns DVD-style movement; the image dances independently. */
+.award-ricardo-roamer {
 	position: absolute;
-	width: 44px;
-	height: 44px;
-	object-fit: contain;
-	filter: drop-shadow(0 2px 4px rgba(0,0,0,.45));
-	animation: award-ricardo-bob 2.6s ease-in-out infinite alternate;
+	left: 0;
+	top: 0;
+	width: 48px;
+	height: 48px;
+	will-change: transform;
 }
 
-.award-ricardo-1 { left: 8px; bottom: 8px; }
-.award-ricardo-2 { right: 8px; bottom: 8px; animation-delay: -.8s; }
-.award-ricardo-3 { right: 8px; top: 8px; animation-delay: -1.5s; }
+.award-ricardo {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	filter: drop-shadow(0 2px 4px rgba(0,0,0,.45));
+	transform-origin: 50% 85%;
+	animation: award-ricardo-dance 1.35s ease-in-out infinite alternate;
+}
 
-@keyframes award-ricardo-bob {
-	from { transform: translateY(0) rotate(-3deg); }
-	to { transform: translateY(-7px) rotate(3deg); }
+@keyframes award-ricardo-dance {
+	0% { transform: translateY(0) rotate(-7deg) scale(.96); }
+	35% { transform: translateY(-5px) rotate(5deg) scale(1.04); }
+	70% { transform: translateY(1px) rotate(-3deg) scale(.98); }
+	100% { transform: translateY(-7px) rotate(8deg) scale(1.05); }
 }
 
 .award-firework {
 	position: absolute;
 	width: 62px;
 	height: 62px;
-	op: 90%;
+	top: 90%;
 	left: 50%;
 	opacity: 0;
 }
@@ -75,22 +83,38 @@
 	object-fit: contain;
 }
 
-.award-wholesome {
+/* Each Emoji award contributes one independently falling sprite. Negative
+   delays keep the awarded content populated immediately after page load. */
+.award-emoji-rain {
 	position: absolute;
-	width: 38px;
-	height: 34px;
+	left: var(--x);
+	top: -58px;
+	width: var(--size);
+	height: var(--size);
 	object-fit: contain;
-	animation: award-wholesome-float 6s ease-in-out infinite alternate;
+	filter: drop-shadow(0 2px 3px rgba(0,0,0,.28));
+	will-change: top, transform;
+	animation: award-emoji-feather var(--duration) linear var(--delay) infinite;
 }
 
-.award-wholesome-1 { left: 5%; top: 12%; }
-.award-wholesome-2 { right: 5%; top: 18%; animation-delay: -1.5s; }
-.award-wholesome-3 { left: 15%; bottom: 8%; animation-delay: -3s; }
-.award-wholesome-4 { right: 15%; bottom: 10%; animation-delay: -4.5s; }
-
-@keyframes award-wholesome-float {
-	from { transform: translate(0, 0) rotate(-5deg); }
-	to { transform: translate(18px, -12px) rotate(5deg); }
+@keyframes award-emoji-feather {
+	0% {
+		top: -58px;
+		transform: translate3d(0, 0, 0) rotate(0deg);
+	}
+	22% {
+		transform: translate3d(var(--sway-a), 0, 0) rotate(var(--rot-a));
+	}
+	48% {
+		transform: translate3d(var(--sway-b), 0, 0) rotate(0deg);
+	}
+	73% {
+		transform: translate3d(var(--sway-c), 0, 0) rotate(var(--rot-a));
+	}
+	100% {
+		top: calc(100% + 58px);
+		transform: translate3d(0, 0, 0) rotate(var(--rot-b));
+	}
 }
 
 .award-spark {
@@ -110,6 +134,51 @@
 	50% { transform: translateY(-8px) scale(1.15) rotate(90deg); opacity: .9; }
 }
 
+/* Emoji-specific award picker inside the existing award modal. */
+#awardModal .award-emoji-wrap {
+	margin-top: 1rem;
+}
+
+#awardModal .award-emoji-wrap > label {
+	display: block;
+	margin: 0 0 .4rem;
+	font-size: .8rem;
+	font-weight: 750;
+}
+
+#awardModal .award-emoji-controls {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: .55rem;
+}
+
+#awardModal .award-emoji-preview {
+	width: 44px;
+	height: 44px;
+	object-fit: contain;
+	flex: 0 0 44px;
+}
+
+#awardModal .award-emoji-input {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	border: 0 !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+	overflow: hidden !important;
+}
+
+#awardModal #award-emoji-picker {
+	min-height: 34px;
+	padding: .35rem .65rem;
+	border-radius: 5px;
+	font-size: .76rem;
+	font-weight: 700;
+}
+
 /* Keep menus and popovers above content effects. */
 .award-effect-target .dropdown-menu,
 .award-effect-target .popover,
@@ -118,9 +187,14 @@
 }
 
 @media (max-width: 720px) {
-	.award-ricardo {
-		width: 34px;
-		height: 34px;
+	.award-ricardo-roamer {
+		width: 38px;
+		height: 38px;
+	}
+
+	.award-emoji-rain {
+		max-width: 46px;
+		max-height: 46px;
 	}
 
 	.award-firework {

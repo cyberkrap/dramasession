@@ -34,9 +34,27 @@ class AwardRelationship(Base):
 
 	@property
 	@lazy
+	def base_kind(self):
+		return str(self.kind or '').split(':', 1)[0]
+
+	@property
+	@lazy
+	def emoji_name(self):
+		if self.base_kind != 'wholesome' or ':' not in str(self.kind or ''):
+			return None
+		name = str(self.kind).split(':', 1)[1].strip()
+		if not name or len(name) > 80:
+			return None
+		if not all(char.isalnum() or char in '_-' for char in name):
+			return None
+		return name
+
+	@property
+	@lazy
 	def type(self):
-		if self.kind in AWARDS: return AWARDS[self.kind]
-		elif self.kind in HOUSE_AWARDS: return HOUSE_AWARDS[self.kind]
+		kind = self.base_kind
+		if kind in AWARDS: return AWARDS[kind]
+		elif kind in HOUSE_AWARDS: return HOUSE_AWARDS[kind]
 		else: return AWARDS["fallback"]
 
 	@property
@@ -55,4 +73,7 @@ class AwardRelationship(Base):
 	@property
 	@lazy
 	def class_list(self):
-		return self.type['icon']+' '+self.type['color']+f' award-kind-{self.kind}'
+		classes = self.type['icon']+' '+self.type['color']+f' award-kind-{self.base_kind}'
+		if self.emoji_name:
+			classes += f' award-emoji-name-{self.emoji_name}'
+		return classes

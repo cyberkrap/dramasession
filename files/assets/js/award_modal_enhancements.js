@@ -11,6 +11,7 @@
 		unlimited: false,
 		singleton: false,
 		currencyLabel: 'Wishcoins/Wishbux',
+		emojiName: '',
 	};
 
 	let activeTooltip = null;
@@ -26,6 +27,22 @@
 
 	function summary() {
 		return document.getElementById('award-price-summary');
+	}
+
+	function emojiWrap() {
+		return document.getElementById('award-emoji-wrap');
+	}
+
+	function emojiInput() {
+		return document.getElementById('award-emoji-input');
+	}
+
+	function emojiPreview() {
+		return document.getElementById('award-emoji-preview');
+	}
+
+	function emojiPicker() {
+		return document.getElementById('award-emoji-picker');
 	}
 
 	function clampQuantity() {
@@ -56,6 +73,27 @@
 		return Number(value || 0).toLocaleString('en-US');
 	}
 
+	function clearEmojiChoice() {
+		state.emojiName = '';
+		const input = emojiInput();
+		const preview = emojiPreview();
+		const picker = emojiPicker();
+		if (input) input.value = '';
+		if (preview) {
+			preview.removeAttribute('src');
+			preview.alt = '';
+			preview.classList.add('d-none');
+		}
+		const label = picker?.querySelector('span');
+		if (label) label.textContent = 'Pick an Emoji';
+	}
+
+	function updateEmojiSelector() {
+		const wrap = emojiWrap();
+		if (!wrap) return;
+		wrap.classList.toggle('d-none', state.kind !== 'wholesome');
+	}
+
 	function updateSummary() {
 		const input = quantityInput();
 		const button = giveButton();
@@ -68,9 +106,16 @@
 		const totalPrice = purchaseCount * state.price;
 		const totalBasePrice = purchaseCount * state.basePrice;
 		const hasDiscount = totalBasePrice > totalPrice;
-		const canGive = purchaseCount === 0 || state.unlimited || affordablePurchaseCount() >= purchaseCount;
+		const financiallyAllowed = purchaseCount === 0 || state.unlimited || affordablePurchaseCount() >= purchaseCount;
+		const needsEmoji = state.kind === 'wholesome' && !state.emojiName;
+		const canGive = financiallyAllowed && !needsEmoji;
 
 		button.disabled = !canGive;
+
+		if (needsEmoji) {
+			priceSummary.innerHTML = '<span class="award-summary-insufficient">Pick an emoji to continue</span>';
+			return;
+		}
 
 		if (purchaseCount === 0) {
 			priceSummary.innerHTML = `<span class="award-summary-owned">Using ${inventoryUsed} owned award${inventoryUsed === 1 ? '' : 's'} — no charge</span>`;
@@ -86,12 +131,13 @@
 			priceSummary.innerHTML = `${ownedPrefix}<span>${countLabel}</span><span class="award-summary-separator">·</span>${prices}<span>${state.currencyLabel}</span>`;
 		}
 
-		if (!canGive) {
+		if (!financiallyAllowed) {
 			priceSummary.insertAdjacentHTML('beforeend', '<span class="award-summary-insufficient">Insufficient balance</span>');
 		}
 	}
 
 	window.pick = function(kind, price, coins, marseybux, unlimitedSpending = false, currency = 'marseybux', owned = 0) {
+		const previousKind = state.kind;
 		state.kind = kind;
 		state.price = parseInt(price, 10) || 0;
 		state.coins = parseInt(coins, 10) || 0;
@@ -99,6 +145,8 @@
 		state.owned = parseInt(owned, 10) || 0;
 		state.unlimited = unlimitedSpending === true || unlimitedSpending === 'true';
 		state.currencyLabel = kind === 'benefactor' ? 'Wishbux' : 'Wishcoins/Wishbux';
+		if (kind !== 'wholesome' || previousKind !== 'wholesome') clearEmojiChoice();
+		updateEmojiSelector();
 
 		const selected = document.getElementById(kind);
 		state.singleton = !!selected && selected.dataset.singleton === 'true';
@@ -132,6 +180,43 @@
 		resetConfirmation();
 		updateSummary();
 	};
+
+	window.pickAwardEmoji = function() {
+		if (state.kind !== 'wholesome') return;
+		for (const modifier of document.querySelectorAll('#emojiModal .emoji-suffix, #emojiModal .emoji-postfix')) {
+			modifier.checked = false;
+		}
+		const input = emojiInput();
+		if (input) {
+			input.value = '';
+			input.focus();
+			try { input.setSelectionRange(0, 0); } catch (_) {}
+		}
+		if (typeof loadEmojis === 'function') loadEmojis('award-emoji-input');
+	};
+
+	function applyEmojiInput() {
+		if (state.kind !== 'wholesome') return;
+		const input = emojiInput();
+		if (!input) return;
+		const match = /^:([A-Za-z0-9_-]{1,80}):$/.exec(input.value.trim());
+		if (!match) return;
+
+		state.emojiName = match[1];
+		const preview = emojiPreview();
+		if (preview) {
+			preview.src = `/e/${encodeURIComponent(state.emojiName)}.webp`;
+			preview.alt = `:${state.emojiName}:`;
+			preview.classList.remove('d-none');
+		}
+		const label = emojiPicker()?.querySelector('span');
+		if (label) label.textContent = 'Change Emoji';
+		resetConfirmation();
+		updateSummary();
+
+		const modal = document.getElementById('emojiModal');
+		if (modal && window.bootstrap?.Modal) bootstrap.Modal.getOrCreateInstance(modal).hide();
+	}
 
 	function parseResponse(xhr) {
 		try {
@@ -174,6 +259,10 @@
 
 	window.giveaward = async function(button) {
 		if (!state.kind || button.disabled) return;
+		if (state.kind === 'wholesome' && !state.emojiName) {
+			showToast(false, 'You need to provide an emoji name!');
+			return;
+		}
 		const amount = clampQuantity();
 
 		if (button.dataset.confirmed !== '1') {
@@ -190,6 +279,7 @@
 				note: document.getElementById('note').value,
 				currency: 'marseybux',
 				amount: amount,
+				emoji: state.kind === 'wholesome' ? state.emojiName : '',
 			});
 			updateOwnedDisplay(amount);
 			showToast(true, result.message || 'Award given successfully!');
@@ -278,13 +368,20 @@
 
 		const note = document.getElementById('note');
 		if (note) note.addEventListener('input', resetConfirmation);
+		const awardEmojiInput = emojiInput();
+		if (awardEmojiInput) awardEmojiInput.addEventListener('input', applyEmojiInput);
 
 		bindAwardTooltips();
 		const modal = document.getElementById('awardModal');
 		if (modal) {
 			modal.addEventListener('show.bs.modal', resetConfirmation);
 			modal.addEventListener('shown.bs.modal', bindAwardTooltips);
-			modal.addEventListener('hidden.bs.modal', hideAwardTooltip);
+			modal.addEventListener('hidden.bs.modal', () => {
+				hideAwardTooltip();
+				clearEmojiChoice();
+				state.kind = '';
+				updateEmojiSelector();
+			});
 		}
 		window.addEventListener('resize', hideAwardTooltip, {passive: true});
 		window.addEventListener('scroll', hideAwardTooltip, {passive: true, capture: true});

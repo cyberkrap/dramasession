@@ -22,7 +22,22 @@ def _atomic_write(path, content):
 
 
 def disable_retired_awards():
-	"""Remove obsolete awards from every live catalog without deleting history."""
+	"""Normalize the live award catalog and remove obsolete awards without deleting history."""
+	# Preserve the legacy internal keys so owned awards and historical rows remain
+	# valid while exposing the current catalog names, descriptions, and prices.
+	if "wholesome" in AWARDS:
+		AWARDS["wholesome"].update({
+			"title": "Emoji",
+			"description": "Summons a moving emoji on the post or comment.",
+			"price": 100,
+		})
+	if "ricardo" in AWARDS:
+		AWARDS["ricardo"].update({
+			"title": "Ricardo",
+			"description": "Summons Ricardo to dance on the post or comment.",
+			"price": 200,
+		})
+
 	for kind in RETIRED_AWARDS:
 		if kind in AWARDS:
 			AWARDS[kind]["enabled"] = False
@@ -30,7 +45,7 @@ def disable_retired_awards():
 
 
 def patch_award_batch_source():
-	"""Add 1-30 award batching without notification or bank-statement spam."""
+	"""Add 1-30 award batching plus Emoji award metadata without ledger spam."""
 	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
 		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
 		source = _AWARDS_ROUTE_PATH.read_text(encoding="utf-8")
@@ -66,26 +81,77 @@ def patch_award_batch_source():
 		kind_at = source.find(kind_line, fn_start)
 		if kind_at == -1:
 			raise RuntimeError("Could not locate award kind input")
-		quantity_block = kind_line + '''\t# obsession-award-batch-v3\n\ttry:\n\t\tamount = int(request.values.get("amount", 1))\n\texcept (TypeError, ValueError):\n\t\tabort(400, "Invalid award quantity!")\n\tif amount < 1 or amount > 30:\n\t\tabort(400, "Award quantity must be between 1 and 30!")\n'''
+		quantity_block = kind_line + '''\t# obsession-award-batch-v3
+\ttry:
+\t\tamount = int(request.values.get("amount", 1))
+\texcept (TypeError, ValueError):
+\t\tabort(400, "Invalid award quantity!")
+\tif amount < 1 or amount > 30:
+\t\tabort(400, "Award quantity must be between 1 and 30!")
+
+\temoji_name = request.values.get("emoji", "").strip()
+\tif kind == "wholesome":
+\t\tif not emoji_name:
+\t\t\tabort(400, "You need to provide an emoji name!")
+\t\tif len(emoji_name) > 80 or not all(char.isalnum() or char in "_-" for char in emoji_name):
+\t\t\tabort(400, "Invalid emoji name!")
+'''
 		source = source[:kind_at] + source[kind_at:].replace(kind_line, quantity_block, 1)
 
 		author_line = "\tauthor = thing.author\n"
 		author_at = source.find(author_line, fn_start)
 		if author_at == -1:
 			raise RuntimeError("Could not locate award target author")
-		batch_setup = author_line + '''\t_award_batch_target_author = author\n\t_award_batch_ledger_start = award_batch_ledger_start(g.db) if amount > 1 else 0\n\n\tdef _award_notify(user_id, message):\n\t\tif amount == 1:\n\t\t\tsend_repeatable_notification(user_id, message)\n'''
+		batch_setup = author_line + '''\t_award_batch_target_author = author
+\t_award_batch_ledger_start = award_batch_ledger_start(g.db) if amount > 1 else 0
+
+\tdef _award_notify(user_id, message):
+\t\tif amount == 1:
+\t\t\tsend_repeatable_notification(user_id, message)
+'''
 		source = source[:author_at] + source[author_at:].replace(author_line, batch_setup, 1)
 
 		validation_marker = '\tif kind not in AWARDS: abort(404, "This award doesn\'t exist")\n'
 		validation_at = source.find(validation_marker, fn_start)
 		if validation_at == -1:
 			raise RuntimeError("Could not locate award validation")
-		upgrade_guard = validation_marker + '''\n\t# Permanent profile upgrades should never be sold twice.\n\tprofile_upgrade_badges = {\n\t\t"checkmark": 150,\n\t\t"eye": 83,\n\t\t"alt": 84,\n\t\t"unblockable": 87,\n\t\t"fish": 90,\n\t\t"beano": 128,\n\t\t"offsitementions": 140,\n\t}\n\tupgrade_username = "👻" if thing.ghost and v.id != author.id else f"@{author.username}"\n\tupgrade_badge_id = profile_upgrade_badges.get(kind)\n\tif kind == "checkmark" and author.verified:\n\t\tabort(409, f"{upgrade_username} already has this profile upgrade!")\n\tif upgrade_badge_id and any(b.badge_id == upgrade_badge_id for b in author.badges):\n\t\tabort(409, f"{upgrade_username} already has this profile upgrade!")\n\tif amount > 1 and kind in profile_upgrade_badges:\n\t\tabort(409, "This profile upgrade can only be given once!")\n'''
+		upgrade_guard = validation_marker + '''
+\t# Permanent profile upgrades should never be sold twice.
+\tprofile_upgrade_badges = {
+\t\t"checkmark": 150,
+\t\t"eye": 83,
+\t\t"alt": 84,
+\t\t"unblockable": 87,
+\t\t"fish": 90,
+\t\t"beano": 128,
+\t\t"offsitementions": 140,
+\t}
+\tupgrade_username = "👻" if thing.ghost and v.id != author.id else f"@{author.username}"
+\tupgrade_badge_id = profile_upgrade_badges.get(kind)
+\tif kind == "checkmark" and author.verified:
+\t\tabort(409, f"{upgrade_username} already has this profile upgrade!")
+\tif upgrade_badge_id and any(b.badge_id == upgrade_badge_id for b in author.badges):
+\t\tabort(409, f"{upgrade_username} already has this profile upgrade!")
+\tif amount > 1 and kind in profile_upgrade_badges:
+\t\tabort(409, "This profile upgrade can only be given once!")
+'''
 		source = source[:validation_at] + source[validation_at:].replace(validation_marker, upgrade_guard, 1)
 
 		loop_start = source.find('\taward = g.db.query(AwardRelationship).filter(\n', fn_start)
 		if loop_start == -1:
 			raise RuntimeError("Could not locate award inventory block")
+
+		assignment_marker = "\tif thing_type == 'post': award.submission_id = thing.id\n\telse: award.comment_id = thing.id\n"
+		assignment_at = source.find(assignment_marker, loop_start)
+		if assignment_at == -1:
+			raise RuntimeError("Could not locate award target assignment")
+		emoji_assignment = assignment_marker + '''\tif kind == "wholesome":
+\t\t# Keep the inventory/catalog key stable while persisting the selected emoji
+\t\t# on the applied relationship itself. AwardRelationship exposes this again
+\t\t# as the base `wholesome` kind plus an effect token for the renderer.
+\t\taward.kind = f"wholesome:{emoji_name}"
+'''
+		source = source[:assignment_at] + source[assignment_at:].replace(assignment_marker, emoji_assignment, 1)
 
 		final_return = '\treturn {"message": f"{AWARDS[kind][\'title\']} award given to {thing_type} successfully!"}\n'
 		fn_end = source.find('\n@app.', loop_start)
@@ -102,7 +168,30 @@ def patch_award_batch_source():
 
 		indented_body = ''.join('\t' + line if line.strip() else line for line in loop_body.splitlines(keepends=True))
 		batch_loop = '\tfor _award_batch_index in range(amount):\n\t\tauthor = thing.author\n' + indented_body
-		batch_return = '''\tif amount > 1:\n\t\tcollapse_award_batch_ledger(\n\t\t\tg.db,\n\t\t\t_award_batch_ledger_start,\n\t\t\trequest.path,\n\t\t\tkind=kind,\n\t\t\tquantity=amount,\n\t\t\tthing_type=thing_type,\n\t\t\tthing_id=thing.id,\n\t\t\tactor=v,\n\t\t\trecipient=_award_batch_target_author,\n\t\t)\n\t\tif v.id != _award_batch_target_author.id and kind != "spider":\n\t\t\tmsg = f"@{v.username} has given your [{thing_type}]({thing.shortlink}) the {amount} {AWARDS[kind]['title']} Awards!"\n\t\t\tif note:\n\t\t\t\tmsg += f"\\n\\n> {note}"\n\t\t\tsend_repeatable_notification(_award_batch_target_author.id, msg)\n\n\tif amount == 1:\n\t\tmessage = f"{AWARDS[kind]['title']} award given to {thing_type} successfully!"\n\telse:\n\t\tmessage = f"{amount}× {AWARDS[kind]['title']} awards given to {thing_type} successfully!"\n\treturn {"message": message}\n'''
+		batch_return = '''\tif amount > 1:
+\t\tcollapse_award_batch_ledger(
+\t\t\tg.db,
+\t\t\t_award_batch_ledger_start,
+\t\t\trequest.path,
+\t\t\tkind=kind,
+\t\t\tquantity=amount,
+\t\t\tthing_type=thing_type,
+\t\t\tthing_id=thing.id,
+\t\t\tactor=v,
+\t\t\trecipient=_award_batch_target_author,
+\t\t)
+\t\tif v.id != _award_batch_target_author.id and kind != "spider":
+\t\t\tmsg = f"@{v.username} has given your [{thing_type}]({thing.shortlink}) the {amount} {AWARDS[kind]['title']} Awards!"
+\t\t\tif note:
+\t\t\t\tmsg += f"\\n\\n> {note}"
+\t\t\tsend_repeatable_notification(_award_batch_target_author.id, msg)
+
+\tif amount == 1:
+\t\tmessage = f"{AWARDS[kind]['title']} award given to {thing_type} successfully!"
+\telse:
+\t\tmessage = f"{amount}× {AWARDS[kind]['title']} awards given to {thing_type} successfully!"
+\treturn {"message": message}
+'''
 		source = source[:loop_start] + batch_loop + batch_return + source[final_return_at + len(final_return):]
 
 		_atomic_write(_AWARDS_ROUTE_PATH, source)

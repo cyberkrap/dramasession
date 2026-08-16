@@ -17,23 +17,56 @@
 		const directPost = icon.closest('#post-root > .card');
 		if (directPost) return directPost;
 
-		// Deliberately do not fall back to an arbitrary .card here. Award visual
-		// effects belong to the opened thread only, never homepage/profile/search
-		// feed cards or unrelated cards rendered alongside the thread.
+		// Award visual effects belong to the opened thread only, never unrelated
+		// homepage/profile/search cards rendered beside it.
 		return null;
 	}
 
-	function countsForTarget(target) {
-		const counts = {};
-		for (const kind of visualKinds) {
-			counts[kind] = Array.from(target.querySelectorAll(`.award-kind-${kind}`))
-				.filter((icon) => targetForIcon(icon) === target).length;
-		}
-		return counts;
+	function iconsFor(target, kind) {
+		return Array.from(target.querySelectorAll(`.award-kind-${kind}`))
+			.filter((icon) => targetForIcon(icon) === target);
 	}
 
-	function fingerprint(counts) {
-		return visualKinds.map((kind) => `${kind}:${counts[kind] || 0}`).join('|');
+	function decorateEmojiAwardIcon(icon, name) {
+		if (!icon || !name || icon.dataset.emojiAwardDecorated === name) return;
+		icon.dataset.emojiAwardDecorated = name;
+		icon.style.backgroundImage = `url('/e/${encodeURIComponent(name)}.webp')`;
+		icon.style.backgroundPosition = 'center';
+		icon.style.backgroundRepeat = 'no-repeat';
+		icon.style.backgroundSize = 'contain';
+		icon.style.display = 'inline-block';
+		icon.style.width = '24px';
+		icon.style.height = '24px';
+		icon.style.fontSize = '0';
+		icon.style.color = 'transparent';
+		icon.style.verticalAlign = 'middle';
+	}
+
+	function emojiNameForIcon(icon) {
+		for (const token of icon.classList) {
+			if (token.startsWith('award-emoji-name-')) {
+				const value = token.slice('award-emoji-name-'.length);
+				if (/^[A-Za-z0-9_-]{1,80}$/.test(value)) {
+					decorateEmojiAwardIcon(icon, value);
+					return value;
+				}
+			}
+		}
+		// Historical Wholesome awards did not store a chosen emoji. Keep them
+		// visible using their original asset instead of silently dropping them.
+		return 'marseywholesome';
+	}
+
+	function dataForTarget(target) {
+		const counts = {};
+		for (const kind of visualKinds) counts[kind] = iconsFor(target, kind).length;
+		const emojiNames = iconsFor(target, 'wholesome').map(emojiNameForIcon);
+		return {counts, emojiNames};
+	}
+
+	function fingerprint(data) {
+		const countPart = visualKinds.map((kind) => `${kind}:${data.counts[kind] || 0}`).join('|');
+		return `${countPart}|emoji:${data.emojiNames.join(',')}`;
 	}
 
 	function ensureLayer(target) {
@@ -51,12 +84,14 @@
 		return `${min + Math.random() * (max - min)}%`;
 	}
 
+	function randomSigned(min, max) {
+		const value = min + Math.random() * (max - min);
+		return Math.random() < .5 ? -value : value;
+	}
+
 	function animateFirefly(dot, dx, dy, duration) {
 		if (typeof dot.animate !== 'function') return;
 
-		// Use WAAPI as the primary animation so generic theme/button animation
-		// rules cannot accidentally freeze the effect. CSS remains a fallback for
-		// browsers without Element.animate().
 		dot.style.animation = 'none';
 		dot.animate([
 			{transform: 'translate3d(0, 0, 0) scale(.55)', opacity: .15},
@@ -90,15 +125,86 @@
 		}
 	}
 
+	function startRicardoRoam(layer, sprites) {
+		if (!sprites.length) return;
+
+		requestAnimationFrame(() => {
+			if (!layer.isConnected) return;
+			const width = Math.max(1, layer.clientWidth);
+			const height = Math.max(1, layer.clientHeight);
+			for (const sprite of sprites) {
+				const size = sprite.element.offsetWidth || 46;
+				sprite.x = Math.random() * Math.max(0, width - size);
+				sprite.y = Math.random() * Math.max(0, height - size);
+				sprite.element.style.transform = `translate3d(${sprite.x}px, ${sprite.y}px, 0)`;
+			}
+
+			let last = performance.now();
+			const frame = (now) => {
+				if (!layer.isConnected) return;
+				const dt = Math.min(40, Math.max(0, now - last));
+				last = now;
+				const layerWidth = Math.max(1, layer.clientWidth);
+				const layerHeight = Math.max(1, layer.clientHeight);
+
+				for (const sprite of sprites) {
+					const size = sprite.element.offsetWidth || 46;
+					const maxX = Math.max(0, layerWidth - size);
+					const maxY = Math.max(0, layerHeight - size);
+					sprite.x += sprite.vx * dt;
+					sprite.y += sprite.vy * dt;
+
+					if (sprite.x <= 0) {
+						sprite.x = 0;
+						sprite.vx = Math.abs(sprite.vx);
+					} else if (sprite.x >= maxX) {
+						sprite.x = maxX;
+						sprite.vx = -Math.abs(sprite.vx);
+					}
+					if (sprite.y <= 0) {
+						sprite.y = 0;
+						sprite.vy = Math.abs(sprite.vy);
+					} else if (sprite.y >= maxY) {
+						sprite.y = maxY;
+						sprite.vy = -Math.abs(sprite.vy);
+					}
+
+					sprite.element.style.transform = `translate3d(${sprite.x}px, ${sprite.y}px, 0)`;
+				}
+				requestAnimationFrame(frame);
+			};
+			requestAnimationFrame(frame);
+		});
+	}
+
 	function addRicardo(layer, count) {
-		for (let i = 0; i < Math.min(count, 3); i++) {
+		// The legacy effect already displayed at most three Ricardos. Keep that
+		// density, but let those dancers roam freely instead of pinning them to
+		// three corners.
+		const total = Math.min(Math.max(0, count), 3);
+		const sprites = [];
+		for (let i = 0; i < total; i++) {
+			const roamer = document.createElement('span');
+			roamer.className = 'award-ricardo-roamer';
+
 			const image = document.createElement('img');
 			image.loading = 'lazy';
-			image.src = `/i/ricardo${i + 1}.webp?v=20260809-scoped`;
-			image.alt = 'Celebration';
-			image.className = `award-ricardo award-ricardo-${i + 1}`;
-			layer.appendChild(image);
+			image.src = `/i/ricardo${(i % 3) + 1}.webp?v=20260816-roam`;
+			image.alt = '';
+			image.className = 'award-ricardo';
+			image.style.animationDelay = `${-Math.random() * 1.8}s`;
+			roamer.appendChild(image);
+			layer.appendChild(roamer);
+
+			sprites.push({
+				element: roamer,
+				x: 0,
+				y: 0,
+				vx: randomSigned(.035, .085),
+				vy: randomSigned(.03, .075),
+			});
 		}
+		startRicardoRoam(layer, sprites);
 	}
 
 	function startFirework(item, index) {
@@ -142,13 +248,23 @@
 		}
 	}
 
-	function addWholesome(layer, count) {
-		for (let i = 0; i < Math.min(count, 4); i++) {
+	function addEmojiRain(layer, emojiNames) {
+		for (const name of emojiNames.slice(0, 30)) {
 			const image = document.createElement('img');
+			const duration = 5200 + Math.random() * 5200;
 			image.loading = 'lazy';
-			image.src = '/e/marseywholesome.webp';
-			image.alt = ':#marseywholesome:';
-			image.className = `award-wholesome award-wholesome-${i + 1}`;
+			image.src = `/e/${encodeURIComponent(name)}.webp`;
+			image.alt = '';
+			image.className = 'award-emoji-rain';
+			image.style.setProperty('--x', randomPercent(1, 96));
+			image.style.setProperty('--size', `${34 + Math.random() * 20}px`);
+			image.style.setProperty('--sway-a', `${randomSigned(12, 48)}px`);
+			image.style.setProperty('--sway-b', `${randomSigned(18, 70)}px`);
+			image.style.setProperty('--sway-c', `${randomSigned(12, 58)}px`);
+			image.style.setProperty('--rot-a', `${randomSigned(18, 85)}deg`);
+			image.style.setProperty('--rot-b', `${randomSigned(120, 310)}deg`);
+			image.style.setProperty('--duration', `${duration}ms`);
+			image.style.setProperty('--delay', `${-Math.random() * duration}ms`);
 			layer.appendChild(image);
 		}
 	}
@@ -167,8 +283,9 @@
 
 	function renderTarget(target) {
 		if (!(target instanceof HTMLElement) || !isStandaloneThread()) return;
-		const counts = countsForTarget(target);
-		const signature = fingerprint(counts);
+		const data = dataForTarget(target);
+		const counts = data.counts;
+		const signature = fingerprint(data);
 		if (rendered.get(target) === signature) return;
 		rendered.set(target, signature);
 
@@ -188,7 +305,7 @@
 		if (counts.fireflies) addFireflies(layer, counts.fireflies);
 		if (counts.ricardo) addRicardo(layer, counts.ricardo);
 		if (counts.firework) addFireworks(layer, counts.firework);
-		if (counts.wholesome) addWholesome(layer, counts.wholesome);
+		if (counts.wholesome) addEmojiRain(layer, data.emojiNames);
 		if (counts.shit) addSparkTrail(layer, counts.shit);
 	}
 
