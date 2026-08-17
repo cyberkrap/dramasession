@@ -12,7 +12,10 @@ _COMMENTS_TEMPLATE_PATH = Path("files/templates/comments.html")
 _MACROS_TEMPLATE_PATH = Path("files/templates/util/macros.html")
 _HTML_HEAD_PATH = Path("files/templates/util/html_head.html")
 
-RETIRED_AWARDS = {"train", "scooter", "marsey", "pause", "unpausable"}
+RETIRED_AWARDS = {
+	"train", "scooter", "marsey", "pause", "unpausable",
+	"marsify", "shit", "beano", "offsitementions",
+}
 
 
 def _atomic_write(path, content):
@@ -36,6 +39,11 @@ def disable_retired_awards():
 			"title": "Ricardo",
 			"description": "Summons Ricardo to dance on the post or comment.",
 			"price": 200,
+		})
+	if "agendaposter" in AWARDS:
+		AWARDS["agendaposter"].update({
+			"title": "Chud",
+			"description": "Chuds the recipient for 24 hours.",
 		})
 
 	# Gold mirrors the simple rDrama Gold behavior: it gilds the target's text
@@ -62,15 +70,12 @@ def disable_retired_awards():
 	# even where TOC exposes a renamed award title.
 	rdrama_base_prices = {
 		"lootbox": 1000,
-		"beano": 100,
 		"wholesome": 100,      # Emoji
 		"confetti": 200,
 		"firework": 200,
 		"ricardo": 200,
 		"fireflies": 200,
-		"shit": 300,
 		"tilt": 300,
-		"marsify": 500,
 		"glowie": 500,
 		"gold": 500,
 		"spider": 500,
@@ -79,8 +84,7 @@ def disable_retired_awards():
 		"pizzashill": 500,
 		"rehab": 500,
 		"unpin": 750,
-		"agendaposter": 1000, # Chud / TOC Restrict
-		"offsitementions": 1000,
+		"agendaposter": 1000, # Chud
 		"progressivestack": 1500,
 		"pin": 2000,
 		"ban": 2000,
@@ -184,8 +188,6 @@ def patch_award_batch_source():
 \t\t"alt": 84,
 \t\t"unblockable": 87,
 \t\t"fish": 90,
-\t\t"beano": 128,
-\t\t"offsitementions": 140,
 \t}
 \tupgrade_username = "👻" if thing.ghost and v.id != author.id else f"@{author.username}"
 \tupgrade_badge_id = profile_upgrade_badges.get(kind)
