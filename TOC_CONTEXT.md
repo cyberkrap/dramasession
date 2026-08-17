@@ -41,6 +41,7 @@ Do not blindly reimplement something merely because an old screenshot/chat says 
 - Do not redesign unrelated systems while fixing a specific issue.
 - Preserve existing TOC-specific behavior unless the user explicitly asks to change it.
 - For rDrama-inspired features, **do not independently scrape, reconstruct, or copy current rDrama behavior unless the user explicitly asks for research**. The normal workflow is: the user describes the feature/award, price, behavior/effect/assets/rules, then implement that specification in TOC.
+- When the user explicitly supplies rDrama screenshots/source and asks for a sync/comparison, those supplied materials are the source of truth for that requested sync; do not silently substitute unrelated rDrama research.
 - When modifying production-facing code, keep changes narrow enough to identify regressions and check the relevant existing implementation first.
 - Do not assume a deployment is healthy merely because code was committed; use the deployment/log evidence available at the time.
 
@@ -152,7 +153,17 @@ When changing composer media behavior, verify posts, comments, and chat separate
 
 ## Awards
 
-TOC's award system is being modernized incrementally from user-provided specifications. Do not automatically sync/research rDrama awards.
+TOC's award system is being modernized incrementally from user-provided specifications. Do not automatically sync/research rDrama awards unless the user explicitly requests it.
+
+### rDrama price baseline (explicit sync)
+
+On **2026-08-17**, the user supplied screenshots of the current rDrama Awards Shop and explicitly requested price synchronization for awards TOC already implements.
+
+- The **crossed-out values** in those screenshots are treated as rDrama's base prices.
+- The green values are account-specific discounted prices and must **not** be copied as TOC's base prices.
+- Overlapping TOC awards are normalized at startup in `files/helpers/award_system_fixes.py` via `rdrama_base_prices`, preserving TOC's existing internal keys/renamed titles.
+- This price-only sync does not imply that TOC should automatically copy missing rDrama awards or their mechanics. The user will choose missing awards to add.
+- Price-baseline commit: `8326ce2b`.
 
 ### Emoji Award
 
@@ -187,9 +198,9 @@ Current intended behavior:
 - Each Gold award pays the recipient **250 Wishcoins** when another user gives it; self-awarding does not produce the recipient payout.
 - Quantity/batch giving scales the payout by 250 per Gold and summarizes the total payout in the recipient notification.
 - The visual effect is deliberately the normal Gold effect: **gild the awarded post/comment text only**. It does not bathe the whole card in a large golden glow; that broader treatment belongs to a separate Giga Gold-style effect if added later.
-- Gold uses the dedicated stacked-coin `award-gold-icon` glyph everywhere it is rendered (shop, Give Award picker, and awarded-content metadata); do not replace it with an unsupported Font Awesome coin class.
+- Gold uses the normal Font Awesome vector icon system (`fas fa-coins`, warning/gold color) so it stays visually consistent and crisp in the shop, Give Award picker, and awarded-content metadata.
 
-Implementation commits: `ee4ae80a`, `7e51d97f`, `7b48adda`, `518db91e`, `d78d126b`, `e7136bbc`.
+Implementation commits: `ee4ae80a`, `7e51d97f`, `7b48adda`, `518db91e`, `d78d126b`, `e7136bbc`, `cd2af16b`.
 
 ### Award-effect lifecycle invariant
 
@@ -197,14 +208,15 @@ Opening/giving/closing an award must not destroy, hide, duplicate, or permanentl
 
 ## Current checkpoint / pending work
 
-Current award-system checkpoint: Gold award mechanics/effect implemented on **2026-08-17** after Emoji/Ricardo.
+Current award-system checkpoint: **rDrama base-price synchronization for overlapping awards** completed on **2026-08-17**, after Gold/Emoji/Ricardo work.
 
 At this checkpoint:
 
-- Gold costs 500, is present in the normal award catalog/shop, uses its dedicated stacked-coin icon, gilds target text, and pays a fixed 250 Wishcoins per award to a non-self recipient.
+- Overlapping awards use the user-supplied rDrama shop's crossed-out/base prices; discounted green prices were intentionally ignored.
+- Gold costs 500, is present in the normal award catalog/shop, uses the normal vector coin icon, gilds only the exact awarded target's text, and pays a fixed 250 Wishcoins per award to a non-self recipient.
 - Emoji/Ricardo remain the preceding award feature work and their effect/modal lifecycle invariants still apply.
+- The user is choosing which rDrama awards missing from TOC should be implemented next; do not add the rest automatically.
 - Snatchy domain exception is externally pending with Reddit as of 2026-08-17.
-- Continue from the user's next specified feature/award rather than inventing an automatic rDrama synchronization backlog.
 
 ## How to maintain this file
 
