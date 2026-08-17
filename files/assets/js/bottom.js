@@ -155,6 +155,29 @@ function moveMobileActionModalsToBody(root) {
     });
 }
 
+/* Inline image composers have a dedicated Image URL button. A normal pasted
+   http(s) link must stay ordinary text instead of being sent to the image
+   importer. Clipboard image files still use the existing paste-upload path. */
+function preservePlainUrlPaste(event) {
+	const textarea = event.target;
+	if (!(textarea instanceof HTMLTextAreaElement) || !textarea.closest('.inline-image-composer')) return;
+	const clipboard = event.clipboardData;
+	if (!clipboard) return;
+	if (Array.from(clipboard.files || []).some(file => String(file.type || '').startsWith('image/'))) return;
+
+	const pasted = clipboard.getData('text/plain') || '';
+	if (!/^https?:\/\/\S+$/i.test(pasted.trim())) return;
+
+	event.preventDefault();
+	event.stopImmediatePropagation();
+	const start = Number.isInteger(textarea.selectionStart) ? textarea.selectionStart : textarea.value.length;
+	const end = Number.isInteger(textarea.selectionEnd) ? textarea.selectionEnd : start;
+	textarea.setRangeText(pasted, start, end, 'end');
+	textarea.dispatchEvent(new Event('input', {bubbles: true}));
+}
+
+document.addEventListener('paste', preservePlainUrlPaste, true);
+
 moveMobileActionModalsToBody(document);
 const mobileModalObserver = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
