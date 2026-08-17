@@ -165,14 +165,41 @@ function giveaward(t) {
 		document.getElementById('award-price-summary').textContent = usedOwnedAward ? 'Owned award used' : 'Award purchased and applied';
 	});
 }
-const data_url = document.querySelectorAll('[data-url]');
-for (const element of data_url) {
-	if (element.dataset.nonce != nonce) {
-		console.log("Nonce check failed!")
-		continue
+
+function setAwardActionFromTrigger(trigger) {
+	if (!(trigger instanceof HTMLElement)) return false;
+	if (!trigger.matches('[data-bs-target="#awardModal"][data-url]')) return false;
+	if (trigger.dataset.nonce != nonce) {
+		console.log("Nonce check failed!");
+		return false;
 	}
-	element.addEventListener('click', () => {
-		document.getElementById('giveaward').dataset.action = element.dataset.url
+	const button = document.getElementById('giveaward');
+	if (!button) return false;
+	const action = String(trigger.dataset.url || '');
+	if (!/^\/award\/(?:post|comment)\/\d+$/.test(action)) {
+		button.dataset.action = '';
+		return false;
+	}
+	button.dataset.action = action;
+	return true;
+}
+
+// Comment replies are inserted over XHR, so a one-time querySelectorAll binding
+// misses their Give Award buttons. Delegate the click and also use Bootstrap's
+// relatedTarget on modal open; both work for comments added without a refresh.
+document.addEventListener('click', (event) => {
+	const trigger = event.target.closest?.('[data-bs-target="#awardModal"][data-url]');
+	if (trigger) setAwardActionFromTrigger(trigger);
+}, true);
+
+const awardModalElement = document.getElementById('awardModal');
+if (awardModalElement) {
+	awardModalElement.addEventListener('show.bs.modal', (event) => {
+		setAwardActionFromTrigger(event.relatedTarget);
+	});
+	awardModalElement.addEventListener('hidden.bs.modal', () => {
+		const button = document.getElementById('giveaward');
+		if (button) button.dataset.action = '';
 	});
 }
 
