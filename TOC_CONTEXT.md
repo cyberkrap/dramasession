@@ -93,7 +93,7 @@ A later feature may allow a user to connect their TOC and Reddit accounts and ex
 
 ### Current external blocker
 
-As of **2026-08-16**, Reddit Developer Portal shows the HTTP Fetch domain exception for `theobsessionclub.com` as **Pending**. Snatchy's TOC-side work should not be repeatedly rewritten just to poke that review queue. Re-check current Reddit status before assuming this is still pending in a future chat.
+As of **2026-08-17**, Reddit Developer Portal still shows the HTTP Fetch domain exception for `theobsessionclub.com` as **Pending**. Snatchy's TOC-side work should not be repeatedly rewritten just to poke that review queue. Re-check current Reddit status before assuming this is still pending in a future chat.
 
 Relevant review-preparation commits include `c8d5bf7`, `14220be`, and `0731397`.
 
@@ -175,19 +175,34 @@ The old `Celebration` award was repurposed/renamed into **Ricardo**.
 
 Current intended visual behavior is the animated Ricardo/Ricardo-TV effect described by the user rather than the old fixed corner placement. Inspect the current award effect implementation before modifying it further.
 
+### Gold Award
+
+Gold was added from the user's supplied rDrama reference/source rather than independently researched.
+
+Current intended behavior:
+
+- Base price: 500.
+- Each Gold award pays the recipient **250 Wishcoins** when another user gives it; self-awarding does not produce the recipient payout.
+- Quantity/batch giving scales the payout by 250 per Gold and summarizes the total payout in the recipient notification.
+- The visual effect is deliberately the normal Gold effect: **gild the awarded post/comment text only**. It does not bathe the whole card in a large golden glow; that broader treatment belongs to a separate Giga Gold-style effect if added later.
+- Gold uses the single-coin award icon and should remain visibly associated with giver/date metadata like other awards.
+
+Implementation commits: `ee4ae80a`, `7e51d97f`, `7b48adda`.
+
 ### Award-effect lifecycle invariant
 
 Opening/giving/closing an award must not destroy, hide, duplicate, or permanently pause effects already active on the post/comment. The latest functional fix before this context file was commit `df141c4` (`Fix award effect modal lifecycle`), which preserves/repairs direct `.content-award-effects` layers and resumes their animations after modal lifecycle changes.
 
 ## Current checkpoint / pending work
 
-Functional code checkpoint immediately before this context document: `df141c4` — **Fix award effect modal lifecycle**.
+Current award-system checkpoint: Gold award mechanics/effect implemented on **2026-08-17** after Emoji/Ricardo.
 
 At this checkpoint:
 
-- Emoji/Ricardo award work is the most recent feature area.
-- Snatchy domain exception is externally pending with Reddit as of 2026-08-16.
-- The user is preparing the next list of fixes/features; do not invent a new priority queue while waiting for that specification.
+- Gold costs 500, gilds target text, and pays a fixed 250 Wishcoins per award to a non-self recipient.
+- Emoji/Ricardo remain the preceding award feature work and their effect/modal lifecycle invariants still apply.
+- Snatchy domain exception is externally pending with Reddit as of 2026-08-17.
+- Continue from the user's next specified feature/award rather than inventing an automatic rDrama synchronization backlog.
 
 ## How to maintain this file
 
