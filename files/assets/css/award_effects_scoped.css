@@ -18,7 +18,11 @@
 
 /* Gold is intentionally a text-only gilding effect. Unlike Giga Gold, it does
    not tint or glow the entire post/comment card. :has() makes the state follow
-   the real award icon immediately, including AJAX-added awards. */
+   the real award icon immediately, including AJAX-added awards.
+
+   Comments are deliberately scoped to the comment's own direct .comment-anchor.
+   Replies are nested elsewhere inside .comment-body, so selecting .comment-body
+   itself would make a parent's Gold award leak into every descendant reply. */
 .actual-post:has(.award-kind-gold) .post-title,
 .actual-post:has(.award-kind-gold) .post-title a,
 .actual-post:has(.award-kind-gold) .post-body,
@@ -27,8 +31,8 @@
 #post-root > .card:has(.award-kind-gold) #post-title a,
 #post-root > .card:has(.award-kind-gold) #post-text,
 #post-root > .card:has(.award-kind-gold) #post-text a,
-.comment-body:has(.award-kind-gold) .comment-text,
-.comment-body:has(.award-kind-gold) .comment-text a {
+.comment-body > .comment-anchor:has(.award-kind-gold) > .comment-text,
+.comment-body > .comment-anchor:has(.award-kind-gold) > .comment-text a {
 	color: #f3c94f !important;
 	text-shadow: 0 0 4px rgba(243, 201, 79, .24);
 }
