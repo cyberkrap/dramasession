@@ -1,0 +1,157 @@
+.requested-award-effects {
+	position: absolute;
+	inset: 0;
+	z-index: 19;
+	overflow: hidden;
+	pointer-events: none;
+	border-radius: inherit;
+}
+
+.award-furry-roamer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 72px;
+	height: 104px;
+	will-change: transform;
+}
+
+.award-furry-dancer {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+	transform-origin: 50% 88%;
+	animation: award-furry-dance 1.15s ease-in-out infinite alternate;
+}
+
+@keyframes award-furry-dance {
+	0% { transform: translateY(0) rotate(-5deg) scale(.96); }
+	35% { transform: translateY(-5px) rotate(4deg) scale(1.03); }
+	70% { transform: translateY(1px) rotate(-2deg) scale(.99); }
+	100% { transform: translateY(-7px) rotate(6deg) scale(1.04); }
+}
+
+/* The image is the preferred rDrama fly sprite. If it has not been uploaded
+   yet, the wrapper's pseudo-elements still render a tiny fly instead of a
+   broken-image icon. */
+.award-shit-fly {
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	will-change: transform;
+	transform-origin: 50% 50%;
+}
+
+.award-shit-fly img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	filter: drop-shadow(0 1px 1px rgba(0,0,0,.5));
+}
+
+.award-shit-fly::before {
+	content: "";
+	position: absolute;
+	left: 7px;
+	top: 8px;
+	width: 7px;
+	height: 5px;
+	border-radius: 55% 45% 55% 45%;
+	background: #171717;
+	box-shadow: 3px -1px 0 -1px #171717;
+}
+
+.award-shit-fly::after {
+	content: "";
+	position: absolute;
+	left: 4px;
+	top: 4px;
+	width: 6px;
+	height: 7px;
+	border: 1px solid rgba(30,30,30,.85);
+	border-radius: 70% 30% 70% 30%;
+	transform: rotate(-28deg);
+	box-shadow: 8px 5px 0 -1px rgba(30,30,30,.5);
+	opacity: .8;
+}
+
+.award-shit-fly:has(img)::before,
+.award-shit-fly:has(img)::after {
+	display: none;
+}
+
+.award-impact {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.award-impact img {
+	display: block;
+	object-fit: contain;
+	filter: drop-shadow(0 5px 10px rgba(0,0,0,.5));
+}
+
+.award-impact-truthnuke img {
+	width: min(230px, 48%);
+	max-height: 88%;
+	animation: award-truthnuke-pulse 1.7s ease-in-out infinite alternate;
+}
+
+.award-impact-truthnova img {
+	width: min(560px, 82%);
+	max-height: 96%;
+	animation: award-truthnova-pulse 2.25s ease-in-out infinite alternate;
+}
+
+@keyframes award-truthnuke-pulse {
+	0% { transform: scale(.92); opacity: .76; }
+	100% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes award-truthnova-pulse {
+	0% { transform: scale(.97); opacity: .78; }
+	100% { transform: scale(1.035); opacity: .98; }
+}
+
+.award-lovebomb-pattern {
+	position: absolute;
+	inset: 0;
+	background-image: url('/assets/images/awards/lovebomb.webp?v=20260817');
+	background-repeat: repeat;
+	background-position: center;
+	background-size: 310px auto;
+	opacity: var(--love-opacity, .58);
+	animation: award-lovebomb-drift 7s ease-in-out infinite alternate;
+}
+
+@keyframes award-lovebomb-drift {
+	0% { background-position: 0 0; }
+	100% { background-position: 55px 22px; }
+}
+
+@media (max-width: 720px) {
+	.award-furry-roamer {
+		width: 54px;
+		height: 78px;
+	}
+
+	.award-shit-fly {
+		width: 17px;
+		height: 17px;
+	}
+
+	.award-impact-truthnuke img {
+		width: min(180px, 55%);
+	}
+
+	.award-impact-truthnova img {
+		width: min(420px, 88%);
+	}
+}
