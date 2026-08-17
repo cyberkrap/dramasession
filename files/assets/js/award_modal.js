@@ -104,6 +104,10 @@ let selectedAwardCurrency = "marseybux";
 let selectedAwardOwned = 0;
 let selectedAwardPrice = 0;
 
+function validAwardAction(action) {
+	return /^\/award\/(?:post|comment)\/\d+$/.test(String(action || ''));
+}
+
 function pick(kind, price, coins, marseybux, unlimitedSpending = false, currency = "marseybux", owned = 0) {
 	price = parseInt(price, 10) || 0;
 	coins = parseInt(coins, 10) || 0;
@@ -154,9 +158,14 @@ function updateOwnedAwardDisplay(kind) {
 }
 
 function giveaward(t) {
+	const action = String(t.dataset.action || '');
+	if (!validAwardAction(action)) {
+		showToast(false, 'Could not determine which post/comment to award. Close the award picker and try again.');
+		return;
+	}
 	const kind = document.getElementById('kind').value;
 	const usedOwnedAward = selectedAwardOwned > 0;
-	postToast(t, t.dataset.action, {
+	postToast(t, action, {
 		kind: kind,
 		note: document.getElementById('note').value,
 		currency: selectedAwardCurrency
@@ -176,7 +185,7 @@ function setAwardActionFromTrigger(trigger) {
 	const button = document.getElementById('giveaward');
 	if (!button) return false;
 	const action = String(trigger.dataset.url || '');
-	if (!/^\/award\/(?:post|comment)\/\d+$/.test(action)) {
+	if (!validAwardAction(action)) {
 		button.dataset.action = '';
 		return false;
 	}
@@ -189,7 +198,19 @@ function setAwardActionFromTrigger(trigger) {
 // relatedTarget on modal open; both work for comments added without a refresh.
 document.addEventListener('click', (event) => {
 	const trigger = event.target.closest?.('[data-bs-target="#awardModal"][data-url]');
-	if (trigger) setAwardActionFromTrigger(trigger);
+	if (trigger) {
+		setAwardActionFromTrigger(trigger);
+		return;
+	}
+
+	// Never let either the legacy or enhanced award submitter POST to a relative
+	// "undefined" URL if a dynamically inserted trigger somehow failed to bind.
+	const submit = event.target.closest?.('#giveaward');
+	if (!submit || validAwardAction(submit.dataset.action)) return;
+	event.preventDefault();
+	event.stopImmediatePropagation();
+	submit.dataset.confirmed = '0';
+	showToast(false, 'Could not determine which post/comment to award. Close the award picker and try again.');
 }, true);
 
 const awardModalElement = document.getElementById('awardModal');
