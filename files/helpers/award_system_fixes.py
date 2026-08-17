@@ -56,6 +56,49 @@ def disable_retired_awards():
 	AWARDS["gold"] = gold
 	AWARDS_ENABLED["gold"] = gold
 
+	# Keep overlapping TOC awards aligned with the base (crossed-out) prices in
+	# the current rDrama award shop. Green shop prices are account discounts and
+	# are intentionally not copied. Internal keys are preserved for compatibility
+	# even where TOC exposes a renamed award title.
+	rdrama_base_prices = {
+		"lootbox": 1000,
+		"beano": 100,
+		"wholesome": 100,      # Emoji
+		"confetti": 200,
+		"firework": 200,
+		"ricardo": 200,
+		"fireflies": 200,
+		"shit": 300,
+		"tilt": 300,
+		"marsify": 500,
+		"glowie": 500,
+		"gold": 500,
+		"spider": 500,
+		"flairlock": 500,
+		"bird": 500,
+		"pizzashill": 500,
+		"rehab": 500,
+		"unpin": 750,
+		"agendaposter": 1000, # Chud / TOC Restrict
+		"offsitementions": 1000,
+		"progressivestack": 1500,
+		"pin": 2000,
+		"ban": 2000,
+		"unban": 2500,
+		"deflector": 2500,
+		"benefactor": 4000,
+		"grass": 20000,
+		"eye": 20000,
+		"unblockable": 50000,
+		"alt": 50000,
+		"checkmark": 50000,
+	}
+	for kind, price in rdrama_base_prices.items():
+		if kind in AWARDS:
+			AWARDS[kind]["price"] = price
+		if kind in AWARDS_ENABLED:
+			AWARDS_ENABLED[kind]["price"] = price
+
 	for kind in RETIRED_AWARDS:
 		if kind in AWARDS:
 			AWARDS[kind]["enabled"] = False
