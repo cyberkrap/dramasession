@@ -36,7 +36,7 @@ def patch_requested_awards_post_batch_source_v2():
 			f"{indent}fixed_award_coin_payouts = {{'gold': 250, 'truthnuke': 250, 'truthnova': 2500}}\n"
 			f"{indent}awarded_coins = fixed_award_coin_payouts.get(kind, int(AWARDS[kind]['price'] * COSMETIC_AWARD_COIN_AWARD_PCT) if AWARDS[kind]['cosmetic'] and kind != 'shit' else 0)"
 		)
-		source = payout_pattern.sub(replacement, source, count=1)
+		source = payout_pattern.sub(lambda _match: replacement, source, count=1)
 
 		single_pattern = re.compile(
 			r'(?m)^(?P<i>\t+)if awarded_coins > 0:\n(?P=i)\tmsg \+= f" and you have received \{awarded_coins\} coins as a result"\n(?P=i)msg \+= "!"$'
@@ -52,7 +52,7 @@ def patch_requested_awards_post_batch_source_v2():
 			f'{indent}if kind == "truthnova":\n'
 			f'{indent}\tmsg += "\\n\\nYou have received 1,375 XP!"'
 		)
-		source = single_pattern.sub(replacement, source, count=1)
+		source = single_pattern.sub(lambda _match: replacement, source, count=1)
 
 		batch_pattern = re.compile(
 			r'(?m)^(?P<i>\t+)if kind == "gold":\n(?P=i)\tmsg \+= f" and you have received \{250 \* amount\} coins as a result"\n(?P=i)msg \+= "!"$'
@@ -69,7 +69,7 @@ def patch_requested_awards_post_batch_source_v2():
 			f'{indent}if kind == "truthnova":\n'
 			f'{indent}\tmsg += f"\\n\\nYou have received {{1375 * amount:,}} XP!"'
 		)
-		source = batch_pattern.sub(replacement, source, count=1)
+		source = batch_pattern.sub(lambda _match: replacement, source, count=1)
 
 		source = source.replace(
 			"\t# obsession-award-batch-v3\n",
