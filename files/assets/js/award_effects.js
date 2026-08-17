@@ -2,7 +2,7 @@
 	'use strict';
 
 	const rendered = new WeakMap();
-	const visualKinds = ['confetti', 'fireflies', 'ricardo', 'firework', 'wholesome', 'shit'];
+	const visualKinds = ['confetti', 'fireflies', 'ricardo', 'firework', 'wholesome'];
 
 	function isStandaloneThread() {
 		return document.body && document.body.id === 'thread';
@@ -11,7 +11,9 @@
 	function targetForIcon(icon) {
 		if (!isStandaloneThread()) return null;
 
-		const comment = icon.closest('.comment-body');
+		// .comment-body contains nested replies; .comment-anchor is the exact
+		// awarded comment only. Binding here prevents effects leaking downward.
+		const comment = icon.closest('.comment-anchor');
 		if (comment) return comment;
 
 		const directPost = icon.closest('#post-root > .card');
@@ -306,7 +308,6 @@
 		if (counts.ricardo) addRicardo(layer, counts.ricardo);
 		if (counts.firework) addFireworks(layer, counts.firework);
 		if (counts.wholesome) addEmojiRain(layer, data.emojiNames);
-		if (counts.shit) addSparkTrail(layer, counts.shit);
 	}
 
 	function scan(root = document) {
