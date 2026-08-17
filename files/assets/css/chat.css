@@ -1233,3 +1233,90 @@ img[alt^="![]("] {
 		margin: 0;
 	}
 }
+
+/* Quoted replies should read as a separate reference line above the message. */
+body#chat #chat-window .chat-line-content {
+	display: grid !important;
+	grid-template-columns: minmax(0, 1fr) auto auto !important;
+	align-items: start !important;
+	column-gap: 2px;
+	row-gap: 1px;
+	width: 100%;
+	min-width: 0;
+	margin: 0 !important;
+}
+
+body#chat #chat-window .chat-line-content > .quotes {
+	grid-column: 1 / -1;
+	grid-row: 1;
+	width: 100%;
+	min-width: 0;
+	margin: 0 0 2px !important;
+	padding: 0 4px 0 0;
+	line-height: 1.25;
+}
+
+body#chat #chat-window .quotes .QuotedMessageLink {
+	display: block;
+	max-width: 100%;
+	overflow: hidden;
+	color: var(--primary) !important;
+	text-decoration: none !important;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+body#chat #chat-window .quotes .QuotedMessage,
+body#chat #chat-window .quotes .QuotedUser,
+body#chat #chat-window .quotes .text-primary {
+	color: inherit !important;
+}
+
+body#chat #chat-window .chat-line-content > .chat-message {
+	grid-column: 1;
+	grid-row: 1;
+	width: 100%;
+	max-width: none !important;
+	min-width: 0;
+	max-height: none;
+	padding: 0 4px 0 0 !important;
+	overflow: visible;
+	overflow-wrap: anywhere;
+}
+
+body#chat #chat-window .chat-line-content:has(> .quotes:not(.d-none)) > .chat-message {
+	grid-row: 2;
+	padding-left: 22px !important;
+}
+
+body#chat #chat-window .chat-line-content > .del:not(.delmsg),
+body#chat #chat-window .chat-line-content > .delmsg {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+body#chat #chat-window .chat-line-content > .quote {
+	grid-column: 3;
+	grid-row: 1;
+}
+
+body#chat #chat-window .chat-line-content:has(> .quotes:not(.d-none)) > .del,
+body#chat #chat-window .chat-line-content:has(> .quotes:not(.d-none)) > .quote {
+	grid-row: 2;
+}
+
+body#chat #chat-window .chat-line-content > .del,
+body#chat #chat-window .chat-line-content > .quote {
+	float: none !important;
+	align-self: start;
+	margin: 0 !important;
+}
+
+@media (max-width: 767.98px) {
+	body#chat #chat-window .chat-line-content > .quotes {
+		padding-right: 2px;
+	}
+	body#chat #chat-window .chat-line-content:has(> .quotes:not(.d-none)) > .chat-message {
+		padding-left: 18px !important;
+	}
+}
