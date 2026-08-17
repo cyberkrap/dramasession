@@ -4,11 +4,20 @@ from pathlib import Path
 
 import fcntl
 
+from files.helpers.config.awards import AWARDS, AWARDS_ENABLED
+
 
 _LOCK_PATH = "/tmp/obsession-requested-awards.lock"
 _AWARDS_ROUTE_PATH = Path("files/routes/awards.py")
 _HTML_HEAD_PATH = Path("files/templates/util/html_head.html")
 _LEGACY_EFFECTS_JS_PATH = Path("files/assets/js/award_effects.js")
+
+_REQUESTED_ICON_CLASSES = {
+	"furry": "toc-award-glyph toc-award-glyph-furry",
+	"truthnuke": "toc-award-glyph toc-award-glyph-truthnuke",
+	"lovebomb": "toc-award-glyph toc-award-glyph-lovebomb",
+	"truthnova": "toc-award-glyph toc-award-glyph-truthnova",
+}
 
 
 def _atomic_write(path, content):
@@ -17,8 +26,21 @@ def _atomic_write(path, content):
 	os.replace(temp_path, path)
 
 
+def _install_requested_award_icons():
+	"""Use TOC-owned SVG glyphs instead of Font Awesome names missing from this build."""
+	for kind, icon_class in _REQUESTED_ICON_CLASSES.items():
+		for catalog in (AWARDS, AWARDS_ENABLED):
+			award = catalog.get(kind)
+			if not award:
+				continue
+			award["icon"] = icon_class
+			award["color"] = ""
+
+
 def _ensure_requested_award_effect_assets():
 	"""Make requested award effects load even if later legacy template patching aborts."""
+	_install_requested_award_icons()
+
 	head = _HTML_HEAD_PATH.read_text(encoding="utf-8")
 	original_head = head
 
@@ -63,7 +85,7 @@ def patch_requested_awards_post_batch_source_v2():
 		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
 
 		# Do this first. If some legacy source rewrite later stops matching, the
-		# visual award JS/CSS still gets installed instead of silently disappearing.
+		# visual award JS/CSS and custom award glyphs still get installed.
 		_ensure_requested_award_effect_assets()
 
 		source = _AWARDS_ROUTE_PATH.read_text(encoding="utf-8")
@@ -72,8 +94,8 @@ def patch_requested_awards_post_batch_source_v2():
 		if "# obsession-award-batch-v3" not in source:
 			raise RuntimeError("Award batch patch did not run before requested award payout patch")
 
-		# Preserve the target's starting balance so a quantity batch can report the
-		# amount Shit actually destroyed, including the floor-at-zero behavior.
+		# Preserve the target's starting balance for both single and batch Shit
+		# notifications so the reported destruction matches the floor-at-zero math.
 		batch_setup_old = (
 			"\t_award_batch_target_author = author\n"
 			"\t_award_batch_ledger_start = award_batch_ledger_start(g.db) if amount > 1 else 0\n"
@@ -112,7 +134,7 @@ def patch_requested_awards_post_batch_source_v2():
 			f'{indent}if awarded_coins > 0:\n'
 			f'{indent}\tmsg += f" and you have received {{awarded_coins:,}} coins as a result"\n'
 			f'{indent}if kind == "shit":\n'
-			f'{indent}\tdestroyed_coins = min(150, max(0, int(author.coins or 0)))\n'
+			f'{indent}\tdestroyed_coins = max(0, _award_batch_target_coins_before - int(author.coins or 0))\n'
 			f'{indent}\tmsg += f" and has destroyed {{destroyed_coins:,}} of your coins as a result"\n'
 			f'{indent}msg += "!"\n'
 			f'{indent}if kind == "truthnova":\n'

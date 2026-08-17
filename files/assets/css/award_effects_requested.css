@@ -1,3 +1,50 @@
+/* Requested award glyphs are TOC-owned SVGs, not optional Font Awesome names. */
+.toc-award-glyph {
+	display: inline-block;
+	width: 22px;
+	height: 22px;
+	padding: 0 !important;
+	font-size: 0 !important;
+	line-height: 1;
+	vertical-align: -6px;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
+	color: transparent !important;
+	filter: drop-shadow(0 1px 2px rgba(0,0,0,.32));
+}
+
+.toc-award-glyph-furry {
+	background-image: url('/assets/images/awards/icon-furry.svg?v=20260817');
+}
+
+.toc-award-glyph-truthnuke {
+	background-image: url('/assets/images/awards/icon-truthnuke.svg?v=20260817');
+}
+
+.toc-award-glyph-lovebomb {
+	background-image: url('/assets/images/awards/icon-lovebomb.svg?v=20260817');
+}
+
+.toc-award-glyph-truthnova {
+	background-image: url('/assets/images/awards/icon-truthnova.svg?v=20260817');
+}
+
+.obs-award-icon .toc-award-glyph {
+	width: 36px;
+	height: 36px;
+	vertical-align: 0;
+	filter: drop-shadow(0 3px 7px rgba(0,0,0,.42));
+}
+
+/* The legacy scoped stylesheet raises every direct child of an awarded target.
+   Keep the requested effect layer out of that content stack. */
+.award-effect-target > .requested-award-effects {
+	position: absolute !important;
+	inset: 0 !important;
+	z-index: 19 !important;
+}
+
 .requested-award-effects {
 	position: absolute;
 	inset: 0;
