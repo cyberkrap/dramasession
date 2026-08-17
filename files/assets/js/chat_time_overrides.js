@@ -87,12 +87,51 @@
 		action.setAttribute('aria-label', file ? `Attached image: ${file.name}` : 'Attach image');
 	}
 
+	/* Some networks/proxies intermittently reject a WebSocket-first Socket.IO
+	   connection. Prefer the reliable polling handshake for reconnect attempts,
+	   then let Socket.IO upgrade to WebSocket when the client can support it. */
+	function hardenChatConnection() {
+		if (typeof socket === 'undefined' || !socket?.io) return;
+		const manager = socket.io;
+		const reconnectMessage = 'Reconnecting… your message is still here. Try Send again once connected.';
+
+		function preferPollingFirst() {
+			if (manager.opts) manager.opts.transports = ['polling', 'websocket'];
+		}
+
+		function reconnectIfNeeded() {
+			if (socket.connected) return false;
+			preferPollingFirst();
+			if (typeof setChatStatus === 'function') setChatStatus(reconnectMessage);
+			if (!socket.active) socket.connect();
+			return true;
+		}
+
+		preferPollingFirst();
+		socket.on('connect_error', () => {
+			preferPollingFirst();
+			window.setTimeout(() => {
+				if (!socket.connected && !socket.active) socket.connect();
+			}, 250);
+		});
+
+		document.addEventListener('click', event => {
+			if (!event.target.closest?.('#chatsend')) return;
+			reconnectIfNeeded();
+		}, true);
+
+		document.getElementById('input-text')?.addEventListener('keydown', event => {
+			if (event.key === 'Enter' && !event.shiftKey && !socket.connected) reconnectIfNeeded();
+		}, true);
+	}
+
 	document.getElementById('file')?.addEventListener('change', () => setTimeout(syncUploadControl, 0));
 	document.getElementById('chatsend')?.addEventListener('click', () => setTimeout(syncUploadControl, 0));
 	document.addEventListener('paste', event => {
 		if (event.clipboardData?.files?.length) setTimeout(syncUploadControl, 0);
 	});
 
+	hardenChatConnection();
 	refreshChatTimes();
 	syncUploadControl();
 	setInterval(refreshChatTimes, 60_000);
