@@ -5,7 +5,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 from flask import abort, g, has_request_context, redirect, render_template, request
 
-from files.helpers.config.const import SITE_NAME
+from files.helpers.config.const import PermissionRequirement, SITE_NAME
 
 
 _BOARD_COST = 15_000
@@ -64,6 +64,23 @@ def _replace_loaded_function(original, replacement):
 			continue
 		if getattr(module, original.__name__, None) is original:
 			setattr(module, original.__name__, replacement)
+
+
+def _install_public_zero_level_permissions():
+	"""Preserve legacy public access for permissions whose threshold is level 0."""
+	from files.classes.user import AdminLevel
+
+	original_compare = AdminLevel._compare
+	if getattr(original_compare, "_obsession_public_zero_level", False):
+		return
+
+	def compare(self, other, operator):
+		if isinstance(other, PermissionRequirement) and int(other) <= 0:
+			return operator(int(self), int(other))
+		return original_compare(self, other, operator)
+
+	compare._obsession_public_zero_level = True
+	AdminLevel._compare = compare
 
 
 def _install_admin_only_content_guards():
@@ -237,6 +254,7 @@ def install_board_branding(app):
 		return
 	setattr(app, _INSTALLED_ATTR, True)
 
+	_install_public_zero_level_permissions()
 	_install_board_cost(app)
 	_install_board_route_aliases(app)
 	_install_canonical_submission_links()
