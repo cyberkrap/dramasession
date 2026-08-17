@@ -19,6 +19,10 @@
 /* Gold is intentionally a text-only gilding effect. Unlike Giga Gold, it does
    not tint or glow the entire post/comment card. :has() makes the state follow
    the real award icon immediately, including AJAX-added awards. */
+.actual-post:has(.award-kind-gold) .post-title,
+.actual-post:has(.award-kind-gold) .post-title a,
+.actual-post:has(.award-kind-gold) .post-body,
+.actual-post:has(.award-kind-gold) .post-body a,
 #post-root > .card:has(.award-kind-gold) #post-title,
 #post-root > .card:has(.award-kind-gold) #post-title a,
 #post-root > .card:has(.award-kind-gold) #post-text,
