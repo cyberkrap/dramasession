@@ -187,10 +187,7 @@
 
 		const oldLayer = Array.from(target.children).find((child) => child.classList?.contains('requested-award-effects'));
 		if (oldLayer) oldLayer.remove();
-		if (!visualKinds.some((kind) => counts[kind])) {
-			target.classList.remove('award-effect-target');
-			return;
-		}
+		if (!visualKinds.some((kind) => counts[kind])) return;
 
 		target.classList.add('award-effect-target');
 		const layer = ensureLayer(target);
