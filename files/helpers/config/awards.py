@@ -311,6 +311,18 @@ AWARDS = {
 	},
 
 	### Standard
+	"gold": {
+		"kind": "gold",
+		"title": "Gold",
+		"description": "Gold is a virtual good you can use on Reddit to reward, recognize, and celebrate content from redditors you love. If you like a post or comment and want to show your appreciation for it, you can give it gold. This will help the post or comment stand out on Reddit.",
+		"icon": "award-gold-icon",
+		"color": "",
+		"price": 500,
+		"deflectable": False,
+		"cosmetic": True,
+		"ghost": True,
+		"enabled": True,
+	},
 	"marsify": {
 		"kind": "marsify",
 		"title": "Spotlight",
