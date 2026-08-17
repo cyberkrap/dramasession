@@ -169,6 +169,70 @@
 	opacity: 1;
 }
 
+/* Reply/comment composer: keep every editor control comfortably inside the shell. */
+.inline-image-composer .comment-write {
+	box-sizing: border-box;
+	width: 100%;
+	padding: 14px !important;
+	background: rgba(10, 10, 13, .76);
+	border: 1px solid rgba(255, 255, 255, .11);
+	border-radius: 8px;
+}
+
+.inline-image-composer .comment-write > .input-group {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	width: 100%;
+	min-width: 0;
+	column-gap: 8px;
+	row-gap: 10px;
+}
+
+.inline-image-composer .comment-write > .input-group > textarea.comment-box {
+	flex: 0 0 100%;
+	width: 100% !important;
+	max-width: 100%;
+	margin: 0 !important;
+	border-radius: 7px !important;
+}
+
+.inline-image-composer .comment-write .comment-format.inline-editor-toolbar {
+	flex: 1 1 220px;
+	min-width: 0;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.inline-image-composer .comment-write > .input-group > .btn {
+	flex: 0 0 auto;
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+}
+
+.inline-image-composer .comment-write .message-inline-image-meta {
+	margin: 10px 0 0 !important;
+	padding: 0 !important;
+}
+
+.inline-image-composer .comment-write > .preview {
+	box-sizing: border-box;
+	width: 100%;
+	margin: 12px 0 0 !important;
+	padding: 12px 0 0;
+	border-top: 1px solid rgba(255, 255, 255, .065);
+}
+
+.inline-image-composer .comment-write > .preview:empty {
+	display: none;
+}
+
+.inline-image-composer .comment-write a[href="/formatting"] {
+	display: inline-block;
+	margin-top: 10px !important;
+	margin-bottom: 0 !important;
+}
+
 @media (max-width: 767.98px) {
 	#main-content-col > .comment,
 	.comment-section > .comment,
@@ -191,5 +255,22 @@
 	.comment-actions {
 		margin-top: 10px;
 		padding-top: 6px;
+	}
+
+	.inline-image-composer .comment-write {
+		padding: 10px !important;
+	}
+
+	.inline-image-composer .comment-write > .input-group {
+		column-gap: 6px;
+		row-gap: 8px;
+	}
+
+	.inline-image-composer .comment-write .comment-format.inline-editor-toolbar {
+		flex-basis: 100%;
+	}
+
+	.inline-image-composer .comment-write > .input-group > .btn.ml-auto {
+		margin-left: auto !important;
 	}
 }
