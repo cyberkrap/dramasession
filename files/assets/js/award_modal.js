@@ -197,10 +197,6 @@ if (awardModalElement) {
 	awardModalElement.addEventListener('show.bs.modal', (event) => {
 		setAwardActionFromTrigger(event.relatedTarget);
 	});
-	awardModalElement.addEventListener('hidden.bs.modal', () => {
-		const button = document.getElementById('giveaward');
-		if (button) button.dataset.action = '';
-	});
 }
 
 document.querySelectorAll('[data-award-tab]').forEach(tab => {
