@@ -11,8 +11,13 @@
 
 	function targetForIcon(icon) {
 		if (!isStandaloneThread()) return null;
-		const comment = icon.closest('.comment-body');
+
+		// A .comment-body owns both the current comment and every nested reply.
+		// Effects must bind to the exact comment content node or they leak into
+		// descendants when replies are added dynamically.
+		const comment = icon.closest('.comment-anchor');
 		if (comment) return comment;
+
 		return icon.closest('#post-root > .card');
 	}
 
@@ -93,9 +98,9 @@
 	}
 
 	function addFurries(layer, count) {
-		// rDrama-style Furry uses a set of dancers. One award shows all three;
-		// stacking adds more dancers without allowing the post to become unusable.
-		const total = Math.min(9, Math.max(3, count * 3));
+		// Keep the rDrama-style roaming dancers, but cap density so the content
+		// remains readable even when several Furry awards are stacked.
+		const total = Math.min(6, Math.max(3, count * 2));
 		const roamers = [];
 		for (let i = 0; i < total; i++) {
 			const roamer = document.createElement('span');
@@ -111,7 +116,7 @@
 			layer.appendChild(roamer);
 			roamers.push(roamer);
 		}
-		roam(layer, roamers, .02, .055);
+		roam(layer, roamers, .02, .05);
 	}
 
 	function animateFly(fly) {
@@ -133,7 +138,7 @@
 	}
 
 	function addShitFlies(layer, count) {
-		const total = Math.min(32, 8 + count * 5);
+		const total = Math.min(26, 7 + count * 4);
 		for (let i = 0; i < total; i++) {
 			const fly = document.createElement('span');
 			fly.className = 'award-shit-fly';
@@ -169,7 +174,7 @@
 	function addLoveBomb(layer, count) {
 		const hearts = document.createElement('div');
 		hearts.className = 'award-lovebomb-pattern';
-		hearts.style.setProperty('--love-opacity', String(Math.min(.88, .45 + count * .08)));
+		hearts.style.setProperty('--love-opacity', String(Math.min(.58, .28 + count * .045)));
 		layer.appendChild(hearts);
 	}
 
