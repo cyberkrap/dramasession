@@ -11,7 +11,7 @@
 
 <div id="casino-game-wrapper" data-game="roulette" class="roulette-shell">
 	{% set stats_alert_class = 'success' if v_stats[0] >= v_stats[2] else 'danger' %}
-	<div id="casinoGameStats" class="alert alert-{{stats_alert_class}} roulette-status-bar">
+	<div id="casinoGameStats" class="alert alert-{{stats_alert_class}} roulette-status-bar roulette-player-record">
 		{{v_stats[0]}} win{{macros.plural(v_stats[0])}} - {{v_stats[2]}} loss{{macros.plural(v_stats[2], 'es')}}
 	</div>
 
@@ -25,24 +25,26 @@
 	</div>
 
 	<section class="roulette-controls" aria-label="Roulette wager controls">
-		<div class="roulette-control">
+		<div class="roulette-control roulette-wager-control">
 			<div class="roulette-section-heading"><span>Wager</span></div>
-			<input id="wagerAmount" type="number" min="5" step="1" value="5" class="form-control">
+			<input id="wagerAmount" type="number" min="5" step="1" value="5" class="form-control" inputmode="numeric" aria-label="Roulette wager amount">
 		</div>
 
-		<div class="roulette-control">
+		<div class="roulette-control roulette-currency-control">
 			<div class="roulette-section-heading"><span>Currency</span></div>
 			<div class="roulette-currency-picker">
 				<input type="radio" class="btn-check" name="wagerCurrency" autocomplete="off" id="wagerCoins" value="coin" checked>
 				<label for="wagerCoins" class="roulette-currency-option" title="Wishcoin">
 					<span class="roulette-radio-dot" aria-hidden="true"></span>
 					<img id="rouletteWishcoinAsset" loading="lazy" src="{{'coins.webp' | asset_siteimg}}" alt="Wishcoin" width="28" height="28">
+					<span id="user-coins-amount" class="roulette-currency-balance">{{v.coins|number}}</span>
 				</label>
 
 				<input type="radio" class="btn-check" name="wagerCurrency" autocomplete="off" id="wagerMarseybux" value="marseybux">
 				<label for="wagerMarseybux" class="roulette-currency-option" title="Wishbux">
 					<span class="roulette-radio-dot" aria-hidden="true"></span>
 					<img id="rouletteWishbuxAsset" loading="lazy" src="/i/marseybux.webp?v=2000" alt="Wishbux" width="28" height="28">
+					<span id="user-bux-amount" class="roulette-currency-balance">{{v.marseybux|number}}</span>
 				</label>
 			</div>
 		</div>
