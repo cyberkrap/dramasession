@@ -47,7 +47,7 @@ def patch_requested_awards_post_batch_source_v2():
 		indent = match.group("i")
 		replacement = (
 			f'{indent}if awarded_coins > 0:\n'
-			f'{indent}\tmsg += f" and you have received {{awarded_coins}} coins as a result"\n'
+			f'{indent}\tmsg += f" and you have received {{awarded_coins:,}} coins as a result"\n'
 			f'{indent}msg += "!"\n'
 			f'{indent}if kind == "truthnova":\n'
 			f'{indent}\tmsg += "\\n\\nYou have received 1,375 XP!"'
@@ -64,7 +64,7 @@ def patch_requested_awards_post_batch_source_v2():
 		replacement = (
 			f'{indent}fixed_batch_coin_payouts = {{"gold": 250, "truthnuke": 250, "truthnova": 2500}}\n'
 			f'{indent}if kind in fixed_batch_coin_payouts:\n'
-			f'{indent}\tmsg += f" and you have received {{fixed_batch_coin_payouts[kind] * amount}} coins as a result"\n'
+			f'{indent}\tmsg += f" and you have received {{fixed_batch_coin_payouts[kind] * amount:,}} coins as a result"\n'
 			f'{indent}msg += "!"\n'
 			f'{indent}if kind == "truthnova":\n'
 			f'{indent}\tmsg += f"\\n\\nYou have received {{1375 * amount:,}} XP!"'
