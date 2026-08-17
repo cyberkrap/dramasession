@@ -41,9 +41,9 @@ from files.helpers.award_system_fixes import (
 from files.helpers.requested_awards import (
 	install_requested_awards,
 	patch_requested_awards_pre_batch_source,
-	patch_requested_awards_post_batch_source,
 	patch_requested_award_templates_source,
 )
+from files.helpers.requested_awards_postfix import patch_requested_awards_post_batch_source_v2
 from files.helpers.final_ui_source_fixes import (
 	patch_admin_emote_link_source,
 	patch_asset_submission_directories_source,
@@ -72,7 +72,7 @@ try:
 except RuntimeError:
 	pass
 try:
-	patch_requested_awards_post_batch_source()
+	patch_requested_awards_post_batch_source_v2()
 except RuntimeError:
 	pass
 try:
