@@ -38,6 +38,24 @@ def disable_retired_awards():
 			"price": 200,
 		})
 
+	# Gold mirrors the simple rDrama Gold behavior: it gilds the target's text
+	# and pays the recipient a fixed 250 Wishcoins per award. The payout itself
+	# is enforced in the award route patch below rather than derived from price.
+	gold = {
+		"kind": "gold",
+		"title": "Gold",
+		"description": "Gilds the awarded post or comment and gives its author 250 Wishcoins.",
+		"icon": "fas fa-coin",
+		"color": "text-gold",
+		"price": 500,
+		"deflectable": False,
+		"cosmetic": True,
+		"ghost": True,
+		"enabled": True,
+	}
+	AWARDS["gold"] = gold
+	AWARDS_ENABLED["gold"] = gold
+
 	for kind in RETIRED_AWARDS:
 		if kind in AWARDS:
 			AWARDS[kind]["enabled"] = False
@@ -45,7 +63,7 @@ def disable_retired_awards():
 
 
 def patch_award_batch_source():
-	"""Add 1-30 award batching plus Emoji award metadata without ledger spam."""
+	"""Add 1-30 award batching plus Emoji/Gold award metadata without ledger spam."""
 	with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
 		fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
 		source = _AWARDS_ROUTE_PATH.read_text(encoding="utf-8")
@@ -137,6 +155,15 @@ def patch_award_batch_source():
 '''
 		source = source[:validation_at] + source[validation_at:].replace(validation_marker, upgrade_guard, 1)
 
+		# Gold has a fixed recipient reward, independent of discounts or the
+		# generic cosmetic-award percentage.
+		legacy_payout = "\t\t\tawarded_coins = int(AWARDS[kind]['price'] * COSMETIC_AWARD_COIN_AWARD_PCT) if AWARDS[kind]['cosmetic'] and kind != 'shit' else 0\n"
+		gold_payout = "\t\t\tawarded_coins = 250 if kind == 'gold' else (int(AWARDS[kind]['price'] * COSMETIC_AWARD_COIN_AWARD_PCT) if AWARDS[kind]['cosmetic'] and kind != 'shit' else 0)\n"
+		if gold_payout not in source:
+			if legacy_payout not in source:
+				raise RuntimeError("Could not locate cosmetic award payout")
+			source = source.replace(legacy_payout, gold_payout, 1)
+
 		loop_start = source.find('\taward = g.db.query(AwardRelationship).filter(\n', fn_start)
 		if loop_start == -1:
 			raise RuntimeError("Could not locate award inventory block")
@@ -180,7 +207,10 @@ def patch_award_batch_source():
 \t\t\trecipient=_award_batch_target_author,
 \t\t)
 \t\tif v.id != _award_batch_target_author.id and kind != "spider":
-\t\t\tmsg = f"@{v.username} has given your [{thing_type}]({thing.shortlink}) the {amount} {AWARDS[kind]['title']} Awards!"
+\t\t\tmsg = f"@{v.username} has given your [{thing_type}]({thing.shortlink}) the {amount} {AWARDS[kind]['title']} Awards"
+\t\t\tif kind == "gold":
+\t\t\t\tmsg += f" and you have received {250 * amount} coins as a result"
+\t\t\tmsg += "!"
 \t\t\tif note:
 \t\t\t\tmsg += f"\\n\\n> {note}"
 \t\t\tsend_repeatable_notification(_award_batch_target_author.id, msg)
