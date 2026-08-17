@@ -16,6 +16,19 @@
 	z-index: 1;
 }
 
+/* Gold is intentionally a text-only gilding effect. Unlike Giga Gold, it does
+   not tint or glow the entire post/comment card. :has() makes the state follow
+   the real award icon immediately, including AJAX-added awards. */
+#post-root > .card:has(.award-kind-gold) #post-title,
+#post-root > .card:has(.award-kind-gold) #post-title a,
+#post-root > .card:has(.award-kind-gold) #post-text,
+#post-root > .card:has(.award-kind-gold) #post-text a,
+.comment-body:has(.award-kind-gold) .comment-text,
+.comment-body:has(.award-kind-gold) .comment-text a {
+	color: #f3c94f !important;
+	text-shadow: 0 0 4px rgba(243, 201, 79, .24);
+}
+
 /* Fireflies stay inside the exact awarded post/comment. */
 .award-firefly {
 	position: absolute;
