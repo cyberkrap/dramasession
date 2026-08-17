@@ -165,6 +165,21 @@ On **2026-08-17**, the user supplied screenshots of the current rDrama Awards Sh
 - This price-only sync does not imply that TOC should automatically copy missing rDrama awards or their mechanics. The user will choose missing awards to add.
 - Price-baseline commit: `8326ce2b`.
 
+### Live catalog retirements / Chud restoration
+
+On **2026-08-17**, the user explicitly retired several unwanted legacy awards from TOC's live catalog:
+
+- `shit` / **Spark Trail**
+- `marsify` / **Spotlight**
+- `beano` / **Beano**
+- `offsitementions` / **Y'all Seein' Eye**
+
+These keys are removed from `AWARDS_ENABLED` at startup so they no longer appear in the shop or Give Award flow. Their historical rows/keys are preserved so old awarded content/history is not broken by deletion.
+
+The legacy internal key `agendaposter` must publicly be **Chud**, not `Restrict`. Its intended shop description is **“Chuds the recipient for 24 hours.”** The underlying Chud mechanics in the award route already use the original `agendaposter`/chud behavior and should not be renamed away again.
+
+Catalog cleanup/restoration commit: `bd8f7dff`.
+
 ### Emoji Award
 
 The old `Wholesome` award was repurposed/renamed into **Emoji Award**.
@@ -208,11 +223,13 @@ Opening/giving/closing an award must not destroy, hide, duplicate, or permanentl
 
 ## Current checkpoint / pending work
 
-Current award-system checkpoint: **rDrama base-price synchronization for overlapping awards** completed on **2026-08-17**, after Gold/Emoji/Ricardo work.
+Current award-system checkpoint: **catalog cleanup + Chud restoration** completed on **2026-08-17**, after the rDrama base-price sync and Gold/Emoji/Ricardo work.
 
 At this checkpoint:
 
-- Overlapping awards use the user-supplied rDrama shop's crossed-out/base prices; discounted green prices were intentionally ignored.
+- Spark Trail, Spotlight, Beano, and Y'all Seein' Eye are retired from the live award catalog while historical award records remain intact.
+- `agendaposter` is publicly Chud again, with the original 24-hour Chud semantics preserved.
+- Overlapping active awards use the user-supplied rDrama shop's crossed-out/base prices; discounted green prices were intentionally ignored.
 - Gold costs 500, is present in the normal award catalog/shop, uses the normal vector coin icon, gilds only the exact awarded target's text, and pays a fixed 250 Wishcoins per award to a non-self recipient.
 - Emoji/Ricardo remain the preceding award feature work and their effect/modal lifecycle invariants still apply.
 - The user is choosing which rDrama awards missing from TOC should be implemented next; do not add the rest automatically.
