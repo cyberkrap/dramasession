@@ -1,34 +1,51 @@
 body.casino-game-roulette #main-content,
 body.casino-game-roulette main {
-	overflow: visible;
+	overflow-x: clip;
+	overflow-y: visible;
+}
+
+.roulette-shell,
+.roulette-shell * {
+	box-sizing: border-box;
 }
 
 .roulette-shell {
 	width: min(100% - 24px, 760px);
+	max-width: 760px;
 	margin: 18px auto 48px;
 	padding: 0;
+	overflow-x: clip;
 }
 
 .roulette-status-bar {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	min-height: 48px;
-	margin: 0 0 12px;
-	padding: 10px 18px;
+	min-height: 46px;
+	margin: 0 0 8px;
+	padding: 9px 16px;
 	border: 1px solid rgba(255, 255, 255, .24);
-	border-radius: 5px;
+	border-radius: 7px;
 	box-shadow: none;
 	text-align: center;
 	text-transform: uppercase;
-	font-size: .95rem;
+	font-size: .9rem;
 	font-weight: 900;
-	letter-spacing: .18em;
+	letter-spacing: .16em;
 	line-height: 1.15;
+}
+
+.roulette-player-record {
+	min-height: 30px;
+	padding: 5px 10px;
+	font-size: .7rem;
+	letter-spacing: .1em;
+	opacity: .88;
 }
 
 .roulette-round-status {
 	gap: 10px;
+	margin-bottom: 8px;
 }
 
 .roulette-round-status__label,
@@ -45,23 +62,25 @@ body.casino-game-roulette main {
 
 .roulette-table-scroll {
 	width: 100%;
-	overflow-x: auto;
-	overflow-y: hidden;
-	padding-bottom: 4px;
-	scrollbar-width: thin;
+	overflow: hidden;
+	padding: 0;
 }
 
 #roulette-table {
 	width: 100%;
-	min-width: 650px;
+	min-width: 0;
+	max-width: 100%;
 	margin: 0;
 	user-select: none;
+	touch-action: manipulation;
 }
 
 .roulette-table-row {
 	display: flex;
 	align-items: stretch;
 	justify-content: flex-start;
+	width: 100%;
+	min-width: 0;
 }
 
 .roulette-table-spacer {
@@ -78,12 +97,14 @@ body.casino-game-roulette main {
 	align-items: center;
 	justify-content: center;
 	min-width: 0;
+	padding: 0 1px;
 	border: 2px solid rgba(245, 245, 245, .95);
 	background: #078b16;
 	color: #fff;
-	font-size: 1rem;
+	font-size: clamp(.68rem, 2.2vw, 1rem);
 	font-weight: 900;
 	line-height: 1;
+	text-align: center;
 	cursor: pointer;
 	isolation: isolate;
 	transition: filter .08s ease, transform .08s ease, box-shadow .15s ease;
@@ -101,17 +122,17 @@ body.casino-game-roulette main {
 .roulette-table-column:active,
 .roulette-table-line:active,
 .roulette-table-1to1:active {
-	transform: scale(.97);
+	transform: scale(.96);
 }
 
 .roulette-table-number {
 	flex: 1 1 0;
-	height: 62px;
+	height: clamp(48px, 8.2vw, 62px);
 }
 
 .roulette-table-number__black { background: #080808; }
-.roulette-table-number__red { background: #ef1717; }
-.roulette-table-number__green { background: #078b16; }
+.roulette-table-number__red { background: #e63a2e; }
+.roulette-table-number__green { background: #348d29; }
 
 .roulette-table-zero-spacer {
 	cursor: default;
@@ -119,38 +140,41 @@ body.casino-game-roulette main {
 
 .roulette-table-column {
 	flex: 1 1 0;
-	height: 62px;
+	height: clamp(48px, 8.2vw, 62px);
 	writing-mode: vertical-rl;
 	text-orientation: mixed;
+	font-size: clamp(.65rem, 2vw, .95rem);
 }
 
 .roulette-lines-row .roulette-table-1to1,
 .roulette-dozens-row .roulette-table-line,
 .roulette-outside-row .roulette-table-1to1 {
-	min-height: 31px;
+	min-height: clamp(28px, 4.6vw, 34px);
 }
 
 .roulette-lines-row .roulette-table-1to1 {
 	flex: 2 1 0;
-	font-size: .88rem;
+	font-size: clamp(.58rem, 1.75vw, .88rem);
+	white-space: nowrap;
 }
 
 .roulette-dozens-row .roulette-table-line {
 	flex: 4 1 0;
-	font-size: 1rem;
+	font-size: clamp(.68rem, 2vw, 1rem);
 }
 
 .roulette-outside-row .roulette-table-1to1 {
 	flex: 2 1 0;
-	font-size: .95rem;
+	font-size: clamp(.57rem, 1.8vw, .95rem);
+	white-space: nowrap;
 }
 
 .roulette-winning-number {
 	z-index: 10 !important;
 	box-shadow:
-		inset 0 0 0 4px #ffd84d,
-		0 0 0 2px #111,
-		0 0 18px rgba(255, 216, 77, .9);
+		inset 0 0 0 3px #ffd84d,
+		0 0 0 1px #111,
+		0 0 16px rgba(255, 216, 77, .9);
 	animation: roulette-winning-pulse 1.15s ease-in-out infinite alternate;
 }
 
@@ -161,13 +185,13 @@ body.casino-game-roulette main {
 
 .roulette-cell-chip-stack {
 	position: absolute;
-	right: 3px;
-	bottom: 3px;
+	right: 2px;
+	bottom: 2px;
 	z-index: 4;
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
-	max-width: calc(100% - 6px);
+	max-width: calc(100% - 4px);
 	pointer-events: none;
 }
 
@@ -195,10 +219,10 @@ body.casino-game-roulette main {
 }
 
 .roulette-poker-chip--table {
-	width: 25px;
-	height: 25px;
-	flex-basis: 25px;
-	margin-left: -7px;
+	width: clamp(18px, 3.3vw, 25px);
+	height: clamp(18px, 3.3vw, 25px);
+	flex-basis: clamp(18px, 3.3vw, 25px);
+	margin-left: -6px;
 }
 
 .roulette-poker-chip--table:first-child {
@@ -207,45 +231,44 @@ body.casino-game-roulette main {
 
 .roulette-poker-chip--table .roulette-poker-chip__ring,
 .roulette-poker-chip--table .roulette-poker-chip__avatar {
-	width: 25px;
-	height: 25px;
+	width: clamp(18px, 3.3vw, 25px);
+	height: clamp(18px, 3.3vw, 25px);
 }
 
 .roulette-cell-chip-more {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	min-width: 23px;
-	height: 23px;
+	min-width: 20px;
+	height: 20px;
 	margin-left: -5px;
-	padding: 0 4px;
-	border: 2px solid #fff;
+	padding: 0 3px;
+	border: 1px solid #fff;
 	border-radius: 999px;
 	background: #111;
 	color: #fff;
-	font-size: .65rem;
+	font-size: .58rem;
 	font-weight: 900;
 }
 
 .roulette-controls {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.18fr);
 	align-items: start;
 	gap: 18px;
-	margin-top: 8px;
+	margin-top: 12px;
 }
 
 .roulette-control {
 	display: grid;
-	grid-template-rows: auto 34px;
 	align-content: start;
-	row-gap: 3px;
+	row-gap: 6px;
 	min-width: 0;
 }
 
 .roulette-section {
 	min-width: 0;
-	margin-top: 10px;
+	margin-top: 18px;
 }
 
 .roulette-section-heading {
@@ -259,11 +282,11 @@ body.casino-game-roulette main {
 	font-weight: 800;
 	line-height: 1;
 	text-transform: uppercase;
-	opacity: .75;
+	opacity: .76;
 }
 
 .roulette-section > .roulette-section-heading {
-	margin-bottom: 6px;
+	margin-bottom: 8px;
 }
 
 .roulette-section-heading::after {
@@ -274,33 +297,43 @@ body.casino-game-roulette main {
 }
 
 #wagerAmount {
-	height: 34px;
-	min-height: 34px;
-	padding-top: 4px;
-	padding-bottom: 4px;
-	border-radius: 4px;
+	height: 44px;
+	min-height: 44px;
+	padding: 6px 10px;
+	border-radius: 6px;
+	font-size: 1.05rem;
 }
 
 .roulette-currency-picker {
-	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	gap: 14px;
-	height: 34px;
-	min-height: 34px;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 7px;
+	min-width: 0;
 }
 
 .roulette-currency-option {
-	display: inline-flex;
+	display: grid;
+	grid-template-columns: 18px 28px minmax(0, 1fr);
 	align-items: center;
-	gap: 6px;
+	gap: 8px;
+	min-height: 36px;
 	margin: 0;
+	padding: 3px 7px;
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 6px;
+	background: rgba(255, 255, 255, .025);
 	cursor: pointer;
+	transition: border-color .15s ease, background .15s ease;
+}
+
+.btn-check:checked + .roulette-currency-option {
+	border-color: rgba(66, 153, 255, .72);
+	background: rgba(39, 128, 255, .1);
 }
 
 .roulette-radio-dot {
-	width: 13px;
-	height: 13px;
+	width: 16px;
+	height: 16px;
 	border: 2px solid rgba(255, 255, 255, .75);
 	border-radius: 50%;
 	box-shadow: inset 0 0 0 3px #111;
@@ -313,10 +346,20 @@ body.casino-game-roulette main {
 
 .roulette-currency-option img,
 .roulette-currency-icon {
-	width: 24px !important;
-	height: 24px !important;
+	width: 26px !important;
+	height: 26px !important;
 	object-fit: contain;
 	vertical-align: middle;
+}
+
+.roulette-currency-balance {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: .9rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
 }
 
 #roulette-bets {
@@ -344,6 +387,7 @@ body.casino-game-roulette main {
 }
 
 .roulette-bet-summary--heading p {
+	min-width: 0;
 	margin: 0;
 	font-weight: 800;
 }
@@ -367,7 +411,7 @@ body.casino-game-roulette main {
 	gap: 7px;
 	width: 100%;
 	overflow-x: auto;
-	padding: 2px 0 8px;
+	padding: 4px 2px 9px;
 	scrollbar-width: thin;
 }
 
@@ -375,19 +419,19 @@ body.casino-game-roulette main {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 34px;
-	height: 34px;
-	flex: 0 0 34px;
+	width: 38px;
+	height: 38px;
+	flex: 0 0 38px;
 	border: 2px solid rgba(255, 255, 255, .18);
 	border-radius: 50%;
 	color: #fff;
-	font-size: .82rem;
+	font-size: .85rem;
 	font-weight: 900;
 }
 
 .roulette-history-ball--red { background: #c83228; }
 .roulette-history-ball--black { background: #151522; }
-.roulette-history-ball--green { background: #078b16; }
+.roulette-history-ball--green { background: #188b35; }
 
 .roulette-history-ball--latest {
 	box-shadow: 0 0 0 2px #ffd84d;
@@ -399,40 +443,63 @@ body.casino-game-roulette main {
 }
 
 .roulette-rules-scroll {
-	overflow-x: auto;
+	width: 100%;
+	overflow: visible;
 }
 
 .roulette-rules-table {
-	min-width: 620px;
+	width: 100%;
+	min-width: 0;
 	margin: 0;
+	table-layout: fixed;
 	font-size: .86rem;
 }
 
 .roulette-rules-table th,
 .roulette-rules-table td {
-	padding: 9px 10px;
+	padding: 10px 9px;
 	vertical-align: top;
+	overflow-wrap: anywhere;
+}
+
+.roulette-rules-table th:first-child,
+.roulette-rules-table td:first-child {
+	width: 23%;
+}
+
+.roulette-rules-table th:nth-child(2),
+.roulette-rules-table td:nth-child(2) {
+	width: 16%;
 }
 
 .roulette-rules-table td:first-child,
 .roulette-rules-table td:nth-child(2) {
 	font-weight: 800;
-	white-space: nowrap;
 }
 
 @media (max-width: 800px) {
 	.roulette-shell {
-		width: min(100% - 12px, 760px);
+		width: min(100% - 16px, 760px);
 		margin-top: 10px;
-	}
-
-	#roulette-table {
-		min-width: 610px;
 	}
 }
 
 @media (max-width: 560px) {
-	.roulette-status-bar {
+	.roulette-shell {
+		width: calc(100% - 12px);
+		margin-top: 8px;
+		margin-bottom: 30px;
+	}
+
+	.roulette-player-record {
+		min-height: 26px;
+		margin-bottom: 5px;
+		padding: 4px 8px;
+		font-size: .62rem;
+		letter-spacing: .08em;
+	}
+
+	.roulette-round-status {
 		min-height: 42px;
 		padding: 8px 10px;
 		font-size: .78rem;
@@ -445,12 +512,128 @@ body.casino-game-roulette main {
 		letter-spacing: .1em;
 	}
 
+	.roulette-table-number,
+	.roulette-table-column,
+	.roulette-table-line,
+	.roulette-table-1to1 {
+		border-width: 1.5px;
+	}
+
+	.roulette-table-number,
+	.roulette-table-column {
+		height: clamp(46px, 13.3vw, 54px);
+	}
+
+	.roulette-lines-row .roulette-table-1to1,
+	.roulette-dozens-row .roulette-table-line,
+	.roulette-outside-row .roulette-table-1to1 {
+		min-height: 28px;
+	}
+
 	.roulette-controls {
-		gap: 8px;
-		margin-top: 6px;
+		grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+		gap: 10px;
+		margin-top: 10px;
+	}
+
+	.roulette-section {
+		margin-top: 16px;
 	}
 
 	.roulette-section-heading {
-		font-size: .88rem;
+		font-size: .86rem;
+	}
+
+	#wagerAmount {
+		height: 42px;
+		min-height: 42px;
+		font-size: 1rem;
+	}
+
+	.roulette-currency-option {
+		grid-template-columns: 16px 24px minmax(0, 1fr);
+		gap: 6px;
+		min-height: 32px;
+		padding: 2px 5px;
+	}
+
+	.roulette-radio-dot {
+		width: 15px;
+		height: 15px;
+	}
+
+	.roulette-currency-option img,
+	.roulette-currency-icon {
+		width: 23px !important;
+		height: 23px !important;
+	}
+
+	.roulette-currency-balance {
+		font-size: .77rem;
+	}
+
+	.roulette-total-bets {
+		font-size: .68rem;
+		letter-spacing: .1em;
+	}
+
+	.roulette-bet-summary--heading {
+		align-items: flex-start;
+	}
+
+	.roulette-bet-summary--list {
+		margin-left: 42px;
+		font-size: .82rem;
+	}
+
+	.roulette-history-ball {
+		width: 36px;
+		height: 36px;
+		flex-basis: 36px;
+	}
+
+	.roulette-rules-table {
+		font-size: .72rem;
+		line-height: 1.28;
+	}
+
+	.roulette-rules-table th,
+	.roulette-rules-table td {
+		padding: 8px 6px;
+	}
+
+	.roulette-rules-table th:first-child,
+	.roulette-rules-table td:first-child {
+		width: 24%;
+	}
+
+	.roulette-rules-table th:nth-child(2),
+	.roulette-rules-table td:nth-child(2) {
+		width: 16%;
+	}
+}
+
+@media (max-width: 360px) {
+	.roulette-shell {
+		width: calc(100% - 8px);
+	}
+
+	.roulette-table-number,
+	.roulette-table-column {
+		height: 44px;
+		font-size: .62rem;
+	}
+
+	.roulette-lines-row .roulette-table-1to1,
+	.roulette-outside-row .roulette-table-1to1 {
+		font-size: .52rem;
+	}
+
+	.roulette-controls {
+		grid-template-columns: 1fr;
+	}
+
+	.roulette-rules-table {
+		font-size: .68rem;
 	}
 }
