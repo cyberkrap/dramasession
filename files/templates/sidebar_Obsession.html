@@ -43,21 +43,21 @@
 	{% if sub %}
 		{% if sub.sidebar_html %}<div class="sidebar-markdown mb-4">{{sub.sidebar_html|safe}}</div>{% endif %}
 		{% if v %}
-			<a class="btn btn-secondary btn-block mb-3" href="/holes">BROWSE {{HOLE_NAME|upper}}S</a>
-			{% if v.can_create_hole %}<a class="btn btn-secondary btn-block mb-3" href="/create_hole">CREATE {{HOLE_NAME|upper}}</a>{% endif %}
-			<a class="btn btn-secondary btn-block mb-3" href="/h/{{sub}}/log">{{HOLE_NAME|upper}} LOG</a>
-			{% if v.mods(sub.name) %}<a class="btn btn-secondary btn-block mb-3" href="/h/{{sub}}/settings">{{HOLE_NAME|upper}} SETTINGS</a>{% endif %}
+			<a class="btn btn-secondary btn-block mb-3" href="/boards">BROWSE {{HOLE_NAME|upper}}S</a>
+			<a class="btn btn-secondary btn-block mb-3" href="/create_board">CREATE {{HOLE_NAME|upper}}</a>
+			<a class="btn btn-secondary btn-block mb-3" href="/b/{{sub}}/log">{{HOLE_NAME|upper}} LOG</a>
+			{% if v.mods(sub.name) %}<a class="btn btn-secondary btn-block mb-3" href="/b/{{sub}}/settings">{{HOLE_NAME|upper}} SETTINGS</a>{% endif %}
 		{% endif %}
-		<a class="btn btn-secondary btn-block mb-3" href="/h/{{sub}}/mods">{{HOLE_NAME|upper}} MODS</a>
-		<a class="btn btn-secondary btn-block mb-3" href="/h/{{sub}}/exilees">{{HOLE_NAME|upper}} EXILEES</a>
+		<a class="btn btn-secondary btn-block mb-3" href="/b/{{sub}}/mods">{{HOLE_NAME|upper}} MODS</a>
+		<a class="btn btn-secondary btn-block mb-3" href="/b/{{sub}}/exilees">{{HOLE_NAME|upper}} EXILEES</a>
 	{% else %}
 		<div class="obs-sidebar-primary-links">
 			<a id="sidebar--directory--btn" class="btn btn-primary btn-block mb-3" href="/directory">
 				<span id="sidebar--directory--head">DIRECTORY</span>
 				<span id="sidebar--directory--subhead">Emotes, artwork, guides, and community information</span>
 			</a>
-			<a class="btn btn-secondary btn-block mb-3" href="/holes">BROWSE BOARDS</a>
-			{% if v and v.can_create_hole %}<a class="btn btn-secondary btn-block mb-3" href="/create_hole">CREATE BOARD</a>{% endif %}
+			<a class="btn btn-secondary btn-block mb-3" href="/boards">BROWSE BOARDS</a>
+			{% if v %}<a class="btn btn-secondary btn-block mb-3" href="/create_board">CREATE BOARD</a>{% endif %}
 		</div>
 
 		{% if sidebar_data %}
