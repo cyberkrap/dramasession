@@ -95,7 +95,7 @@
 }
 
 [data-username-effect-freeloader-text="1"] {
-	display: inline-block;
+	display: inline-block !important;
 	padding: 0 !important;
 	border: 0 !important;
 	border-radius: 0 !important;
@@ -172,7 +172,6 @@
 	left: -9999px;
 	width: 1px;
 	height: 1px;
-	top: 1px;
 	opacity: 0;
 	pointer-events: none;
 }
