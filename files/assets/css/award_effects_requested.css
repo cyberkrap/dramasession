@@ -37,19 +37,25 @@
 	filter: drop-shadow(0 3px 7px rgba(0,0,0,.42));
 }
 
-/* The legacy scoped stylesheet raises every direct child of an awarded target.
-   Keep the requested effect layer out of that content stack. */
+/* Every effect layer is a paint-contained viewport belonging to one exact post
+   or .comment-anchor. It must never escape into replies or sibling comments. */
+.award-effect-target {
+	isolation: isolate;
+}
+
 .award-effect-target > .requested-award-effects {
 	position: absolute !important;
 	inset: 0 !important;
-	z-index: 19 !important;
+	z-index: 2 !important;
 }
 
 .requested-award-effects {
 	position: absolute;
 	inset: 0;
-	z-index: 19;
+	z-index: 2;
 	overflow: hidden;
+	clip-path: inset(0);
+	contain: paint;
 	pointer-events: none;
 	border-radius: inherit;
 }
@@ -58,8 +64,10 @@
 	position: absolute;
 	left: 0;
 	top: 0;
-	width: 72px;
-	height: 104px;
+	width: 58px;
+	height: 84px;
+	max-width: 16%;
+	max-height: 72%;
 	will-change: transform;
 }
 
@@ -131,62 +139,77 @@
 	display: none;
 }
 
+/* Impact effects are deliberately substantial like the reference, but their
+   box is always clipped by the awarded target itself. */
 .award-impact {
 	position: absolute;
 	inset: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	overflow: hidden;
+	padding: clamp(8px, 2vw, 24px);
 }
 
 .award-impact img {
 	display: block;
+	width: auto;
+	height: auto;
+	max-width: 100%;
+	max-height: 100%;
 	object-fit: contain;
 	filter: drop-shadow(0 5px 10px rgba(0,0,0,.5));
+	transform-origin: 50% 50%;
 }
 
 .award-impact-truthnuke img {
-	width: min(230px, 48%);
-	max-height: 88%;
+	width: clamp(240px, 62%, 540px);
+	max-width: 88%;
+	max-height: 90%;
 	animation: award-truthnuke-pulse 1.7s ease-in-out infinite alternate;
 }
 
 .award-impact-truthnova img {
-	width: min(560px, 82%);
-	max-height: 96%;
+	width: clamp(300px, 72%, 680px);
+	max-width: 92%;
+	max-height: 94%;
 	animation: award-truthnova-pulse 2.25s ease-in-out infinite alternate;
 }
 
 @keyframes award-truthnuke-pulse {
-	0% { transform: scale(.92); opacity: .76; }
-	100% { transform: scale(1.06); opacity: 1; }
+	0% { transform: scale(.95); opacity: .82; }
+	100% { transform: scale(1.035); opacity: 1; }
 }
 
 @keyframes award-truthnova-pulse {
-	0% { transform: scale(.97); opacity: .78; }
-	100% { transform: scale(1.035); opacity: .98; }
+	0% { transform: scale(.97); opacity: .82; }
+	100% { transform: scale(1.025); opacity: .98; }
 }
 
+/* Smaller, denser hearts like the rDrama reference. The previous 310px tiles
+   covered usernames, copy, and action rows instead of reading as an effect. */
 .award-lovebomb-pattern {
 	position: absolute;
 	inset: 0;
 	background-image: url('/assets/images/awards/lovebomb.webp?v=20260817');
 	background-repeat: repeat;
 	background-position: center;
-	background-size: 310px auto;
-	opacity: var(--love-opacity, .58);
-	animation: award-lovebomb-drift 7s ease-in-out infinite alternate;
+	background-size: clamp(72px, 9vw, 112px) auto;
+	opacity: var(--love-opacity, .34);
+	animation: award-lovebomb-drift 8s ease-in-out infinite alternate;
 }
 
 @keyframes award-lovebomb-drift {
 	0% { background-position: 0 0; }
-	100% { background-position: 55px 22px; }
+	100% { background-position: 34px 18px; }
 }
 
 @media (max-width: 720px) {
 	.award-furry-roamer {
-		width: 54px;
-		height: 78px;
+		width: 46px;
+		height: 66px;
+		max-width: 18%;
+		max-height: 68%;
 	}
 
 	.award-shit-fly {
@@ -194,11 +217,23 @@
 		height: 17px;
 	}
 
+	.award-impact {
+		padding: 6px;
+	}
+
 	.award-impact-truthnuke img {
-		width: min(180px, 55%);
+		width: clamp(210px, 68%, 390px);
+		max-width: 90%;
+		max-height: 88%;
 	}
 
 	.award-impact-truthnova img {
-		width: min(420px, 88%);
+		width: clamp(250px, 78%, 460px);
+		max-width: 94%;
+		max-height: 92%;
+	}
+
+	.award-lovebomb-pattern {
+		background-size: 74px auto;
 	}
 }
