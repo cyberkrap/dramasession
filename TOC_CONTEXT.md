@@ -182,12 +182,14 @@ Gold was added from the user's supplied rDrama reference/source rather than inde
 Current intended behavior:
 
 - Base price: 500.
+- Gold is a first-class enabled award catalog entry so it appears normally in the Awards Shop and Give Award picker instead of depending only on runtime injection order.
+- The catalog description should match the user-supplied rDrama wording, including its Reddit wording unless the user later asks to adapt it for TOC.
 - Each Gold award pays the recipient **250 Wishcoins** when another user gives it; self-awarding does not produce the recipient payout.
 - Quantity/batch giving scales the payout by 250 per Gold and summarizes the total payout in the recipient notification.
 - The visual effect is deliberately the normal Gold effect: **gild the awarded post/comment text only**. It does not bathe the whole card in a large golden glow; that broader treatment belongs to a separate Giga Gold-style effect if added later.
-- Gold uses the single-coin award icon and should remain visibly associated with giver/date metadata like other awards.
+- Gold uses the dedicated stacked-coin `award-gold-icon` glyph everywhere it is rendered (shop, Give Award picker, and awarded-content metadata); do not replace it with an unsupported Font Awesome coin class.
 
-Implementation commits: `ee4ae80a`, `7e51d97f`, `7b48adda`.
+Implementation commits: `ee4ae80a`, `7e51d97f`, `7b48adda`, `518db91e`, `d78d126b`, `e7136bbc`.
 
 ### Award-effect lifecycle invariant
 
@@ -199,7 +201,7 @@ Current award-system checkpoint: Gold award mechanics/effect implemented on **20
 
 At this checkpoint:
 
-- Gold costs 500, gilds target text, and pays a fixed 250 Wishcoins per award to a non-self recipient.
+- Gold costs 500, is present in the normal award catalog/shop, uses its dedicated stacked-coin icon, gilds target text, and pays a fixed 250 Wishcoins per award to a non-self recipient.
 - Emoji/Ricardo remain the preceding award feature work and their effect/modal lifecycle invariants still apply.
 - Snatchy domain exception is externally pending with Reddit as of 2026-08-17.
 - Continue from the user's next specified feature/award rather than inventing an automatic rDrama synchronization backlog.
