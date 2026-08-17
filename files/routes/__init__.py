@@ -38,6 +38,12 @@ from files.helpers.award_system_fixes import (
 	patch_award_batch_source,
 	patch_award_templates_source,
 )
+from files.helpers.requested_awards import (
+	install_requested_awards,
+	patch_requested_awards_pre_batch_source,
+	patch_requested_awards_post_batch_source,
+	patch_requested_award_templates_source,
+)
 from files.helpers.final_ui_source_fixes import (
 	patch_admin_emote_link_source,
 	patch_asset_submission_directories_source,
@@ -51,6 +57,11 @@ from files.helpers.hat_submission_fixes import patch_hat_submission_source
 from files.helpers.username_effect_template_fixes import patch_comment_username_effects_source
 
 disable_retired_awards()
+install_requested_awards(app)
+try:
+	patch_requested_awards_pre_batch_source()
+except RuntimeError:
+	pass
 try:
 	patch_award_currency_source()
 	patch_badge_gift_message_source()
@@ -61,7 +72,15 @@ try:
 except RuntimeError:
 	pass
 try:
+	patch_requested_awards_post_batch_source()
+except RuntimeError:
+	pass
+try:
 	patch_award_templates_source()
+except RuntimeError:
+	pass
+try:
+	patch_requested_award_templates_source()
 except RuntimeError:
 	pass
 try:
