@@ -1,3 +1,4 @@
+import base64
 import time
 
 from sqlalchemy import Column, ForeignKey
@@ -80,10 +81,15 @@ class AwardRelationship(Base):
 	@property
 	@lazy
 	def class_list(self):
-		# The timestamp class lets the client choose exactly the newest animated
-		# award without changing every template that renders award icons.
+		# Timestamp + encoded giver metadata let the client choose the newest
+		# effect and recover Pin/Giga Pin attribution without depending on a
+		# Bootstrap tooltip's mutable title attribute.
 		award_ts = int(self.awarded_utc or self.created_utc or 0)
 		classes = self.type['icon']+' '+self.type['color']+f' award-kind-{self.base_kind} award-ts-{award_ts}'
+		giver = str(self.user.username if self.user else '').strip()
+		if giver:
+			encoded_giver = base64.urlsafe_b64encode(giver.encode('utf-8')).decode('ascii').rstrip('=')
+			classes += f' award-user-b64-{encoded_giver}'
 		if self.effect_emoji_name:
 			classes += f' award-emoji-name-{self.effect_emoji_name}'
 		return classes
