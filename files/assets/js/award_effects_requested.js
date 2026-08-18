@@ -227,13 +227,12 @@
 	}
 
 	function pinOwner(pin) {
-		return pin.closest('.comment-anchor') || pin.closest('#post-root > .card');
+		return pin.closest('.comment-anchor') || pin.closest('.actual-post') || pin.closest('.card');
 	}
 
 	function awardGiver(owner, kind) {
 		if (!owner) return null;
-		const icon = Array.from(owner.querySelectorAll(`.award-kind-${kind}`))
-			.find((candidate) => ownerForIcon(candidate) === owner);
+		const icon = owner.querySelector(`.award-kind-${kind}`);
 		if (!icon) return null;
 		const title = icon.getAttribute('data-bs-original-title') || icon.getAttribute('title') || '';
 		const match = title.match(/given by\s+@([^\s]+)/i);
