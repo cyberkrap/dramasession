@@ -164,7 +164,7 @@
 			image.loading = 'lazy';
 			image.alt = '';
 			image.className = 'award-furry-dancer';
-			image.src = `${assetBase}furry${i + 1}.webp?v=20260818c`;
+			image.src = `${assetBase}furry${i + 1}.webp?v=20260818d`;
 			image.style.animationDelay = `${-Math.random() * 1.8}s`;
 			image.addEventListener('error', () => roamer.remove(), {once: true});
 			roamer.appendChild(image);
@@ -195,7 +195,7 @@
 			const image = document.createElement('img');
 			image.loading = 'lazy';
 			image.alt = '';
-			image.src = `${assetBase}fly-sprite.webp?v=20260818c`;
+			image.src = `${assetBase}fly-sprite.webp?v=20260818d`;
 			image.addEventListener('error', () => image.remove(), {once: true});
 			fly.appendChild(image);
 			layer.appendChild(fly);
@@ -210,8 +210,8 @@
 		image.loading = 'lazy';
 		image.alt = '';
 		image.src = kind === 'truthnova'
-			? `${assetBase}truthnova.gif?v=20260818c`
-			: `${assetBase}truthnuke.webp?v=20260818c`;
+			? `${assetBase}truthnova.gif?v=20260818d`
+			: `${assetBase}truthnuke.webp?v=20260818d`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
@@ -223,7 +223,7 @@
 		const image = document.createElement('img');
 		image.loading = 'lazy';
 		image.alt = '';
-		image.src = `${assetBase}lovebomb.webp?v=20260818c`;
+		image.src = `${assetBase}lovebomb.webp?v=20260818d`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
@@ -244,6 +244,16 @@
 		if (!host) return;
 		const smallLayer = ensureSmallLayer(host);
 		const layers = Array.from(owner.querySelectorAll('.content-award-effects'));
+
+		// The legacy renderer rebuilds its whole layer whenever award metadata
+		// changes. Replace its previous Ricardo/Emoji sprites instead of stacking
+		// another duplicate set in our foreground layer.
+		for (const selector of legacySmallSelectors) {
+			if (layers.some((layer) => layer.querySelector(`:scope > ${selector}`))) {
+				smallLayer.querySelectorAll(`:scope > ${selector}`).forEach((item) => item.remove());
+			}
+		}
+
 		for (const originalLayer of layers) {
 			const layer = moveLegacyLayer(originalLayer, owner);
 			if (!layer) continue;
@@ -275,19 +285,19 @@
 		const furryCount = iconsForOwner(owner, '.award-kind-furry').length;
 		const signature = `${latestExclusive ? `${latestExclusive.kind}:${latestExclusive.timestamp}:${latestExclusive.order}` : 'none'}|furry:${furryCount}`;
 
+		// Always reconcile a newly rebuilt legacy layer, even when the award
+		// signature did not change. Do not rebuild our own layers unless needed.
 		reconcileLegacyEffects(owner, latestExclusive);
+		if (rendered.get(owner) === signature) return;
+		rendered.set(owner, signature);
 
-		// Small effects have their own foreground layer. Rebuild only the Furry
-		// sprites here; legacy Ricardo/Emoji sprites are moved into this same layer.
 		const smallLayer = ensureSmallLayer(host);
 		smallLayer.querySelectorAll(':scope > .award-furry-roamer').forEach((item) => item.remove());
 		if (furryCount) addFurries(smallLayer);
 
 		owner.querySelectorAll('.requested-award-effects').forEach((layer) => layer.remove());
-		if (rendered.get(owner) === signature) return;
-		rendered.set(owner, signature);
-
 		if (!latestExclusive || !requestedExclusiveKinds.has(latestExclusive.kind)) return;
+
 		const bodyLayer = ensureBodyLayer(host);
 		switch (latestExclusive.kind) {
 			case 'lovebomb': addLoveBomb(bodyLayer); break;
@@ -326,9 +336,26 @@
 		return typeof instance?._config?.title === 'string' ? instance._config.title : '';
 	}
 
+	function decodeAwardGiver(icon) {
+		if (!(icon instanceof HTMLElement)) return null;
+		for (const token of icon.classList) {
+			if (!token.startsWith('award-user-b64-')) continue;
+			const raw = token.slice('award-user-b64-'.length);
+			try {
+				const padded = raw + '='.repeat((4 - raw.length % 4) % 4);
+				const binary = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
+				const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+				return new TextDecoder().decode(bytes);
+			}
+			catch (_) {}
+		}
+		return null;
+	}
+
 	function awardGiverFromIcon(icon) {
 		if (!(icon instanceof HTMLElement)) return null;
-		if (icon.dataset.awardUser) return icon.dataset.awardUser;
+		const encoded = decodeAwardGiver(icon);
+		if (encoded) return encoded;
 		const match = tooltipText(icon).match(/given by\s+@([^\s]+)/i);
 		return match ? match[1].replace(/[.,;:!?]+$/, '') : null;
 	}
@@ -351,16 +378,16 @@
 	}
 
 	function pinBaseTitle(pin) {
-		// Never trust a previously cached tooltip after a Pin/Giga Pin is awarded
-		// through AJAX. Re-evaluate the actual award icons every time.
+		// Never trust a cached tooltip after a Pin/Giga Pin is awarded through
+		// AJAX. The persisted award icons carry the giver and award timestamp.
 		const awardSource = latestPinAward(pinOwner(pin));
 		if (awardSource) {
 			return `Pinned by @${awardSource.giver} (${awardSource.kind === 'gigapin' ? 'Giga pin award' : 'Pin award'})`;
 		}
 
 		const existing = tooltipText(pin).replace(/\s+until\s+.*$/i, '').trim();
-		if (/^Pinned by\s+/i.test(existing) && !/^Pinned by\s+\(a site admin\)$/i.test(existing)) return existing;
-		return existing || 'Pinned by (a site admin)';
+		if (/^Pinned by\s+/i.test(existing)) return existing;
+		return 'Pinned by (a site admin)';
 	}
 
 	function fixPinTooltip(pin) {
