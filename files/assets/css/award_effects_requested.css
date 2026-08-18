@@ -1,4 +1,4 @@
-/* Requested award glyphs are TOC-owned SVGs, not optional Font Awesome names. */
+/* TOC-owned requested-award glyphs. */
 .toc-award-glyph {
 	display: inline-block;
 	width: 22px;
@@ -14,21 +14,10 @@
 	filter: drop-shadow(0 1px 2px rgba(0,0,0,.32));
 }
 
-.toc-award-glyph-furry {
-	background-image: url('/assets/images/awards/icon-furry.svg?v=20260817');
-}
-
-.toc-award-glyph-truthnuke {
-	background-image: url('/assets/images/awards/icon-truthnuke.svg?v=20260817');
-}
-
-.toc-award-glyph-lovebomb {
-	background-image: url('/assets/images/awards/icon-lovebomb.svg?v=20260817');
-}
-
-.toc-award-glyph-truthnova {
-	background-image: url('/assets/images/awards/icon-truthnova.svg?v=20260817');
-}
+.toc-award-glyph-furry { background-image: url('/assets/images/awards/icon-furry.svg?v=20260817'); }
+.toc-award-glyph-truthnuke { background-image: url('/assets/images/awards/icon-truthnuke.svg?v=20260817'); }
+.toc-award-glyph-lovebomb { background-image: url('/assets/images/awards/icon-lovebomb.svg?v=20260817'); }
+.toc-award-glyph-truthnova { background-image: url('/assets/images/awards/icon-truthnova.svg?v=20260817'); }
 
 .obs-award-icon .toc-award-glyph {
 	width: 36px;
@@ -37,13 +26,21 @@
 	filter: drop-shadow(0 3px 7px rgba(0,0,0,.42));
 }
 
-/* Every effect layer is a paint-contained viewport belonging to one exact post
-   or .comment-anchor. It must never escape into replies or sibling comments. */
+/* Giga Pin must be visually distinct from the ordinary/admin pin. */
+.award-kind-gigapin,
+.obs-award-icon .award-kind-gigapin {
+	color: #b76cff !important;
+	text-shadow: 0 0 7px rgba(183,108,255,.55);
+}
+
+/* Effects now live only inside #post-body / the exact comment-text node. */
+.award-effect-content-host,
 .award-effect-target {
+	position: relative !important;
 	isolation: isolate;
 }
 
-.award-effect-target > .requested-award-effects {
+.award-effect-content-host > .requested-award-effects {
 	position: absolute !important;
 	inset: 0 !important;
 	z-index: 2 !important;
@@ -60,14 +57,20 @@
 	border-radius: inherit;
 }
 
+/* Keep the actual body/media readable and above low-priority decorative layers. */
+.award-effect-content-host > :not(.requested-award-effects):not(.content-award-effects) {
+	position: relative;
+	z-index: 1;
+}
+
 .award-furry-roamer {
 	position: absolute;
 	left: 0;
 	top: 0;
 	width: 58px;
 	height: 84px;
-	max-width: 16%;
-	max-height: 72%;
+	max-width: 18%;
+	max-height: 78%;
 	will-change: transform;
 }
 
@@ -88,9 +91,6 @@
 	100% { transform: translateY(-7px) rotate(6deg) scale(1.04); }
 }
 
-/* The image is the preferred rDrama fly sprite. If it has not been uploaded
-   yet, the wrapper's pseudo-elements still render a tiny fly instead of a
-   broken-image icon. */
 .award-shit-fly {
 	position: absolute;
 	width: 20px;
@@ -135,105 +135,73 @@
 }
 
 .award-shit-fly:has(img)::before,
-.award-shit-fly:has(img)::after {
-	display: none;
-}
+.award-shit-fly:has(img)::after { display: none; }
 
-/* Impact effects are deliberately substantial like the reference, but their
-   box is always clipped by the awarded target itself. */
-.award-impact {
+/* Truth Nuke/Nova are single full-body assets, not small centered stickers. */
+.award-impact,
+.award-lovebomb-single {
 	position: absolute;
 	inset: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	display: block;
 	overflow: hidden;
-	padding: clamp(8px, 2vw, 24px);
 }
 
-.award-impact img {
+.award-impact img,
+.award-lovebomb-single img {
 	display: block;
-	width: auto;
-	height: auto;
-	max-width: 100%;
-	max-height: 100%;
-	object-fit: contain;
-	filter: drop-shadow(0 5px 10px rgba(0,0,0,.5));
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	object-fit: fill;
+	object-position: center;
 	transform-origin: 50% 50%;
 }
 
 .award-impact-truthnuke img {
-	width: clamp(240px, 62%, 540px);
-	max-width: 88%;
-	max-height: 90%;
+	opacity: .78;
+	filter: drop-shadow(0 4px 10px rgba(0,0,0,.45));
 	animation: award-truthnuke-pulse 1.7s ease-in-out infinite alternate;
 }
 
 .award-impact-truthnova img {
-	width: clamp(300px, 72%, 680px);
-	max-width: 92%;
-	max-height: 94%;
+	opacity: .72;
+	filter: drop-shadow(0 4px 12px rgba(0,0,0,.48));
 	animation: award-truthnova-pulse 2.25s ease-in-out infinite alternate;
 }
 
+/* Exactly one Love Bomb image fills the awarded body. No tiled/repeated hearts. */
+.award-lovebomb-single img {
+	opacity: var(--love-opacity, .42);
+	filter: saturate(1.05) contrast(1.02);
+	animation: award-lovebomb-breathe 3.8s ease-in-out infinite alternate;
+}
+
 @keyframes award-truthnuke-pulse {
-	0% { transform: scale(.95); opacity: .82; }
-	100% { transform: scale(1.035); opacity: 1; }
+	0% { transform: scale(1); opacity: .70; }
+	100% { transform: scale(1.015); opacity: .86; }
 }
 
 @keyframes award-truthnova-pulse {
-	0% { transform: scale(.97); opacity: .82; }
-	100% { transform: scale(1.025); opacity: .98; }
+	0% { transform: scale(1); opacity: .66; }
+	100% { transform: scale(1.012); opacity: .79; }
 }
 
-/* Smaller, denser hearts like the rDrama reference. The previous 310px tiles
-   covered usernames, copy, and action rows instead of reading as an effect. */
-.award-lovebomb-pattern {
-	position: absolute;
-	inset: 0;
-	background-image: url('/assets/images/awards/lovebomb.webp?v=20260817');
-	background-repeat: repeat;
-	background-position: center;
-	background-size: clamp(72px, 9vw, 112px) auto;
-	opacity: var(--love-opacity, .34);
-	animation: award-lovebomb-drift 8s ease-in-out infinite alternate;
-}
-
-@keyframes award-lovebomb-drift {
-	0% { background-position: 0 0; }
-	100% { background-position: 34px 18px; }
+@keyframes award-lovebomb-breathe {
+	0% { transform: scale(1); }
+	100% { transform: scale(1.01); }
 }
 
 @media (max-width: 720px) {
 	.award-furry-roamer {
 		width: 46px;
 		height: 66px;
-		max-width: 18%;
-		max-height: 68%;
+		max-width: 20%;
+		max-height: 74%;
 	}
 
 	.award-shit-fly {
 		width: 17px;
 		height: 17px;
-	}
-
-	.award-impact {
-		padding: 6px;
-	}
-
-	.award-impact-truthnuke img {
-		width: clamp(210px, 68%, 390px);
-		max-width: 90%;
-		max-height: 88%;
-	}
-
-	.award-impact-truthnova img {
-		width: clamp(250px, 78%, 460px);
-		max-width: 94%;
-		max-height: 92%;
-	}
-
-	.award-lovebomb-pattern {
-		background-size: 74px auto;
 	}
 }
