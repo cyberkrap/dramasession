@@ -199,7 +199,7 @@ Relevant commits: `473c15b`, `8c9db35`, `08756eb`, `df141c4`.
 
 The old `Celebration` award was repurposed/renamed into **Ricardo**.
 
-Current intended visual behavior is the animated Ricardo/Ricardo-TV effect described by the user rather than the old fixed corner placement. Inspect the current award effect implementation before modifying it further.
+Current intended visual behavior is the animated Ricardo/Ricardo-TV effect described by the user rather than the old fixed corner placement. Ricardo is a **small decorative/dancing effect** and is allowed to coexist with Furry, Emoji, and the currently-active large/full-body effect.
 
 ### Gold Award
 
@@ -217,21 +217,43 @@ Current intended behavior:
 
 Implementation commits: `ee4ae80a`, `7e51d97f`, `7b48adda`, `518db91e`, `d78d126b`, `e7136bbc`, `cd2af16b`.
 
+### Requested awards / effect semantics
+
+By **2026-08-18**, the requested-award pass added/restored Furry, Shit, Truth Nuke, Love Bomb, Truth Nova, Giga Pin, and Giga Unpin, with their user-specified pricing/mechanics/assets.
+
+Important effect rules:
+
+- Large/full-body animation effects are clipped to the exact post body/comment text container and must never cover the metadata/action rows (Votes, Give Award, Copy Link, Save, Report, etc.).
+- Large effects are **mutually exclusive**. If several large animation awards exist on the same target, only the **most recently awarded large effect** plays.
+- Truth Nuke, Truth Nova, Love Bomb, Shit and equivalent legacy large effects participate in that newest-large-effect arbitration.
+- **Furry, Ricardo, and Emoji are exceptions**: they are small decorative/dancing effects, may coexist with each other, and may overlap the currently-active large effect. They are still clipped to the exact awarded content container so they cannot leak into replies/action rows.
+- Truth Nuke/Nova/Love Bomb use one proportional `object-fit: cover` media layer rather than stretched/tiled copies.
+- Award timestamps and encoded giver metadata are emitted in award icon classes so client behavior does not depend on mutable Bootstrap tooltip attributes.
+
+Key commits for the latest semantics include `a2cf47f`, `510b4e4`, and `64e6560`.
+
+### Pin / Giga Pin semantics
+
+- Pin, Unpin, Giga Pin, and Giga Unpin belong under **Effect on Content**, not Effect on Author.
+- Giga Pin must remain visually distinct from the ordinary/admin pin (purple/violet treatment).
+- Generic pin tooltip format should identify both source and expiry, e.g. `Pinned by @username (Giga pin award) until <date>` or `Pinned by @username (Pin award) until <date>`.
+- The tooltip must not alternate between source-only and expiry-only states on repeated hover.
+- When a Pin/Giga Pin is awarded through AJAX, the tooltip must recompute from persisted award metadata rather than keeping a stale cached admin/source value.
+
 ### Award-effect lifecycle invariant
 
-Opening/giving/closing an award must not destroy, hide, duplicate, or permanently pause effects already active on the post/comment. The latest functional fix before this context file was commit `df141c4` (`Fix award effect modal lifecycle`), which preserves/repairs direct `.content-award-effects` layers and resumes their animations after modal lifecycle changes.
+Opening/giving/closing an award must not destroy, hide, duplicate, or permanently pause effects already active on the post/comment. The current renderer separates **small decorative effects** from the **single active large effect** so modal/AJAX lifecycle updates can reconcile each layer independently.
 
 ## Current checkpoint / pending work
 
-Current award-system checkpoint: **catalog cleanup + Chud restoration** completed on **2026-08-17**, after the rDrama base-price sync and Gold/Emoji/Ricardo work.
-
-At this checkpoint:
+Current award-system checkpoint as of **2026-08-18**:
 
 - Spark Trail, Spotlight, Beano, and Y'all Seein' Eye are retired from the live award catalog while historical award records remain intact.
 - `agendaposter` is publicly Chud again, with the original 24-hour Chud semantics preserved.
 - Overlapping active awards use the user-supplied rDrama shop's crossed-out/base prices; discounted green prices were intentionally ignored.
 - Gold costs 500, is present in the normal award catalog/shop, uses the normal vector coin icon, gilds only the exact awarded target's text, and pays a fixed 250 Wishcoins per award to a non-self recipient.
-- Emoji/Ricardo remain the preceding award feature work and their effect/modal lifecycle invariants still apply.
+- Large award animations now use newest-effect arbitration and body-only containment; Furry/Ricardo/Emoji intentionally coexist as small decorations.
+- Pin/Giga Pin are content effects and their tooltip/source metadata is being kept explicit and durable.
 - The user is choosing which rDrama awards missing from TOC should be implemented next; do not add the rest automatically.
 - Snatchy domain exception is externally pending with Reddit as of 2026-08-17.
 
