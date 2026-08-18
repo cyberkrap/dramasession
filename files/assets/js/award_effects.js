@@ -72,13 +72,14 @@
 	}
 
 	function ensureLayer(target) {
-		let layer = Array.from(target.children).find((child) => child.classList && child.classList.contains('content-award-effects'));
+		let layer = Array.from(target.children).find((child) => child.classList && child.classList.contains('legacy-free-award-effects'));
 		if (!layer) {
 			layer = document.createElement('div');
-			layer.className = 'content-award-effects';
+			layer.className = 'legacy-free-award-effects';
 			layer.setAttribute('aria-hidden', 'true');
 			target.appendChild(layer);
 		}
+		target.classList.add('award-free-effect-host');
 		return layer;
 	}
 
@@ -180,9 +181,6 @@
 	}
 
 	function addRicardo(layer, count) {
-		// The legacy effect already displayed at most three Ricardos. Keep that
-		// density, but let those dancers roam freely instead of pinning them to
-		// three corners.
 		const total = Math.min(Math.max(0, count), 3);
 		const sprites = [];
 		for (let i = 0; i < total; i++) {
@@ -191,7 +189,7 @@
 
 			const image = document.createElement('img');
 			image.loading = 'lazy';
-			image.src = `/i/ricardo${(i % 3) + 1}.webp?v=20260816-roam`;
+			image.src = `/assets/images/ricardo${(i % 3) + 1}.webp?v=20260818-free`;
 			image.alt = '';
 			image.className = 'award-ricardo';
 			image.style.animationDelay = `${-Math.random() * 1.8}s`;
@@ -220,14 +218,14 @@
 			item.style.top = '90%';
 			item.style.opacity = '1';
 			item.style.filter = `hue-rotate(${Math.floor(Math.random() * 360)}deg)`;
-			image.src = '/i/firework-trail.webp?v=20260809-scoped';
+			image.src = '/assets/images/firework-trail.webp?v=20260818-free';
 
 			const flight = item.animate(
 				[{top: '90%'}, {top: `${endTop}%`}],
 				{duration: 850, easing: 'ease-out', fill: 'forwards'}
 			);
 			flight.onfinish = () => {
-				image.src = `/i/firework-explosion.webp?v=${Date.now()}`;
+				image.src = `/assets/images/firework-explosion.webp?v=${Date.now()}`;
 				setTimeout(() => {
 					item.style.opacity = '0';
 					setTimeout(launch, 1800 + Math.random() * 2600);
@@ -242,8 +240,9 @@
 			const item = document.createElement('div');
 			item.className = 'award-firework';
 			const image = document.createElement('img');
-			image.alt = 'Firework';
-			image.src = '/i/firework-trail.webp?v=20260809-scoped';
+			image.alt = '';
+			image.src = '/assets/images/firework-trail.webp?v=20260818-free';
+			image.addEventListener('error', () => item.remove(), {once: true});
 			item.appendChild(image);
 			layer.appendChild(item);
 			startFirework(item, i);
@@ -299,7 +298,7 @@
 		}
 		target.classList.add('award-effect-target');
 
-		const oldLayer = Array.from(target.children).find((child) => child.classList && child.classList.contains('content-award-effects'));
+		const oldLayer = Array.from(target.children).find((child) => child.classList && child.classList.contains('legacy-free-award-effects'));
 		if (oldLayer) oldLayer.remove();
 		if (!visualKinds.some((kind) => counts[kind])) return;
 
@@ -329,7 +328,7 @@
 		const observer = new MutationObserver((mutations) => {
 			for (const mutation of mutations) {
 				for (const node of mutation.addedNodes) {
-					if (node instanceof HTMLElement && !node.classList.contains('content-award-effects')) scan(node);
+					if (node instanceof HTMLElement && !node.classList.contains('legacy-free-award-effects')) scan(node);
 				}
 			}
 		});
