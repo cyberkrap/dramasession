@@ -80,7 +80,10 @@ class AwardRelationship(Base):
 	@property
 	@lazy
 	def class_list(self):
-		classes = self.type['icon']+' '+self.type['color']+f' award-kind-{self.base_kind}'
+		# The timestamp class lets the client choose exactly the newest animated
+		# award without changing every template that renders award icons.
+		award_ts = int(self.awarded_utc or self.created_utc or 0)
+		classes = self.type['icon']+' '+self.type['color']+f' award-kind-{self.base_kind} award-ts-{award_ts}'
 		if self.effect_emoji_name:
 			classes += f' award-emoji-name-{self.effect_emoji_name}'
 		return classes
