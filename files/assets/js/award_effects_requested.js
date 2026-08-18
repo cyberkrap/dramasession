@@ -2,8 +2,16 @@
 	'use strict';
 
 	const rendered = new WeakMap();
-	const visualKinds = ['furry', 'shit', 'truthnuke', 'truthnova', 'lovebomb'];
+	const requestedKinds = ['furry', 'shit', 'truthnuke', 'truthnova', 'lovebomb'];
+	const legacyKinds = ['fireflies', 'ricardo', 'firework', 'wholesome'];
+	const animatedKinds = new Set([...requestedKinds, ...legacyKinds]);
 	const assetBase = '/assets/images/awards/';
+	const legacySelectors = {
+		fireflies: '.award-firefly',
+		ricardo: '.award-ricardo-roamer',
+		firework: '.award-firework',
+		wholesome: '.award-emoji-rain',
+	};
 
 	function isStandaloneThread() {
 		return document.body && document.body.id === 'thread';
@@ -24,19 +32,37 @@
 		return owner.querySelector('#post-body') || owner.querySelector('#post-content');
 	}
 
-	function iconsForOwner(owner, kind) {
-		return Array.from(owner.querySelectorAll(`.award-kind-${kind}`))
-			.filter((icon) => ownerForIcon(icon) === owner);
+	function kindForIcon(icon) {
+		for (const token of icon.classList || []) {
+			if (token.startsWith('award-kind-')) return token.slice('award-kind-'.length);
+		}
+		return null;
 	}
 
-	function countsFor(owner) {
-		const counts = {};
-		for (const kind of visualKinds) counts[kind] = iconsForOwner(owner, kind).length;
-		return counts;
+	function timestampForIcon(icon) {
+		for (const token of icon.classList || []) {
+			if (!token.startsWith('award-ts-')) continue;
+			const value = Number.parseInt(token.slice('award-ts-'.length), 10);
+			if (Number.isFinite(value)) return value;
+		}
+		return 0;
 	}
 
-	function fingerprint(counts) {
-		return visualKinds.map((kind) => `${kind}:${counts[kind] || 0}`).join('|');
+	function latestAnimatedAward(owner) {
+		if (!(owner instanceof HTMLElement)) return null;
+		let latest = null;
+		let order = 0;
+		for (const icon of owner.querySelectorAll('[class*="award-kind-"]')) {
+			if (ownerForIcon(icon) !== owner) continue;
+			const kind = kindForIcon(icon);
+			if (!animatedKinds.has(kind)) continue;
+			const candidate = {icon, kind, timestamp: timestampForIcon(icon), order: order++};
+			if (!latest || candidate.timestamp > latest.timestamp ||
+				(candidate.timestamp === latest.timestamp && candidate.order >= latest.order)) {
+				latest = candidate;
+			}
+		}
+		return latest;
 	}
 
 	function randomSigned(min, max) {
@@ -100,17 +126,16 @@
 		});
 	}
 
-	function addFurries(layer, count) {
-		const total = Math.min(6, Math.max(3, count * 2));
+	function addFurries(layer) {
 		const roamers = [];
-		for (let i = 0; i < total; i++) {
+		for (let i = 0; i < 3; i++) {
 			const roamer = document.createElement('span');
 			roamer.className = 'award-furry-roamer';
 			const image = document.createElement('img');
 			image.loading = 'lazy';
 			image.alt = '';
 			image.className = 'award-furry-dancer';
-			image.src = `${assetBase}furry${(i % 3) + 1}.webp?v=20260818`;
+			image.src = `${assetBase}furry${i + 1}.webp?v=20260818b`;
 			image.style.animationDelay = `${-Math.random() * 1.8}s`;
 			image.addEventListener('error', () => roamer.remove(), {once: true});
 			roamer.appendChild(image);
@@ -132,9 +157,8 @@
 		], {duration, delay: -Math.random() * duration, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out'});
 	}
 
-	function addShitFlies(layer, count) {
-		const total = Math.min(26, 7 + count * 4);
-		for (let i = 0; i < total; i++) {
+	function addShitFlies(layer) {
+		for (let i = 0; i < 11; i++) {
 			const fly = document.createElement('span');
 			fly.className = 'award-shit-fly';
 			fly.style.left = randomPercent(2, 95);
@@ -142,7 +166,7 @@
 			const image = document.createElement('img');
 			image.loading = 'lazy';
 			image.alt = '';
-			image.src = `${assetBase}fly-sprite.webp?v=20260818`;
+			image.src = `${assetBase}fly-sprite.webp?v=20260818b`;
 			image.addEventListener('error', () => image.remove(), {once: true});
 			fly.appendChild(image);
 			layer.appendChild(fly);
@@ -157,59 +181,88 @@
 		image.loading = 'lazy';
 		image.alt = '';
 		image.src = kind === 'truthnova'
-			? `${assetBase}truthnova.gif?v=20260818`
-			: `${assetBase}truthnuke.webp?v=20260818`;
+			? `${assetBase}truthnova.gif?v=20260818b`
+			: `${assetBase}truthnuke.webp?v=20260818b`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
 	}
 
-	function addLoveBomb(layer, count) {
+	function addLoveBomb(layer) {
 		const wrap = document.createElement('div');
 		wrap.className = 'award-lovebomb-single';
-		wrap.style.setProperty('--love-opacity', String(Math.min(.62, .38 + Math.max(0, count - 1) * .035)));
 		const image = document.createElement('img');
 		image.loading = 'lazy';
 		image.alt = '';
-		image.src = `${assetBase}lovebomb.webp?v=20260818`;
+		image.src = `${assetBase}lovebomb.webp?v=20260818b`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
+	}
+
+	function moveLegacyLayer(layer, owner) {
+		if (!(layer instanceof HTMLElement) || !owner) return null;
+		const host = visualHostForOwner(owner);
+		if (!host) return null;
+		host.classList.add('award-effect-target', 'award-effect-content-host');
+		if (layer.parentElement !== host) host.appendChild(layer);
+		return layer;
+	}
+
+	function reconcileLegacyEffects(owner, latest) {
+		if (!(owner instanceof HTMLElement)) return;
+		const layers = Array.from(owner.querySelectorAll('.content-award-effects'));
+		for (const originalLayer of layers) {
+			const layer = moveLegacyLayer(originalLayer, owner);
+			if (!layer) continue;
+			if (!latest || requestedKinds.includes(latest.kind) || !legacyKinds.includes(latest.kind)) {
+				layer.remove();
+				continue;
+			}
+			const selector = legacySelectors[latest.kind];
+			for (const child of Array.from(layer.children)) {
+				if (!child.matches(selector)) child.remove();
+			}
+			// Emoji awards are one-sprite effects. If several historical Emoji
+			// awards exist, keep only the sprite belonging to the newest award.
+			if (latest.kind === 'wholesome') {
+				let emojiName = null;
+				for (const token of latest.icon.classList) {
+					if (token.startsWith('award-emoji-name-')) emojiName = token.slice('award-emoji-name-'.length);
+				}
+				const sprites = Array.from(layer.querySelectorAll('.award-emoji-rain'));
+				let kept = false;
+				for (let i = sprites.length - 1; i >= 0; i--) {
+					const sprite = sprites[i];
+					const matches = !emojiName || decodeURIComponent(sprite.src).includes(`/e/${emojiName}.webp`);
+					if (matches && !kept) kept = true;
+					else sprite.remove();
+				}
+			}
+		}
 	}
 
 	function renderOwner(owner) {
 		if (!(owner instanceof HTMLElement) || !isStandaloneThread()) return;
 		const host = visualHostForOwner(owner);
 		if (!host) return;
-		const counts = countsFor(owner);
-		const signature = `${fingerprint(counts)}|host:${host.id || host.className}`;
-		if (rendered.get(owner) === signature) return;
-		rendered.set(owner, signature);
+		const latest = latestAnimatedAward(owner);
+		const signature = latest ? `${latest.kind}:${latest.timestamp}:${latest.order}` : 'none';
 
+		reconcileLegacyEffects(owner, latest);
 		owner.querySelectorAll('.requested-award-effects').forEach((layer) => layer.remove());
-		if (!visualKinds.some((kind) => counts[kind])) return;
+		if (rendered.get(owner) === signature && (!latest || legacyKinds.includes(latest.kind))) return;
+		rendered.set(owner, signature);
+		if (!latest || !requestedKinds.includes(latest.kind)) return;
 
 		const layer = ensureLayer(host);
-		if (counts.lovebomb) addLoveBomb(layer, counts.lovebomb);
-		if (counts.truthnuke) addImpact(layer, 'truthnuke');
-		if (counts.truthnova) addImpact(layer, 'truthnova');
-		if (counts.shit) addShitFlies(layer, counts.shit);
-		if (counts.furry) addFurries(layer, counts.furry);
-	}
-
-	function migrateLegacyLayer(layer) {
-		if (!(layer instanceof HTMLElement) || !layer.classList.contains('content-award-effects')) return;
-		const owner = layer.closest('.comment-anchor') || layer.closest('#post-root > .card');
-		if (!owner) return;
-		const host = visualHostForOwner(owner);
-		if (!host || layer.parentElement === host) return;
-		host.classList.add('award-effect-target', 'award-effect-content-host');
-		host.appendChild(layer);
-	}
-
-	function migrateLegacyLayers(root = document) {
-		if (root instanceof HTMLElement && root.classList.contains('content-award-effects')) migrateLegacyLayer(root);
-		root.querySelectorAll?.('.content-award-effects').forEach(migrateLegacyLayer);
+		switch (latest.kind) {
+			case 'lovebomb': addLoveBomb(layer); break;
+			case 'truthnuke': addImpact(layer, 'truthnuke'); break;
+			case 'truthnova': addImpact(layer, 'truthnova'); break;
+			case 'shit': addShitFlies(layer); break;
+			case 'furry': addFurries(layer); break;
+		}
 	}
 
 	function scan(root = document) {
@@ -222,8 +275,13 @@
 			const owner = ownerForIcon(icon);
 			if (owner) owners.add(owner);
 		}
+		// A legacy effect layer can be the only newly inserted node, so also
+		// recover its owner even when no award icon is inside the mutation root.
+		if (root instanceof HTMLElement && root.classList.contains('content-award-effects')) {
+			const owner = root.closest('.comment-anchor') || root.closest('#post-root > .card');
+			if (owner) owners.add(owner);
+		}
 		owners.forEach(renderOwner);
-		migrateLegacyLayers(root);
 	}
 
 	function pinOwner(pin) {
@@ -232,7 +290,8 @@
 
 	function awardGiver(owner, kind) {
 		if (!owner) return null;
-		const icon = owner.querySelector(`.award-kind-${kind}`);
+		const icons = Array.from(owner.querySelectorAll(`.award-kind-${kind}`));
+		const icon = icons[icons.length - 1];
 		if (!icon) return null;
 		const title = icon.getAttribute('data-bs-original-title') || icon.getAttribute('title') || '';
 		const match = title.match(/given by\s+@([^\s]+)/i);
@@ -240,18 +299,33 @@
 	}
 
 	function pinBaseTitle(pin) {
+		if (pin.dataset.tocPinBase) return pin.dataset.tocPinBase;
 		const existing = pin.getAttribute('title') || pin.getAttribute('data-bs-original-title') || '';
-		if (/^Pinned by\s+/i.test(existing)) return existing.replace(/\s+until\s+.*$/i, '');
+		if (/^Pinned by\s+/i.test(existing)) {
+			const base = existing.replace(/\s+until\s+.*$/i, '');
+			pin.dataset.tocPinBase = base;
+			return base;
+		}
 		const owner = pinOwner(pin);
 		const gigaGiver = awardGiver(owner, 'gigapin');
-		if (gigaGiver) return `Pinned by @${gigaGiver} (giga pin award)`;
 		const pinGiver = awardGiver(owner, 'pin');
-		if (pinGiver) return `Pinned by @${pinGiver} (pin award)`;
-		return 'Pinned by (a site admin)';
+		const base = gigaGiver
+			? `Pinned by @${gigaGiver} (giga pin award)`
+			: pinGiver
+				? `Pinned by @${pinGiver} (pin award)`
+				: 'Pinned by (a site admin)';
+		pin.dataset.tocPinBase = base;
+		return base;
 	}
 
 	function fixPinTooltip(pin) {
 		if (!(pin instanceof HTMLElement)) return;
+		// Disable the legacy hover-time mutator. The complete tooltip is prepared
+		// before Bootstrap sees the first hover, so it never alternates between
+		// source-only and date-only strings.
+		pin.removeAttribute('data-onmouseover');
+		pin.onmouseover = null;
+
 		const base = pinBaseTitle(pin);
 		let title = base;
 		const timestamp = Number.parseInt(pin.dataset.timestamp || '', 10);
@@ -263,7 +337,15 @@
 		pin.setAttribute('title', title);
 		pin.setAttribute('data-bs-original-title', title);
 		const tooltip = window.bootstrap?.Tooltip?.getInstance(pin);
-		if (tooltip?.setContent) tooltip.setContent({'.tooltip-inner': title});
+		if (tooltip) {
+			if (tooltip._config) tooltip._config.title = title;
+			if (tooltip.setContent) tooltip.setContent({'.tooltip-inner': title});
+		}
+	}
+
+	function preparePins(root = document) {
+		if (root instanceof HTMLElement && root.matches?.('[id^="pinned-"]')) fixPinTooltip(root);
+		root.querySelectorAll?.('[id^="pinned-"]').forEach(fixPinTooltip);
 	}
 
 	window.pinned_timestamp = (id) => {
@@ -272,21 +354,21 @@
 	};
 
 	function init() {
-		if (!isStandaloneThread()) return;
-		scan(document);
-		document.querySelectorAll('[id^="pinned-"][data-timestamp]').forEach(fixPinTooltip);
+		// Pin tooltips occur on listings as well as standalone threads.
+		preparePins(document);
 		document.addEventListener('mouseover', (event) => {
 			const pin = event.target.closest?.('[id^="pinned-"]');
 			if (pin) fixPinTooltip(pin);
 		}, true);
 
+		if (isStandaloneThread()) scan(document);
+
 		const observer = new MutationObserver((mutations) => {
 			for (const mutation of mutations) {
 				for (const node of mutation.addedNodes) {
 					if (!(node instanceof HTMLElement)) continue;
-					if (!node.classList.contains('requested-award-effects')) scan(node);
-					if (node.matches?.('[id^="pinned-"]')) fixPinTooltip(node);
-					node.querySelectorAll?.('[id^="pinned-"]').forEach(fixPinTooltip);
+					preparePins(node);
+					if (isStandaloneThread() && !node.classList.contains('requested-award-effects')) scan(node);
 				}
 			}
 		});
