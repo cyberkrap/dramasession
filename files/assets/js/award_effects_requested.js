@@ -485,7 +485,7 @@
 		button.type='button';
 		button.id=`clear-awards${target.mobile?'2':''}-${target.type}-${target.id}`;
 		button.className=target.mobile?'list-group-item text-danger toc-clear-awards':'dropdown-item list-inline-item text-danger toc-clear-awards';
-		button.innerHTML=`<i class="fas fa-eraser text-danger${target.mobile?' mr-2':' fa-fw'}"></i>Clear Awards`;
+		button.innerHTML=`<i class="fas fa-broom text-danger${target.mobile?' mr-2':' fa-fw'}"></i>Clear Awards`;
 		if (target.mobile) button.setAttribute('data-bs-dismiss','modal');
 		button.addEventListener('click',()=>{
 			if (!confirm(`Clear every award from this ${target.type}? This removes all award icons and visual award effects.`)) return;
