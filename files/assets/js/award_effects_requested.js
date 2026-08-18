@@ -4,17 +4,12 @@
 	const rendered = new WeakMap();
 	const assetBase = '/assets/images/awards/';
 
-	// Large/body-covering effects are mutually exclusive: only the newest one
-	// is shown. Small dancers and free-roaming bugs are independent exceptions.
+	// Only body-covering effects are mutually exclusive. Small dancers,
+	// free-roaming bugs, confetti and fireworks are independent exceptions.
 	const requestedExclusiveKinds = new Set(['truthnuke', 'truthnova', 'lovebomb']);
-	const legacyExclusiveKinds = new Set(['firework', 'confetti']);
-	const exclusiveKinds = new Set([...requestedExclusiveKinds, ...legacyExclusiveKinds]);
+	const exclusiveKinds = requestedExclusiveKinds;
 	const legacySmallSelectors = ['.award-ricardo-roamer', '.award-emoji-rain'];
-	const legacyFreeSelectors = ['.award-firefly'];
-	const legacyExclusiveSelectors = {
-		firework: '.award-firework',
-		confetti: '.award-confetti',
-	};
+	const legacyFreeSelectors = ['.award-firefly', '.award-firework'];
 
 	function isStandaloneThread() {
 		return document.body && document.body.id === 'thread';
@@ -241,7 +236,7 @@
 		layer.appendChild(wrap);
 	}
 
-	function reconcileLegacyEffects(owner, latestExclusive) {
+	function reconcileLegacyEffects(owner) {
 		if (!(owner instanceof HTMLElement)) return;
 		const host = visualHostForOwner(owner);
 		if (!host) return;
@@ -272,19 +267,10 @@
 				}
 			}
 
-			const allowedExclusiveSelector = latestExclusive && legacyExclusiveKinds.has(latestExclusive.kind)
-				? legacyExclusiveSelectors[latestExclusive.kind]
-				: null;
-			for (const child of Array.from(originalLayer.children)) {
-				if (!allowedExclusiveSelector || !child.matches(allowedExclusiveSelector)) child.remove();
-			}
-
-			if (!originalLayer.children.length) {
-				originalLayer.remove();
-				continue;
-			}
-			host.classList.add('award-effect-target', 'award-effect-content-host');
-			if (originalLayer.parentElement !== host) host.appendChild(originalLayer);
+			// Confetti is CSS-driven and Fireflies/Fireworks were moved above.
+			// Any leftovers in the legacy layer are stale/duplicate effect nodes.
+			for (const child of Array.from(originalLayer.children)) child.remove();
+			originalLayer.remove();
 		}
 	}
 
@@ -298,9 +284,9 @@
 		const shitCount = iconsForOwner(owner, '.award-kind-shit').length;
 		const signature = `${latestExclusive ? `${latestExclusive.kind}:${latestExclusive.timestamp}:${latestExclusive.order}` : 'none'}|furry:${furryCount}|shit:${shitCount}`;
 
-		// Legacy Ricardo/Emoji remain body dancers. Fireflies are a free-roaming
-		// exception and are moved to the whole post/comment owner instead.
-		reconcileLegacyEffects(owner, latestExclusive);
+		// Ricardo/Emoji remain body dancers. Fireflies and Fireworks are
+		// free-roaming exceptions. Confetti remains independently CSS-driven.
+		reconcileLegacyEffects(owner);
 		if (rendered.get(owner) === signature) return;
 		rendered.set(owner, signature);
 
