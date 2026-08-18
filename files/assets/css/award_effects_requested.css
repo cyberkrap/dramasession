@@ -82,8 +82,8 @@
 	border-radius: inherit;
 }
 
-/* Shit flies + Fireflies intentionally roam over the whole awarded post/comment
-   rather than being constrained to the text/media body. */
+/* Shit flies, Fireflies and Fireworks intentionally roam over the whole awarded
+   post/comment rather than being constrained to the text/media body. */
 .award-free-effect-host {
 	position: relative !important;
 	isolation: isolate;
@@ -135,8 +135,8 @@
 	position: absolute;
 	left: 0;
 	top: 0;
-	width: 26px;
-	height: 28px;
+	width: 20px;
+	height: 22px;
 	background-image: url('/assets/images/awards/fly-sprite.webp?v=20260818e');
 	background-repeat: no-repeat;
 	background-size: 500% 400%;
@@ -209,7 +209,7 @@
 	}
 
 	.award-shit-fly {
-		width: 22px;
-		height: 24px;
+		width: 17px;
+		height: 19px;
 	}
 }
