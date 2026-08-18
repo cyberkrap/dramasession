@@ -1,15 +1,17 @@
 import os
+import re
 
 from flask import abort, g, request
 
-from files.__main__ import app, engine, limiter
-from files.classes import Badge, Comment, ModAction, Submission, User
+from files.__main__ import app, engine, limiter, cache
+from files.classes import AwardRelationship, Badge, Comment, ModAction, Submission, User
 from files.helpers.alerts import send_repeatable_notification
 from files.helpers.bot_controls import install_bot_controls, install_native_bot_action_guards
 from files.helpers.config.const import DEFAULT_RATELIMIT, PERMS
 from files.helpers.config import modaction_types as modaction_config
 from files.helpers.get import get_account
 from files.routes.wrappers import admin_level_required, get_ID, get_logged_in_user
+from .front import frontlist, comment_idlist
 
 
 _PROFILE_ANTHEM_ACTION = {
@@ -17,10 +19,16 @@ _PROFILE_ANTHEM_ACTION = {
     "icon": "fa-music",
     "color": "bg-danger",
 }
+_CLEAR_AWARDS_ACTION = {
+    "str": "cleared all awards from {self.target_link}",
+    "icon": "fa-eraser",
+    "color": "bg-danger",
+}
 _ACCIDENTAL_CHUD_REPAIR_NOTE = "automatic repair: accidental award chud 2026-08-17"
+_AWARD_PIN_SOURCE_RE = re.compile(r"\((?:giga\s+)?pin award\)\s*$", re.IGNORECASE)
 
 
-# Keep the new action available everywhere the moderation log builds its type
+# Keep the new actions available everywhere the moderation log builds its type
 # catalog. These dictionaries are imported by reference by the log routes.
 for _catalog_name in (
     "MODACTION_TYPES",
@@ -30,6 +38,7 @@ for _catalog_name in (
     _catalog = getattr(modaction_config, _catalog_name, None)
     if isinstance(_catalog, dict):
         _catalog.setdefault("wipe_profile_anthem", _PROFILE_ANTHEM_ACTION)
+        _catalog.setdefault("clear_awards", _CLEAR_AWARDS_ACTION)
 
 
 @app.before_request
@@ -174,6 +183,77 @@ def toc_unagendaposter(id, v):
 # award-origin Chud. TOC admins are allowed to undo either source.
 if "unagendaposter" in app.view_functions:
     app.view_functions["unagendaposter"] = toc_unagendaposter
+
+
+def _clear_award_pin(target):
+    """Remove the live pin too when its source is a Pin/Giga Pin award."""
+    if _AWARD_PIN_SOURCE_RE.search(str(getattr(target, "stickied", "") or "")):
+        target.stickied = None
+        target.stickied_utc = None
+        g.db.add(target)
+
+
+def _invalidate_award_target_caches():
+    try:
+        cache.delete_memoized(frontlist)
+    except Exception:
+        pass
+    try:
+        cache.delete_memoized(comment_idlist)
+    except Exception:
+        pass
+
+
+@app.post("/admin/clear-awards/post/<int:post_id>")
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@admin_level_required(PERMS["POST_COMMENT_MODERATION"])
+def clear_post_awards(post_id, v: User):
+    """Delete every award relationship on one post without refunding old payouts."""
+    post = g.db.get(Submission, post_id)
+    if not post:
+        abort(404)
+
+    query = g.db.query(AwardRelationship).filter(
+        AwardRelationship.submission_id == post.id,
+    )
+    count = query.count()
+    query.delete(synchronize_session=False)
+    _clear_award_pin(post)
+    _invalidate_award_target_caches()
+
+    g.db.add(ModAction(
+        kind="clear_awards",
+        user_id=v.id,
+        target_submission_id=post.id,
+        _note=f"{count} award{'s' if count != 1 else ''}",
+    ))
+    return {"message": f"Cleared {count} award{'s' if count != 1 else ''} from this post."}
+
+
+@app.post("/admin/clear-awards/comment/<int:comment_id>")
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@admin_level_required(PERMS["POST_COMMENT_MODERATION"])
+def clear_comment_awards(comment_id, v: User):
+    """Delete every award relationship on one comment without refunding old payouts."""
+    comment = g.db.get(Comment, comment_id)
+    if not comment:
+        abort(404)
+
+    query = g.db.query(AwardRelationship).filter(
+        AwardRelationship.comment_id == comment.id,
+    )
+    count = query.count()
+    query.delete(synchronize_session=False)
+    _clear_award_pin(comment)
+    _invalidate_award_target_caches()
+
+    g.db.add(ModAction(
+        kind="clear_awards",
+        user_id=v.id,
+        target_comment_id=comment.id,
+        _note=f"{count} award{'s' if count != 1 else ''}",
+    ))
+    return {"message": f"Cleared {count} award{'s' if count != 1 else ''} from this comment."}
 
 
 # Install the shared bot policy after legacy route modules are loaded. The

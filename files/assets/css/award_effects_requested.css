@@ -1,215 +1,140 @@
 /* TOC-owned requested-award glyphs. */
 .toc-award-glyph {
-	display: inline-block;
-	width: 22px;
-	height: 22px;
-	padding: 0 !important;
-	font-size: 0 !important;
-	line-height: 1;
-	vertical-align: -6px;
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: contain;
-	color: transparent !important;
-	filter: drop-shadow(0 1px 2px rgba(0,0,0,.32));
+	display:inline-block;width:22px;height:22px;padding:0!important;font-size:0!important;line-height:1;
+	vertical-align:-6px;background-position:center;background-repeat:no-repeat;background-size:contain;
+	color:transparent!important;filter:drop-shadow(0 1px 2px rgba(0,0,0,.32));
+}
+.toc-award-glyph-furry{background-image:url('/assets/images/awards/icon-furry.svg?v=20260818')}
+.toc-award-glyph-truthnuke{background-image:url('/assets/images/awards/icon-truthnuke.svg?v=20260818')}
+.toc-award-glyph-lovebomb{background-image:url('/assets/images/awards/icon-lovebomb.svg?v=20260818')}
+.toc-award-glyph-truthnova{background-image:url('/assets/images/awards/icon-truthnova.svg?v=20260818')}
+.obs-award-icon .toc-award-glyph{width:36px;height:36px;vertical-align:0;filter:drop-shadow(0 3px 7px rgba(0,0,0,.42))}
+
+/* Giga Pin is visually distinct from ordinary/admin pin. */
+.award-kind-gigapin,.obs-award-icon .award-kind-gigapin,#gigapin .award-icon{
+	color:#b76cff!important;text-shadow:0 0 7px rgba(183,108,255,.55)
 }
 
-.toc-award-glyph-furry { background-image: url('/assets/images/awards/icon-furry.svg?v=20260817'); }
-.toc-award-glyph-truthnuke { background-image: url('/assets/images/awards/icon-truthnuke.svg?v=20260817'); }
-.toc-award-glyph-lovebomb { background-image: url('/assets/images/awards/icon-lovebomb.svg?v=20260817'); }
-.toc-award-glyph-truthnova { background-image: url('/assets/images/awards/icon-truthnova.svg?v=20260817'); }
-
-.obs-award-icon .toc-award-glyph {
-	width: 36px;
-	height: 36px;
-	vertical-align: 0;
-	filter: drop-shadow(0 3px 7px rgba(0,0,0,.42));
+/* One deterministic full-card layer owns every decorative effect. */
+.award-free-effect-host{position:relative!important;isolation:isolate}
+.award-free-effect-host>.toc-award-decorative-effects{
+	position:absolute!important;inset:0!important;z-index:8!important;display:block!important;
+	width:auto!important;height:auto!important;overflow:hidden!important;clip-path:inset(0);contain:paint;
+	pointer-events:none!important;border-radius:inherit
 }
 
-/* Giga Pin must be visually distinct from the ordinary/admin pin everywhere. */
-.award-kind-gigapin,
-.obs-award-icon .award-kind-gigapin,
-#gigapin .award-icon {
-	color: #b76cff !important;
-	text-shadow: 0 0 7px rgba(183,108,255,.55);
+/* Only Truth Nuke/Nova/Love Bomb use the body-only layer. */
+.award-effect-content-host{position:relative!important;isolation:isolate}
+.award-effect-content-host>.toc-award-large-effects{
+	position:absolute!important;inset:0!important;z-index:0!important;display:block!important;
+	overflow:hidden!important;clip-path:inset(0);contain:paint;pointer-events:none!important;border-radius:inherit
+}
+.award-effect-content-host>:not(.toc-award-large-effects){position:relative;z-index:1}
+
+/* Disable the old CSS-only confetti wallpaper. */
+.award-effect-target.has-award-confetti::after,#post-root>.card:has(.award-kind-confetti)::after,
+.comment-body:has(.award-kind-confetti)::after,.comment-anchor:has(.award-kind-confetti)::after{
+	content:none!important;display:none!important;background-image:none!important
 }
 
-/* Large body-covering animations live behind the actual post/comment content. */
-.award-effect-content-host,
-.award-effect-target {
-	position: relative !important;
-	z-index: 0;
-	isolation: isolate;
+/* Furry */
+.award-furry-roamer{
+	position:absolute!important;left:0;top:0;width:54px;height:78px;max-width:16%;max-height:64%;
+	will-change:transform;pointer-events:none
+}
+.award-furry-dancer{
+	display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));
+	transform-origin:50% 88%;animation:toc-award-furry-dance 1.15s ease-in-out infinite alternate
+}
+.award-furry-fallback{display:grid;place-items:center;font-size:30px}
+@keyframes toc-award-furry-dance{
+	0%{transform:translateY(0) rotate(-5deg) scale(.96)}35%{transform:translateY(-5px) rotate(4deg) scale(1.03)}
+	70%{transform:translateY(1px) rotate(-2deg) scale(.99)}100%{transform:translateY(-7px) rotate(6deg) scale(1.04)}
 }
 
-.award-effect-content-host > .requested-award-effects,
-.award-effect-content-host > .content-award-effects {
-	position: absolute !important;
-	inset: 0 !important;
-	z-index: -1 !important;
-	overflow: hidden !important;
-	clip-path: inset(0);
-	contain: paint;
-	pointer-events: none;
-	border-radius: inherit;
+/* Ricardo */
+.award-ricardo-roamer{position:absolute!important;left:0;top:0;width:48px;height:48px;will-change:transform;pointer-events:none}
+.award-ricardo{
+	display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45));
+	transform-origin:50% 85%;animation:toc-award-ricardo-dance 1.35s ease-in-out infinite alternate
+}
+@keyframes toc-award-ricardo-dance{
+	0%{transform:translateY(0) rotate(-7deg) scale(.96)}35%{transform:translateY(-5px) rotate(5deg) scale(1.04)}
+	70%{transform:translateY(1px) rotate(-3deg) scale(.98)}100%{transform:translateY(-7px) rotate(8deg) scale(1.05)}
 }
 
-.requested-award-effects {
-	position: absolute;
-	inset: 0;
-	z-index: -1 !important;
-	overflow: hidden;
-	clip-path: inset(0);
-	contain: paint;
-	pointer-events: none;
-	border-radius: inherit;
+/* Shit fly sprite: 5x4 sheet, 20 frames. */
+.award-shit-fly{
+	position:absolute!important;left:0;top:0;width:20px;height:22px;
+	background-image:url('/assets/images/awards/fly-sprite.webp?v=20260818h');background-repeat:no-repeat;
+	background-size:500% 400%;background-position:0 0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));
+	will-change:transform,background-position;pointer-events:none
 }
 
-.award-effect-content-host > :not(.requested-award-effects):not(.content-award-effects):not(.small-award-effects) {
-	position: relative;
-	z-index: 1;
+/* Fireflies */
+.award-firefly{
+	position:absolute!important;width:4px;height:4px;border-radius:50%;background:#ffe85a;
+	box-shadow:0 0 4px #ffe85a,0 0 9px rgba(255,232,90,.85);opacity:.25;pointer-events:none
 }
 
-/* Furry/Ricardo/Emoji remain small body dancers and may coexist. */
-.small-award-effects {
-	position: absolute;
-	inset: 0;
-	z-index: 2;
-	overflow: hidden;
-	clip-path: inset(0);
-	contain: paint;
-	pointer-events: none;
-	border-radius: inherit;
+/* Emoji award */
+.award-emoji-rain{
+	position:absolute!important;left:var(--x);top:-58px;width:var(--size);height:var(--size);
+	max-width:none!important;max-height:none!important;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28));
+	will-change:top,transform;pointer-events:none;animation:toc-award-emoji-feather var(--duration) linear var(--delay) infinite!important
+}
+.award-emoji-fallback{display:grid;place-items:center;font-size:calc(var(--size)*.72);line-height:1}
+@keyframes toc-award-emoji-feather{
+	0%{top:-58px;transform:translate3d(0,0,0) rotate(0deg)}
+	22%{transform:translate3d(var(--sway-a),0,0) rotate(var(--rot-a))}
+	48%{transform:translate3d(var(--sway-b),0,0) rotate(0deg)}
+	73%{transform:translate3d(var(--sway-c),0,0) rotate(var(--rot-a))}
+	100%{top:calc(100% + 58px);transform:translate3d(0,0,0) rotate(var(--rot-b))}
 }
 
-/* Shit flies, Fireflies and Fireworks intentionally roam over the whole awarded
-   post/comment rather than being constrained to the text/media body. */
-.award-free-effect-host {
-	position: relative !important;
-	isolation: isolate;
+/* Fireworks */
+.award-firework{
+	position:absolute!important;width:62px;height:62px;top:92%;left:50%;opacity:0;pointer-events:none;
+	text-align:center;font-size:54px;line-height:62px;text-shadow:0 0 10px currentColor
+}
+.award-firework img{display:block;width:100%;height:100%;max-width:none!important;max-height:none!important;object-fit:contain}
+.award-firework-fallback{opacity:1!important}
+
+/* Confetti */
+.award-confetti-piece{
+	position:absolute!important;left:var(--x);top:-16px;width:var(--size);height:calc(var(--size)*.55);
+	background:hsl(var(--hue) 90% 52%);border-radius:1px;will-change:transform,top;pointer-events:none;
+	animation:toc-award-confetti-fall var(--duration) linear var(--delay) infinite
+}
+@keyframes toc-award-confetti-fall{
+	0%{top:-16px;transform:translateX(0) rotate(0deg)}
+	50%{transform:translateX(var(--drift)) rotate(calc(var(--spin)*.5))}
+	100%{top:calc(100% + 18px);transform:translateX(0) rotate(var(--spin))}
 }
 
-.award-free-effect-host > .free-award-effects {
-	position: absolute;
-	inset: 0;
-	z-index: 6;
-	overflow: hidden;
-	clip-path: inset(0);
-	contain: paint;
-	pointer-events: none;
-	border-radius: inherit;
+/* Large newest-only body effects */
+.award-large-effect{position:absolute;inset:0;display:block;overflow:hidden}
+.award-large-effect img{
+	display:block;width:100%;height:100%;max-width:none!important;max-height:none!important;
+	object-fit:cover;object-position:center;transform-origin:50% 50%
 }
-
-.award-furry-roamer {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 58px;
-	height: 84px;
-	max-width: 18%;
-	max-height: 78%;
-	will-change: transform;
+.award-large-effect-truthnuke img{
+	opacity:.66;filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));animation:toc-award-truthnuke-pulse 1.7s ease-in-out infinite alternate
 }
-
-.award-furry-dancer {
-	display: block;
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
-	transform-origin: 50% 88%;
-	animation: award-furry-dance 1.15s ease-in-out infinite alternate;
+.award-large-effect-truthnova img{
+	opacity:.62;filter:drop-shadow(0 4px 12px rgba(0,0,0,.42));animation:toc-award-truthnova-pulse 2.25s ease-in-out infinite alternate
 }
-
-@keyframes award-furry-dance {
-	0% { transform: translateY(0) rotate(-5deg) scale(.96); }
-	35% { transform: translateY(-5px) rotate(4deg) scale(1.03); }
-	70% { transform: translateY(1px) rotate(-2deg) scale(.99); }
-	100% { transform: translateY(-7px) rotate(6deg) scale(1.04); }
+.award-large-effect-lovebomb img{
+	opacity:.42;filter:saturate(1.05) contrast(1.02);animation:toc-award-lovebomb-breathe 3.8s ease-in-out infinite alternate
 }
+@keyframes toc-award-truthnuke-pulse{0%{transform:scale(1);opacity:.58}100%{transform:scale(1.015);opacity:.72}}
+@keyframes toc-award-truthnova-pulse{0%{transform:scale(1);opacity:.54}100%{transform:scale(1.012);opacity:.68}}
+@keyframes toc-award-lovebomb-breathe{0%{transform:scale(1)}100%{transform:scale(1.01)}}
 
-/* fly-sprite.webp is a 65x56 sprite sheet: 5 columns x 4 rows, 20 frames.
-   JS advances background-position through the frames; never render the whole
-   sheet as an <img>. */
-.award-shit-fly {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 20px;
-	height: 22px;
-	background-image: url('/assets/images/awards/fly-sprite.webp?v=20260818e');
-	background-repeat: no-repeat;
-	background-size: 500% 400%;
-	background-position: 0 0;
-	filter: drop-shadow(0 1px 2px rgba(0,0,0,.55));
-	will-change: transform, background-position;
-	transform-origin: 50% 50%;
-}
-
-/* Nuke/Nova/Love Bomb use one image each and fill the body proportionally. */
-.award-impact,
-.award-lovebomb-single {
-	position: absolute;
-	inset: 0;
-	display: block;
-	overflow: hidden;
-}
-
-.award-impact img,
-.award-lovebomb-single img {
-	display: block;
-	width: 100%;
-	height: 100%;
-	max-width: none;
-	max-height: none;
-	object-fit: cover;
-	object-position: center;
-	transform-origin: 50% 50%;
-}
-
-.award-impact-truthnuke img {
-	opacity: .66;
-	filter: drop-shadow(0 4px 10px rgba(0,0,0,.4));
-	animation: award-truthnuke-pulse 1.7s ease-in-out infinite alternate;
-}
-
-.award-impact-truthnova img {
-	opacity: .62;
-	filter: drop-shadow(0 4px 12px rgba(0,0,0,.42));
-	animation: award-truthnova-pulse 2.25s ease-in-out infinite alternate;
-}
-
-.award-lovebomb-single img {
-	opacity: .42;
-	filter: saturate(1.05) contrast(1.02);
-	animation: award-lovebomb-breathe 3.8s ease-in-out infinite alternate;
-}
-
-@keyframes award-truthnuke-pulse {
-	0% { transform: scale(1); opacity: .58; }
-	100% { transform: scale(1.015); opacity: .72; }
-}
-
-@keyframes award-truthnova-pulse {
-	0% { transform: scale(1); opacity: .54; }
-	100% { transform: scale(1.012); opacity: .68; }
-}
-
-@keyframes award-lovebomb-breathe {
-	0% { transform: scale(1); }
-	100% { transform: scale(1.01); }
-}
-
-@media (max-width: 720px) {
-	.award-furry-roamer {
-		width: 46px;
-		height: 66px;
-		max-width: 20%;
-		max-height: 74%;
-	}
-
-	.award-shit-fly {
-		width: 17px;
-		height: 19px;
-	}
+@media(max-width:720px){
+	.award-furry-roamer{width:44px;height:64px;max-width:19%;max-height:58%}
+	.award-ricardo-roamer{width:38px;height:38px}
+	.award-shit-fly{width:17px;height:19px}
+	.award-emoji-rain{max-width:46px!important;max-height:46px!important}
+	.award-firework{width:48px;height:48px;font-size:42px;line-height:48px}
 }
