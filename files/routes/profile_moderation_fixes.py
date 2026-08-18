@@ -1,5 +1,6 @@
 import os
 import re
+import time
 
 from flask import abort, g, request
 
@@ -7,11 +8,15 @@ from files.__main__ import app, engine, limiter, cache
 from files.classes import AwardRelationship, Badge, Comment, ModAction, Submission, User
 from files.helpers.alerts import send_repeatable_notification
 from files.helpers.bot_controls import install_bot_controls, install_native_bot_action_guards
-from files.helpers.config.const import DEFAULT_RATELIMIT, PERMS
+from files.helpers.config.const import DEFAULT_RATELIMIT, PERMS, PIN_LIMIT
 from files.helpers.config import modaction_types as modaction_config
 from files.helpers.get import get_account
-from files.routes.wrappers import admin_level_required, get_ID, get_logged_in_user
+from files.helpers.pin_ui_repairs import install_pin_ui_repairs
+from files.routes.wrappers import admin_level_required, feature_required, get_ID, get_logged_in_user
 from .front import frontlist, comment_idlist
+
+
+install_pin_ui_repairs()
 
 
 _PROFILE_ANTHEM_ACTION = {
@@ -202,6 +207,59 @@ def _invalidate_award_target_caches():
         cache.delete_memoized(comment_idlist)
     except Exception:
         pass
+
+
+@app.post("/admin/pin-post/<int:post_id>/<mode>")
+@feature_required("PINS")
+@limiter.limit(DEFAULT_RATELIMIT, key_func=get_ID)
+@admin_level_required(PERMS["POST_COMMENT_MODERATION"])
+def toc_pin_post(post_id, mode, v: User):
+    """Expose explicit one-hour and permanent post pin actions instead of a stateful toggle."""
+    if mode not in {"hour", "permanent"}:
+        abort(404)
+
+    post = g.db.get(Submission, post_id)
+    if not post:
+        abort(404)
+    if post.is_banned:
+        abort(403, "Can't pin removed posts!")
+
+    # Respect the existing protection around award-created pins for admins who
+    # do not have permission to override them.
+    if _AWARD_PIN_SOURCE_RE.search(str(post.stickied or "")) and v.admin_level < PERMS["UNDO_AWARD_PINS"]:
+        abort(403, "Can't replace an award pin!")
+
+    if mode == "hour":
+        post.stickied_utc = int(time.time()) + 3600
+        pin_time = "for 1 hour"
+    else:
+        active_pins = g.db.query(Submission).filter(
+            Submission.stickied != None,
+            Submission.is_banned == False,
+        ).count()
+        # A currently-pinned target is already included in active_pins.
+        allowed_threshold = PIN_LIMIT + (1 if post.stickied else 0)
+        if active_pins >= allowed_threshold:
+            abort(403, f"Can't exceed {PIN_LIMIT} pinned posts limit!")
+        post.stickied_utc = None
+        pin_time = "permanently"
+
+    # The pin source is always the admin who performed this explicit action.
+    post.stickied = v.username
+    g.db.add(post)
+    g.db.add(ModAction(
+        kind="pin_post",
+        user_id=v.id,
+        target_submission_id=post.id,
+        _note=pin_time,
+    ))
+    if v.id != post.author_id:
+        send_repeatable_notification(
+            post.author_id,
+            f"@{v.username} (a site admin) has pinned [{post.title}](/post/{post.id}) {pin_time}",
+        )
+    cache.delete_memoized(frontlist)
+    return {"message": f"Post pinned {pin_time}!"}
 
 
 @app.post("/admin/clear-awards/post/<int:post_id>")
