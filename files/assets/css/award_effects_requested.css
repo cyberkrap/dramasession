@@ -34,23 +34,31 @@
 	text-shadow: 0 0 7px rgba(183,108,255,.55);
 }
 
-/* Effects now live only inside #post-body / the exact comment-text node. */
+/* The animation canvas is the content body only. A negative stacking level
+   keeps effects behind text/media while isolation keeps them inside the body. */
 .award-effect-content-host,
 .award-effect-target {
 	position: relative !important;
+	z-index: 0;
 	isolation: isolate;
 }
 
-.award-effect-content-host > .requested-award-effects {
+.award-effect-content-host > .requested-award-effects,
+.award-effect-content-host > .content-award-effects {
 	position: absolute !important;
 	inset: 0 !important;
-	z-index: 2 !important;
+	z-index: -1 !important;
+	overflow: hidden !important;
+	clip-path: inset(0);
+	contain: paint;
+	pointer-events: none;
+	border-radius: inherit;
 }
 
 .requested-award-effects {
 	position: absolute;
 	inset: 0;
-	z-index: 2;
+	z-index: -1 !important;
 	overflow: hidden;
 	clip-path: inset(0);
 	contain: paint;
@@ -58,7 +66,8 @@
 	border-radius: inherit;
 }
 
-/* Keep the actual body/media readable and above low-priority decorative layers. */
+/* Element children (images, embeds, markdown wrappers, links) always paint in
+   front of the visual effect. Raw text also remains above the negative layer. */
 .award-effect-content-host > :not(.requested-award-effects):not(.content-award-effects) {
 	position: relative;
 	z-index: 1;
@@ -138,7 +147,8 @@
 .award-shit-fly:has(img)::before,
 .award-shit-fly:has(img)::after { display: none; }
 
-/* Truth Nuke/Nova are single full-body assets, not small centered stickers. */
+/* Nuke/Nova/Love Bomb use one image each. object-fit:cover fills the content
+   body without the horizontal distortion caused by object-fit:fill. */
 .award-impact,
 .award-lovebomb-single {
 	position: absolute;
@@ -154,38 +164,37 @@
 	height: 100%;
 	max-width: none;
 	max-height: none;
-	object-fit: fill;
+	object-fit: cover;
 	object-position: center;
 	transform-origin: 50% 50%;
 }
 
 .award-impact-truthnuke img {
-	opacity: .78;
-	filter: drop-shadow(0 4px 10px rgba(0,0,0,.45));
+	opacity: .66;
+	filter: drop-shadow(0 4px 10px rgba(0,0,0,.4));
 	animation: award-truthnuke-pulse 1.7s ease-in-out infinite alternate;
 }
 
 .award-impact-truthnova img {
-	opacity: .72;
-	filter: drop-shadow(0 4px 12px rgba(0,0,0,.48));
+	opacity: .62;
+	filter: drop-shadow(0 4px 12px rgba(0,0,0,.42));
 	animation: award-truthnova-pulse 2.25s ease-in-out infinite alternate;
 }
 
-/* Exactly one Love Bomb image fills the awarded body. No tiled/repeated hearts. */
 .award-lovebomb-single img {
-	opacity: var(--love-opacity, .42);
+	opacity: .42;
 	filter: saturate(1.05) contrast(1.02);
 	animation: award-lovebomb-breathe 3.8s ease-in-out infinite alternate;
 }
 
 @keyframes award-truthnuke-pulse {
-	0% { transform: scale(1); opacity: .70; }
-	100% { transform: scale(1.015); opacity: .86; }
+	0% { transform: scale(1); opacity: .58; }
+	100% { transform: scale(1.015); opacity: .72; }
 }
 
 @keyframes award-truthnova-pulse {
-	0% { transform: scale(1); opacity: .66; }
-	100% { transform: scale(1.012); opacity: .79; }
+	0% { transform: scale(1); opacity: .54; }
+	100% { transform: scale(1.012); opacity: .68; }
 }
 
 @keyframes award-lovebomb-breathe {
