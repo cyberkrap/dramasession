@@ -26,9 +26,10 @@
 	filter: drop-shadow(0 3px 7px rgba(0,0,0,.42));
 }
 
-/* Giga Pin must be visually distinct from the ordinary/admin pin. */
+/* Giga Pin must be visually distinct from the ordinary/admin pin everywhere. */
 .award-kind-gigapin,
-.obs-award-icon .award-kind-gigapin {
+.obs-award-icon .award-kind-gigapin,
+#gigapin .award-icon {
 	color: #b76cff !important;
 	text-shadow: 0 0 7px rgba(183,108,255,.55);
 }
