@@ -34,8 +34,7 @@
 	text-shadow: 0 0 7px rgba(183,108,255,.55);
 }
 
-/* The animation canvas is the content body only. A negative stacking level
-   keeps effects behind text/media while isolation keeps them inside the body. */
+/* Large body-covering animations live behind the actual post/comment content. */
 .award-effect-content-host,
 .award-effect-target {
 	position: relative !important;
@@ -66,11 +65,39 @@
 	border-radius: inherit;
 }
 
-/* Element children (images, embeds, markdown wrappers, links) always paint in
-   front of the visual effect. Raw text also remains above the negative layer. */
-.award-effect-content-host > :not(.requested-award-effects):not(.content-award-effects) {
+.award-effect-content-host > :not(.requested-award-effects):not(.content-award-effects):not(.small-award-effects) {
 	position: relative;
 	z-index: 1;
+}
+
+/* Furry/Ricardo/Emoji remain small body dancers and may coexist. */
+.small-award-effects {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	overflow: hidden;
+	clip-path: inset(0);
+	contain: paint;
+	pointer-events: none;
+	border-radius: inherit;
+}
+
+/* Shit flies + Fireflies intentionally roam over the whole awarded post/comment
+   rather than being constrained to the text/media body. */
+.award-free-effect-host {
+	position: relative !important;
+	isolation: isolate;
+}
+
+.award-free-effect-host > .free-award-effects {
+	position: absolute;
+	inset: 0;
+	z-index: 6;
+	overflow: hidden;
+	clip-path: inset(0);
+	contain: paint;
+	pointer-events: none;
+	border-radius: inherit;
 }
 
 .award-furry-roamer {
@@ -101,54 +128,25 @@
 	100% { transform: translateY(-7px) rotate(6deg) scale(1.04); }
 }
 
+/* fly-sprite.webp is a 65x56 sprite sheet: 5 columns x 4 rows, 20 frames.
+   JS advances background-position through the frames; never render the whole
+   sheet as an <img>. */
 .award-shit-fly {
 	position: absolute;
-	width: 20px;
-	height: 20px;
-	will-change: transform;
+	left: 0;
+	top: 0;
+	width: 26px;
+	height: 28px;
+	background-image: url('/assets/images/awards/fly-sprite.webp?v=20260818e');
+	background-repeat: no-repeat;
+	background-size: 500% 400%;
+	background-position: 0 0;
+	filter: drop-shadow(0 1px 2px rgba(0,0,0,.55));
+	will-change: transform, background-position;
 	transform-origin: 50% 50%;
 }
 
-.award-shit-fly img {
-	position: absolute;
-	inset: 0;
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	filter: drop-shadow(0 1px 1px rgba(0,0,0,.5));
-}
-
-.award-shit-fly::before {
-	content: "";
-	position: absolute;
-	left: 7px;
-	top: 8px;
-	width: 7px;
-	height: 5px;
-	border-radius: 55% 45% 55% 45%;
-	background: #171717;
-	box-shadow: 3px -1px 0 -1px #171717;
-}
-
-.award-shit-fly::after {
-	content: "";
-	position: absolute;
-	left: 4px;
-	top: 4px;
-	width: 6px;
-	height: 7px;
-	border: 1px solid rgba(30,30,30,.85);
-	border-radius: 70% 30% 70% 30%;
-	transform: rotate(-28deg);
-	box-shadow: 8px 5px 0 -1px rgba(30,30,30,.5);
-	opacity: .8;
-}
-
-.award-shit-fly:has(img)::before,
-.award-shit-fly:has(img)::after { display: none; }
-
-/* Nuke/Nova/Love Bomb use one image each. object-fit:cover fills the content
-   body without the horizontal distortion caused by object-fit:fill. */
+/* Nuke/Nova/Love Bomb use one image each and fill the body proportionally. */
 .award-impact,
 .award-lovebomb-single {
 	position: absolute;
@@ -211,7 +209,7 @@
 	}
 
 	.award-shit-fly {
-		width: 17px;
-		height: 17px;
+		width: 22px;
+		height: 24px;
 	}
 }
