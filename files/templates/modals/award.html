@@ -17,10 +17,11 @@
 				</div>
 
 				{% set singleton_awards = ['checkmark', 'eye', 'alt', 'unblockable', 'fish', 'beano', 'offsitementions'] %}
-				{% for panel, cosmetic in [('content', true), ('author', false)] %}
+				{% set content_action_awards = ['pin', 'unpin', 'gigapin', 'gigaunpin'] %}
+				{% for panel in ['content', 'author'] %}
 					<section class="award-panel{% if panel != 'content' %} d-none{% endif %}" data-award-panel="{{panel}}">
 						<div class="awards-wrapper">
-							{% for award in v.user_awards if award.cosmetic == cosmetic %}
+							{% for award in v.user_awards if (panel == 'content' and (award.cosmetic or award.kind in content_action_awards)) or (panel == 'author' and (not award.cosmetic and award.kind not in content_action_awards)) %}
 								{% set base_price = award.price|int %}
 								{% set price = (award.price*v.discount)|int %}
 								{% set owned = award.owned|default(0)|int %}
