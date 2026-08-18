@@ -4,12 +4,16 @@
 	const rendered = new WeakMap();
 	const assetBase = '/assets/images/awards/';
 
-	// Only body-covering effects are mutually exclusive. Small dancers,
-	// free-roaming bugs, confetti and fireworks are independent exceptions.
+	// Only body-covering effects are mutually exclusive. Every smaller
+	// decorative effect is independent and may coexist over the exact card.
 	const requestedExclusiveKinds = new Set(['truthnuke', 'truthnova', 'lovebomb']);
 	const exclusiveKinds = requestedExclusiveKinds;
-	const legacySmallSelectors = ['.award-ricardo-roamer', '.award-emoji-rain'];
-	const legacyFreeSelectors = ['.award-firefly', '.award-firework'];
+	const legacyFreeSelectors = [
+		'.award-firefly',
+		'.award-firework',
+		'.award-ricardo-roamer',
+		'.award-emoji-rain',
+	];
 
 	function isStandaloneThread() {
 		return document.body && document.body.id === 'thread';
@@ -84,18 +88,6 @@
 		return layer;
 	}
 
-	function ensureSmallLayer(host) {
-		let layer = Array.from(host.children).find((child) => child.classList?.contains('small-award-effects'));
-		if (!layer) {
-			layer = document.createElement('div');
-			layer.className = 'small-award-effects';
-			layer.setAttribute('aria-hidden', 'true');
-			host.appendChild(layer);
-		}
-		host.classList.add('award-effect-target', 'award-effect-content-host');
-		return layer;
-	}
-
 	function ensureFreeLayer(owner) {
 		let layer = Array.from(owner.children).find((child) => child.classList?.contains('free-award-effects'));
 		if (!layer) {
@@ -157,7 +149,7 @@
 			image.loading = 'lazy';
 			image.alt = '';
 			image.className = 'award-furry-dancer';
-			image.src = `${assetBase}furry${i + 1}.webp?v=20260818e`;
+			image.src = `${assetBase}furry${i + 1}.webp?v=20260818f`;
 			image.style.animationDelay = `${-Math.random() * 1.8}s`;
 			image.addEventListener('error', () => roamer.remove(), {once: true});
 			roamer.appendChild(image);
@@ -217,8 +209,8 @@
 		image.loading = 'lazy';
 		image.alt = '';
 		image.src = kind === 'truthnova'
-			? `${assetBase}truthnova.gif?v=20260818e`
-			: `${assetBase}truthnuke.webp?v=20260818e`;
+			? `${assetBase}truthnova.gif?v=20260818f`
+			: `${assetBase}truthnuke.webp?v=20260818f`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
@@ -230,7 +222,7 @@
 		const image = document.createElement('img');
 		image.loading = 'lazy';
 		image.alt = '';
-		image.src = `${assetBase}lovebomb.webp?v=20260818e`;
+		image.src = `${assetBase}lovebomb.webp?v=20260818f`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
@@ -238,17 +230,12 @@
 
 	function reconcileLegacyEffects(owner) {
 		if (!(owner instanceof HTMLElement)) return;
-		const host = visualHostForOwner(owner);
-		if (!host) return;
-		const smallLayer = ensureSmallLayer(host);
 		const freeLayer = ensureFreeLayer(owner);
 		const layers = Array.from(owner.querySelectorAll('.content-award-effects'));
+		const movedRicardos = [];
 
-		for (const selector of legacySmallSelectors) {
-			if (layers.some((layer) => layer.querySelector(`:scope > ${selector}`))) {
-				smallLayer.querySelectorAll(`:scope > ${selector}`).forEach((item) => item.remove());
-			}
-		}
+		// A legacy refresh rebuilds all of these nodes at once. Replace the old
+		// copy of each kind in the free layer, then move the fresh nodes over.
 		for (const selector of legacyFreeSelectors) {
 			if (layers.some((layer) => layer.querySelector(`:scope > ${selector}`))) {
 				freeLayer.querySelectorAll(`:scope > ${selector}`).forEach((item) => item.remove());
@@ -256,22 +243,23 @@
 		}
 
 		for (const originalLayer of layers) {
-			for (const selector of legacySmallSelectors) {
-				for (const item of Array.from(originalLayer.querySelectorAll(`:scope > ${selector}`))) {
-					smallLayer.appendChild(item);
-				}
-			}
 			for (const selector of legacyFreeSelectors) {
 				for (const item of Array.from(originalLayer.querySelectorAll(`:scope > ${selector}`))) {
 					freeLayer.appendChild(item);
+					if (item.classList.contains('award-ricardo-roamer')) movedRicardos.push(item);
 				}
 			}
 
-			// Confetti is CSS-driven and Fireflies/Fireworks were moved above.
-			// Any leftovers in the legacy layer are stale/duplicate effect nodes.
+			// Confetti is CSS-driven and every DOM-based legacy effect we still
+			// support was extracted above. Leftovers are stale duplicate nodes.
 			for (const child of Array.from(originalLayer.children)) child.remove();
 			originalLayer.remove();
 		}
+
+		// The old Ricardo mover captures the legacy layer in its animation loop.
+		// Once we move the dancers out, that loop intentionally dies, so restart
+		// their roaming against the persistent full-card layer.
+		if (movedRicardos.length) roam(freeLayer, movedRicardos, .035, .085);
 	}
 
 	function renderOwner(owner) {
@@ -284,17 +272,16 @@
 		const shitCount = iconsForOwner(owner, '.award-kind-shit').length;
 		const signature = `${latestExclusive ? `${latestExclusive.kind}:${latestExclusive.timestamp}:${latestExclusive.order}` : 'none'}|furry:${furryCount}|shit:${shitCount}`;
 
-		// Ricardo/Emoji remain body dancers. Fireflies and Fireworks are
-		// free-roaming exceptions. Confetti remains independently CSS-driven.
+		// All small/decorative legacy effects roam over the exact awarded card.
+		// Only Nuke/Nova/Love Bomb stay in the body-only exclusive layer.
 		reconcileLegacyEffects(owner);
 		if (rendered.get(owner) === signature) return;
 		rendered.set(owner, signature);
 
-		const smallLayer = ensureSmallLayer(host);
-		smallLayer.querySelectorAll(':scope > .award-furry-roamer').forEach((item) => item.remove());
-		if (furryCount) addFurries(smallLayer);
-
 		const freeLayer = ensureFreeLayer(owner);
+		freeLayer.querySelectorAll(':scope > .award-furry-roamer').forEach((item) => item.remove());
+		if (furryCount) addFurries(freeLayer);
+
 		freeLayer.querySelectorAll(':scope > .award-shit-fly').forEach((item) => item.remove());
 		if (shitCount) addShitFlies(freeLayer, shitCount);
 
