@@ -4,15 +4,14 @@
 	const rendered = new WeakMap();
 	const assetBase = '/assets/images/awards/';
 
-	// Small decorative awards may coexist with each other and with one large
-	// content effect. Large effects remain mutually exclusive: only the newest
-	// large effect on the exact post/comment is rendered.
-	const requestedExclusiveKinds = new Set(['shit', 'truthnuke', 'truthnova', 'lovebomb']);
-	const legacyExclusiveKinds = new Set(['fireflies', 'firework', 'confetti']);
+	// Large/body-covering effects are mutually exclusive: only the newest one
+	// is shown. Small dancers and free-roaming bugs are independent exceptions.
+	const requestedExclusiveKinds = new Set(['truthnuke', 'truthnova', 'lovebomb']);
+	const legacyExclusiveKinds = new Set(['firework', 'confetti']);
 	const exclusiveKinds = new Set([...requestedExclusiveKinds, ...legacyExclusiveKinds]);
 	const legacySmallSelectors = ['.award-ricardo-roamer', '.award-emoji-rain'];
+	const legacyFreeSelectors = ['.award-firefly'];
 	const legacyExclusiveSelectors = {
-		fireflies: '.award-firefly',
 		firework: '.award-firework',
 		confetti: '.award-confetti',
 	};
@@ -78,10 +77,6 @@
 		return Math.random() < .5 ? -n : n;
 	}
 
-	function randomPercent(min = 3, max = 94) {
-		return `${min + Math.random() * (max - min)}%`;
-	}
-
 	function ensureBodyLayer(host) {
 		let layer = Array.from(host.children).find((child) => child.classList?.contains('requested-award-effects'));
 		if (!layer) {
@@ -100,18 +95,21 @@
 			layer = document.createElement('div');
 			layer.className = 'small-award-effects';
 			layer.setAttribute('aria-hidden', 'true');
-			Object.assign(layer.style, {
-				position: 'absolute',
-				inset: '0',
-				zIndex: '2',
-				overflow: 'hidden',
-				pointerEvents: 'none',
-				borderRadius: 'inherit',
-				contain: 'paint',
-			});
 			host.appendChild(layer);
 		}
 		host.classList.add('award-effect-target', 'award-effect-content-host');
+		return layer;
+	}
+
+	function ensureFreeLayer(owner) {
+		let layer = Array.from(owner.children).find((child) => child.classList?.contains('free-award-effects'));
+		if (!layer) {
+			layer = document.createElement('div');
+			layer.className = 'free-award-effects';
+			layer.setAttribute('aria-hidden', 'true');
+			owner.appendChild(layer);
+		}
+		owner.classList.add('award-free-effect-host');
 		return layer;
 	}
 
@@ -121,8 +119,8 @@
 			if (!layer.isConnected) return;
 			const sprites = elements.map((element) => ({
 				element,
-				x: Math.random() * Math.max(0, layer.clientWidth - (element.offsetWidth || 60)),
-				y: Math.random() * Math.max(0, layer.clientHeight - (element.offsetHeight || 60)),
+				x: Math.random() * Math.max(0, layer.clientWidth - (element.offsetWidth || 24)),
+				y: Math.random() * Math.max(0, layer.clientHeight - (element.offsetHeight || 24)),
 				vx: randomSigned(speedMin, speedMax),
 				vy: randomSigned(speedMin, speedMax),
 			}));
@@ -133,8 +131,8 @@
 				last = now;
 				for (const sprite of sprites) {
 					if (!sprite.element.isConnected) continue;
-					const width = sprite.element.offsetWidth || 60;
-					const height = sprite.element.offsetHeight || 60;
+					const width = sprite.element.offsetWidth || 24;
+					const height = sprite.element.offsetHeight || 24;
 					const maxX = Math.max(0, layer.clientWidth - width);
 					const maxY = Math.max(0, layer.clientHeight - height);
 					sprite.x += sprite.vx * dt;
@@ -164,7 +162,7 @@
 			image.loading = 'lazy';
 			image.alt = '';
 			image.className = 'award-furry-dancer';
-			image.src = `${assetBase}furry${i + 1}.webp?v=20260818d`;
+			image.src = `${assetBase}furry${i + 1}.webp?v=20260818e`;
 			image.style.animationDelay = `${-Math.random() * 1.8}s`;
 			image.addEventListener('error', () => roamer.remove(), {once: true});
 			roamer.appendChild(image);
@@ -174,33 +172,47 @@
 		roam(layer, roamers, .02, .05);
 	}
 
-	function animateFly(fly) {
-		if (typeof fly.animate !== 'function') return;
-		const dx = randomSigned(25, 110);
-		const dy = randomSigned(18, 75);
-		const duration = 900 + Math.random() * 1800;
-		fly.animate([
-			{transform: 'translate3d(0,0,0) rotate(0deg)'},
-			{transform: `translate3d(${dx * .45}px,${dy * -.3}px,0) rotate(${randomSigned(35, 160)}deg)`, offset: .4},
-			{transform: `translate3d(${dx}px,${dy}px,0) rotate(${randomSigned(120, 420)}deg)`},
-		], {duration, delay: -Math.random() * duration, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out'});
+	function animateFlySprite(flies) {
+		if (!flies.length) return;
+		const states = flies.map((fly) => ({
+			fly,
+			frame: Math.floor(Math.random() * 20),
+			next: performance.now() + Math.random() * 90,
+			period: 55 + Math.random() * 35,
+		}));
+		const draw = (state) => {
+			const col = state.frame % 5;
+			const row = Math.floor(state.frame / 5);
+			state.fly.style.backgroundPosition = `${col * 25}% ${row * (100 / 3)}%`;
+		};
+		states.forEach(draw);
+		const tick = (now) => {
+			let active = false;
+			for (const state of states) {
+				if (!state.fly.isConnected) continue;
+				active = true;
+				if (now >= state.next) {
+					state.frame = (state.frame + 1) % 20;
+					state.next = now + state.period;
+					draw(state);
+				}
+			}
+			if (active) requestAnimationFrame(tick);
+		};
+		requestAnimationFrame(tick);
 	}
 
-	function addShitFlies(layer) {
-		for (let i = 0; i < 11; i++) {
+	function addShitFlies(layer, count) {
+		const total = Math.min(20, 10 + Math.max(1, count) * 2);
+		const flies = [];
+		for (let i = 0; i < total; i++) {
 			const fly = document.createElement('span');
 			fly.className = 'award-shit-fly';
-			fly.style.left = randomPercent(2, 95);
-			fly.style.top = randomPercent(5, 90);
-			const image = document.createElement('img');
-			image.loading = 'lazy';
-			image.alt = '';
-			image.src = `${assetBase}fly-sprite.webp?v=20260818d`;
-			image.addEventListener('error', () => image.remove(), {once: true});
-			fly.appendChild(image);
 			layer.appendChild(fly);
-			animateFly(fly);
+			flies.push(fly);
 		}
+		animateFlySprite(flies);
+		roam(layer, flies, .045, .12);
 	}
 
 	function addImpact(layer, kind) {
@@ -210,8 +222,8 @@
 		image.loading = 'lazy';
 		image.alt = '';
 		image.src = kind === 'truthnova'
-			? `${assetBase}truthnova.gif?v=20260818d`
-			: `${assetBase}truthnuke.webp?v=20260818d`;
+			? `${assetBase}truthnova.gif?v=20260818e`
+			: `${assetBase}truthnuke.webp?v=20260818e`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
@@ -223,19 +235,10 @@
 		const image = document.createElement('img');
 		image.loading = 'lazy';
 		image.alt = '';
-		image.src = `${assetBase}lovebomb.webp?v=20260818d`;
+		image.src = `${assetBase}lovebomb.webp?v=20260818e`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
-	}
-
-	function moveLegacyLayer(layer, owner) {
-		if (!(layer instanceof HTMLElement) || !owner) return null;
-		const host = visualHostForOwner(owner);
-		if (!host) return null;
-		host.classList.add('award-effect-target', 'award-effect-content-host');
-		if (layer.parentElement !== host) host.appendChild(layer);
-		return layer;
 	}
 
 	function reconcileLegacyEffects(owner, latestExclusive) {
@@ -243,36 +246,45 @@
 		const host = visualHostForOwner(owner);
 		if (!host) return;
 		const smallLayer = ensureSmallLayer(host);
+		const freeLayer = ensureFreeLayer(owner);
 		const layers = Array.from(owner.querySelectorAll('.content-award-effects'));
 
-		// The legacy renderer rebuilds its whole layer whenever award metadata
-		// changes. Replace its previous Ricardo/Emoji sprites instead of stacking
-		// another duplicate set in our foreground layer.
 		for (const selector of legacySmallSelectors) {
 			if (layers.some((layer) => layer.querySelector(`:scope > ${selector}`))) {
 				smallLayer.querySelectorAll(`:scope > ${selector}`).forEach((item) => item.remove());
 			}
 		}
+		for (const selector of legacyFreeSelectors) {
+			if (layers.some((layer) => layer.querySelector(`:scope > ${selector}`))) {
+				freeLayer.querySelectorAll(`:scope > ${selector}`).forEach((item) => item.remove());
+			}
+		}
 
 		for (const originalLayer of layers) {
-			const layer = moveLegacyLayer(originalLayer, owner);
-			if (!layer) continue;
-
-			// Ricardo and Emoji are deliberately allowed to dance over the post
-			// alongside each other and alongside whichever large effect is newest.
 			for (const selector of legacySmallSelectors) {
-				for (const item of Array.from(layer.querySelectorAll(`:scope > ${selector}`))) {
+				for (const item of Array.from(originalLayer.querySelectorAll(`:scope > ${selector}`))) {
 					smallLayer.appendChild(item);
+				}
+			}
+			for (const selector of legacyFreeSelectors) {
+				for (const item of Array.from(originalLayer.querySelectorAll(`:scope > ${selector}`))) {
+					freeLayer.appendChild(item);
 				}
 			}
 
 			const allowedExclusiveSelector = latestExclusive && legacyExclusiveKinds.has(latestExclusive.kind)
 				? legacyExclusiveSelectors[latestExclusive.kind]
 				: null;
-			for (const child of Array.from(layer.children)) {
+			for (const child of Array.from(originalLayer.children)) {
 				if (!allowedExclusiveSelector || !child.matches(allowedExclusiveSelector)) child.remove();
 			}
-			if (!layer.children.length) layer.remove();
+
+			if (!originalLayer.children.length) {
+				originalLayer.remove();
+				continue;
+			}
+			host.classList.add('award-effect-target', 'award-effect-content-host');
+			if (originalLayer.parentElement !== host) host.appendChild(originalLayer);
 		}
 	}
 
@@ -283,10 +295,11 @@
 
 		const latestExclusive = latestExclusiveAward(owner);
 		const furryCount = iconsForOwner(owner, '.award-kind-furry').length;
-		const signature = `${latestExclusive ? `${latestExclusive.kind}:${latestExclusive.timestamp}:${latestExclusive.order}` : 'none'}|furry:${furryCount}`;
+		const shitCount = iconsForOwner(owner, '.award-kind-shit').length;
+		const signature = `${latestExclusive ? `${latestExclusive.kind}:${latestExclusive.timestamp}:${latestExclusive.order}` : 'none'}|furry:${furryCount}|shit:${shitCount}`;
 
-		// Always reconcile a newly rebuilt legacy layer, even when the award
-		// signature did not change. Do not rebuild our own layers unless needed.
+		// Legacy Ricardo/Emoji remain body dancers. Fireflies are a free-roaming
+		// exception and are moved to the whole post/comment owner instead.
 		reconcileLegacyEffects(owner, latestExclusive);
 		if (rendered.get(owner) === signature) return;
 		rendered.set(owner, signature);
@@ -294,6 +307,10 @@
 		const smallLayer = ensureSmallLayer(host);
 		smallLayer.querySelectorAll(':scope > .award-furry-roamer').forEach((item) => item.remove());
 		if (furryCount) addFurries(smallLayer);
+
+		const freeLayer = ensureFreeLayer(owner);
+		freeLayer.querySelectorAll(':scope > .award-shit-fly').forEach((item) => item.remove());
+		if (shitCount) addShitFlies(freeLayer, shitCount);
 
 		owner.querySelectorAll('.requested-award-effects').forEach((layer) => layer.remove());
 		if (!latestExclusive || !requestedExclusiveKinds.has(latestExclusive.kind)) return;
@@ -303,7 +320,6 @@
 			case 'lovebomb': addLoveBomb(bodyLayer); break;
 			case 'truthnuke': addImpact(bodyLayer, 'truthnuke'); break;
 			case 'truthnova': addImpact(bodyLayer, 'truthnova'); break;
-			case 'shit': addShitFlies(bodyLayer); break;
 		}
 	}
 
@@ -378,8 +394,6 @@
 	}
 
 	function pinBaseTitle(pin) {
-		// Never trust a cached tooltip after a Pin/Giga Pin is awarded through
-		// AJAX. The persisted award icons carry the giver and award timestamp.
 		const awardSource = latestPinAward(pinOwner(pin));
 		if (awardSource) {
 			return `Pinned by @${awardSource.giver} (${awardSource.kind === 'gigapin' ? 'Giga pin award' : 'Pin award'})`;
@@ -437,12 +451,13 @@
 				for (const node of mutation.addedNodes) {
 					if (!(node instanceof HTMLElement)) continue;
 					preparePins(node);
-					// A freshly AJAX-added Pin/Giga Pin icon changes the source text of an
-					// already-existing pin, so refresh nearby pin tooltips too.
 					if (node.matches?.('.award-kind-pin, .award-kind-gigapin') || node.querySelector?.('.award-kind-pin, .award-kind-gigapin')) {
 						preparePins(document);
 					}
-					if (isStandaloneThread() && !node.classList.contains('requested-award-effects') && !node.classList.contains('small-award-effects')) scan(node);
+					if (isStandaloneThread() &&
+						!node.classList.contains('requested-award-effects') &&
+						!node.classList.contains('small-award-effects') &&
+						!node.classList.contains('free-award-effects')) scan(node);
 				}
 			}
 		});
