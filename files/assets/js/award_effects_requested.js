@@ -2,15 +2,19 @@
 	'use strict';
 
 	const rendered = new WeakMap();
-	const requestedKinds = ['furry', 'shit', 'truthnuke', 'truthnova', 'lovebomb'];
-	const legacyKinds = ['fireflies', 'ricardo', 'firework', 'wholesome'];
-	const animatedKinds = new Set([...requestedKinds, ...legacyKinds]);
 	const assetBase = '/assets/images/awards/';
-	const legacySelectors = {
+
+	// Small decorative awards may coexist with each other and with one large
+	// content effect. Large effects remain mutually exclusive: only the newest
+	// large effect on the exact post/comment is rendered.
+	const requestedExclusiveKinds = new Set(['shit', 'truthnuke', 'truthnova', 'lovebomb']);
+	const legacyExclusiveKinds = new Set(['fireflies', 'firework', 'confetti']);
+	const exclusiveKinds = new Set([...requestedExclusiveKinds, ...legacyExclusiveKinds]);
+	const legacySmallSelectors = ['.award-ricardo-roamer', '.award-emoji-rain'];
+	const legacyExclusiveSelectors = {
 		fireflies: '.award-firefly',
-		ricardo: '.award-ricardo-roamer',
 		firework: '.award-firework',
-		wholesome: '.award-emoji-rain',
+		confetti: '.award-confetti',
 	};
 
 	function isStandaloneThread() {
@@ -48,14 +52,18 @@
 		return 0;
 	}
 
-	function latestAnimatedAward(owner) {
+	function iconsForOwner(owner, selector) {
+		return Array.from(owner.querySelectorAll(selector)).filter((icon) => ownerForIcon(icon) === owner);
+	}
+
+	function latestExclusiveAward(owner) {
 		if (!(owner instanceof HTMLElement)) return null;
 		let latest = null;
 		let order = 0;
 		for (const icon of owner.querySelectorAll('[class*="award-kind-"]')) {
 			if (ownerForIcon(icon) !== owner) continue;
 			const kind = kindForIcon(icon);
-			if (!animatedKinds.has(kind)) continue;
+			if (!exclusiveKinds.has(kind)) continue;
 			const candidate = {icon, kind, timestamp: timestampForIcon(icon), order: order++};
 			if (!latest || candidate.timestamp > latest.timestamp ||
 				(candidate.timestamp === latest.timestamp && candidate.order >= latest.order)) {
@@ -74,12 +82,33 @@
 		return `${min + Math.random() * (max - min)}%`;
 	}
 
-	function ensureLayer(host) {
+	function ensureBodyLayer(host) {
 		let layer = Array.from(host.children).find((child) => child.classList?.contains('requested-award-effects'));
 		if (!layer) {
 			layer = document.createElement('div');
 			layer.className = 'requested-award-effects';
 			layer.setAttribute('aria-hidden', 'true');
+			host.appendChild(layer);
+		}
+		host.classList.add('award-effect-target', 'award-effect-content-host');
+		return layer;
+	}
+
+	function ensureSmallLayer(host) {
+		let layer = Array.from(host.children).find((child) => child.classList?.contains('small-award-effects'));
+		if (!layer) {
+			layer = document.createElement('div');
+			layer.className = 'small-award-effects';
+			layer.setAttribute('aria-hidden', 'true');
+			Object.assign(layer.style, {
+				position: 'absolute',
+				inset: '0',
+				zIndex: '2',
+				overflow: 'hidden',
+				pointerEvents: 'none',
+				borderRadius: 'inherit',
+				contain: 'paint',
+			});
 			host.appendChild(layer);
 		}
 		host.classList.add('award-effect-target', 'award-effect-content-host');
@@ -135,7 +164,7 @@
 			image.loading = 'lazy';
 			image.alt = '';
 			image.className = 'award-furry-dancer';
-			image.src = `${assetBase}furry${i + 1}.webp?v=20260818b`;
+			image.src = `${assetBase}furry${i + 1}.webp?v=20260818c`;
 			image.style.animationDelay = `${-Math.random() * 1.8}s`;
 			image.addEventListener('error', () => roamer.remove(), {once: true});
 			roamer.appendChild(image);
@@ -166,7 +195,7 @@
 			const image = document.createElement('img');
 			image.loading = 'lazy';
 			image.alt = '';
-			image.src = `${assetBase}fly-sprite.webp?v=20260818b`;
+			image.src = `${assetBase}fly-sprite.webp?v=20260818c`;
 			image.addEventListener('error', () => image.remove(), {once: true});
 			fly.appendChild(image);
 			layer.appendChild(fly);
@@ -181,8 +210,8 @@
 		image.loading = 'lazy';
 		image.alt = '';
 		image.src = kind === 'truthnova'
-			? `${assetBase}truthnova.gif?v=20260818b`
-			: `${assetBase}truthnuke.webp?v=20260818b`;
+			? `${assetBase}truthnova.gif?v=20260818c`
+			: `${assetBase}truthnuke.webp?v=20260818c`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
@@ -194,7 +223,7 @@
 		const image = document.createElement('img');
 		image.loading = 'lazy';
 		image.alt = '';
-		image.src = `${assetBase}lovebomb.webp?v=20260818b`;
+		image.src = `${assetBase}lovebomb.webp?v=20260818c`;
 		image.addEventListener('error', () => wrap.remove(), {once: true});
 		wrap.appendChild(image);
 		layer.appendChild(wrap);
@@ -209,36 +238,31 @@
 		return layer;
 	}
 
-	function reconcileLegacyEffects(owner, latest) {
+	function reconcileLegacyEffects(owner, latestExclusive) {
 		if (!(owner instanceof HTMLElement)) return;
+		const host = visualHostForOwner(owner);
+		if (!host) return;
+		const smallLayer = ensureSmallLayer(host);
 		const layers = Array.from(owner.querySelectorAll('.content-award-effects'));
 		for (const originalLayer of layers) {
 			const layer = moveLegacyLayer(originalLayer, owner);
 			if (!layer) continue;
-			if (!latest || requestedKinds.includes(latest.kind) || !legacyKinds.includes(latest.kind)) {
-				layer.remove();
-				continue;
+
+			// Ricardo and Emoji are deliberately allowed to dance over the post
+			// alongside each other and alongside whichever large effect is newest.
+			for (const selector of legacySmallSelectors) {
+				for (const item of Array.from(layer.querySelectorAll(`:scope > ${selector}`))) {
+					smallLayer.appendChild(item);
+				}
 			}
-			const selector = legacySelectors[latest.kind];
+
+			const allowedExclusiveSelector = latestExclusive && legacyExclusiveKinds.has(latestExclusive.kind)
+				? legacyExclusiveSelectors[latestExclusive.kind]
+				: null;
 			for (const child of Array.from(layer.children)) {
-				if (!child.matches(selector)) child.remove();
+				if (!allowedExclusiveSelector || !child.matches(allowedExclusiveSelector)) child.remove();
 			}
-			// Emoji awards are one-sprite effects. If several historical Emoji
-			// awards exist, keep only the sprite belonging to the newest award.
-			if (latest.kind === 'wholesome') {
-				let emojiName = null;
-				for (const token of latest.icon.classList) {
-					if (token.startsWith('award-emoji-name-')) emojiName = token.slice('award-emoji-name-'.length);
-				}
-				const sprites = Array.from(layer.querySelectorAll('.award-emoji-rain'));
-				let kept = false;
-				for (let i = sprites.length - 1; i >= 0; i--) {
-					const sprite = sprites[i];
-					const matches = !emojiName || decodeURIComponent(sprite.src).includes(`/e/${emojiName}.webp`);
-					if (matches && !kept) kept = true;
-					else sprite.remove();
-				}
-			}
+			if (!layer.children.length) layer.remove();
 		}
 	}
 
@@ -246,37 +270,43 @@
 		if (!(owner instanceof HTMLElement) || !isStandaloneThread()) return;
 		const host = visualHostForOwner(owner);
 		if (!host) return;
-		const latest = latestAnimatedAward(owner);
-		const signature = latest ? `${latest.kind}:${latest.timestamp}:${latest.order}` : 'none';
 
-		reconcileLegacyEffects(owner, latest);
+		const latestExclusive = latestExclusiveAward(owner);
+		const furryCount = iconsForOwner(owner, '.award-kind-furry').length;
+		const signature = `${latestExclusive ? `${latestExclusive.kind}:${latestExclusive.timestamp}:${latestExclusive.order}` : 'none'}|furry:${furryCount}`;
+
+		reconcileLegacyEffects(owner, latestExclusive);
+
+		// Small effects have their own foreground layer. Rebuild only the Furry
+		// sprites here; legacy Ricardo/Emoji sprites are moved into this same layer.
+		const smallLayer = ensureSmallLayer(host);
+		smallLayer.querySelectorAll(':scope > .award-furry-roamer').forEach((item) => item.remove());
+		if (furryCount) addFurries(smallLayer);
+
 		owner.querySelectorAll('.requested-award-effects').forEach((layer) => layer.remove());
-		if (rendered.get(owner) === signature && (!latest || legacyKinds.includes(latest.kind))) return;
+		if (rendered.get(owner) === signature) return;
 		rendered.set(owner, signature);
-		if (!latest || !requestedKinds.includes(latest.kind)) return;
 
-		const layer = ensureLayer(host);
-		switch (latest.kind) {
-			case 'lovebomb': addLoveBomb(layer); break;
-			case 'truthnuke': addImpact(layer, 'truthnuke'); break;
-			case 'truthnova': addImpact(layer, 'truthnova'); break;
-			case 'shit': addShitFlies(layer); break;
-			case 'furry': addFurries(layer); break;
+		if (!latestExclusive || !requestedExclusiveKinds.has(latestExclusive.kind)) return;
+		const bodyLayer = ensureBodyLayer(host);
+		switch (latestExclusive.kind) {
+			case 'lovebomb': addLoveBomb(bodyLayer); break;
+			case 'truthnuke': addImpact(bodyLayer, 'truthnuke'); break;
+			case 'truthnova': addImpact(bodyLayer, 'truthnova'); break;
+			case 'shit': addShitFlies(bodyLayer); break;
 		}
 	}
 
 	function scan(root = document) {
 		if (!isStandaloneThread()) return;
+		const owners = new Set();
 		const icons = [];
 		if (root instanceof HTMLElement && /(^|\s)award-kind-/.test(root.className || '')) icons.push(root);
 		root.querySelectorAll?.('[class*="award-kind-"]').forEach((icon) => icons.push(icon));
-		const owners = new Set();
 		for (const icon of icons) {
 			const owner = ownerForIcon(icon);
 			if (owner) owners.add(owner);
 		}
-		// A legacy effect layer can be the only newly inserted node, so also
-		// recover its owner even when no award icon is inside the mutation root.
 		if (root instanceof HTMLElement && root.classList.contains('content-award-effects')) {
 			const owner = root.closest('.comment-anchor') || root.closest('#post-root > .card');
 			if (owner) owners.add(owner);
@@ -288,41 +318,53 @@
 		return pin.closest('.comment-anchor') || pin.closest('.actual-post') || pin.closest('.card');
 	}
 
-	function awardGiver(owner, kind) {
-		if (!owner) return null;
-		const icons = Array.from(owner.querySelectorAll(`.award-kind-${kind}`));
-		const icon = icons[icons.length - 1];
-		if (!icon) return null;
-		const title = icon.getAttribute('data-bs-original-title') || icon.getAttribute('title') || '';
-		const match = title.match(/given by\s+@([^\s]+)/i);
+	function tooltipText(element) {
+		if (!(element instanceof HTMLElement)) return '';
+		const direct = element.getAttribute('title') || element.getAttribute('data-bs-original-title') || element.getAttribute('aria-label');
+		if (direct) return direct;
+		const instance = window.bootstrap?.Tooltip?.getInstance(element);
+		return typeof instance?._config?.title === 'string' ? instance._config.title : '';
+	}
+
+	function awardGiverFromIcon(icon) {
+		if (!(icon instanceof HTMLElement)) return null;
+		if (icon.dataset.awardUser) return icon.dataset.awardUser;
+		const match = tooltipText(icon).match(/given by\s+@([^\s]+)/i);
 		return match ? match[1].replace(/[.,;:!?]+$/, '') : null;
 	}
 
-	function pinBaseTitle(pin) {
-		if (pin.dataset.tocPinBase) return pin.dataset.tocPinBase;
-		const existing = pin.getAttribute('title') || pin.getAttribute('data-bs-original-title') || '';
-		if (/^Pinned by\s+/i.test(existing)) {
-			const base = existing.replace(/\s+until\s+.*$/i, '');
-			pin.dataset.tocPinBase = base;
-			return base;
+	function latestPinAward(owner) {
+		if (!owner) return null;
+		let latest = null;
+		let order = 0;
+		for (const icon of owner.querySelectorAll('.award-kind-pin, .award-kind-gigapin')) {
+			const kind = icon.classList.contains('award-kind-gigapin') ? 'gigapin' : 'pin';
+			const giver = awardGiverFromIcon(icon);
+			if (!giver) continue;
+			const candidate = {kind, giver, timestamp: timestampForIcon(icon), order: order++};
+			if (!latest || candidate.timestamp > latest.timestamp ||
+				(candidate.timestamp === latest.timestamp && candidate.order >= latest.order)) {
+				latest = candidate;
+			}
 		}
-		const owner = pinOwner(pin);
-		const gigaGiver = awardGiver(owner, 'gigapin');
-		const pinGiver = awardGiver(owner, 'pin');
-		const base = gigaGiver
-			? `Pinned by @${gigaGiver} (giga pin award)`
-			: pinGiver
-				? `Pinned by @${pinGiver} (pin award)`
-				: 'Pinned by (a site admin)';
-		pin.dataset.tocPinBase = base;
-		return base;
+		return latest;
+	}
+
+	function pinBaseTitle(pin) {
+		// Never trust a previously cached tooltip after a Pin/Giga Pin is awarded
+		// through AJAX. Re-evaluate the actual award icons every time.
+		const awardSource = latestPinAward(pinOwner(pin));
+		if (awardSource) {
+			return `Pinned by @${awardSource.giver} (${awardSource.kind === 'gigapin' ? 'Giga pin award' : 'Pin award'})`;
+		}
+
+		const existing = tooltipText(pin).replace(/\s+until\s+.*$/i, '').trim();
+		if (/^Pinned by\s+/i.test(existing) && !/^Pinned by\s+\(a site admin\)$/i.test(existing)) return existing;
+		return existing || 'Pinned by (a site admin)';
 	}
 
 	function fixPinTooltip(pin) {
 		if (!(pin instanceof HTMLElement)) return;
-		// Disable the legacy hover-time mutator. The complete tooltip is prepared
-		// before Bootstrap sees the first hover, so it never alternates between
-		// source-only and date-only strings.
 		pin.removeAttribute('data-onmouseover');
 		pin.onmouseover = null;
 
@@ -336,6 +378,7 @@
 		}
 		pin.setAttribute('title', title);
 		pin.setAttribute('data-bs-original-title', title);
+		pin.removeAttribute('data-toc-pin-base');
 		const tooltip = window.bootstrap?.Tooltip?.getInstance(pin);
 		if (tooltip) {
 			if (tooltip._config) tooltip._config.title = title;
@@ -354,7 +397,6 @@
 	};
 
 	function init() {
-		// Pin tooltips occur on listings as well as standalone threads.
 		preparePins(document);
 		document.addEventListener('mouseover', (event) => {
 			const pin = event.target.closest?.('[id^="pinned-"]');
@@ -368,7 +410,12 @@
 				for (const node of mutation.addedNodes) {
 					if (!(node instanceof HTMLElement)) continue;
 					preparePins(node);
-					if (isStandaloneThread() && !node.classList.contains('requested-award-effects')) scan(node);
+					// A freshly AJAX-added Pin/Giga Pin icon changes the source text of an
+					// already-existing pin, so refresh nearby pin tooltips too.
+					if (node.matches?.('.award-kind-pin, .award-kind-gigapin') || node.querySelector?.('.award-kind-pin, .award-kind-gigapin')) {
+						preparePins(document);
+					}
+					if (isStandaloneThread() && !node.classList.contains('requested-award-effects') && !node.classList.contains('small-award-effects')) scan(node);
 				}
 			}
 		});
