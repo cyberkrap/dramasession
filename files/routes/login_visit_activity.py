@@ -70,3 +70,21 @@ def record_authenticated_site_visit(response):
         app.logger.exception("Failed to record authenticated site visit")
 
     return response
+
+
+# Keep the original /admin/login-activity URLs working, but expose names that
+# match the broader behavior now that already-authenticated visits are tracked.
+if "admin_login_activity" in app.view_functions and "admin_user_activity" not in app.view_functions:
+    app.add_url_rule(
+        "/admin/user-activity",
+        endpoint="admin_user_activity",
+        view_func=app.view_functions["admin_login_activity"],
+        methods=["GET"],
+    )
+if "admin_user_login_activity" in app.view_functions and "admin_user_activity_history" not in app.view_functions:
+    app.add_url_rule(
+        "/admin/user-activity/user/<username>",
+        endpoint="admin_user_activity_history",
+        view_func=app.view_functions["admin_user_login_activity"],
+        methods=["GET"],
+    )
