@@ -1,22 +1,22 @@
 {% extends "settings2.html" %}
-{% block pagetitle %}Login Activity{% endblock %}
+{% block pagetitle %}User Activity{% endblock %}
 {% block content %}
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
 	<div>
-		<h3 class="mb-1">Login Activity</h3>
-		<div class="text-muted">Successful account logins recorded for {{selected_date}} UTC.</div>
+		<h3 class="mb-1">User Activity</h3>
+		<div class="text-muted">Authenticated visits, successful logins, and signups recorded for {{selected_date}} UTC.</div>
 	</div>
 	<a href="/admin" class="btn btn-secondary mt-2 mt-md-0"><i class="fas fa-arrow-left mr-1"></i>Admin Home</a>
 </div>
 
 <div class="row mb-3">
 	<div class="col-6 col-md-3 mb-2"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Unique users</div><div class="h3 mb-0">{{unique_users}}</div></div></div></div>
-	<div class="col-6 col-md-3 mb-2"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Login events</div><div class="h3 mb-0">{{entries|length}}</div></div></div></div>
+	<div class="col-6 col-md-3 mb-2"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Activity events</div><div class="h3 mb-0">{{entries|length}}</div></div></div></div>
 	<div class="col-6 col-md-3 mb-2"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Unique IPs</div><div class="h3 mb-0">{{unique_ips}}</div></div></div></div>
 	<div class="col-6 col-md-3 mb-2"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">New signups</div><div class="h3 mb-0">{{signup_count}}</div></div></div></div>
 </div>
 
-<form method="get" action="/admin/login-activity" class="row align-items-end mb-3">
+<form method="get" action="/admin/user-activity" class="row align-items-end mb-3">
 	<div class="col-12 col-md-4 mb-2">
 		<label for="activity-date">UTC day</label>
 		<input id="activity-date" class="form-control" type="date" name="date" value="{{selected_date}}">
@@ -29,12 +29,12 @@
 </form>
 
 <div class="d-flex justify-content-between mb-3">
-	<a class="btn btn-outline-secondary" href="/admin/login-activity?date={{previous_date}}{% if query %}&q={{query|urlencode}}{% endif %}"><i class="fas fa-chevron-left mr-1"></i>Previous day</a>
-	<a class="btn btn-outline-secondary" href="/admin/login-activity?date={{next_date}}{% if query %}&q={{query|urlencode}}{% endif %}">Next day<i class="fas fa-chevron-right ml-1"></i></a>
+	<a class="btn btn-outline-secondary" href="/admin/user-activity?date={{previous_date}}{% if query %}&q={{query|urlencode}}{% endif %}"><i class="fas fa-chevron-left mr-1"></i>Previous day</a>
+	<a class="btn btn-outline-secondary" href="/admin/user-activity?date={{next_date}}{% if query %}&q={{query|urlencode}}{% endif %}">Next day<i class="fas fa-chevron-right ml-1"></i></a>
 </div>
 
 <div class="alert alert-secondary py-2">
-	<i class="fas fa-shield-alt mr-1"></i>This page contains sensitive login metadata. Passwords, cookies, session tokens, and form data are never stored here.
+	<i class="fas fa-shield-alt mr-1"></i>This page contains sensitive activity metadata. Passwords, cookies, session tokens, and form data are never stored here. Normal browsing is deduplicated so ordinary page clicks do not create a row each time.
 </div>
 
 <div class="overflow-x-auto">
@@ -59,7 +59,7 @@
 			<td>
 				{% if entry.user %}
 					{% set user = entry.user %}{% include "user_in_table.html" %}
-					<div><a class="text-small" href="/admin/login-activity/user/{{user.username}}">login history</a></div>
+					<div><a class="text-small" href="/admin/user-activity/user/{{user.username}}">activity history</a></div>
 				{% else %}
 					<span class="text-muted">Deleted user #{{entry.user_id}}</span>
 				{% endif %}
@@ -67,9 +67,13 @@
 			<td class="text-nowrap"><span data-time="{{entry.login_utc}}"></span></td>
 			<td><b>{{entry.device_type}}</b><br><span class="text-muted text-small">{{entry.device_name}}</span></td>
 			<td>{{entry.browser_name}}<br><span class="text-muted text-small">{{entry.os_name}}</span></td>
-			<td class="text-nowrap">{% if entry.ip_address %}<a href="/admin/login-activity?date={{selected_date}}&q={{entry.ip_address}}"><code>{{entry.ip_address}}</code></a>{% else %}<span class="text-muted">unknown</span>{% endif %}</td>
+			<td class="text-nowrap">{% if entry.ip_address %}<a href="/admin/user-activity?date={{selected_date}}&q={{entry.ip_address}}"><code>{{entry.ip_address}}</code></a>{% else %}<span class="text-muted">unknown</span>{% endif %}</td>
 			<td>{{entry.country_code or '—'}}</td>
-			<td>{% if entry.source == 'signup' %}<span class="badge badge-success">signup</span>{% else %}<span class="badge badge-info">login</span>{% endif %}</td>
+			<td>
+				{% if entry.source == 'signup' %}<span class="badge badge-success">signup</span>
+				{% elif entry.source == 'visit' %}<span class="badge badge-secondary">visit</span>
+				{% else %}<span class="badge badge-info">login</span>{% endif %}
+			</td>
 			<td>
 				<details>
 					<summary>metadata</summary>
@@ -82,7 +86,7 @@
 			</td>
 		</tr>
 	{% else %}
-		<tr><td colspan="9" class="text-center text-muted py-5">No successful logins matched this day/filter.</td></tr>
+		<tr><td colspan="9" class="text-center text-muted py-5">No authenticated activity matched this day/filter.</td></tr>
 	{% endfor %}
 	</tbody>
 </table>
