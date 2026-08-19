@@ -264,6 +264,17 @@ def _preset_key_for_user(permission_management, user):
     return None
 
 
+def _install_stable_modaction_count():
+    """Keep /admins moderation totals historical, not dependent on today's role preset."""
+    from flask import g
+    from files.classes import ModAction, User
+
+    def modaction_num(self):
+        return g.db.query(ModAction).filter_by(user_id=self.id).count()
+
+    User.modaction_num = property(modaction_num)
+
+
 def install_admin_role_presets():
     global _INSTALLED
     if _INSTALLED or SITE_NAME != "Obsession":
@@ -283,6 +294,7 @@ def install_admin_role_presets():
     permission_management._CATALOG = None
 
     _configure_presets(permission_management, admin_routes)
+    _install_stable_modaction_count()
     app.jinja_env.globals["admin_preset_key"] = lambda user: _preset_key_for_user(permission_management, user)
     _patch_admin_management_template()
     _migrate_legacy_presets(permission_management)
