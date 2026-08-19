@@ -29,7 +29,9 @@ def site_banner():
 	return response
 
 
-# Register the persistent admin login-activity tracker after the normal login
-# routes already exist. Keeping it here avoids changing authentication semantics.
+# Register persistent account activity after normal authentication routes exist.
+# login_activity records explicit login/signup events; login_visit_activity adds
+# daily page visits for members whose long-lived session is already authenticated.
 from .login_activity import *  # noqa: E402,F401,F403
+from .login_visit_activity import *  # noqa: E402,F401,F403
 install_login_activity_home_link()
