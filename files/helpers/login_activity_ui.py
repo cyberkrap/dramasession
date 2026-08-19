@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
 
+# Importing this module registers the first-request installer. It intentionally
+# waits until route startup has finished so the granular permission manager is
+# already installed before preset definitions are replaced.
+from files.helpers import admin_role_presets as _admin_role_presets  # noqa: F401
+
 
 _ADMIN_HOME_PATH = Path('files/templates/admin/admin_home.html')
 
