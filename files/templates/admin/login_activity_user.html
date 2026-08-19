@@ -1,24 +1,24 @@
 {% extends "settings2.html" %}
-{% block pagetitle %}Login History — @{{user.username}}{% endblock %}
+{% block pagetitle %}Activity History — @{{user.username}}{% endblock %}
 {% block content %}
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
 	<div>
-		<h3 class="mb-1">Login History</h3>
+		<h3 class="mb-1">Activity History</h3>
 		<div class="d-flex align-items-center">
 			{% include "user_in_table.html" %}
 		</div>
 	</div>
-	<a href="/admin/login-activity" class="btn btn-secondary mt-2 mt-md-0"><i class="fas fa-arrow-left mr-1"></i>Login Activity</a>
+	<a href="/admin/user-activity" class="btn btn-secondary mt-2 mt-md-0"><i class="fas fa-arrow-left mr-1"></i>User Activity</a>
 </div>
 
 <div class="row mb-3">
-	<div class="col-4"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Recorded logins</div><div class="h3 mb-0">{{entries|length}}</div></div></div></div>
+	<div class="col-4"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Recorded events</div><div class="h3 mb-0">{{entries|length}}</div></div></div></div>
 	<div class="col-4"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Unique IPs</div><div class="h3 mb-0">{{unique_ips}}</div></div></div></div>
 	<div class="col-4"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Active UTC days</div><div class="h3 mb-0">{{active_days}}</div></div></div></div>
 </div>
 
 <div class="alert alert-secondary py-2">
-	Showing the latest {{entries|length}} successful login/signup events for @{{user.username}} (up to 500).
+	Showing the latest {{entries|length}} authenticated visit/login/signup events for @{{user.username}} (up to 500).
 </div>
 
 <div class="overflow-x-auto">
@@ -42,9 +42,13 @@
 			<td class="text-nowrap"><span data-time="{{entry.login_utc}}"></span></td>
 			<td><b>{{entry.device_type}}</b><br><span class="text-muted text-small">{{entry.device_name}}</span></td>
 			<td>{{entry.browser_name}}<br><span class="text-muted text-small">{{entry.os_name}}</span></td>
-			<td class="text-nowrap">{% if entry.ip_address %}<a href="/admin/login-activity?q={{entry.ip_address}}"><code>{{entry.ip_address}}</code></a>{% else %}<span class="text-muted">unknown</span>{% endif %}</td>
+			<td class="text-nowrap">{% if entry.ip_address %}<a href="/admin/user-activity?q={{entry.ip_address}}"><code>{{entry.ip_address}}</code></a>{% else %}<span class="text-muted">unknown</span>{% endif %}</td>
 			<td>{{entry.country_code or '—'}}</td>
-			<td>{% if entry.source == 'signup' %}<span class="badge badge-success">signup</span>{% else %}<span class="badge badge-info">login</span>{% endif %}</td>
+			<td>
+				{% if entry.source == 'signup' %}<span class="badge badge-success">signup</span>
+				{% elif entry.source == 'visit' %}<span class="badge badge-secondary">visit</span>
+				{% else %}<span class="badge badge-info">login</span>{% endif %}
+			</td>
 			<td>
 				<details>
 					<summary>details</summary>
@@ -57,7 +61,7 @@
 			</td>
 		</tr>
 	{% else %}
-		<tr><td colspan="8" class="text-center text-muted py-5">No recorded login activity for this user yet.</td></tr>
+		<tr><td colspan="8" class="text-center text-muted py-5">No recorded activity for this user yet.</td></tr>
 	{% endfor %}
 	</tbody>
 </table>
