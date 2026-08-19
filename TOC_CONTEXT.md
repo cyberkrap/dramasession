@@ -118,6 +118,35 @@ Important behavior:
 
 Key related commits include `7d3d320`, `79837fe`, `f4b7841`, `23a3437`, `c1cae08`, `ffba35d`, `14df2e6`, `e979803`, and `37251d2`.
 
+## Administrator roles and User Activity
+
+The old inherited numeric rDrama permission thresholds are **not** the intended TOC role definitions anymore. TOC role presets use explicit capability allowlists so low-level staff do not accidentally inherit unrelated privacy, profile, modmail, asset, or site-administration powers.
+
+Current role model:
+
+- **Trial Moderator:** probationary content moderation only — remove/approve/pin/distinguish posts and comments plus public-chat timeout controls.
+- **Moderator:** routine moderation — Trial tools plus bans/unbans, Chud/restriction and mute actions, report cleanup, and normal moderator notifications. No Modmail, session/activity data, profile administration, or site administration.
+- **Administrator:** advanced moderation/investigation — Moderator tools plus shadowbans, Modmail, alt-account and alt-vote analysis, badge/flair management, forced usernames/reserved-name controls, private-profile visibility, and domain safety controls.
+- **Senior Administrator:** operational administration — Administrator tools plus User Activity/session visibility, profile bio/CSS/media administration and wiping, bot controls, action reverts, API-app moderation, submitted/approved asset management, and banner/sidebar asset management.
+- **Head Administrator:** every active non-economy TOC admin permission, including site settings/toggles, security/Under Attack controls, DM image audit, age-verification administration, and all normal Admin Home controls.
+- **Head Administrator + Economy:** Head access plus explicit Wishcoin/Wishbux economy authority and unlimited-spending/economy permissions.
+
+`files/helpers/admin_role_presets.py` is the canonical explicit preset layer. Existing accounts that exactly matched the old generated Moderator/Administrator/Senior presets are migrated once to the new allowlists; genuinely custom permission sets are left unchanged rather than guessed.
+
+### User Activity semantics
+
+Admin Home exposes **User Activity** as the persistent authenticated-account activity view.
+
+- It includes successful `login` and `signup` events plus normal `visit` events for members who were already authenticated when they opened the site.
+- This fixes the old blind spot where year-long sessions never appeared unless the user explicitly logged in again.
+- Normal browsing is deduplicated to approximately one `visit` row per account + UTC day + device/browser/IP identity instead of writing a row for every page request.
+- Activity metadata can include time, IP, forwarded IP chain, Cloudflare country, device class/name, browser, OS, language header, and User-Agent.
+- Passwords, cookies, session tokens, and submitted form contents are never stored in the activity table.
+- Anonymous traffic is not attached to an account history because there is no authenticated user identity to associate it with.
+- Access is a Senior-or-higher capability through `VIEW_ACTIVE_USERS`; ordinary Moderators and Administrators should not receive session/activity visibility by preset.
+
+The main User Activity page has a responsive scan-oriented event-card UI with compact stats, date/search controls, network/device grouping, source badges, and collapsible request metadata; keep future UI changes responsive and avoid returning to a very wide dense table.
+
 ## Economy / gifting
 
 - TOC has Wishcoins/currency, shop/economy behavior, gambling/casino behavior, and admin economy capabilities.
