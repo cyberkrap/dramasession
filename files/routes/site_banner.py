@@ -6,6 +6,7 @@ from flask import make_response, send_file
 from files.__main__ import app
 from files.helpers.community_assets import active_community_asset_filenames, approved_directory
 from files.helpers.config.const import SITE_NAME
+from files.helpers.login_activity_ui import install_login_activity_home_link
 
 
 @app.get('/site-banner')
@@ -31,3 +32,4 @@ def site_banner():
 # Register the persistent admin login-activity tracker after the normal login
 # routes already exist. Keeping it here avoids changing authentication semantics.
 from .login_activity import *  # noqa: E402,F401,F403
+install_login_activity_home_link()
