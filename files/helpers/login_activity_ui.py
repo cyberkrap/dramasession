@@ -12,10 +12,16 @@ def _atomic_write(path, content):
 
 
 def install_login_activity_home_link():
-    """Expose the persistent login tracker beside the existing active-user pages."""
+    """Expose persistent authenticated-user activity beside the live-session pages."""
     source = _ADMIN_HOME_PATH.read_text(encoding='utf-8')
-    link = '\t\t<li><a href="/admin/login-activity">Login Activity ({{login_activity_today_unique()}} users today)</a></li>\n'
+    link = '\t\t<li><a href="/admin/user-activity">User Activity ({{login_activity_today_unique()}} active today)</a></li>\n'
     if link in source:
+        return
+
+    old_link = '\t\t<li><a href="/admin/login-activity">Login Activity ({{login_activity_today_unique()}} users today)</a></li>\n'
+    if old_link in source:
+        source = source.replace(old_link, link, 1)
+        _atomic_write(_ADMIN_HOME_PATH, source)
         return
 
     marker = '\t\t<li><a href="/admin/loggedout">Currently Logged-out Users</a></li>\n'
