@@ -1,120 +1,94 @@
 {% extends "settings2.html" %}
 {% block pagetitle %}User Activity{% endblock %}
 {% block content %}
-<style>
-.activity-page{--activity-border:rgba(127,127,127,.22);--activity-soft:rgba(127,127,127,.065);--activity-soft-2:rgba(127,127,127,.11);max-width:1480px;margin:0 auto;padding-bottom:3rem}.activity-page *{box-sizing:border-box}.activity-hero{display:flex;gap:1rem;align-items:flex-start;justify-content:space-between;margin-bottom:1.15rem}.activity-title-wrap{display:flex;gap:.85rem;align-items:center}.activity-title-icon{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--activity-border);border-radius:13px;background:var(--activity-soft);font-size:1.1rem;flex:0 0 44px}.activity-title{margin:0 0 .2rem;font-size:1.55rem;line-height:1.15}.activity-subtitle{opacity:.62;font-size:.9rem;line-height:1.45}.activity-back{white-space:nowrap}.activity-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem;margin-bottom:.85rem}.activity-stat{border:1px solid var(--activity-border);border-radius:12px;background:var(--activity-soft);padding:.85rem 1rem;min-width:0}.activity-stat-top{display:flex;align-items:center;gap:.45rem;opacity:.62;font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.045em}.activity-stat-value{margin-top:.25rem;font-size:1.5rem;font-weight:800;line-height:1}.activity-controls{display:grid;grid-template-columns:auto minmax(160px,220px) minmax(220px,1fr) auto;gap:.6rem;align-items:end;padding:.8rem;border:1px solid var(--activity-border);border-radius:13px;background:var(--activity-soft);margin-bottom:.75rem}.activity-field label{display:block;margin:0 0 .35rem;font-size:.73rem;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.04em}.activity-field .form-control{height:40px}.activity-day-nav{display:flex;gap:.4rem}.activity-day-nav .btn{height:40px;display:inline-flex;align-items:center;justify-content:center}.activity-search-row{display:flex;gap:.45rem}.activity-search-row .form-control{min-width:0}.activity-search-row .btn{height:40px;white-space:nowrap}.activity-privacy{display:flex;align-items:flex-start;gap:.65rem;padding:.65rem .8rem;border:1px solid var(--activity-border);border-radius:10px;margin-bottom:1rem;background:rgba(127,127,127,.035);font-size:.78rem;line-height:1.45;opacity:.78}.activity-privacy i{margin-top:.15rem}.activity-list-head{display:grid;grid-template-columns:minmax(190px,1.25fr) minmax(155px,.9fr) minmax(180px,1fr) minmax(235px,1.25fr) 82px 72px;gap:.8rem;align-items:center;padding:.45rem .85rem;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;opacity:.52}.activity-events{display:flex;flex-direction:column;gap:.45rem}.activity-event{display:grid;grid-template-columns:minmax(190px,1.25fr) minmax(155px,.9fr) minmax(180px,1fr) minmax(235px,1.25fr) 82px 72px;gap:.8rem;align-items:center;border:1px solid var(--activity-border);border-radius:12px;padding:.72rem .85rem;background:var(--activity-soft);transition:border-color .14s ease,background-color .14s ease}.activity-event:hover{background:var(--activity-soft-2);border-color:rgba(127,127,127,.36)}.activity-user{display:flex;align-items:center;gap:.55rem;min-width:0}.activity-index{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:rgba(127,127,127,.11);font-size:.72rem;font-weight:800;flex:0 0 26px;opacity:.7}.activity-user-main{min-width:0}.activity-user-main>span,.activity-user-main>a{max-width:100%}.activity-history-link{display:inline-flex;align-items:center;gap:.3rem;margin-top:.15rem;font-size:.72rem;opacity:.65}.activity-time{font-weight:700;font-size:.83rem;line-height:1.35}.activity-meta-primary{font-size:.82rem;font-weight:700;line-height:1.3}.activity-meta-secondary{font-size:.72rem;opacity:.6;line-height:1.3;margin-top:.12rem}.activity-network{min-width:0}.activity-ip{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;white-space:nowrap;font-size:.76rem}.activity-country{display:inline-flex;align-items:center;margin-top:.25rem;padding:.1rem .38rem;border:1px solid var(--activity-border);border-radius:999px;font-size:.65rem;font-weight:800;opacity:.74}.activity-source{display:inline-flex;align-items:center;justify-content:center;gap:.3rem;min-width:64px;padding:.24rem .45rem;border:1px solid var(--activity-border);border-radius:999px;background:rgba(127,127,127,.07);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em}.activity-source--signup{border-color:rgba(40,167,69,.45)}.activity-source--login{border-color:rgba(23,162,184,.45)}.activity-details{position:relative}.activity-details summary{list-style:none;cursor:pointer;display:grid;place-items:center;width:36px;height:32px;border:1px solid var(--activity-border);border-radius:8px;background:rgba(127,127,127,.055);transition:background-color .14s ease}.activity-details summary::-webkit-details-marker{display:none}.activity-details summary:hover{background:rgba(127,127,127,.13)}.activity-details[open] summary{background:rgba(127,127,127,.14)}.activity-details-panel{grid-column:1/-1;margin-top:.05rem;padding:.75rem .85rem;border:1px solid var(--activity-border);border-radius:9px;background:rgba(127,127,127,.055);font-size:.73rem;line-height:1.55;overflow-wrap:anywhere}.activity-details-panel>div+div{margin-top:.25rem}.activity-details-label{display:inline-block;min-width:76px;font-weight:800;opacity:.7}.activity-empty{padding:3rem 1rem;border:1px dashed var(--activity-border);border-radius:12px;text-align:center;opacity:.58}.activity-empty i{display:block;font-size:1.6rem;margin-bottom:.55rem}.activity-mobile-label{display:none}.activity-section-title{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:.1rem 0 .45rem}.activity-section-title h4{margin:0;font-size:.95rem}.activity-section-title span{font-size:.73rem;opacity:.58}
-@media(max-width:1100px){.activity-list-head,.activity-event{grid-template-columns:minmax(180px,1.2fr) minmax(145px,.85fr) minmax(170px,1fr) minmax(205px,1.15fr) 78px 68px}.activity-controls{grid-template-columns:auto minmax(150px,190px) 1fr auto}}
-@media(max-width:820px){.activity-page{padding-left:.15rem;padding-right:.15rem}.activity-hero{align-items:center}.activity-title-icon{width:40px;height:40px;flex-basis:40px}.activity-title{font-size:1.35rem}.activity-subtitle{font-size:.8rem}.activity-back .activity-back-text{display:none}.activity-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}.activity-stat{padding:.72rem .8rem}.activity-stat-value{font-size:1.3rem}.activity-controls{grid-template-columns:1fr 1fr;padding:.7rem}.activity-day-nav{grid-column:1/-1;justify-content:space-between}.activity-day-nav .btn{flex:1}.activity-search{grid-column:1/-1}.activity-filter-btn{grid-column:1/-1}.activity-list-head{display:none}.activity-event{grid-template-columns:1fr auto;gap:.65rem .8rem;padding:.8rem}.activity-user{grid-column:1/2}.activity-source-wrap{grid-column:2/3;grid-row:1}.activity-time-wrap,.activity-device-wrap,.activity-network-wrap{grid-column:1/-1;display:grid;grid-template-columns:90px minmax(0,1fr);gap:.65rem;align-items:start;padding-top:.55rem;border-top:1px solid var(--activity-border)}.activity-mobile-label{display:block;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;opacity:.48}.activity-details{grid-column:1/-1}.activity-details summary{width:100%;height:34px;display:flex;gap:.45rem}.activity-details summary:after{content:'Metadata';font-size:.7rem;font-weight:700}.activity-details-panel{grid-column:auto;margin-top:.45rem}.activity-country{margin-top:0;margin-left:.35rem}.activity-section-title{margin-top:.25rem}}
-@media(max-width:520px){.activity-hero{gap:.5rem}.activity-title-wrap{gap:.65rem}.activity-title-icon{display:none}.activity-stats{grid-template-columns:repeat(2,1fr)}.activity-controls{grid-template-columns:1fr}.activity-day-nav,.activity-date,.activity-search,.activity-filter-btn{grid-column:1}.activity-search-row{display:grid;grid-template-columns:1fr auto}.activity-privacy{font-size:.72rem}.activity-event{border-radius:10px}.activity-time-wrap,.activity-device-wrap,.activity-network-wrap{grid-template-columns:75px minmax(0,1fr)}}
-</style>
-
-<div class="activity-page">
-	<div class="activity-hero">
-		<div class="activity-title-wrap">
-			<div class="activity-title-icon"><i class="fas fa-user-clock" aria-hidden="true"></i></div>
-			<div>
-				<h2 class="activity-title">User Activity</h2>
-				<div class="activity-subtitle">Authenticated visits, successful logins, and signups · {{selected_date}} UTC</div>
-			</div>
-		</div>
-		<a href="/admin" class="btn btn-secondary activity-back"><i class="fas fa-arrow-left mr-1"></i><span class="activity-back-text">Admin Home</span></a>
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+	<div>
+		<h3 class="mb-1">User Activity</h3>
+		<div class="text-muted">Authenticated visits, successful logins, and signups recorded for {{selected_date}} UTC.</div>
 	</div>
+	<a href="/admin" class="btn btn-secondary mt-2 mt-md-0"><i class="fas fa-arrow-left mr-1"></i>Admin Home</a>
+</div>
 
-	<div class="activity-stats">
-		<div class="activity-stat"><div class="activity-stat-top"><i class="fas fa-users"></i>Unique users</div><div class="activity-stat-value">{{unique_users}}</div></div>
-		<div class="activity-stat"><div class="activity-stat-top"><i class="fas fa-stream"></i>Events</div><div class="activity-stat-value">{{entries|length}}</div></div>
-		<div class="activity-stat"><div class="activity-stat-top"><i class="fas fa-network-wired"></i>Unique IPs</div><div class="activity-stat-value">{{unique_ips}}</div></div>
-		<div class="activity-stat"><div class="activity-stat-top"><i class="fas fa-user-plus"></i>Signups</div><div class="activity-stat-value">{{signup_count}}</div></div>
+<div class="row mb-3">
+	<div class="col-6 col-md-3 mb-2"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Unique users</div><div class="h3 mb-0">{{unique_users}}</div></div></div></div>
+	<div class="col-6 col-md-3 mb-2"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Activity events</div><div class="h3 mb-0">{{entries|length}}</div></div></div></div>
+	<div class="col-6 col-md-3 mb-2"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">Unique IPs</div><div class="h3 mb-0">{{unique_ips}}</div></div></div></div>
+	<div class="col-6 col-md-3 mb-2"><div class="card h-100"><div class="card-body py-3"><div class="text-muted text-small">New signups</div><div class="h3 mb-0">{{signup_count}}</div></div></div></div>
+</div>
+
+<form method="get" action="/admin/user-activity" class="row align-items-end mb-3">
+	<div class="col-12 col-md-4 mb-2">
+		<label for="activity-date">UTC day</label>
+		<input id="activity-date" class="form-control" type="date" name="date" value="{{selected_date}}">
 	</div>
-
-	<form method="get" action="/admin/user-activity" class="activity-controls">
-		<div class="activity-day-nav">
-			<a class="btn btn-outline-secondary" title="Previous day" href="/admin/user-activity?date={{previous_date}}{% if query %}&q={{query|urlencode}}{% endif %}"><i class="fas fa-chevron-left"></i></a>
-			<a class="btn btn-outline-secondary" title="Next day" href="/admin/user-activity?date={{next_date}}{% if query %}&q={{query|urlencode}}{% endif %}"><i class="fas fa-chevron-right"></i></a>
-		</div>
-		<div class="activity-field activity-date">
-			<label for="activity-date">UTC day</label>
-			<input id="activity-date" class="form-control" type="date" name="date" value="{{selected_date}}">
-		</div>
-		<div class="activity-field activity-search">
-			<label for="activity-query">Find user or IP</label>
-			<div class="activity-search-row">
-				<input id="activity-query" class="form-control" type="text" name="q" value="{{query}}" placeholder="@username or IP address" autocomplete="off">
-				{% if query %}<a class="btn btn-outline-secondary" href="/admin/user-activity?date={{selected_date}}" title="Clear search"><i class="fas fa-times"></i></a>{% endif %}
-			</div>
-		</div>
-		<button class="btn btn-primary activity-filter-btn" type="submit"><i class="fas fa-filter mr-1"></i>Apply</button>
-	</form>
-
-	<div class="activity-privacy">
-		<i class="fas fa-shield-alt" aria-hidden="true"></i>
-		<div><strong>Sensitive admin data.</strong> Passwords, cookies, session tokens, and submitted form data are never stored here. Normal browsing is deduplicated instead of logging every page click.</div>
+	<div class="col-12 col-md-5 mb-2">
+		<label for="activity-query">Username or IP</label>
+		<input id="activity-query" class="form-control" type="text" name="q" value="{{query}}" placeholder="@username or 1.2.3.4" autocomplete="off">
 	</div>
+	<div class="col-12 col-md-3 mb-2"><button class="btn btn-primary w-100" type="submit">Filter</button></div>
+</form>
 
-	<div class="activity-section-title">
-		<h4>Activity events</h4>
-		<span>{{entries|length}} shown{% if query %} · filtered by “{{query}}”{% endif %}</span>
-	</div>
+<div class="d-flex justify-content-between mb-3">
+	<a class="btn btn-outline-secondary" href="/admin/user-activity?date={{previous_date}}{% if query %}&q={{query|urlencode}}{% endif %}"><i class="fas fa-chevron-left mr-1"></i>Previous day</a>
+	<a class="btn btn-outline-secondary" href="/admin/user-activity?date={{next_date}}{% if query %}&q={{query|urlencode}}{% endif %}">Next day<i class="fas fa-chevron-right ml-1"></i></a>
+</div>
 
-	{% if entries %}
-		<div class="activity-list-head" aria-hidden="true">
-			<div>User</div><div>Time</div><div>Device</div><div>Network</div><div>Event</div><div></div>
-		</div>
-		<div class="activity-events">
-		{% for entry in entries %}
-			<article class="activity-event">
-				<div class="activity-user">
-					<div class="activity-index">{{loop.index}}</div>
-					<div class="activity-user-main">
-						{% if entry.user %}
-							{% set user = entry.user %}{% include "user_in_table.html" %}
-							<div><a class="activity-history-link" href="/admin/user-activity/user/{{user.username}}"><i class="fas fa-history"></i>History</a></div>
-						{% else %}
-							<span class="text-muted">Deleted user #{{entry.user_id}}</span>
-						{% endif %}
-					</div>
-				</div>
+<div class="alert alert-secondary py-2">
+	<i class="fas fa-shield-alt mr-1"></i>This page contains sensitive activity metadata. Passwords, cookies, session tokens, and form data are never stored here. Normal browsing is deduplicated so ordinary page clicks do not create a row each time.
+</div>
 
-				<div class="activity-time-wrap">
-					<div class="activity-mobile-label">Time</div>
-					<div class="activity-time"><span data-time="{{entry.login_utc}}"></span></div>
-				</div>
-
-				<div class="activity-device-wrap">
-					<div class="activity-mobile-label">Device</div>
-					<div>
-						<div class="activity-meta-primary"><i class="fas {% if entry.device_type == 'Mobile' %}fa-mobile-alt{% elif entry.device_type == 'Tablet' %}fa-tablet-alt{% elif entry.device_type == 'Bot' %}fa-robot{% else %}fa-desktop{% endif %} mr-1"></i>{{entry.device_name}}</div>
-						<div class="activity-meta-secondary">{{entry.browser_name}} · {{entry.os_name}}</div>
-					</div>
-				</div>
-
-				<div class="activity-network-wrap">
-					<div class="activity-mobile-label">Network</div>
-					<div class="activity-network">
-						{% if entry.ip_address %}<a class="activity-ip" href="/admin/user-activity?date={{selected_date}}&q={{entry.ip_address}}"><code>{{entry.ip_address}}</code></a>{% else %}<span class="text-muted text-small">Unknown IP</span>{% endif %}
-						<span class="activity-country"><i class="fas fa-globe mr-1"></i>{{entry.country_code or '—'}}</span>
-					</div>
-				</div>
-
-				<div class="activity-source-wrap">
-					{% if entry.source == 'signup' %}<span class="activity-source activity-source--signup"><i class="fas fa-user-plus"></i>Signup</span>
-					{% elif entry.source == 'visit' %}<span class="activity-source"><i class="fas fa-eye"></i>Visit</span>
-					{% else %}<span class="activity-source activity-source--login"><i class="fas fa-sign-in-alt"></i>Login</span>{% endif %}
-				</div>
-
-				<details class="activity-details">
-					<summary title="Show request metadata"><i class="fas fa-ellipsis-h"></i></summary>
-					<div class="activity-details-panel">
-						{% if entry.forwarded_for %}<div><span class="activity-details-label">Forwarded</span><code>{{entry.forwarded_for}}</code></div>{% endif %}
-						{% if entry.accept_language %}<div><span class="activity-details-label">Language</span>{{entry.accept_language}}</div>{% endif %}
-						<div><span class="activity-details-label">User-Agent</span><code>{{entry.user_agent or 'unknown'}}</code></div>
+<div class="overflow-x-auto">
+<table class="table table-striped table-hover align-middle mb-5">
+	<thead class="bg-primary text-white">
+		<tr>
+			<th>#</th>
+			<th>User</th>
+			<th>Time</th>
+			<th>Device</th>
+			<th>Browser / OS</th>
+			<th>IP</th>
+			<th>Country</th>
+			<th>Source</th>
+			<th>Details</th>
+		</tr>
+	</thead>
+	<tbody>
+	{% for entry in entries %}
+		<tr>
+			<td>{{loop.index}}</td>
+			<td>
+				{% if entry.user %}
+					{% set user = entry.user %}{% include "user_in_table.html" %}
+					<div><a class="text-small" href="/admin/user-activity/user/{{user.username}}">activity history</a></div>
+				{% else %}
+					<span class="text-muted">Deleted user #{{entry.user_id}}</span>
+				{% endif %}
+			</td>
+			<td class="text-nowrap"><span data-time="{{entry.login_utc}}"></span></td>
+			<td><b>{{entry.device_type}}</b><br><span class="text-muted text-small">{{entry.device_name}}</span></td>
+			<td>{{entry.browser_name}}<br><span class="text-muted text-small">{{entry.os_name}}</span></td>
+			<td class="text-nowrap">{% if entry.ip_address %}<a href="/admin/user-activity?date={{selected_date}}&q={{entry.ip_address}}"><code>{{entry.ip_address}}</code></a>{% else %}<span class="text-muted">unknown</span>{% endif %}</td>
+			<td>{{entry.country_code or '—'}}</td>
+			<td>
+				{% if entry.source == 'signup' %}<span class="badge badge-success">signup</span>
+				{% elif entry.source == 'visit' %}<span class="badge badge-secondary">visit</span>
+				{% else %}<span class="badge badge-info">login</span>{% endif %}
+			</td>
+			<td>
+				<details>
+					<summary>metadata</summary>
+					<div class="text-small mt-2" style="max-width:420px;overflow-wrap:anywhere">
+						{% if entry.forwarded_for %}<div><b>Forwarded:</b> <code>{{entry.forwarded_for}}</code></div>{% endif %}
+						{% if entry.accept_language %}<div><b>Language:</b> {{entry.accept_language}}</div>{% endif %}
+						<div><b>User-Agent:</b> <code>{{entry.user_agent or 'unknown'}}</code></div>
 					</div>
 				</details>
-			</article>
-		{% endfor %}
-		</div>
+			</td>
+		</tr>
 	{% else %}
-		<div class="activity-empty"><i class="fas fa-search"></i>No authenticated activity matched this day/filter.</div>
-	{% endif %}
+		<tr><td colspan="9" class="text-center text-muted py-5">No authenticated activity matched this day/filter.</td></tr>
+	{% endfor %}
+	</tbody>
+</table>
 </div>
 {% endblock %}
