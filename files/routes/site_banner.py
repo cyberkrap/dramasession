@@ -26,3 +26,8 @@ def site_banner():
 	response.headers['Pragma'] = 'no-cache'
 	response.headers['Expires'] = '0'
 	return response
+
+
+# Register the persistent admin login-activity tracker after the normal login
+# routes already exist. Keeping it here avoids changing authentication semantics.
+from .login_activity import *  # noqa: E402,F401,F403
