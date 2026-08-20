@@ -3,9 +3,12 @@ from pathlib import Path
 
 import fcntl
 
+from files.helpers.config.const import forced_hats
+
 
 _LOCK_PATH = "/tmp/obsession-chud-repairs.lock"
 _ADMIN_ROUTE_PATH = Path("files/routes/admin.py")
+_CONST_PATH = Path("files/helpers/config/const.py")
 
 _TEMPLATE_REPLACEMENTS = {
     Path("files/templates/post_actions.html"): (
@@ -53,6 +56,19 @@ def _atomic_write(path: Path, content: str) -> None:
     os.replace(temp_path, path)
 
 
+def _install_chud_hat_copy() -> None:
+    """Make the forced Chud hat describe the actual TOC state, not a restriction."""
+    variants = forced_hats.get("agendaposter")
+    if not variants:
+        return
+
+    # agendaposter is a tuple of possible forced-hat variants. Keep the hats
+    # themselves but make every description accurately identify the Chud state.
+    forced_hats["agendaposter"] = tuple(
+        (name, "This account is chudded.") for name, _description in variants
+    )
+
+
 def patch_chud_source() -> None:
     """Keep TOC's Chud terminology canonical and support profile-wall comments.
 
@@ -60,6 +76,8 @@ def patch_chud_source() -> None:
     submission and dereferenced ``comment.post.sub``. Profile-wall comments have
     no parent submission, so that raised AttributeError and returned a 500.
     """
+    _install_chud_hat_copy()
+
     with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
 
@@ -71,6 +89,16 @@ def patch_chud_source() -> None:
         )
         if source != original:
             _atomic_write(_ADMIN_ROUTE_PATH, source)
+
+        # Persist the terminology fix in the generated/runtime source too. The
+        # in-memory forced_hats object above makes this effective immediately on
+        # the same boot; this source rewrite keeps future imports canonical.
+        if _CONST_PATH.exists():
+            source = _CONST_PATH.read_text(encoding="utf-8")
+            original = source
+            source = source.replace("This account has a temporary restriction.", "This account is chudded.")
+            if source != original:
+                _atomic_write(_CONST_PATH, source)
 
         for path, replacements in _TEMPLATE_REPLACEMENTS.items():
             if not path.exists():
