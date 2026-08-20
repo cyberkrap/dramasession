@@ -74,28 +74,43 @@ def _emojis_made(criteria, v, db, users, limit):
     return _counted_user_ids_lb([approved], v, db, users, limit)
 
 
-def _leaderboards(v):
+def _build_leaderboard(metric, v):
     users = g.db.query(User)
     if not v.can_see_shadowbanned:
         users = users.filter(User.shadowbanned == None)
 
-    return {
-        "coins": Leaderboard("Coins", "coins", "coins", "Wishcoins", None, Leaderboard.get_simple_lb, User.coins, v, lambda u: u.coins, g.db, users),
-        "wishbux": Leaderboard("Wishbux", "Wishbux", "wishbux", "Wishbux", None, Leaderboard.get_simple_lb, User.marseybux, v, lambda u: u.marseybux, g.db, users),
-        "spent": Leaderboard("Spent in shop", "coins spent in shop", "spent", "Wishcoins", None, Leaderboard.get_simple_lb, User.coins_spent, v, lambda u: u.coins_spent, g.db, users),
-        "truescore": Leaderboard("Truescore", "truescore", "truescore", "Truescore", None, Leaderboard.get_simple_lb, User.truescore, v, lambda u: u.truescore, g.db, users),
-        "followers": Leaderboard("Followers", "followers", "followers", "Followers", "followers", Leaderboard.get_simple_lb, User.stored_subscriber_count, v, lambda u: u.stored_subscriber_count, g.db, users),
-        "posts": Leaderboard("Posts", "post count", "posts", "Posts", "", Leaderboard.get_simple_lb, User.post_count, v, lambda u: u.post_count, g.db, users),
-        "comments": Leaderboard("Comments", "comment count", "comments", "Comments", "comments", Leaderboard.get_simple_lb, User.comment_count, v, lambda u: u.comment_count, g.db, users),
-        "awards": Leaderboard("Awards", "received awards", "awards", "Awards", None, Leaderboard.get_simple_lb, User.received_award_count, v, lambda u: u.received_award_count, g.db, users),
-        "badges": Leaderboard("Badges", "badges", "badges", "Badges", None, Leaderboard.get_badge_marsey_lb, Badge.user_id, v, None, g.db, None),
-        "blocked": Leaderboard("Blocked", "most blocked", "blocked", "Blocked By", "blockers", Leaderboard.get_blockers_lb, UserBlock.target_id, v, None, g.db, None),
-        "owned-hats": Leaderboard("Owned hats", "owned hats", "owned-hats", "Owned Hats", None, Leaderboard.get_hat_lb, User.owned_hats, v, None, g.db, None),
-        "designed-hats": Leaderboard("Designed hats", "designed hats", "designed-hats", "Designed Hats", None, Leaderboard.get_hat_lb, User.designed_hats, v, None, g.db, None),
-        "emojis": Leaderboard("Emojis made", "emojis made", "emojis", "Emojis", None, _emojis_made, None, v, None, g.db, users),
-        "upvotes-given": Leaderboard("Upvotes given", "upvotes given", "upvotes-given", "Upvotes", None, _upvotes_given, None, v, None, g.db, users),
-        "downvotes-received": Leaderboard("Downvotes received", "downvotes received", "downvotes-received", "Downvotes", None, _downvotes_received, None, v, None, g.db, users),
+    simple = {
+        "coins": ("Coins", "coins", "Wishcoins", User.coins, lambda u: u.coins, None),
+        "wishbux": ("Wishbux", "Wishbux", "Wishbux", User.marseybux, lambda u: u.marseybux, None),
+        "spent": ("Spent in shop", "coins spent in shop", "Wishcoins", User.coins_spent, lambda u: u.coins_spent, None),
+        "truescore": ("Truescore", "truescore", "Truescore", User.truescore, lambda u: u.truescore, None),
+        "followers": ("Followers", "followers", "Followers", User.stored_subscriber_count, lambda u: u.stored_subscriber_count, "followers"),
+        "posts": ("Posts", "post count", "Posts", User.post_count, lambda u: u.post_count, ""),
+        "comments": ("Comments", "comment count", "Comments", User.comment_count, lambda u: u.comment_count, "comments"),
+        "awards": ("Awards", "received awards", "Awards", User.received_award_count, lambda u: u.received_award_count, None),
     }
+    if metric in simple:
+        header, table_header, column, criterion, value_func, relative_url = simple[metric]
+        return Leaderboard(
+            header, table_header, metric, column, relative_url,
+            Leaderboard.get_simple_lb, criterion, v, value_func, g.db, users,
+        )
+
+    if metric == "badges":
+        return Leaderboard("Badges", "badges", "badges", "Badges", None, Leaderboard.get_badge_marsey_lb, Badge.user_id, v, None, g.db, None)
+    if metric == "blocked":
+        return Leaderboard("Blocked", "most blocked", "blocked", "Blocked By", "blockers", Leaderboard.get_blockers_lb, UserBlock.target_id, v, None, g.db, None)
+    if metric == "owned-hats":
+        return Leaderboard("Owned hats", "owned hats", "owned-hats", "Owned Hats", None, Leaderboard.get_hat_lb, User.owned_hats, v, None, g.db, None)
+    if metric == "designed-hats":
+        return Leaderboard("Designed hats", "designed hats", "designed-hats", "Designed Hats", None, Leaderboard.get_hat_lb, User.designed_hats, v, None, g.db, None)
+    if metric == "emojis":
+        return Leaderboard("Emojis made", "emojis made", "emojis", "Emojis", None, _emojis_made, None, v, None, g.db, users)
+    if metric == "upvotes-given":
+        return Leaderboard("Upvotes given", "upvotes given", "upvotes-given", "Upvotes", None, _upvotes_given, None, v, None, g.db, users)
+    if metric == "downvotes-received":
+        return Leaderboard("Downvotes received", "downvotes received", "downvotes-received", "Downvotes", None, _downvotes_received, None, v, None, g.db, users)
+    return None
 
 
 LEADERBOARD_NAV = (
@@ -131,14 +146,14 @@ def leaderboard_metric(v, metric):
     if metric == "marseybux":
         return redirect("/leaderboard/wishbux")
 
-    leaderboards = _leaderboards(v)
-    if metric not in leaderboards:
+    leaderboard = _build_leaderboard(metric, v)
+    if leaderboard is None:
         return redirect("/leaderboard/coins")
 
     return render_template(
         "leaderboard.html",
         v=v,
-        leaderboard=leaderboards[metric],
+        leaderboard=leaderboard,
         leaderboard_nav=LEADERBOARD_NAV,
         active_key=metric,
     )
