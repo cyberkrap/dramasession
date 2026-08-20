@@ -3,6 +3,14 @@ from pathlib import Path
 
 import fcntl
 
+from files.helpers.chud_repairs import patch_chud_source
+
+
+# This helper is imported during the pre-route source-repair phase, before
+# files.routes.admin is imported. Apply Chud repairs here so the legacy admin
+# handler and moderation templates are corrected before Flask registers them.
+patch_chud_source()
+
 
 _LOCK_PATH = "/tmp/obsession-pin-award-stack.lock"
 _AWARDS_ROUTE_PATH = Path("files/routes/awards.py")
