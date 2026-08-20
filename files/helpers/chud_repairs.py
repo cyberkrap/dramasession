@@ -10,20 +10,26 @@ _ADMIN_ROUTE_PATH = Path("files/routes/admin.py")
 _TEMPLATE_REPLACEMENTS = {
     Path("files/templates/post_actions.html"): (
         (">Restrict user</button>", ">Chud user</button>"),
-        (">Remove restriction</button>", ">Remove Chud</button>"),
+        (">Remove restriction</button>", ">Unchud</button>"),
+        (">Remove Chud</button>", ">Unchud</button>"),
     ),
     Path("files/templates/post_admin_actions_mobile.html"): (
         (">Restrict user</button>", ">Chud user</button>"),
-        (">Remove restriction</button>", ">Remove Chud</button>"),
+        (">Remove restriction</button>", ">Unchud</button>"),
+        (">Remove Chud</button>", ">Unchud</button>"),
     ),
     Path("files/templates/comments.html"): (
         (">Restrict user</button>", ">Chud user</button>"),
-        (">Remove restriction</button>", ">Remove Chud</button>"),
+        (">Remove restriction</button>", ">Unchud</button>"),
+        (">Remove Chud</button>", ">Unchud</button>"),
         ("User was restricted for this comment", "User was chudded for this comment"),
     ),
     Path("files/templates/userpage/admintools.html"): (
         ('value="Restrict user"', 'value="Chud user"'),
-        ("Remove restriction", "Remove Chud"),
+        ('value="Remove restriction"', 'value="Unchud"'),
+        ('value="Remove Chud"', 'value="Unchud"'),
+        ("Remove restriction", "Unchud"),
+        ("Remove Chud", "Unchud"),
     ),
     Path("files/templates/chuds.html"): (
         ("Restricted Users", "Chudded Users"),
@@ -34,6 +40,9 @@ _TEMPLATE_REPLACEMENTS = {
     ),
     Path("files/templates/util/macros.html"): (
         ("User was restricted for this post", "User was chudded for this post"),
+    ),
+    Path("files/assets/js/ban_modal.js"): (
+        ("`Restrict @${name}`", "`Chud @${name}`"),
     ),
 }
 
