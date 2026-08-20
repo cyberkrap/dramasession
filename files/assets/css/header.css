@@ -2,10 +2,6 @@ body {
 	padding-top: var(--obs-header-total-height, 86px) !important
 }
 
-#header--dropdown .profile-pic-35-wrapper {
-	transform: translateY(-2px);
-}
-
 #header--dropdown .header-house-icon {
 	width: 18px;
 	height: 18px;
