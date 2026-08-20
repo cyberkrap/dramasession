@@ -43,6 +43,7 @@ from files.helpers.requested_awards import (
 	patch_requested_awards_pre_batch_source,
 	patch_requested_award_templates_source,
 )
+from files.helpers.pin_award_stack_fixes import patch_stackable_pin_award_source
 from files.helpers.requested_awards_postfix import patch_requested_awards_post_batch_source_v2
 from files.helpers.final_ui_source_fixes import (
 	patch_admin_emote_link_source,
@@ -60,6 +61,10 @@ disable_retired_awards()
 install_requested_awards(app)
 try:
 	patch_requested_awards_pre_batch_source()
+except RuntimeError:
+	pass
+try:
+	patch_stackable_pin_award_source()
 except RuntimeError:
 	pass
 try:
