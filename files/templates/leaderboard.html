@@ -1,9 +1,25 @@
 {% extends "settings2.html" %}
 {% block pagetitle %}Leaderboard{% endblock %}
 {% block content %}
+<style nonce="{{g.nonce}}">
+	#leaderboard-contents .leaderboard-nav-link {
+		display: inline-block;
+		padding: .12rem .42rem;
+		border: 1px solid transparent;
+		border-radius: 4px;
+		line-height: 1.45;
+	}
+	#leaderboard-contents .leaderboard-nav-link.active {
+		color: #fff !important;
+		font-weight: 800;
+		background: var(--primary);
+		border-color: rgba(255,255,255,.2);
+		box-shadow: 0 0 0 1px rgba(0,0,0,.18);
+	}
+</style>
 <div class="mt-3 mb-4 text-center" id="leaderboard-contents" style="line-height:1.9;">
 	{% for key, label in leaderboard_nav %}
-		<a href="/leaderboard/{{key}}" class="{% if key == active_key %}font-weight-bold{% endif %}">{{label}}</a>{% if not loop.last %} <span class="text-muted mx-1">&bull;</span>{% endif %}
+		<a href="/leaderboard/{{key}}" class="leaderboard-nav-link{% if key == active_key %} active{% endif %}"{% if key == active_key %} aria-current="page"{% endif %}>{{label}}</a>{% if not loop.last %} <span class="text-muted mx-1">&bull;</span>{% endif %}
 	{% endfor %}
 </div>
 
