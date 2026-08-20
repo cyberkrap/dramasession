@@ -1,11 +1,9 @@
 {% extends "settings2.html" %}
 {% block pagetitle %}Leaderboard{% endblock %}
 {% block content %}
-<div class="mt-2" id="leaderboard-contents" style="text-align: center; margin-bottom: 1.5rem; font-size: 1.2rem;">
-	{% for lb in leaderboards %}
-		{% if lb %}
-			<a href="#leaderboard-{{lb.html_id}}">{{lb.header_name}}</a>{% if not loop.last %} &bull;{% endif %}
-		{% endif %}
+<div class="mt-3 mb-4 text-center" id="leaderboard-contents" style="line-height:1.9;">
+	{% for key, label in leaderboard_nav %}
+		<a href="/leaderboard/{{key}}" class="{% if key == active_key %}font-weight-bold{% endif %}">{{label}}</a>{% if not loop.last %} <span class="text-muted mx-1">&bull;</span>{% endif %}
 	{% endfor %}
 </div>
 
@@ -23,7 +21,7 @@
 {% endmacro %}
 
 {% macro leaderboard_table(lb) %}
-<h5 class="font-weight-bolder text-center pt-2 pb-3"><span id="leaderboard-{{lb.html_id}}">Top {{lb.limit}} {% if lb.table_header_name != 'most blocked' %}by{% endif %} {{lb.table_header_name}}</span></h5>
+<h5 class="font-weight-bolder text-center pt-2 pb-3">Top {{lb.limit}} {% if lb.table_header_name != 'most blocked' %}by{% endif %} {{lb.table_header_name}}</h5>
 <div class="overflow-x-auto">
 <table class="table table-striped mb-5">
 	<thead class="bg-primary text-white">
@@ -36,6 +34,7 @@
 	<tbody>
 	{% for user in lb.all_users %}
 		{% set user2 = lb.user_func(user) %}
+		{% set style = "" %}
 		{% if v.id == user2.id %}
 			{% set style="class=\"self\"" %}
 		{% endif %}
@@ -49,14 +48,5 @@
 </div>
 {% endmacro %}
 
-{% for lb in leaderboards %}
-	{% if lb %}
-		{{leaderboard_table(lb)}}
-	{% endif %}
-{% endfor %}
-
-<a id="leader--top-btn" href="#leaderboard-contents"
-		style="position: fixed; bottom: 5rem; right: 2rem; font-size: 3rem;">
-	<i class="fas fa-arrow-alt-circle-up"></i>
-</a>
+{{leaderboard_table(leaderboard)}}
 {% endblock %}
