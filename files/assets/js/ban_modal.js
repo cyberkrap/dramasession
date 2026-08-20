@@ -23,9 +23,9 @@ function banModal(link, name, fullname, cls) {
 }
 
 function chudModal(link, name, fullname, cls) {
-	document.getElementById("chudModalTitle").innerHTML = `Restrict @${name}`;
+	document.getElementById("chudModalTitle").innerHTML = `Chud @${name}`;
 	document.getElementById("chud-modal-link").value = link;
-	document.getElementById("chudUserButton").innerHTML = `Restrict @${name}`;
+	document.getElementById("chudUserButton").innerHTML = `Chud @${name}`;
 
 	document.getElementById("chudUserButton").addEventListener('click', function() {
 		let form = new FormData(document.getElementById("chudModalForm"));
