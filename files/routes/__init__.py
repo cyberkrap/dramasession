@@ -56,6 +56,10 @@ from files.helpers.final_ui_source_fixes import (
 )
 from files.helpers.hat_submission_fixes import patch_hat_submission_source
 from files.helpers.username_effect_template_fixes import patch_comment_username_effects_source
+from files.helpers.transfer_currency_format_fixes import (
+	install_transfer_currency_format_fix,
+	patch_transfer_currency_source,
+)
 
 disable_retired_awards()
 install_requested_awards(app)
@@ -109,6 +113,8 @@ except RuntimeError:
 patch_comment_attachment_source()
 patch_youtube_anthem_source()
 patch_background_validation_source()
+patch_transfer_currency_source()
+install_transfer_currency_format_fix(app)
 
 # import routes :)
 from .admin import *
