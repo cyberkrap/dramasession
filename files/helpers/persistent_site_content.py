@@ -203,6 +203,17 @@ def _normalize_obsession_sidebar_links(content):
 		"<p><strong>This platform is intended only for adults aged 18 or older.</strong></p>",
 		"<p><strong>TOC is intended only for adults aged 18 or older.</strong></p>",
 	)
+	old_intro = (
+		"<p><strong>The Obsession Club (TOC)</strong> is a fan-run community built around <em>Obsession</em> and boards for other movies, with discussions, theories, edits, artwork, memes, and more.</p>\n"
+		"\t<p><strong>TOC is intended only for adults aged 18 or older.</strong></p>"
+	)
+	new_intro = (
+		"<p><strong>The Obsession Club (TOC)</strong> is a fan-run community built around <em>Obsession</em> and boards for other movies, with discussions, theories, edits, artwork, memes, and more.</p>\n"
+		"\t<p>TOC is built around <strong>broad freedom of expression and a deliberately small rule set</strong>. People are free to argue, joke, criticize, obsess over weird details, post unpopular opinions, and run communities their own way without content being removed simply because somebody finds it offensive or disagrees with it. The rules mainly exist for safety, privacy, illegal content, spam, abuse, and protecting the integrity of the platform.</p>\n"
+		"\t<p><strong>Adult and extreme movie content is welcome.</strong> Horror, bloody or gory scenes, disturbing imagery, practical-effects clips, nudity, sexual material, and other intense film content can be posted; just use the appropriate NSFW/content markings and give credit or a source when reposting somebody else's work.</p>\n"
+		"\t<p><strong>TOC is intended only for adults aged 18 or older.</strong></p>"
+	)
+	content = content.replace(old_intro, new_intro)
 	return "".join(
 		line for line in content.splitlines(keepends=True)
 		if "watchpeopledie.tv" not in line.lower()
