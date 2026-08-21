@@ -191,6 +191,18 @@ def _normalize_obsession_sidebar_links(content):
 		"Discord and Reddit chuds will be banned on sight.",
 		"WPD and rDrama chuds will be banned on sight.",
 	)
+	content = content.replace(
+		"<h3>Welcome to the Obsession Fan Club</h3>",
+		"<h3>Welcome to The Obsession Club</h3>",
+	)
+	content = content.replace(
+		"<p>A fan-run community for discussing <em>Obsession</em>, its cast, characters, production, theories, edits, artwork, and everything surrounding the film.</p>",
+		"<p><strong>The Obsession Club (TOC)</strong> is a fan-run community built around <em>Obsession</em> and boards for other movies, with discussions, theories, edits, artwork, memes, and more.</p>",
+	)
+	content = content.replace(
+		"<p><strong>This platform is intended only for adults aged 18 or older.</strong></p>",
+		"<p><strong>TOC is intended only for adults aged 18 or older.</strong></p>",
+	)
 	return "".join(
 		line for line in content.splitlines(keepends=True)
 		if "watchpeopledie.tv" not in line.lower()
