@@ -1,22 +1,82 @@
-{% extends "default.html" %}
-{% block pagetitle %}Content Statistics{% endblock %}
+{% extends "settings2.html" %}
+{% block pagetitle %}Site Stats{% endblock %}
 {% block content %}
-<div class="overflow-x-auto mt-1"><table class="table table-striped mb-5">
-<thead class="bg-primary text-white">
-	<tr>
-		<th class="disable-sort-click">Statistic</th>
-		<th class="disable-sort-click">Value</th>
-	</tr>
-</thead>
-{% for key, value in data.items() %}
-	<tr>
-		<td>{{key}}</td>
-		{% if key == 'time' -%}
-			<td data-time="{{value}}"></td>
-		{% else -%}
-			<td>{{value}}</td>
-		{%- endif %}
-	</tr>
-{% endfor %}
-</table>
+<link rel="stylesheet" href="{{'css/community_stats.css' | asset}}">
+
+<div class="toc-community-page">
+	<header class="toc-page-heading">
+		<div>
+			<h1>Site Stats</h1>
+			<p>Current TOC totals and recent activity. Cached for a few minutes to keep the page cheap to load.</p>
+		</div>
+		<div class="text-small text-muted">Updated <span data-time="{{snapshot.generated_utc}}"></span></div>
+	</header>
+
+	<div class="toc-headline-stats" aria-label="Site overview">
+		<div class="toc-headline-stat"><strong>{{snapshot.headline.users|number}}</strong><span>Users</span></div>
+		<div class="toc-headline-stat"><strong>{{snapshot.headline.active_7d|number}}</strong><span>Active 7d</span></div>
+		<div class="toc-headline-stat"><strong>{{snapshot.headline.posts|number}}</strong><span>Posts</span></div>
+		<div class="toc-headline-stat"><strong>{{snapshot.headline.comments|number}}</strong><span>Comments</span></div>
+	</div>
+
+	<nav class="toc-period-nav" aria-label="Stats chart period">
+		<a href="/stats?period=30d" class="{% if trends.key == '30d' %}active{% endif %}">30 days</a>
+		<a href="/stats?period=26w" class="{% if trends.key == '26w' %}active{% endif %}">26 weeks</a>
+		<span class="text-small text-muted ml-1">{{trends.label}}</span>
+	</nav>
+
+	<section class="toc-chart-grid" aria-label="Activity charts">
+		{% for chart in trends.charts %}
+			<article class="toc-chart">
+				<div class="toc-chart__heading">
+					<strong>{{chart.label}}</strong>
+					<span>{{chart.total|number}} total · peak {{chart.peak|number}}</span>
+				</div>
+				<svg viewBox="0 0 1000 190" role="img" aria-label="{{chart.label}} activity for {{trends.label}}">
+					<line class="toc-chart__baseline" x1="12" y1="178" x2="988" y2="178"></line>
+					<polyline class="toc-chart__line" points="{{chart.points}}"></polyline>
+				</svg>
+				<div class="toc-chart__dates"><span>{{trends.start_label}}</span><span>{{trends.end_label}}</span></div>
+			</article>
+		{% endfor %}
+	</section>
+
+	{% for section in snapshot.sections %}
+		<section class="toc-stats-section">
+			<h2 class="toc-section-title">{{section.label}}</h2>
+			<div class="overflow-x-auto">
+				<table class="toc-data-table">
+					<thead><tr><th>Statistic</th><th>Value</th></tr></thead>
+					<tbody>
+					{% for row in section.rows %}
+						<tr><td>{{row.label}}</td><td>{{row.value|number}}</td></tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	{% endfor %}
+
+	<section class="toc-house-section">
+		<h2 class="toc-section-title"><span>Houses</span><a class="text-small" href="/houses">View members</a></h2>
+		<div class="overflow-x-auto">
+			<table class="toc-data-table">
+				<thead>
+					<tr><th>House</th><th>Members</th><th>Founders</th><th>Truescore</th><th>Special award</th></tr>
+				</thead>
+				<tbody>
+				{% for house in snapshot.houses %}
+					<tr>
+						<td><a class="toc-house-name" href="/house/{{house.name}}">House {{house.name}}</a></td>
+						<td>{{house.members|number}}</td>
+						<td>{{house.founders|number}}</td>
+						<td>{{house.truescore|number}}</td>
+						<td>{{house.award or "None yet"}}</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</section>
+</div>
 {% endblock %}
