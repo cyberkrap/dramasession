@@ -61,6 +61,7 @@ from files.helpers.transfer_currency_format_fixes import (
 	patch_transfer_currency_source,
 )
 from files.helpers.toc_ui_fixes import install_toc_ui_fixes
+from files.helpers.house_system import install_house_system
 
 install_toc_ui_fixes()
 disable_retired_awards()
@@ -118,6 +119,11 @@ patch_background_validation_source()
 patch_transfer_currency_source()
 install_transfer_currency_format_fix(app)
 
+# House award access is the final award-catalog/source normalization step. Run
+# it after the other award patchers so the route imported below always sees the
+# canonical TOC mapping (Furry/OwOify, Femboy/Rainbow, Racist/Early Life).
+install_house_system()
+
 # import routes :)
 from .admin import *
 from .comments import *
@@ -136,6 +142,10 @@ from .short_username_perk import *
 from .connections import *
 from .signup_rewards import *
 from .static import *
+# These modules intentionally load after static.py: site_stats replaces the
+# legacy /stats endpoint, while house_pages registers the dynamic house views.
+from .site_stats import *
+from .house_pages import *
 from .profile_moderation_fixes import *
 from .site_banner import *
 from .paypal import *
