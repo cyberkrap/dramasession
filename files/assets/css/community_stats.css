@@ -1,0 +1,252 @@
+/* Shared public community data pages: site stats and houses. */
+.toc-community-page {
+	margin: 0 auto 3rem;
+	max-width: 1180px;
+}
+
+.toc-page-heading {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 1rem;
+	margin: .75rem 0 1rem;
+	padding-bottom: .8rem;
+	border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+
+.toc-page-heading h1 {
+	margin: 0;
+	font-size: 1.45rem;
+	font-weight: 800;
+}
+
+.toc-page-heading p {
+	margin: .2rem 0 0;
+	color: var(--muted, #8f8b8d);
+	font-size: .86rem;
+}
+
+.toc-headline-stats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .55rem 1.35rem;
+	margin-bottom: 1.2rem;
+	padding: .75rem .9rem;
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 6px;
+	background: rgba(0, 0, 0, .12);
+}
+
+.toc-headline-stat {
+	min-width: 120px;
+}
+
+.toc-headline-stat strong {
+	display: block;
+	font-size: 1.05rem;
+	line-height: 1.2;
+}
+
+.toc-headline-stat span {
+	color: var(--muted, #8f8b8d);
+	font-size: .72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .035em;
+}
+
+.toc-period-nav {
+	display: flex;
+	align-items: center;
+	gap: .45rem;
+	margin: 0 0 .85rem;
+}
+
+.toc-period-nav a {
+	padding: .3rem .65rem;
+	border: 1px solid rgba(255, 255, 255, .14);
+	border-radius: 4px;
+	color: inherit;
+	font-size: .78rem;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.toc-period-nav a.active {
+	border-color: var(--primary);
+	background: var(--primary);
+	color: #fff;
+}
+
+.toc-chart-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: .8rem;
+	margin-bottom: 1.5rem;
+}
+
+.toc-chart {
+	min-width: 0;
+	padding: .75rem .8rem .55rem;
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 6px;
+	background: rgba(0, 0, 0, .12);
+}
+
+.toc-chart__heading {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: .75rem;
+	margin-bottom: .3rem;
+}
+
+.toc-chart__heading strong {
+	font-size: .9rem;
+}
+
+.toc-chart__heading span {
+	color: var(--muted, #8f8b8d);
+	font-size: .72rem;
+}
+
+.toc-chart svg {
+	display: block;
+	width: 100%;
+	height: 120px;
+	overflow: visible;
+}
+
+.toc-chart__baseline {
+	stroke: rgba(255, 255, 255, .12);
+	stroke-width: 1;
+}
+
+.toc-chart__line {
+	fill: none;
+	stroke: var(--primary);
+	stroke-width: 2.4;
+	vector-effect: non-scaling-stroke;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.toc-chart__dates {
+	display: flex;
+	justify-content: space-between;
+	color: var(--muted, #8f8b8d);
+	font-size: .66rem;
+}
+
+.toc-stats-section,
+.toc-house-section {
+	margin: 0 0 1.25rem;
+}
+
+.toc-section-title {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	margin: 0 0 .45rem;
+	font-size: .92rem;
+	font-weight: 800;
+}
+
+.toc-data-table {
+	width: 100%;
+	margin: 0;
+	border: 1px solid rgba(255, 255, 255, .1);
+	border-radius: 6px;
+	border-collapse: separate;
+	border-spacing: 0;
+	overflow: hidden;
+	background: rgba(0, 0, 0, .1);
+}
+
+.toc-data-table th,
+.toc-data-table td {
+	padding: .55rem .7rem;
+	border-bottom: 1px solid rgba(255, 255, 255, .08);
+	vertical-align: middle;
+}
+
+.toc-data-table tr:last-child td {
+	border-bottom: 0;
+}
+
+.toc-data-table th {
+	color: var(--muted, #8f8b8d);
+	font-size: .68rem;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+
+.toc-data-table td:last-child,
+.toc-data-table th:last-child {
+	text-align: right;
+}
+
+.toc-data-table td:last-child {
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+}
+
+.toc-house-name {
+	display: inline-flex;
+	align-items: center;
+	gap: .55rem;
+	font-weight: 800;
+}
+
+.toc-house-position {
+	font-size: .78rem;
+	font-weight: 700;
+}
+
+.toc-house-founder {
+	color: var(--primary);
+}
+
+.toc-house-summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .45rem 1.1rem;
+	margin: -.25rem 0 1rem;
+	color: var(--muted, #8f8b8d);
+	font-size: .8rem;
+}
+
+.toc-house-summary strong {
+	color: inherit;
+}
+
+.toc-house-back {
+	font-size: .78rem;
+	font-weight: 700;
+}
+
+@media (max-width: 767.98px) {
+	.toc-page-heading {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.toc-chart-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.toc-chart svg {
+		height: 105px;
+	}
+
+	.toc-data-table th,
+	.toc-data-table td {
+		padding: .5rem;
+		font-size: .78rem;
+	}
+
+	.toc-headline-stat {
+		min-width: calc(50% - .8rem);
+	}
+}
