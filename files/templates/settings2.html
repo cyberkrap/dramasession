@@ -14,7 +14,13 @@
 								<div class="d-flex flex-row-reverse justify-content-end">
 									<ul class="nav settings-nav" style="margin-left: -15px;">
 										<li class="nav-item">
-											<a class="nav-link{% if request.path == '/leaderboard' %} active{% endif %}" href="/leaderboard"><i class="fas fa-trophy pr-2"></i>Leaderboard</a>
+											<a class="nav-link{% if request.path.startswith('/leaderboard') %} active{% endif %}" href="/leaderboard"><i class="fas fa-trophy pr-2"></i>Leaderboard</a>
+										</li>
+										<li class="nav-item">
+											<a class="nav-link{% if request.path == '/stats' %} active{% endif %}" href="/stats"><i class="fas fa-chart-network pr-2"></i>Stats</a>
+										</li>
+										<li class="nav-item">
+											<a class="nav-link{% if request.path.startswith('/house') %} active{% endif %}" href="/houses"><i class="fas fa-home-alt pr-2"></i>Houses</a>
 										</li>
 										<li class="nav-item">
 											<a class="nav-link{% if request.path == '/admins' %} active{% endif %}" href="/admins"><i class="fas fa-crown pr-2"></i>Admins</a>
@@ -47,22 +53,30 @@
 					<div class="d-flex flex-row-reverse justify-content-center">
 						<ul class="nav settings-nav">
 							<li class="nav-item">
-								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/leaderboard' %} active{% endif %}" href="/leaderboard"><i class="fas fa-trophy text-lg mr-0"></i></a>
+								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path.startswith('/leaderboard') %} active{% endif %}" href="/leaderboard" title="Leaderboard"><i class="fas fa-trophy text-lg mr-0"></i></a>
 							</li>
 							<li class="nav-item">
-								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/admins' %} active{% endif %}" href="/admins"><i class="fas fa-crown text-lg mr-0"></i></a>
+								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/stats' %} active{% endif %}" href="/stats" title="Stats"><i class="fas fa-chart-network text-lg mr-0"></i></a>
 							</li>
 							<li class="nav-item">
-								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/log' %} active{% endif %}" href="/log"><i class="fas fa-scroll-old text-lg mr-0"></i></a>
+								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path.startswith('/house') %} active{% endif %}" href="/houses" title="Houses"><i class="fas fa-home-alt text-lg mr-0"></i></a>
 							</li>
 							<li class="nav-item">
-								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/banned' %} active{% endif %}" href="/banned"><i class="fas fa-user-slash text-lg mr-0"></i></a>
+								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/admins' %} active{% endif %}" href="/admins" title="Admins"><i class="fas fa-crown text-lg mr-0"></i></a>
 							</li>
 							<li class="nav-item">
-								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/blocks' %} active{% endif %}" href="/blocks"><i class="fas fa-eye-slash text-lg mr-0"></i></a>
+								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/log' %} active{% endif %}" href="/log" title="Moderation Log"><i class="fas fa-scroll-old text-lg mr-0"></i></a>
 							</li>
 							<li class="nav-item">
-								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/h/changelog' %} active{% endif %}" href="/directory"><i class="fas fa-clipboard text-lg mr-0"></i></a>
+								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/banned' %} active{% endif %}" href="/banned" title="Banned Users"><i class="fas fa-user-slash text-lg mr-0"></i></a>
+							</li>
+							{% if v and v.admin_level >= PERMS['USER_BLOCKS_VISIBLE'] %}
+							<li class="nav-item">
+								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/blocks' %} active{% endif %}" href="/blocks" title="Blocks"><i class="fas fa-eye-slash text-lg mr-0"></i></a>
+							</li>
+							{% endif %}
+							<li class="nav-item">
+								<a style="padding: 0.75rem 1rem" class="nav-link{% if request.path == '/h/changelog' %} active{% endif %}" href="/directory" title="Changelog"><i class="fas fa-clipboard text-lg mr-0"></i></a>
 							</li>
 						</ul>
 					</div>
