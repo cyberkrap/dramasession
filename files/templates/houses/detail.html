@@ -1,0 +1,43 @@
+{% extends "settings2.html" %}
+{% block pagetitle %}House {{house}}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{'css/community_stats.css' | asset}}">
+
+<div class="toc-community-page">
+	<header class="toc-page-heading">
+		<div>
+			<a class="toc-house-back" href="/houses">← All houses</a>
+			<h1 class="mt-2">House {{house}}</h1>
+		</div>
+	</header>
+
+	<div class="toc-house-summary">
+		<span><strong>{{summary.members|number}}</strong> members</span>
+		<span><strong>{{summary.founders|number}}</strong> founders</span>
+		<span><strong>{{summary.truescore|number}}</strong> total Truescore</span>
+		<span>Special award: <strong>{{summary.award or "None yet"}}</strong></span>
+	</div>
+
+	<div class="overflow-x-auto">
+		<table class="toc-data-table">
+			<thead><tr><th>Name</th><th>Position</th><th>Truescore</th></tr></thead>
+			<tbody>
+			{% for member in members %}
+				<tr>
+					<td>
+						{% set user = member %}
+						{% include "user_in_table.html" %}
+					</td>
+					<td class="toc-house-position {% if member.house.endswith(' Founder') %}toc-house-founder{% endif %}">
+						{{"Founder" if member.house.endswith(" Founder") else "Member"}}
+					</td>
+					<td>{{member.truescore|number}}</td>
+				</tr>
+			{% else %}
+				<tr><td colspan="3" class="text-muted">No members yet.</td></tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+{% endblock %}
