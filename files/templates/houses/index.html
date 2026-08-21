@@ -1,0 +1,33 @@
+{% extends "settings2.html" %}
+{% block pagetitle %}Houses{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{'css/community_stats.css' | asset}}">
+
+<div class="toc-community-page">
+	<header class="toc-page-heading">
+		<div>
+			<h1>Houses</h1>
+			<p>TOC house membership, founders, Truescore and member-only award access.</p>
+		</div>
+	</header>
+
+	<div class="overflow-x-auto">
+		<table class="toc-data-table">
+			<thead>
+				<tr><th>House</th><th>Members</th><th>Founders</th><th>Total Truescore</th><th>Special award</th></tr>
+			</thead>
+			<tbody>
+			{% for house in houses %}
+				<tr>
+					<td><a class="toc-house-name" href="/house/{{house.name}}">House {{house.name}}</a></td>
+					<td>{{house.members|number}}</td>
+					<td>{{house.founders|number}}</td>
+					<td>{{house.truescore|number}}</td>
+					<td>{{house.award or "None yet"}}</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+{% endblock %}
