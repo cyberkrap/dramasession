@@ -2,12 +2,13 @@
 {% block pagetitle %}Site Stats{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{'css/community_stats.css' | asset}}">
+<script defer src="{{'js/community_stats.js' | asset}}"></script>
 
 <div class="toc-community-page">
 	<header class="toc-page-heading">
 		<div>
 			<h1>Site Stats</h1>
-			<p>Current TOC totals and recent activity. Cached for a few minutes to keep the page cheap to load.</p>
+			<p>Current TOC totals and recent activity. Move across a chart for the exact date, value, and change from the previous {{trends.bucket_name}}.</p>
 		</div>
 		<div class="text-small text-muted">Updated <span data-time="{{snapshot.generated_utc}}"></span></div>
 	</header>
@@ -22,21 +23,48 @@
 	<nav class="toc-period-nav" aria-label="Stats chart period">
 		<a href="/stats?period=30d" class="{% if trends.key == '30d' %}active{% endif %}">30 days</a>
 		<a href="/stats?period=26w" class="{% if trends.key == '26w' %}active{% endif %}">26 weeks</a>
-		<span class="text-small text-muted ml-1">{{trends.label}}</span>
+		<span class="text-small text-muted ml-1">{{trends.label}} · {{trends.bucket_name|capitalize}}ly</span>
 	</nav>
 
 	<section class="toc-chart-grid" aria-label="Activity charts">
 		{% for chart in trends.charts %}
-			<article class="toc-chart">
+			<article class="toc-chart"
+				data-chart-label="{{chart.label}}"
+				data-chart-values="{{chart.values|join(',')}}"
+				data-chart-start="{{trends.start_utc}}"
+				data-chart-step="{{trends.bucket_seconds}}"
+				data-chart-bucket="{{trends.bucket_name}}">
 				<div class="toc-chart__heading">
 					<strong>{{chart.label}}</strong>
 					<span>{{chart.total|number}} total · peak {{chart.peak|number}}</span>
 				</div>
-				<svg viewBox="0 0 1000 190" role="img" aria-label="{{chart.label}} activity for {{trends.label}}">
-					<line class="toc-chart__baseline" x1="12" y1="178" x2="988" y2="178"></line>
-					<polyline class="toc-chart__line" points="{{chart.points}}"></polyline>
-				</svg>
-				<div class="toc-chart__dates"><span>{{trends.start_label}}</span><span>{{trends.end_label}}</span></div>
+				<div class="toc-chart__plot">
+					<div class="toc-chart__axis" aria-hidden="true">
+						<span>{{chart.peak|number}}</span>
+						<span>{{(chart.peak / 2)|int|number}}</span>
+						<span>0</span>
+					</div>
+					<svg viewBox="0 0 1000 190" role="img" aria-label="{{chart.label}} activity for {{trends.label}}">
+						<line class="toc-chart__gridline" x1="12" y1="12" x2="988" y2="12"></line>
+						<line class="toc-chart__gridline" x1="12" y1="67.3" x2="988" y2="67.3"></line>
+						<line class="toc-chart__gridline" x1="12" y1="122.7" x2="988" y2="122.7"></line>
+						<line class="toc-chart__baseline" x1="12" y1="178" x2="988" y2="178"></line>
+						<polyline class="toc-chart__line" points="{{chart.points}}"></polyline>
+						<line class="toc-chart__hover-line" x1="12" y1="12" x2="12" y2="178" hidden></line>
+						<circle class="toc-chart__hover-point" cx="12" cy="178" r="5" hidden></circle>
+					</svg>
+					<div class="toc-chart__tooltip" role="status" aria-live="polite" hidden>
+						<strong data-chart-tooltip-title></strong>
+						<span data-chart-tooltip-date></span>
+						<span class="toc-chart__tooltip-value" data-chart-tooltip-value></span>
+						<span class="toc-chart__tooltip-delta" data-chart-tooltip-delta></span>
+					</div>
+				</div>
+				<div class="toc-chart__dates" aria-hidden="true">
+					<span data-chart-date="start"></span>
+					<span data-chart-date="middle"></span>
+					<span data-chart-date="end"></span>
+				</div>
 			</article>
 		{% endfor %}
 	</section>

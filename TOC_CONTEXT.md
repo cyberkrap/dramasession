@@ -60,7 +60,9 @@ Current intended identity UI:
 - The avatar and username remain a single contiguous author link. Never reserve a house slot between the avatar and username.
 - Compact post-author profile pictures are intentionally nudged slightly upward to align with the username baseline; preserve that small alignment adjustment when changing metadata layout.
 - Comments use the same house/checkmark badge concept.
-- Do not add the house icon back to the large profile header or navbar unless the user explicitly asks; the current requested scope is post/comment identity.
+- The profile identity header also shows the user's house icon alongside the other identity icons/checkmark.
+- **Do not put the house icon in the navbar.**
+- `install_toc_ui_fixes()` mutates legacy templates before route/template use and must clear Jinja's compiled template/bytecode caches afterward. Otherwise a listing can retain an older compiled `post_meta` import while a full thread compiles the repaired macro, producing the exact bug where the house badge appears only after opening a post.
 
 ### House-exclusive awards
 
@@ -199,6 +201,8 @@ These modules must remain imported from `files/routes/__init__.py`. A previous f
 
 `files/helpers/community_stats.py` is the structured stats source. When economy reset rules change, preserve the distinction between current-state metrics (circulation) and resettable historical counters, while keeping reset bookkeeping out of user-facing labels.
 
+The activity charts use daily buckets for **30 days** and weekly buckets for **26 weeks**. They are interactive: moving the pointer across a chart snaps to the nearest bucket, shows a crosshair/point, and displays a compact tooltip with the full UTC date, exact value, and change versus the previous day/week. Keep this interaction lightweight and site-native rather than replacing Stats with oversized dashboard-card UI.
+
 ## Leaderboards
 
 Leaderboards follow the rDrama-style interaction pattern supplied by the user: **one leaderboard per page**, not every leaderboard stacked vertically on one giant page.
@@ -278,7 +282,7 @@ Potential Connections feature: link a TOC account to Reddit and let users opt in
 
 ### Shared media/chat ideas
 
-Earlier roadmap ideas include richer public-chat media/music experiences and movie-streaming/watch-party style features. They are concepts, not assumptions about current production functionality; inspect current code before treating them as implemented.
+Earlier roadmap ideas include richer public-chat media/music experiences and movie-streaming/watch-party style features. They are concepts, not assumptions about current production functionality; inspect current code before treating any of them as implemented.
 
 ## Maintenance note
 
