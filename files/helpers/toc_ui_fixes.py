@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import fcntl
-from flask import abort, g, has_request_context, render_template_string, request
+from flask import abort, g, has_request_context, render_template_string, request, session
 
 from files.__main__ import app
 from files.classes.submission import Submission
@@ -81,14 +81,9 @@ def _patch_post_identity() -> None:
     source = _MACROS_TEMPLATE.read_text(encoding="utf-8")
     original = source
 
-    # Undo the abandoned listing-only experiment if this helper ever runs over a
-    # previously mutated worktree.
     source = source.replace("{% macro post_meta(p, house_inline=false) %}", "{% macro post_meta(p) %}", 1)
     source = source.replace("{% if p.author.house and not house_inline %}", "{% if p.author.house %}")
 
-    # Resolve the house through a request-scoped authoritative fallback. The
-    # normal path is still the already-loaded User.house value, so this is cheap
-    # unless a listing author object is actually stale/empty.
     if "p.author | house_identity" not in source:
         source = source.replace(
             "{% if FEATURES['HOUSES'] and p.author.house %}",
@@ -110,8 +105,6 @@ def _patch_post_identity() -> None:
     source = source.replace(original_house, compact_house, 1)
     source = source.replace(old_compact_house, compact_house, 1)
 
-    # House and Verified are one compact badge group. Do not add Bootstrap's
-    # extra left margin between them when a house exists.
     source = source.replace(
         'class="fas fa-badge-check align-middle ml-1 {% if p.author.verified==\'Glowiefied\' %}glow{% endif %}"',
         'class="fas fa-badge-check align-middle {% if not author_house %}ml-1 {% endif %}{% if p.author.verified==\'Glowiefied\' %}glow{% endif %}"',
@@ -123,7 +116,6 @@ def _patch_post_identity() -> None:
         1,
     )
 
-    # The compact author avatar used to sit visibly below the username baseline.
     source = source.replace(
         '<div class="profile-pic-30-wrapper" style="margin-top:9px">',
         '<div class="profile-pic-30-wrapper" style="margin-top:2px">',
@@ -135,7 +127,6 @@ def _patch_post_identity() -> None:
         1,
     )
 
-    # Remove any stale inline/listing-only house block from an older runtime tree.
     stale_inline_start = '\t\t\t{% if p.author.house and house_inline %}\n'
     if stale_inline_start in source:
         start = source.index(stale_inline_start)
@@ -143,8 +134,6 @@ def _patch_post_identity() -> None:
         end = source.index(end_marker, start) + len(end_marker)
         source = source[:start] + source[end:]
 
-    # Do not allow another silent "deployed successfully" result if the expected
-    # post identity rewrite did not actually land in the runtime template.
     if "p.author | house_identity" not in source or "{{author_house | house_icon}}" not in source:
         raise RuntimeError("Post house identity normalization did not apply")
 
@@ -152,14 +141,7 @@ def _patch_post_identity() -> None:
 
 
 def _patch_submission_listing_macro_import() -> None:
-    """Stop post listings from shadowing the root template's repaired macros.
-
-    root.html already imports util/macros.html and passes that namespace through
-    includes. submission_listing.html historically imported the same file again,
-    which allowed the listing to hold a different compiled post_meta macro than a
-    full thread. Only import locally when this template is rendered standalone
-    (for example by the post_embed filter).
-    """
+    """Stop post listings from shadowing the root template's repaired macros."""
     source = _SUBMISSION_LISTING_TEMPLATE.read_text(encoding="utf-8")
     original = source
     unconditional = "{%- import 'util/macros.html' as macros with context -%}"
@@ -220,12 +202,6 @@ def _restore_profile_house_identity() -> None:
 
 
 def _clear_template_cache() -> None:
-    """Discard templates compiled before runtime source normalization.
-
-    This is important for submission_listing.html: a cached import of post_meta
-    could otherwise keep the old macro while a full thread compiled the repaired
-    version later, making house badges appear only after opening a post.
-    """
     app.jinja_env.cache.clear()
     bytecode_cache = app.jinja_env.bytecode_cache
     if bytecode_cache and hasattr(bytecode_cache, "clear"):
@@ -253,14 +229,15 @@ def install_toc_ui_fixes() -> None:
 
 @app.get("/admin/toc-house-debug")
 def toc_house_debug():
-    """Admin-only production probe for the stubborn listing/full-thread mismatch.
-
-    This intentionally reports only house/rendering state for a handful of posts;
-    it does not expose email, IP, auth, session, or other private account data.
-    """
-    viewer = getattr(g, "v", None)
+    """Admin-only production probe for the listing/full-thread mismatch."""
+    try:
+        viewer_id = int(session.get("lo_user") or 0)
+    except (TypeError, ValueError):
+        viewer_id = 0
+    viewer = g.db.get(User, viewer_id) if viewer_id else None
     if not viewer or not int(viewer.admin_level):
         abort(403)
+    viewer.client = None
 
     try:
         requested_post = int(request.args.get("post", 0) or 0)
