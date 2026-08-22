@@ -2,9 +2,10 @@ import os
 from pathlib import Path
 
 import fcntl
-from flask import g, has_request_context
+from flask import abort, g, has_request_context, render_template_string, request
 
 from files.__main__ import app
+from files.classes.submission import Submission
 from files.classes.user import User
 from files.helpers.config.awards import AWARDS, AWARDS_ENABLED
 from files.helpers.config.const import FEATURES
@@ -248,3 +249,72 @@ def install_toc_ui_fixes() -> None:
         _patch_comment_identity()
         _restore_profile_house_identity()
         _clear_template_cache()
+
+
+@app.get("/admin/toc-house-debug")
+def toc_house_debug():
+    """Admin-only production probe for the stubborn listing/full-thread mismatch.
+
+    This intentionally reports only house/rendering state for a handful of posts;
+    it does not expose email, IP, auth, session, or other private account data.
+    """
+    viewer = getattr(g, "v", None)
+    if not viewer or not int(viewer.admin_level):
+        abort(403)
+
+    try:
+        requested_post = int(request.args.get("post", 0) or 0)
+    except (TypeError, ValueError):
+        requested_post = 0
+
+    query = g.db.query(Submission)
+    if requested_post:
+        posts = query.filter(Submission.id == requested_post).all()
+    else:
+        posts = query.order_by(Submission.id.desc()).limit(12).all()
+
+    macro_source, _, _ = app.jinja_env.loader.get_source(app.jinja_env, "util/macros.html")
+    listing_source, _, _ = app.jinja_env.loader.get_source(app.jinja_env, "submission_listing.html")
+
+    rows = []
+    for post in posts:
+        loaded_house = str(getattr(post.author, "house", "") or "").strip() if post.author else ""
+        direct_house = str(
+            g.db.query(User.house).filter(User.id == post.author_id).scalar() or ""
+        ).strip()
+        resolved_house = house_identity(post.author)
+
+        try:
+            rendered_meta = render_template_string(
+                "{% import 'util/macros.html' as macros with context %}{{ macros.post_meta(p) }}",
+                p=post,
+                v=viewer,
+            )
+            rendered_has_icon = "house-user-icon" in rendered_meta
+            rendered_has_house_alt = bool(resolved_house and f"House {resolved_house}" in rendered_meta)
+        except Exception as exc:
+            rendered_has_icon = False
+            rendered_has_house_alt = False
+            rendered_meta = f"render-error:{type(exc).__name__}:{exc}"
+
+        rows.append({
+            "post_id": post.id,
+            "title": post.title,
+            "author_id": post.author_id,
+            "author": post.author.username if post.author else None,
+            "loaded_house": loaded_house,
+            "direct_db_house": direct_house,
+            "resolved_house": resolved_house,
+            "rendered_has_house_icon": rendered_has_icon,
+            "rendered_has_house_alt": rendered_has_house_alt,
+            "meta_excerpt": rendered_meta[:700],
+        })
+
+    return {
+        "features_houses": bool(FEATURES.get("HOUSES")),
+        "macro_source_has_house_identity": "p.author | house_identity" in macro_source,
+        "macro_source_has_house_user_icon": "house-user-icon" in macro_source,
+        "listing_uses_conditional_macro_import": listing_source.startswith("{% if macros is not defined -%}"),
+        "jinja_cache_entries": len(app.jinja_env.cache),
+        "posts": rows,
+    }
