@@ -50,15 +50,17 @@ For rDrama-inspired work, do not independently clone/scrape current rDrama behav
 
 House membership is a real stored user property (`User.house`). Current base houses are Furry, Femboy, Vampire and Racist, with `... Founder` variants stored on users where applicable.
 
-Canonical house artwork is present in the repository under `files/assets/images/rDrama/houses/`. TOC now also carries the four base house assets under `files/assets/images/Obsession/houses/` so the existing `house_icon` filter can serve real TOC URLs instead of silently falling back to the default profile image.
+Canonical house artwork is present in the repository under `files/assets/images/rDrama/houses/`. TOC also carries the four base house assets under `files/assets/images/Obsession/houses/` so the existing `house_icon` filter can serve real TOC URLs instead of silently falling back to the default profile image.
 
 Current intended identity UI:
 
 - House identity behaves like another small account badge/checkmark: it is visible with post/comment author identity.
-- Homepage/board/profile post listings use the same metadata-badge placement as full threads: the house icon sits with the other badges before the avatar/username, rather than consuming space between avatar and username.
-- Full post threads and comments also show the house marker.
+- **All post surfaces use the same `post_meta` house marker**: homepage, board feeds, profile post listings and full post threads. Do not create a separate listing-only/in-avatar house implementation.
+- The house icon sits with the other metadata badges immediately before the verified checkmark; keep that pair compact and do not leave an oversized gap.
+- The avatar and username remain a single contiguous author link. Never reserve a house slot between the avatar and username.
+- Compact post-author profile pictures are intentionally nudged slightly upward to align with the username baseline; preserve that small alignment adjustment when changing metadata layout.
+- Comments use the same house/checkmark badge concept.
 - Do not add the house icon back to the large profile header or navbar unless the user explicitly asks; the current requested scope is post/comment identity.
-- Compact house icons use tight ~20px geometry. Never leave a blank reserved house slot between avatar and username.
 
 ### House-exclusive awards
 
@@ -172,12 +174,13 @@ The user explicitly requested a clean historical baseline after development/test
 Canonical reset behavior is defined through `files/helpers/bank_statement_noise_fixes.py` with UTC cutoff **1787360340**:
 
 - This is **not a balance wipe**. Current user Wishcoin/Wishbux balances remain real.
-- Current circulation rows on `/stats` therefore remain current-state totals and are labeled as such.
-- Cumulative shop spend and hat spend use persisted database baselines so `/stats` shows spend **since reset** without destroying users' underlying lifetime counters.
+- Current circulation rows on `/stats` therefore remain current-state totals.
+- Cumulative shop spend and hat spend use persisted database baselines so public stats can start from the clean baseline without destroying users' underlying lifetime counters.
 - Casino stats on `/stats` only include completed Blackjack, Slots and Roulette games at/after the reset cutoff.
 - Casino `paid out` stats count positive player winnings only; old code incorrectly summed negative losses into payout totals and could display negative payouts.
 - `@banman`'s pre-reset `economy_ledger` rows are deleted once via a migration key, so his Bank Statement starts clean while his balance is unchanged and future transactions continue recording normally.
-- Stats cache versioning must be bumped when changing reset semantics so stale pre-reset snapshots do not survive deployment.
+- The reset/baseline mechanism is implementation detail: **public `/stats` labels must not say “since reset.”**
+- Stats cache versioning must be bumped when changing reset semantics so stale snapshots do not survive deployment.
 
 ### Casino winner/loser reset
 
@@ -194,7 +197,7 @@ The live TOC stats controller is `files/routes/site_stats.py`; it intentionally 
 
 These modules must remain imported from `files/routes/__init__.py`. A previous failure created the files but never imported them, leaving `/stats` on the legacy controller.
 
-`files/helpers/community_stats.py` is the structured stats source. When economy reset rules change, update its cache version and preserve the distinction between current-state metrics (circulation) and resettable historical counters.
+`files/helpers/community_stats.py` is the structured stats source. When economy reset rules change, preserve the distinction between current-state metrics (circulation) and resettable historical counters, while keeping reset bookkeeping out of user-facing labels.
 
 ## Leaderboards
 
