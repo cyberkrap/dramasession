@@ -30,7 +30,7 @@
 		{% for chart in trends.charts %}
 			<article class="toc-chart"
 				data-chart-label="{{chart.label}}"
-				data-chart-values="{{chart.values|join(',')}}"
+				data-chart-values="{{chart['values']|join(',')}}"
 				data-chart-start="{{trends.start_utc}}"
 				data-chart-step="{{trends.bucket_seconds}}"
 				data-chart-bucket="{{trends.bucket_name}}">

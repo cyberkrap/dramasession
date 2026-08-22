@@ -10,6 +10,7 @@ from files.helpers.config.const import FEATURES
 
 _LOCK_PATH = "/tmp/obsession-toc-ui-fixes.lock"
 _MACROS_TEMPLATE = Path("files/templates/util/macros.html")
+_SUBMISSION_LISTING_TEMPLATE = Path("files/templates/submission_listing.html")
 _COMMENTS_TEMPLATE = Path("files/templates/comments.html")
 _PROFILE_BANNER_TEMPLATE = Path("files/templates/userpage/banner.html")
 
@@ -82,6 +83,28 @@ def _patch_post_identity() -> None:
     _write_if_changed(_MACROS_TEMPLATE, original, source)
 
 
+def _patch_submission_listing_macro_import() -> None:
+    """Stop post listings from shadowing the root template's repaired macros.
+
+    root.html already imports util/macros.html and passes that namespace through
+    includes. submission_listing.html historically imported the same file again,
+    which allowed the listing to hold a different compiled post_meta macro than a
+    full thread. Only import locally when this template is rendered standalone
+    (for example by the post_embed filter).
+    """
+    source = _SUBMISSION_LISTING_TEMPLATE.read_text(encoding="utf-8")
+    original = source
+    unconditional = "{%- import 'util/macros.html' as macros with context -%}"
+    conditional = (
+        "{% if macros is not defined -%}\n"
+        "{%- import 'util/macros.html' as macros with context -%}\n"
+        "{%- endif %}"
+    )
+    if source.startswith(unconditional):
+        source = conditional + source[len(unconditional):]
+    _write_if_changed(_SUBMISSION_LISTING_TEMPLATE, original, source)
+
+
 def _patch_comment_identity() -> None:
     """Keep comment house/checkmark spacing consistent with post identity."""
     source = _COMMENTS_TEMPLATE.read_text(encoding="utf-8")
@@ -150,6 +173,7 @@ def install_toc_ui_fixes() -> None:
     with open(_LOCK_PATH, "w", encoding="utf-8") as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
         _patch_post_identity()
+        _patch_submission_listing_macro_import()
         _patch_comment_identity()
         _restore_profile_house_identity()
         _clear_template_cache()
