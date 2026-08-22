@@ -2,8 +2,10 @@ import os
 from pathlib import Path
 
 import fcntl
+from flask import g, has_request_context
 
 from files.__main__ import app
+from files.classes.user import User
 from files.helpers.config.awards import AWARDS, AWARDS_ENABLED
 from files.helpers.config.const import FEATURES
 
@@ -17,6 +19,44 @@ _PROFILE_BANNER_TEMPLATE = Path("files/templates/userpage/banner.html")
 # House identity is a compact metadata badge, like Verified. Keep it out of the
 # avatar/username spacing and keep the house/checkmark pair visually tight.
 _HOUSE_ICON_STYLE = "width:20px;height:20px;display:inline-block!important;object-fit:contain;vertical-align:middle;margin-right:-2px"
+
+
+@app.template_filter("house_identity")
+def house_identity(user):
+    """Return the authoritative house for an identity row.
+
+    Normally ``user.house`` is already loaded. Post listings have nevertheless
+    shown a production-only failure mode where the eager-loaded author object has
+    an empty/stale house while opening the same thread lazy-loads the correct
+    value. If that happens, read the scalar column directly from the database and
+    cache the result for the remainder of the request. This avoids both a silent
+    missing badge and an N+1 query when several posts share the same author.
+    """
+    if not user:
+        return ""
+
+    house = str(getattr(user, "house", "") or "").strip()
+    if house:
+        return house
+
+    if not has_request_context() or not hasattr(g, "db"):
+        return ""
+
+    user_id = getattr(user, "id", None)
+    if not user_id:
+        return ""
+
+    cache = getattr(g, "_toc_house_identity_cache", None)
+    if cache is None:
+        cache = {}
+        g._toc_house_identity_cache = cache
+
+    if user_id not in cache:
+        cache[user_id] = str(
+            g.db.query(User.house).filter(User.id == user_id).scalar() or ""
+        ).strip()
+
+    return cache[user_id]
 
 
 def _atomic_write(path: Path, content: str) -> None:
@@ -44,11 +84,28 @@ def _patch_post_identity() -> None:
     # previously mutated worktree.
     source = source.replace("{% macro post_meta(p, house_inline=false) %}", "{% macro post_meta(p) %}", 1)
     source = source.replace("{% if p.author.house and not house_inline %}", "{% if p.author.house %}")
-    source = source.replace("{% if FEATURES['HOUSES'] and p.author.house %}", "{% if p.author.house %}", 1)
 
-    original_house = '\t\t\t<img loading="lazy" src="{{p.author.house | house_icon}}" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{p.author.house}}" alt="House {{p.author.house}}">'
-    old_compact_house = '\t\t\t<img loading="lazy" class="house-user-icon" src="{{p.author.house | house_icon}}" width="20" height="20" style="width:20px;height:20px;display:inline-block!important;object-fit:contain;vertical-align:middle;margin-right:-2px" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{p.author.house}}" alt="House {{p.author.house}}">'
-    compact_house = '\t\t\t<img loading="lazy" class="house-user-icon" src="{{p.author.house | house_icon}}" width="20" height="20" style="' + _HOUSE_ICON_STYLE + '" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{p.author.house}}" alt="House {{p.author.house}}">'
+    # Resolve the house through a request-scoped authoritative fallback. The
+    # normal path is still the already-loaded User.house value, so this is cheap
+    # unless a listing author object is actually stale/empty.
+    if "p.author | house_identity" not in source:
+        source = source.replace(
+            "{% if FEATURES['HOUSES'] and p.author.house %}",
+            "{% set author_house = p.author | house_identity %}\n\t\t{% if author_house %}",
+            1,
+        )
+        source = source.replace(
+            "{% if p.author.house %}",
+            "{% set author_house = p.author | house_identity %}\n\t\t{% if author_house %}",
+            1,
+        )
+
+    source = source.replace("{{p.author.house | house_icon}}", "{{author_house | house_icon}}", 1)
+    source = source.replace("House {{p.author.house}}", "House {{author_house}}", 2)
+
+    original_house = '\t\t\t<img loading="lazy" src="{{author_house | house_icon}}" height="20" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{author_house}}" alt="House {{author_house}}">'
+    old_compact_house = '\t\t\t<img loading="lazy" class="house-user-icon" src="{{author_house | house_icon}}" width="20" height="20" style="width:20px;height:20px;display:inline-block!important;object-fit:contain;vertical-align:middle;margin-right:-2px" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{author_house}}" alt="House {{author_house}}">'
+    compact_house = '\t\t\t<img loading="lazy" class="house-user-icon" src="{{author_house | house_icon}}" width="20" height="20" style="' + _HOUSE_ICON_STYLE + '" data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{author_house}}" alt="House {{author_house}}">'
     source = source.replace(original_house, compact_house, 1)
     source = source.replace(old_compact_house, compact_house, 1)
 
@@ -56,7 +113,12 @@ def _patch_post_identity() -> None:
     # extra left margin between them when a house exists.
     source = source.replace(
         'class="fas fa-badge-check align-middle ml-1 {% if p.author.verified==\'Glowiefied\' %}glow{% endif %}"',
-        'class="fas fa-badge-check align-middle {% if not p.author.house %}ml-1 {% endif %}{% if p.author.verified==\'Glowiefied\' %}glow{% endif %}"',
+        'class="fas fa-badge-check align-middle {% if not author_house %}ml-1 {% endif %}{% if p.author.verified==\'Glowiefied\' %}glow{% endif %}"',
+        1,
+    )
+    source = source.replace(
+        "{% if not p.author.house %}ml-1 {% endif %}",
+        "{% if not author_house %}ml-1 {% endif %}",
         1,
     )
 
@@ -80,6 +142,11 @@ def _patch_post_identity() -> None:
         end = source.index(end_marker, start) + len(end_marker)
         source = source[:start] + source[end:]
 
+    # Do not allow another silent "deployed successfully" result if the expected
+    # post identity rewrite did not actually land in the runtime template.
+    if "p.author | house_identity" not in source or "{{author_house | house_icon}}" not in source:
+        raise RuntimeError("Post house identity normalization did not apply")
+
     _write_if_changed(_MACROS_TEMPLATE, original, source)
 
 
@@ -102,6 +169,10 @@ def _patch_submission_listing_macro_import() -> None:
     )
     if source.startswith(unconditional):
         source = conditional + source[len(unconditional):]
+
+    if not source.startswith(conditional):
+        raise RuntimeError("Submission listing still owns an unconditional macro import")
+
     _write_if_changed(_SUBMISSION_LISTING_TEMPLATE, original, source)
 
 
