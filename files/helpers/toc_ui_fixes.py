@@ -24,15 +24,7 @@ _HOUSE_ICON_STYLE = "width:20px;height:20px;display:inline-block!important;objec
 
 @app.template_filter("house_identity")
 def house_identity(user):
-    """Return the authoritative house for an identity row.
-
-    Normally ``user.house`` is already loaded. Post listings have nevertheless
-    shown a production-only failure mode where the eager-loaded author object has
-    an empty/stale house while opening the same thread lazy-loads the correct
-    value. If that happens, read the scalar column directly from the database and
-    cache the result for the remainder of the request. This avoids both a silent
-    missing badge and an N+1 query when several posts share the same author.
-    """
+    """Return the authoritative house for an identity row."""
     if not user:
         return ""
 
@@ -72,27 +64,42 @@ def _write_if_changed(path: Path, original: str, updated: str) -> None:
 
 
 def _patch_post_identity() -> None:
-    """Keep one global post-author identity layout across every post surface.
+    """Render house identity on both full threads and compact post listings.
 
-    Homepage, board feeds, profile post listings and full threads all render the
-    same post_meta macro. House identity therefore lives in that macro beside the
-    native Verified badge; there is no listing-only house implementation.
+    Compact listings render metadata inside a zero-width horizontal-scroll
+    wrapper. A standalone image before the author link can disappear there even
+    while the same image is visible on a full thread. The repository previously
+    solved this exact production bug by rendering the house marker *inside* the
+    author link for listings. A later cleanup mistakenly removed that proven
+    listing-specific path. Restore it while keeping one authoritative house value.
     """
     source = _MACROS_TEMPLATE.read_text(encoding="utf-8")
     original = source
 
-    source = source.replace("{% macro post_meta(p, house_inline=false) %}", "{% macro post_meta(p) %}", 1)
-    source = source.replace("{% if p.author.house and not house_inline %}", "{% if p.author.house %}")
+    # Macro accepts an explicit listing mode again. This is intentional: the
+    # listing container behaves differently from the full-thread metadata row.
+    source = source.replace(
+        "{% macro post_meta(p) %}",
+        "{% macro post_meta(p, house_inline=false) %}",
+        1,
+    )
 
+    # Resolve one authoritative house value for both rendering paths.
     if "p.author | house_identity" not in source:
         source = source.replace(
             "{% if FEATURES['HOUSES'] and p.author.house %}",
-            "{% set author_house = p.author | house_identity %}\n\t\t{% if author_house %}",
+            "{% set author_house = p.author | house_identity %}\n\t\t{% if author_house and not house_inline %}",
             1,
         )
         source = source.replace(
             "{% if p.author.house %}",
-            "{% set author_house = p.author | house_identity %}\n\t\t{% if author_house %}",
+            "{% set author_house = p.author | house_identity %}\n\t\t{% if author_house and not house_inline %}",
+            1,
+        )
+    else:
+        source = source.replace(
+            "{% if author_house %}",
+            "{% if author_house and not house_inline %}",
             1,
         )
 
@@ -105,6 +112,7 @@ def _patch_post_identity() -> None:
     source = source.replace(original_house, compact_house, 1)
     source = source.replace(old_compact_house, compact_house, 1)
 
+    # House and Verified are one compact badge group on full threads.
     source = source.replace(
         'class="fas fa-badge-check align-middle ml-1 {% if p.author.verified==\'Glowiefied\' %}glow{% endif %}"',
         'class="fas fa-badge-check align-middle {% if not author_house %}ml-1 {% endif %}{% if p.author.verified==\'Glowiefied\' %}glow{% endif %}"',
@@ -115,6 +123,22 @@ def _patch_post_identity() -> None:
         "{% if not author_house %}ml-1 {% endif %}",
         1,
     )
+
+    # Listing-safe marker: put the image inside the author link so the zero-width
+    # metadata wrapper cannot clip it away. Insert it before the compact avatar.
+    if 'class="house-user-icon house-inline-user-icon"' not in source:
+        avatar_marker = '\t\t\t<div class="profile-pic-30-wrapper"'
+        marker_index = source.find(avatar_marker)
+        if marker_index < 0:
+            raise RuntimeError("Could not locate compact post author avatar")
+        inline_icon = (
+            '\t\t\t{% if author_house and house_inline %}\n'
+            '\t\t\t\t<img loading="lazy" class="house-user-icon house-inline-user-icon" '
+            'src="{{author_house | house_icon}}" width="20" height="20" style="' + _HOUSE_ICON_STYLE + '" '
+            'data-bs-toggle="tooltip" data-bs-placement="bottom" title="House {{author_house}}" alt="House {{author_house}}">\n'
+            '\t\t\t{% endif %}\n'
+        )
+        source = source[:marker_index] + inline_icon + source[marker_index:]
 
     source = source.replace(
         '<div class="profile-pic-30-wrapper" style="margin-top:9px">',
@@ -127,23 +151,21 @@ def _patch_post_identity() -> None:
         1,
     )
 
-    stale_inline_start = '\t\t\t{% if p.author.house and house_inline %}\n'
-    if stale_inline_start in source:
-        start = source.index(stale_inline_start)
-        end_marker = '\t\t\t{% endif %}\n'
-        end = source.index(end_marker, start) + len(end_marker)
-        source = source[:start] + source[end:]
-
-    if "p.author | house_identity" not in source or "{{author_house | house_icon}}" not in source:
-        raise RuntimeError("Post house identity normalization did not apply")
+    if "{% macro post_meta(p, house_inline=false) %}" not in source:
+        raise RuntimeError("Post metadata did not become listing-aware")
+    if "author_house and not house_inline" not in source:
+        raise RuntimeError("Standalone post house marker was not scoped to full threads")
+    if "author_house and house_inline" not in source:
+        raise RuntimeError("Inline post listing house marker was not installed")
 
     _write_if_changed(_MACROS_TEMPLATE, original, source)
 
 
 def _patch_submission_listing_macro_import() -> None:
-    """Stop post listings from shadowing the root template's repaired macros."""
+    """Use the listing-safe house rendering mode everywhere posts are listed."""
     source = _SUBMISSION_LISTING_TEMPLATE.read_text(encoding="utf-8")
     original = source
+
     unconditional = "{%- import 'util/macros.html' as macros with context -%}"
     conditional = (
         "{% if macros is not defined -%}\n"
@@ -153,8 +175,16 @@ def _patch_submission_listing_macro_import() -> None:
     if source.startswith(unconditional):
         source = conditional + source[len(unconditional):]
 
+    source = source.replace(
+        "{{ macros.post_meta(p) }}",
+        "{{ macros.post_meta(p, true) }}",
+        1,
+    )
+
     if not source.startswith(conditional):
         raise RuntimeError("Submission listing still owns an unconditional macro import")
+    if "{{ macros.post_meta(p, true) }}" not in source:
+        raise RuntimeError("Submission listing did not enable inline house identity")
 
     _write_if_changed(_SUBMISSION_LISTING_TEMPLATE, original, source)
 
@@ -262,17 +292,19 @@ def toc_house_debug():
         resolved_house = house_identity(post.author)
 
         try:
-            rendered_meta = render_template_string(
-                "{% import 'util/macros.html' as macros with context %}{{ macros.post_meta(p) }}",
+            rendered_full_meta = render_template_string(
+                "{% import 'util/macros.html' as macros with context %}{{ macros.post_meta(p, false) }}",
                 p=post,
                 v=viewer,
             )
-            rendered_has_icon = "house-user-icon" in rendered_meta
-            rendered_has_house_alt = bool(resolved_house and f"House {resolved_house}" in rendered_meta)
+            rendered_listing_meta = render_template_string(
+                "{% import 'util/macros.html' as macros with context %}{{ macros.post_meta(p, true) }}",
+                p=post,
+                v=viewer,
+            )
         except Exception as exc:
-            rendered_has_icon = False
-            rendered_has_house_alt = False
-            rendered_meta = f"render-error:{type(exc).__name__}:{exc}"
+            rendered_full_meta = f"render-error:{type(exc).__name__}:{exc}"
+            rendered_listing_meta = rendered_full_meta
 
         rows.append({
             "post_id": post.id,
@@ -282,16 +314,18 @@ def toc_house_debug():
             "loaded_house": loaded_house,
             "direct_db_house": direct_house,
             "resolved_house": resolved_house,
-            "rendered_has_house_icon": rendered_has_icon,
-            "rendered_has_house_alt": rendered_has_house_alt,
-            "meta_excerpt": rendered_meta[:700],
+            "full_meta_has_house_icon": "house-user-icon" in rendered_full_meta,
+            "listing_meta_has_inline_house_icon": "house-inline-user-icon" in rendered_listing_meta,
+            "full_meta_has_house_alt": bool(resolved_house and f"House {resolved_house}" in rendered_full_meta),
+            "listing_meta_has_house_alt": bool(resolved_house and f"House {resolved_house}" in rendered_listing_meta),
+            "listing_meta_excerpt": rendered_listing_meta[:800],
         })
 
     return {
         "features_houses": bool(FEATURES.get("HOUSES")),
-        "macro_source_has_house_identity": "p.author | house_identity" in macro_source,
-        "macro_source_has_house_user_icon": "house-user-icon" in macro_source,
-        "listing_uses_conditional_macro_import": listing_source.startswith("{% if macros is not defined -%}"),
+        "macro_source_is_listing_aware": "post_meta(p, house_inline=false)" in macro_source,
+        "macro_source_has_inline_house_icon": "house-inline-user-icon" in macro_source,
+        "listing_calls_inline_house_mode": "macros.post_meta(p, true)" in listing_source,
         "jinja_cache_entries": len(app.jinja_env.cache),
         "posts": rows,
     }
