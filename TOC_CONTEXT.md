@@ -39,7 +39,8 @@ For rDrama-inspired work, do not independently clone/scrape current rDrama behav
 
 - Fix the real implementation instead of stacking blind CSS/JS band-aids on top of an unknown cause.
 - Preserve TOC-specific behavior while fixing narrow bugs.
-- Inspect current file content before writing; GitHub content writes require the current blob SHA and complete replacement content.
+- Inspect current file content before writing.
+- Prefer a single consolidated commit for one requested fix batch; avoid bursts of tiny Railway-triggering commits.
 - Verify production-facing changes after committing and check Railway status rather than assuming a commit deployed successfully.
 - Runtime source-repair helpers exist because this fork still contains large legacy files. Do not reactivate an older competing implementation merely because a helper looks unusual; first understand why it exists.
 
@@ -47,13 +48,30 @@ For rDrama-inspired work, do not independently clone/scrape current rDrama behav
 
 ### Houses
 
-House membership is a real stored user property (`User.house`) and TOC has house assets under `files/assets/images/Obsession/houses/` for Femboy, Furry, Racist and Vampire. House UI must remain enabled; disabling the `HOUSES` feature flag hides existing memberships without deleting them.
+House membership is a real stored user property (`User.house`). Current base houses are Furry, Femboy, Vampire and Racist, with `... Founder` variants stored on users where applicable.
 
-Current intended UI:
+Canonical house artwork is present in the repository under `files/assets/images/rDrama/houses/`. TOC now also carries the four base house assets under `files/assets/images/Obsession/houses/` so the existing `house_icon` filter can serve real TOC URLs instead of silently falling back to the default profile image.
 
-- House icons render beside users where house identity is shown.
-- The logged-in navbar identity block also shows the user's house icon beside the username.
-- The navbar profile picture is aligned slightly upward so the avatar/hat stack lines up visually with the username plate.
+Current intended identity UI:
+
+- House identity behaves like another small account badge/checkmark: it is visible with post/comment author identity.
+- Homepage/board/profile post listings use the same metadata-badge placement as full threads: the house icon sits with the other badges before the avatar/username, rather than consuming space between avatar and username.
+- Full post threads and comments also show the house marker.
+- Do not add the house icon back to the large profile header or navbar unless the user explicitly asks; the current requested scope is post/comment identity.
+- Compact house icons use tight ~20px geometry. Never leave a blank reserved house slot between avatar and username.
+
+### House-exclusive awards
+
+`files/helpers/house_system.py` is installed during startup and is the canonical house-award mapping layer.
+
+Intended access:
+
+- **Furry → OwOify**
+- **Femboy → Rainbow**
+- **Racist → Early Life**
+- **Vampire → no house-exclusive award currently**
+
+Founder variants get the same house award with the existing founder discount. OwOify/Rainbow are not supposed to remain globally available to users outside the corresponding house. The Racist house-facing award title is **Early Life**.
 
 ### Username effects / patron rendering
 
@@ -83,13 +101,9 @@ Intended V1 behavior:
 - Imported content must not accidentally trigger ordinary human progression/reward hooks or unrelated bots.
 - TOC-side deduplication/mapping exists.
 
-External blocker: as of 2026-08-17, Reddit Developer Portal still showed the HTTP Fetch domain exception for `theobsessionclub.com` as **Pending**. Re-check the real status before assuming this remains pending later.
+External blocker at the last confirmed checkpoint: Reddit Developer Portal still showed the HTTP Fetch domain exception for `theobsessionclub.com` as pending. Re-check the real status before assuming this remains pending later.
 
 Possible later account-link behavior: a user may connect Reddit to TOC and explicitly opt in to mirroring their `r/obsessionmovie` posts directly onto their own TOC account instead of Snatchy.
-
-### Bot admin controls
-
-Supported native bots can be enabled/disabled and given daily post/comment limits. Usage counting is enforced on supported publication paths, and bot profile controls live with profile moderation rather than in a disconnected duplicate UI.
 
 ## Admin roles and permissions
 
@@ -131,7 +145,7 @@ Admin Home exposes persistent authenticated **User Activity**.
 - Anonymous traffic is not assigned to an account history.
 - Session/activity visibility is Senior-or-higher by preset.
 
-The user rejected a large card-style redesign of the activity list; the simpler table-oriented UI was restored. Avoid reintroducing oversized sparse activity cards without an explicit request.
+The user rejected a large card-style redesign of the activity list; the simpler table-oriented UI was restored.
 
 ## Economy, Bank Statement and gifting
 
@@ -145,11 +159,42 @@ Important invariants:
 - Hat and username-effect gifting are supported.
 - `/transfers` formats amounts with thousands separators, including historical rendered rows.
 
-### Bank Statement noise rule
+### Bank Statement
 
-Automatic **+1 Wishcoin contribution credits** associated with creating a post/comment are not meaningful user-facing banking transactions. The real +1 reward may still affect the live balance, but those rows must not clutter Bank Statement. Historical matching contribution-credit rows are removed/hidden and future statement queries exclude them. Do not convert them back into generic `Balance credit` rows.
+The PostgreSQL `economy_ledger` trigger is authoritative for meaningful balance changes.
 
-The immutable economy ledger remains authoritative for meaningful balance changes; caller/request metadata is used to classify awards, gifts, shop purchases, casino activity, patron rewards, etc.
+Automatic **+1 Wishcoin contribution/vote bookkeeping credits** are not meaningful user-facing banking transactions. The live balance change may remain, but those rows must not clutter Bank Statement. Historical matching rows are purged/hidden and future statement queries exclude them.
+
+### Economy-history reset — 2026-08-22
+
+The user explicitly requested a clean historical baseline after development/testing transfers and casino play polluted public stats.
+
+Canonical reset behavior is defined through `files/helpers/bank_statement_noise_fixes.py` with UTC cutoff **1787360340**:
+
+- This is **not a balance wipe**. Current user Wishcoin/Wishbux balances remain real.
+- Current circulation rows on `/stats` therefore remain current-state totals and are labeled as such.
+- Cumulative shop spend and hat spend use persisted database baselines so `/stats` shows spend **since reset** without destroying users' underlying lifetime counters.
+- Casino stats on `/stats` only include completed Blackjack, Slots and Roulette games at/after the reset cutoff.
+- Casino `paid out` stats count positive player winnings only; old code incorrectly summed negative losses into payout totals and could display negative payouts.
+- `@banman`'s pre-reset `economy_ledger` rows are deleted once via a migration key, so his Bank Statement starts clean while his balance is unchanged and future transactions continue recording normally.
+- Stats cache versioning must be bumped when changing reset semantics so stale pre-reset snapshots do not survive deployment.
+
+### Casino winner/loser reset
+
+`files/helpers/casino.py` uses the same 2026-08-22 cutoff for **all three games**: Blackjack, Slots and Roulette.
+
+- All-Time biggest winner / biggest loser cards start fresh from the reset cutoff.
+- 24-hour cards also respect the reset cutoff.
+- Historical `CasinoGame` rows are retained for audit/history/user stats; the reset is eligibility/filtering, not destructive deletion.
+- Do not accidentally revert Roulette to lifetime history while Slots/Blackjack use the reset.
+
+## Site Statistics and Houses pages
+
+The live TOC stats controller is `files/routes/site_stats.py`; it intentionally replaces the legacy `/stats` endpoint after `static.py` registers the old route. `files/routes/house_pages.py` registers `/houses`, `/house/<house>` and `/houses/<house>`.
+
+These modules must remain imported from `files/routes/__init__.py`. A previous failure created the files but never imported them, leaving `/stats` on the legacy controller.
+
+`files/helpers/community_stats.py` is the structured stats source. When economy reset rules change, update its cache version and preserve the distinction between current-state metrics (circulation) and resettable historical counters.
 
 ## Leaderboards
 
@@ -163,29 +208,20 @@ Canonical structure:
 - Numeric values use thousands separators.
 - The viewer's own row is shown below the Top 25 when they are outside the ranking.
 
-Current TOC metrics include the existing Coins/Spent/Truescore/Followers/Posts/Comments/Awards/Badges/Blocked/Hats boards plus:
-
-- **Wishbux**
-- **Designed hats**
-- **Emojis made** (approved authored emotes)
-- **Upvotes given** (post + comment upvotes)
-- **Downvotes received** (post + comment downvotes received)
-
-`/leaderboard/marseybux` may remain as a compatibility alias but TOC's public currency name is Wishbux.
+Current TOC metrics include the existing Coins/Spent/Truescore/Followers/Posts/Comments/Awards/Badges/Blocked/Hats boards plus Wishbux, Designed hats, Emojis made, Upvotes given and Downvotes received. `/leaderboard/marseybux` may remain as a compatibility alias but TOC's public currency name is Wishbux.
 
 ## Awards
 
-TOC awards are modernized incrementally from user specifications. Preserve internal legacy keys where they are required for historical rows/mechanics while exposing TOC-facing names.
+TOC awards are modernized incrementally from user specifications. Preserve internal legacy keys where required for historical rows/mechanics while exposing TOC-facing names.
 
-### Shop naming
+### Naming
 
-The user-facing `ban` and `unban` award titles are simply **Ban** and **Unban**. Their internal keys and 1-day mechanics remain unchanged; do not rename the internal ban-reason strings used to recognize award-issued bans unless the mechanic itself is being migrated.
-
-The legacy `agendaposter` award is publicly **Chud** with the intended 24-hour Chud behavior.
+- User-facing `ban` / `unban` titles are **Ban** / **Unban**.
+- Legacy `agendaposter` is publicly **Chud** with the intended 24-hour Chud behavior.
 
 ### Award effect renderer
 
-`files/assets/js/award_effects.js` is intentionally disabled/no-op. `files/assets/js/award_effects_requested.js` is the sole current renderer. Do not casually reactivate the legacy renderer; competing renderers previously moved/deleted one another's nodes and broke effects.
+`files/assets/js/award_effects.js` is intentionally disabled/no-op. `files/assets/js/award_effects_requested.js` is the sole current renderer. Do not casually reactivate the legacy renderer.
 
 Effect rules:
 
@@ -209,11 +245,11 @@ Effect rules:
 - Award pin tooltip attribution must identify the actual giver and stable expiry/source, e.g. `Pinned by @name (Giga pin award) until ...`.
 - Manual/admin pin attribution should identify the admin rather than degrading to `Pinned by (a site admin)`.
 - Admin actions expose explicit `Pin for 1 hour` and `Pin permanently` choices.
-- Pin awards stack by duration. Each normal Pin adds its configured duration; each Giga Pin adds another full Giga duration. For posts, 4 Giga Pins means 4 × 12 hours = 48 hours. Concurrent/batched awards must not lose increments.
+- Pin awards stack by duration. Each normal Pin adds its configured duration; each Giga Pin adds another full Giga duration. For posts, 4 Giga Pins means 48 hours.
 
 ### Clear Awards
 
-Admins have a **Clear Awards** moderation action for posts/comments. It removes every award relationship on that exact target, does not refund historical payouts, clears an award-created live pin where appropriate, invalidates relevant caches and records a mod action. The supported broom icon (`fa-broom`) is used in both the dropdown and moderation log.
+Admins have a **Clear Awards** moderation action for posts/comments. It removes every award relationship on that exact target, does not refund historical payouts, clears an award-created live pin where appropriate, invalidates relevant caches and records a mod action. Use the supported `fa-broom` icon in both dropdown and moderation log.
 
 ## Media / composer
 
@@ -221,35 +257,25 @@ Recent work includes comment composer media cleanup, chat GIF support, multi-ima
 
 ## Future plans / pending implementation
 
-This section is for unresolved future work only. Move/remove entries when implemented or abandoned.
-
 ### Bleed-inspired TOC activity/utility bot — planned concept
 
-The user wants to return to an all-in-one **activity/utility/entertainment bot inspired by Bleed's breadth**, not another moderation bot. Do not copy Bleed's private code/branding/assets; recreate useful capabilities as TOC-native features.
+The user wants to return to an all-in-one activity/utility/entertainment bot inspired by Bleed's breadth, not another moderation bot. Do not copy Bleed's private code/branding/assets; recreate useful capabilities as TOC-native features.
 
-Candidate scope discussed so far:
+Candidate scope includes Last.fm/Spotify-style activity, trivia/chat games, levels/streaks, snipe/edit-history utilities with sensible retention/privacy, general media/utility commands, social integrations, automated activity feeds, giveaways/counters/scheduled activity and custom response/command concepts.
 
-- Last.fm / Spotify-style music activity and now-playing/profile stats.
-- Trivia and chat games.
-- Levels/streaks/leaderboards tied into TOC where appropriate.
-- Snipe/edit-history style chat utilities subject to sensible retention/privacy boundaries.
-- General utility/media commands.
-- Social/account integrations and automated activity feeds.
-- Giveaways, counters, scheduled activity and custom response/command concepts.
+This is deferred until current site fixes are complete.
 
-This is explicitly deferred for now; the user said to return to it after current site fixes.
+### Snatchy external approval
 
-### Snatchy external approval — pending external dependency
+Reddit HTTP Fetch approval/domain exception was pending at the last confirmed checkpoint. Do not churn TOC importer code merely to poke the external review; re-check current status when resuming.
 
-Reddit HTTP Fetch approval/domain exception was still pending at last check. Do not churn TOC-side importer code merely to poke the external review. Re-check current status when resuming Snatchy work.
+### Reddit account linking / opt-in mirroring
 
-### Reddit account linking / opt-in mirroring — future
+Potential Connections feature: link a TOC account to Reddit and let users opt in so their `r/obsessionmovie` posts mirror onto their own TOC identity instead of Snatchy.
 
-Potential Connections feature: link a TOC account to Reddit and let users opt in so their `r/obsessionmovie` posts mirror onto their own TOC identity instead of the Snatchy bot.
+### Shared media/chat ideas
 
-### Shared media/chat ideas — future concept
-
-Earlier roadmap ideas include richer public-chat media/music experiences and movie-streaming/watch-party style features. They are concepts, not assumptions about current production functionality; inspect current code before treating any of them as implemented.
+Earlier roadmap ideas include richer public-chat media/music experiences and movie-streaming/watch-party style features. They are concepts, not assumptions about current production functionality; inspect current code before treating them as implemented.
 
 ## Maintenance note
 

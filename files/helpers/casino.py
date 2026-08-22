@@ -1,16 +1,18 @@
 import time
 from files.classes.casino_game import CasinoGame
 from files.helpers.alerts import *
+from files.helpers.bank_statement_noise_fixes import ECONOMY_RESET_UTC
 from files.helpers.config.const import *
 from files.helpers.useractions import badge_grant
 
-# Slots/Blackjack had development-era extreme wagers that permanently polluted
-# the "biggest winner / biggest loser" cards. Keep those CasinoGame rows intact
-# for feeds, user stats and audit/history, but start these two leaderboards fresh
-# from this cutoff. Roulette and any other casino games retain their full history.
+# All three casino "All Time" winner/loser cards were reset on 2026-08-22 after
+# development/testing balances polluted the historical extremes. Game rows stay
+# intact for feeds, user stats and audit/history; only leaderboard eligibility
+# starts fresh from the shared economy reset cutoff.
 CASINO_LEADERBOARD_RESET_UTC = {
-	'slots': 1786211100,       # 2026-08-08 17:45 UTC
-	'blackjack': 1786211100,   # 2026-08-08 17:45 UTC
+	'slots': ECONOMY_RESET_UTC,
+	'blackjack': ECONOMY_RESET_UTC,
+	'roulette': ECONOMY_RESET_UTC,
 }
 
 def get_game_feed(game, db):
@@ -44,7 +46,7 @@ def get_game_leaderboard(game, db:scoped_session):
 	leaderboard_reset = CASINO_LEADERBOARD_RESET_UTC.get(game, 0)
 	# "All Time" normally starts on casino release day. For explicitly reset
 	# games it starts at the reset cutoff instead. The 24h card also respects the
-	# same cutoff, so an old extreme game cannot linger for the next 24 hours.
+	# same cutoff, so pre-reset games cannot leak into either card.
 	timestamp_all_time = max(CASINO_RELEASE_DAY, leaderboard_reset)
 	timestamp_last_24h = max(timestamp_24h_ago, leaderboard_reset)
 

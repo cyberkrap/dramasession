@@ -1,7 +1,7 @@
 import datetime as dt
 import time
 
-from sqlalchemy import func
+from sqlalchemy import case, func
 
 from files.__main__ import cache
 from files.classes import (
@@ -24,11 +24,15 @@ from files.classes import (
     UserBlock,
     Vote,
 )
+from files.helpers.bank_statement_noise_fixes import (
+    ECONOMY_RESET_UTC,
+    get_economy_baseline,
+)
 from files.helpers.config.const import AUTOJANNY_ID, SITE
 from files.helpers.house_system import base_house_names, special_award_for_house
 
 
-_STATS_CACHE_VERSION = "v1"
+_STATS_CACHE_VERSION = "v2-economy-reset-20260822"
 _PERIODS = {
     "30d": {"buckets": 30, "seconds": 86400, "label": "Last 30 days", "date_format": "%b %d"},
     "26w": {"buckets": 26, "seconds": 604800, "label": "Last 26 weeks", "date_format": "%b %d"},
@@ -96,18 +100,37 @@ def build_snapshot(db):
     casino_by_kind = {
         kind: {
             "wagered": int(wagered or 0),
+            # CasinoGame.winnings is net result, so only positive rows represent
+            # money won by players. Summing negative losses made the old "paid
+            # out" statistic nonsensically negative.
             "paid_out": int(paid_out or 0),
         }
         for kind, wagered, paid_out in (
             db.query(
                 CasinoGame.kind,
                 func.coalesce(func.sum(CasinoGame.wager), 0),
-                func.coalesce(func.sum(CasinoGame.winnings), 0),
+                func.coalesce(
+                    func.sum(case((CasinoGame.winnings > 0, CasinoGame.winnings), else_=0)),
+                    0,
+                ),
+            )
+            .filter(
+                CasinoGame.active.is_(False),
+                CasinoGame.created_utc >= ECONOMY_RESET_UTC,
             )
             .group_by(CasinoGame.kind)
             .all()
         )
     }
+
+    coins_spent_since_reset = max(
+        0,
+        _sum(db, User.coins_spent) - get_economy_baseline(db, "coins_spent"),
+    )
+    hats_spent_since_reset = max(
+        0,
+        _sum(db, User.coins_spent_on_hats) - get_economy_baseline(db, "coins_spent_on_hats"),
+    )
 
     houses = _house_rows(db)
 
@@ -148,18 +171,20 @@ def build_snapshot(db):
             ("Wishcoins spent on applied awards", _sum(db, AwardRelationship.price_paid, applied_award)),
         ]),
         _section("Economy", [
-            ("Wishcoins in circulation", _sum(db, User.coins)),
-            ("Wishbux in circulation", _sum(db, User.marseybux)),
-            ("Wishcoins spent in shop", _sum(db, User.coins_spent)),
-            ("Wishcoins spent on hats", _sum(db, User.coins_spent_on_hats)),
-            ("Casino wagered", sum(item["wagered"] for item in casino_by_kind.values())),
-            ("Casino paid out", sum(item["paid_out"] for item in casino_by_kind.values())),
-            ("Blackjack wagered", casino_by_kind.get("blackjack", {}).get("wagered", 0)),
-            ("Blackjack paid out", casino_by_kind.get("blackjack", {}).get("paid_out", 0)),
-            ("Slots wagered", casino_by_kind.get("slots", {}).get("wagered", 0)),
-            ("Slots paid out", casino_by_kind.get("slots", {}).get("paid_out", 0)),
-            ("Roulette wagered", casino_by_kind.get("roulette", {}).get("wagered", 0)),
-            ("Roulette paid out", casino_by_kind.get("roulette", {}).get("paid_out", 0)),
+            # Circulation is intentionally current-state data, not a historical
+            # counter. Resetting it would mean changing real user balances.
+            ("Wishcoins in circulation now", _sum(db, User.coins)),
+            ("Wishbux in circulation now", _sum(db, User.marseybux)),
+            ("Wishcoins spent in shop since reset", coins_spent_since_reset),
+            ("Wishcoins spent on hats since reset", hats_spent_since_reset),
+            ("Casino wagered since reset", sum(item["wagered"] for item in casino_by_kind.values())),
+            ("Casino paid out since reset", sum(item["paid_out"] for item in casino_by_kind.values())),
+            ("Blackjack wagered since reset", casino_by_kind.get("blackjack", {}).get("wagered", 0)),
+            ("Blackjack paid out since reset", casino_by_kind.get("blackjack", {}).get("paid_out", 0)),
+            ("Slots wagered since reset", casino_by_kind.get("slots", {}).get("wagered", 0)),
+            ("Slots paid out since reset", casino_by_kind.get("slots", {}).get("paid_out", 0)),
+            ("Roulette wagered since reset", casino_by_kind.get("roulette", {}).get("wagered", 0)),
+            ("Roulette paid out since reset", casino_by_kind.get("roulette", {}).get("paid_out", 0)),
         ]),
         _section("Boards & customization", [
             ("Boards", _count(db, Sub)),
@@ -176,6 +201,7 @@ def build_snapshot(db):
 
     return {
         "generated_utc": now,
+        "economy_reset_utc": ECONOMY_RESET_UTC,
         "sections": sections,
         "houses": houses,
         "headline": {
