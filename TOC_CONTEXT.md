@@ -43,6 +43,7 @@ For rDrama-inspired work, do not independently clone/scrape current rDrama behav
 - Prefer a single consolidated commit for one requested fix batch; avoid bursts of tiny Railway-triggering commits.
 - Verify production-facing changes after committing and check Railway status rather than assuming a commit deployed successfully.
 - Runtime source-repair helpers exist because this fork still contains large legacy files. Do not reactivate an older competing implementation merely because a helper looks unusual; first understand why it exists.
+- Repository-level automated-agent safety rules live in `AGENTS.md`. Never use destructive Git recovery (`git reset --hard`, `git restore .`, `git clean`, forced checkout/history rewrite) to simplify a task, and never discard unrelated user work.
 
 ## Identity, profiles, houses, hats and username effects
 
@@ -262,15 +263,31 @@ Admins have a **Clear Awards** moderation action for posts/comments. It removes 
 
 Recent work includes comment composer media cleanup, chat GIF support, multi-image uploads and duplicate-control fixes. Test posts, comments and chat independently; they do not always share the same DOM/control path.
 
+## Discord bot / TOC integration
+
+The Discord bot is now a first-class TOC service rather than an unrelated side project.
+
+- Bot repository: `cyberkrap/Obsession-Bot`, primary branch `main`, TypeScript/discord.js/Prisma/PostgreSQL, Railway deployment.
+- `Obsession-Bot` owns Discord gateway behavior, Discord-side business logic and its Prisma-managed data. `dramasession` owns the TOC website, public chat and site-side data.
+- **Do not make either application directly mutate the other application's database.** Cross-service behavior goes through explicit versioned HTTP contracts.
+- The first integration slice is deliberately read-only: the bot exposes `/healthz` and `/v1/commands`; TOC exposes `/discordbot` and `/discordbot/commands` and consumes the bot through `files/helpers/discord_bot_api.py`.
+- TOC reads the bot service URL from `OBSESSION_BOT_API_URL`. The website must remain usable when that variable is unset or the bot API is temporarily unavailable.
+- `/v1/commands` is the canonical machine-readable command catalog built from the bot's command registries. TOC renders it as a flat Bleed-style category directory with search, syntax/examples and copy actions. Avoid duplicating command documentation by hand in both products.
+- Future dashboard write/control endpoints require explicit service-to-service authentication plus user/guild authorization; do not expose unauthenticated mutation endpoints.
+- Complicated server configuration should move toward the TOC web dashboard while in-chat commands remain optimized for actions users actually perform in Discord.
+- Ticket functionality is intentionally excluded from this roadmap because the community already uses a dedicated ticket bot.
+
 ## Future plans / pending implementation
 
-### Bleed-inspired TOC activity/utility bot — planned concept
+### Bleed-inspired TOC activity/utility bot — active roadmap
 
-The user wants to return to an all-in-one activity/utility/entertainment bot inspired by Bleed's breadth, not another moderation bot. Do not copy Bleed's private code/branding/assets; recreate useful capabilities as TOC-native features.
+The user wants an all-in-one activity/utility/entertainment bot inspired by Bleed's breadth and polish, not a shallow command dump. Do not copy Bleed's private code/branding/assets; recreate useful capabilities as TOC-native features with shared services and coherent UX.
 
-Candidate scope includes Last.fm/Spotify-style activity, trivia/chat games, levels/streaks, snipe/edit-history utilities with sensible retention/privacy, general media/utility commands, social integrations, automated activity feeds, giveaways/counters/scheduled activity and custom response/command concepts.
+Current bot foundations include hybrid slash/prefix commands, XP/levels, reaction roles, emoji lookup, configurable prefixes and booster-role foundations. Progression/perks work should be rebased or rebuilt against current `main` rather than blindly merging stale feature branches.
 
-This is deferred until current site fixes are complete.
+Candidate scope includes progression/perks, moderation cases and bot-level permissions, Last.fm/Spotify-style activity, trivia/chat games, levels/streaks, snipe/edit-history utilities with sensible retention/privacy, general media/utility commands, social integrations, automated activity feeds, giveaways/counters/scheduled activity and custom response/command concepts.
+
+Use the TOC `/discordbot` surface as the long-term documentation/control plane. Prefer shared backend services over hundreds of unrelated command implementations.
 
 ### Snatchy external approval
 

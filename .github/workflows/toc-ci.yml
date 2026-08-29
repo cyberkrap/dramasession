@@ -1,0 +1,47 @@
+name: TOC CI
+
+on:
+  pull_request:
+    branches:
+      - obsession-rebrand
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile Python sources
+        run: python -m compileall -q files
+
+      - name: Validate Discord bot templates
+        run: |
+          python -m pip install --disable-pip-version-check "Jinja2>=3.1,<4"
+          python - <<'PY'
+          from pathlib import Path
+          from jinja2 import Environment
+
+          environment = Environment()
+          for path in sorted(Path("files/templates/discord_bot").glob("*.html")):
+              environment.parse(path.read_text(encoding="utf-8"))
+              print(f"validated {path}")
+          PY
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate Discord bot browser script
+        run: node --check files/assets/js/discord_bot_commands.js

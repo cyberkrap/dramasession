@@ -142,6 +142,7 @@ from .short_username_perk import *
 from .connections import *
 from .signup_rewards import *
 from .static import *
+from .discord_bot import *
 # These modules intentionally load after static.py: site_stats replaces the
 # legacy /stats endpoint, while house_pages registers the dynamic house views.
 from .site_stats import *

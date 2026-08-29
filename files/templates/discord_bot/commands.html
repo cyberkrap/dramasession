@@ -1,0 +1,118 @@
+{% extends "default.html" %}
+{% block pagetitle %}Discord Bot Commands{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{'css/discord_bot.css' | asset}}">
+
+<div class="discord-bot-shell discord-command-shell mt-3 mb-5">
+	<div class="discord-command-header">
+		<div>
+			<a class="discord-command-back" href="/discordbot"><i class="fas fa-arrow-left mr-2"></i>One Wish Bot</a>
+			<h1>Commands</h1>
+			<p>Pick a category and get straight to the command, syntax and example.</p>
+		</div>
+		{% if catalog %}
+		<div class="discord-command-count">{{ catalog.command_count }} total</div>
+		{% endif %}
+	</div>
+
+	{% if catalog and catalog.categories %}
+	<nav class="discord-command-categories" aria-label="Command categories">
+		{% for category in catalog.categories %}
+		<a class="discord-command-category {% if category.key == selected_category %}active{% endif %}"
+		   href="/discordbot/commands?category={{ category.key|urlencode }}">
+			{{ category.label }} <span>{{ category.count }}</span>
+		</a>
+		{% endfor %}
+	</nav>
+
+	<form class="discord-command-search" method="get" action="/discordbot/commands">
+		<input type="hidden" name="category" value="{{ selected_category }}">
+		<i class="fas fa-search" aria-hidden="true"></i>
+		<input id="discord-command-filter" name="q" type="search" value="{{ query }}" maxlength="100" autocomplete="off" placeholder="Search {{ selected_category_label }} commands..." aria-label="Search commands">
+		{% if query %}<a href="/discordbot/commands?category={{ selected_category|urlencode }}" aria-label="Clear search"><i class="fas fa-times"></i></a>{% endif %}
+	</form>
+
+	<div class="discord-command-section-title">
+		<div>
+			<div class="discord-bot-eyebrow">{{ selected_category_label|upper }}</div>
+			<h2>{{ commands|length }} command{% if commands|length != 1 %}s{% endif %}</h2>
+		</div>
+	</div>
+
+	<div id="discord-command-list" class="discord-command-list">
+		{% for command in commands %}
+		<article class="discord-command-card" data-command-card data-command-text="{{ ([command.name, command.description, command.usage] + command.aliases)|join(' ') }}">
+			<div class="discord-command-card-head">
+				<div>
+					<div class="discord-command-name-row">
+						<h3>{{ command.name }}</h3>
+						<span class="discord-command-kind">{{ command.kind }}</span>
+					</div>
+					<p>{{ command.description }}</p>
+				</div>
+				{% if command.usage %}
+				<button class="btn btn-sm discord-copy-button" type="button" data-copy-command="{{ command.usage }}" title="Copy syntax">
+					<i class="far fa-copy mr-1"></i><span>Copy</span>
+				</button>
+				{% endif %}
+			</div>
+
+			<div class="discord-command-meta-grid">
+				{% if command.usage %}
+				<div class="discord-command-meta">
+					<span>Syntax</span>
+					<code>{{ command.usage }}</code>
+				</div>
+				{% endif %}
+
+				{% if command.examples %}
+				<div class="discord-command-meta">
+					<span>Example</span>
+					<code>{{ command.examples[0] }}</code>
+				</div>
+				{% endif %}
+			</div>
+
+			{% if command.aliases or command.permissions %}
+			<div class="discord-command-foot">
+				{% if command.aliases %}
+				<div><strong>Aliases</strong> {{ command.aliases|join(', ') }}</div>
+				{% endif %}
+				{% if command.permissions %}
+				<div><strong>Permissions</strong> {{ command.permissions|join(', ') }}</div>
+				{% endif %}
+			</div>
+			{% endif %}
+		</article>
+		{% else %}
+		<div class="discord-bot-empty" data-command-empty>
+			<i class="fas fa-search"></i>
+			<div>
+				<strong>No matching commands</strong>
+				<p>Try a different search or category.</p>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+
+	<div class="discord-bot-empty discord-command-js-empty" data-command-js-empty hidden>
+		<i class="fas fa-search"></i>
+		<div>
+			<strong>No matching commands</strong>
+			<p>Try another search.</p>
+		</div>
+	</div>
+	{% else %}
+	<div class="discord-bot-empty mt-4">
+		<i class="fas fa-plug"></i>
+		<div>
+			<strong>Command catalog unavailable</strong>
+			<p>{% if api_configured %}The bot API is temporarily unreachable.{% else %}The TOC service has not been connected to the bot API yet.{% endif %}</p>
+		</div>
+	</div>
+	{% endif %}
+</div>
+
+<script defer src="{{'js/discord_bot_commands.js' | asset}}"></script>
+{% endblock %}
