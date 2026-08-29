@@ -1,8 +1,8 @@
 .discord-bot-shell {
-	--bot-border: rgba(255, 255, 255, 0.12);
-	--bot-muted: rgba(255, 255, 255, 0.66);
-	--bot-soft: rgba(255, 255, 255, 0.055);
-	--bot-softer: rgba(255, 255, 255, 0.035);
+	--bot-border: rgba(128, 128, 128, 0.28);
+	--bot-muted: var(--muted, #777);
+	--bot-soft: rgba(128, 128, 128, 0.09);
+	--bot-softer: rgba(128, 128, 128, 0.055);
 	max-width: 1120px;
 	margin-left: auto;
 	margin-right: auto;
@@ -16,6 +16,8 @@
 }
 
 .discord-bot-hero {
+	--bot-border: rgba(255, 255, 255, 0.12);
+	--bot-muted: rgba(255, 255, 255, 0.7);
 	position: relative;
 	display: flex;
 	align-items: center;
@@ -25,6 +27,7 @@
 	overflow: hidden;
 	border: 1px solid var(--bot-border);
 	border-radius: 18px;
+	color: #fff;
 	background:
 		radial-gradient(circle at 85% 20%, rgba(176, 31, 46, 0.26), transparent 35%),
 		linear-gradient(135deg, rgba(30, 9, 12, 0.96), rgba(17, 17, 20, 0.98));
@@ -267,7 +270,7 @@
 	font-size: 0.72rem;
 	font-weight: 700;
 	color: var(--bot-muted);
-	background: rgba(255, 255, 255, 0.035);
+	background: var(--bot-soft);
 }
 
 .discord-command-header {
@@ -359,7 +362,7 @@
 	border: 1px solid var(--bot-border);
 	border-radius: 10px;
 	color: inherit;
-	background: rgba(0, 0, 0, 0.14);
+	background: var(--bot-softer);
 }
 
 .discord-command-search input:focus {
@@ -425,7 +428,7 @@
 	flex: 0 0 auto;
 	border: 1px solid var(--bot-border);
 	color: var(--bot-muted);
-	background: rgba(255, 255, 255, 0.04);
+	background: var(--bot-soft);
 }
 
 .discord-copy-button:hover,
@@ -460,10 +463,10 @@
 	display: block;
 	overflow-x: auto;
 	padding: 0.58rem 0.7rem;
-	border: 1px solid rgba(255, 255, 255, 0.075);
+	border: 1px solid var(--bot-border);
 	border-radius: 8px;
 	color: inherit;
-	background: rgba(0, 0, 0, 0.17);
+	background: var(--bot-soft);
 	white-space: nowrap;
 }
 
@@ -473,7 +476,7 @@
 	gap: 0.55rem 1.2rem;
 	margin-top: 0.8rem;
 	padding-top: 0.7rem;
-	border-top: 1px solid rgba(255, 255, 255, 0.07);
+	border-top: 1px solid var(--bot-border);
 	font-size: 0.76rem;
 	color: var(--bot-muted);
 }
