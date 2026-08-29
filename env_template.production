@@ -5,6 +5,7 @@ SECRET_KEY=replace-with-a-long-random-production-secret
 DATABASE_URL=postgresql://railway-postgres-connection-string
 REDIS_URL=redis://railway-redis-connection-string
 PROXY_URL=
+OBSESSION_BOT_API_URL=
 TRUSTED_PROXY_HOPS=1
 LOG_DIRECTORY=/data/logs
 SETTINGS_FILENAME=/data/site_settings.json
