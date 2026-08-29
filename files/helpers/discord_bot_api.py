@@ -21,6 +21,19 @@ def bot_api_configured():
     return bool(_API_URL)
 
 
+def _declared_content_length(response):
+    value = response.headers.get("Content-Length")
+    if not value:
+        return None
+
+    try:
+        length = int(value)
+    except (TypeError, ValueError):
+        return None
+
+    return length if length >= 0 else None
+
+
 def _fetch_json(path):
     if not _API_URL:
         return None
@@ -33,14 +46,9 @@ def _fetch_json(path):
     )
     response.raise_for_status()
 
-    content_length = response.headers.get("Content-Length")
-    if content_length:
-        try:
-            if int(content_length) > _MAX_RESPONSE_BYTES:
-                raise ValueError("Obsession Bot API response exceeded size limit")
-        except ValueError as exc:
-            if "exceeded" in str(exc):
-                raise
+    content_length = _declared_content_length(response)
+    if content_length is not None and content_length > _MAX_RESPONSE_BYTES:
+        raise ValueError("Obsession Bot API response exceeded size limit")
 
     chunks = []
     total = 0
