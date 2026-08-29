@@ -1,0 +1,86 @@
+{% extends "default.html" %}
+{% block pagetitle %}Discord Bot{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{'css/discord_bot.css' | asset}}">
+
+<div class="discord-bot-shell mt-3 mb-5">
+	<section class="discord-bot-hero">
+		<div class="discord-bot-hero-copy">
+			<div class="discord-bot-eyebrow">THE OBSESSION CLUB</div>
+			<h1>One Wish Bot</h1>
+			<p class="discord-bot-lead">TOC's Discord bot for community progression, custom roles, server utilities and everything we're building next.</p>
+			<div class="discord-bot-actions">
+				<a class="btn btn-primary" href="/discordbot/commands"><i class="fas fa-terminal mr-2"></i>Browse commands</a>
+				<span class="discord-bot-status {% if health and health.ready %}is-online{% elif api_configured %}is-offline{% else %}is-unknown{% endif %}">
+					<span class="discord-bot-status-dot"></span>
+					{% if health and health.ready %}Online{% elif api_configured %}Status unavailable{% else %}Control link not configured{% endif %}
+				</span>
+			</div>
+		</div>
+		<div class="discord-bot-mark" aria-hidden="true"><i class="fab fa-discord"></i></div>
+	</section>
+
+	<div class="discord-bot-stat-grid">
+		<div class="discord-bot-stat">
+			<strong>{{ catalog.command_count if catalog else '—' }}</strong>
+			<span>Commands</span>
+		</div>
+		<div class="discord-bot-stat">
+			<strong>{{ catalog.categories|length if catalog else '—' }}</strong>
+			<span>Categories</span>
+		</div>
+		<div class="discord-bot-stat">
+			<strong>{{ health.guild_count if health and health.guild_count is not none else '—' }}</strong>
+			<span>Servers</span>
+		</div>
+		<div class="discord-bot-stat">
+			<strong>{% if health and health.ping_ms is not none %}{{ health.ping_ms }} ms{% else %}—{% endif %}</strong>
+			<span>Gateway ping</span>
+		</div>
+	</div>
+
+	<section class="discord-bot-section">
+		<div class="discord-bot-section-heading">
+			<div>
+				<div class="discord-bot-eyebrow">COMMANDS</div>
+				<h2>Find what you need without digging</h2>
+			</div>
+			<a href="/discordbot/commands">View all <i class="fas fa-arrow-right ml-1"></i></a>
+		</div>
+
+		{% if catalog and catalog.categories %}
+		<div class="discord-bot-category-grid">
+			{% for category in catalog.categories %}
+			<a class="discord-bot-category-card" href="/discordbot/commands?category={{ category.key|urlencode }}">
+				<span class="discord-bot-category-name">{{ category.label }}</span>
+				<span class="discord-bot-category-count">{{ category.count }} command{% if category.count != 1 %}s{% endif %}</span>
+				<i class="fas fa-chevron-right" aria-hidden="true"></i>
+			</a>
+			{% endfor %}
+		</div>
+		{% else %}
+		<div class="discord-bot-empty">
+			<i class="fas fa-plug"></i>
+			<div>
+				<strong>Command catalog unavailable</strong>
+				<p>The page is ready, but TOC cannot reach the bot's read API yet.</p>
+			</div>
+		</div>
+		{% endif %}
+	</section>
+
+	<section class="discord-bot-section discord-bot-roadmap">
+		<div class="discord-bot-eyebrow">BUILT AS ONE SYSTEM</div>
+		<h2>More than a pile of commands</h2>
+		<p>Progression, booster perks, custom roles, moderation, automation and community features are being built on shared services so the Discord experience and TOC can grow together.</p>
+		<div class="discord-bot-pill-row">
+			<span>Levels &amp; perks</span>
+			<span>Booster roles</span>
+			<span>Moderation</span>
+			<span>Automation</span>
+			<span>Community tools</span>
+		</div>
+	</section>
+</div>
+{% endblock %}
