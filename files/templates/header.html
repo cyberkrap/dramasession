@@ -92,6 +92,9 @@
 
 <div class="collapse navbar-collapse" id="navbarResponsive" aria-hidden="true">
 			<ul class="navbar-nav ml-auto d-none d-md-flex">
+				<li class="nav-item d-flex align-items-center justify-content-center text-center mx-1">
+					<a class="nav-link" href="/discordbot" data-bs-toggle="tooltip" data-bs-placement="bottom" title="One Wish Bot" aria-label="One Wish Bot"><i class="fab fa-discord"></i></a>
+				</li>
 
 			{% if v %}
 
@@ -258,6 +261,11 @@
 				<a class="nav-link mobile-drawer-link" href="/contact"><i class="fas fa-file-signature fa-fw mr-3"></i>Contact us</a>
 			</div>
 			{% endif %}
+
+			<div class="mobile-drawer-section">
+				<div class="mobile-drawer-heading">Community</div>
+				<a class="nav-link mobile-drawer-link" href="/discordbot"><i class="fab fa-discord fa-fw mr-3"></i>One Wish Bot</a>
+			</div>
 
 			<div class="mobile-drawer-sidebar-section">
 				{% set mobile_drawer_sidebar = true %}
