@@ -14,6 +14,10 @@ from files.helpers.config.const import *
 from files.helpers.regex import *
 from files.helpers.media import process_image
 from files.helpers.sanitize import sanitize
+from files.helpers.toc_bot_commands import (
+	execute_toc_bot_command,
+	ensure_one_wish_bot_account,
+)
 from files.routes.wrappers import *
 from files.__main__ import app, cache, limiter
 
@@ -282,7 +286,13 @@ def speak(data, v):
 			untimeout_target = target
 	cache.set('muted', muted)
 	emit("online", [online, muted], broadcast=True)
-	execute_blackjack(v, None, text, "chat")
+
+	# Comma-prefixed One Wish Bot commands are TOC-native. Discord-only command
+	# metadata and server configuration remain in the separate Discord bot service.
+	toc_bot_result = execute_toc_bot_command(text, v, g.db)
+	if not toc_bot_result:
+		execute_blackjack(v, None, text, "chat")
+
 	if v.admin_level >= PERMS['USER_BAN']:
 		for match in mute_regex.finditer(text.lower()):
 			username = match.group(1).lower()
@@ -323,7 +333,10 @@ def speak(data, v):
 			_note=f'<a href="/chat#{message.id}">Chat</a>',
 		))
 		g.db.commit()
-	mention_uids = NOTIFY_USERS(text, v)
+
+	# Arguments to bot commands can contain @user without creating an ordinary
+	# mention notification. A lookup command should not ping its subject.
+	mention_uids = [] if toc_bot_result else NOTIFY_USERS(text, v)
 	for uid in mention_uids:
 		send_notification(uid, f"@{v.username} mentioned you in [public chat message #{message.id}](/chat#{message.id})")
 	if mention_uids:
@@ -334,6 +347,30 @@ def speak(data, v):
 		emit('speak', payload)
 	else:
 		emit('speak', payload, broadcast=True)
+
+	# Only create a persisted bot reply when the invoking message is public.
+	# This preserves the existing self-only/shadowban visibility semantics.
+	if toc_bot_result and not self_only and not v.shadowbanned:
+		bot = ensure_one_wish_bot_account(g.db)
+		bot_text = toc_bot_result.response[:CHAT_LENGTH_LIMIT]
+		bot_html = sanitize(bot_text, count_marseys=True, chat=True)
+		if not isinstance(bot_html, tuple):
+			bot_message = ChatMessage(
+				channel=CHAT_CHANNEL,
+				user_id=bot.id,
+				username=bot.username,
+				namecolor=bot.name_color,
+				hat=bot.hat_active(bot)[0],
+				body=bot_text,
+				body_html=bot_html,
+				body_censored=censor_slurs(bot_html, 'chat'),
+				quotes=message.id,
+				created_utc=int(time.time()),
+				has_attachment=False,
+			)
+			g.db.add(bot_message)
+			g.db.commit()
+			emit('speak', _message_dict(bot_message, v), broadcast=True)
 
 	typing = []
 	return '', 204

@@ -1,38 +1,41 @@
 {% extends "default.html" %}
-{% block pagetitle %}Discord Bot{% endblock %}
+{% block pagetitle %}One Wish Bot{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{'css/discord_bot.css' | asset}}">
+<link rel="stylesheet" href="{{'css/discord_bot_surfaces.css' | asset}}">
 
 <div class="discord-bot-shell mt-3 mb-5">
 	<section class="discord-bot-hero">
 		<div class="discord-bot-hero-copy">
 			<div class="discord-bot-eyebrow">THE OBSESSION CLUB</div>
 			<h1>One Wish Bot</h1>
-			<p class="discord-bot-lead">TOC's Discord bot for community progression, custom roles, server utilities and everything we're building next.</p>
+			<p class="discord-bot-lead">One bot ecosystem for the TOC Discord server and TOC itself: progression, utilities, integrations, community tools and a growing Bleed-inspired command library.</p>
 			<div class="discord-bot-actions">
-				<a class="btn btn-primary" href="/discordbot/commands"><i class="fas fa-terminal mr-2"></i>Browse commands</a>
+				<a class="btn btn-primary" href="/discordbot/commands"><i class="fab fa-discord mr-2"></i>Discord commands</a>
+				<a class="btn btn-secondary" href="/discordbot/toc-commands"><i class="fas fa-messages mr-2"></i>TOC chat commands</a>
+				<a class="btn btn-secondary" href="/chat"><i class="fas fa-arrow-right mr-2"></i>Open public chat</a>
 				<span class="discord-bot-status {% if health and health.ready %}is-online{% elif api_configured %}is-offline{% else %}is-unknown{% endif %}">
 					<span class="discord-bot-status-dot"></span>
-					{% if health and health.ready %}Online{% elif api_configured %}Status unavailable{% else %}Control link not configured{% endif %}
+					{% if health and health.ready %}Discord bot online{% elif api_configured %}Discord status unavailable{% else %}Discord control link not configured{% endif %}
 				</span>
 			</div>
 		</div>
-		<div class="discord-bot-mark" aria-hidden="true"><i class="fab fa-discord"></i></div>
+		<div class="discord-bot-mark" aria-hidden="true"><img src="{{'one-wish-bot-navbar.png' | asset_siteimg}}" alt="" width="112" height="112" style="width:112px;height:112px;object-fit:contain"></div>
 	</section>
 
 	<div class="discord-bot-stat-grid">
 		<div class="discord-bot-stat">
 			<strong>{{ catalog.command_count if catalog else '—' }}</strong>
-			<span>Commands</span>
+			<span>Discord commands</span>
 		</div>
 		<div class="discord-bot-stat">
-			<strong>{{ catalog.categories|length if catalog else '—' }}</strong>
-			<span>Categories</span>
+			<strong>{{ toc_command_count }}</strong>
+			<span>TOC chat commands</span>
 		</div>
 		<div class="discord-bot-stat">
 			<strong>{{ health.guild_count if health and health.guild_count is not none else '—' }}</strong>
-			<span>Servers</span>
+			<span>Discord servers</span>
 		</div>
 		<div class="discord-bot-stat">
 			<strong>{% if health and health.ping_ms is not none %}{{ health.ping_ms }} ms{% else %}—{% endif %}</strong>
@@ -43,8 +46,30 @@
 	<section class="discord-bot-section">
 		<div class="discord-bot-section-heading">
 			<div>
-				<div class="discord-bot-eyebrow">COMMANDS</div>
-				<h2>Find what you need without digging</h2>
+				<div class="discord-bot-eyebrow">TWO SURFACES, ONE BOT</div>
+				<h2>Use the commands that make sense where you are</h2>
+			</div>
+		</div>
+
+		<div class="discord-bot-category-grid">
+			<a class="discord-bot-category-card" href="/discordbot/commands">
+				<span class="discord-bot-category-name">Discord Commands</span>
+				<span class="discord-bot-category-count">Roles, server configuration, Discord progression, moderation and Discord-only utilities.</span>
+				<i class="fas fa-chevron-right" aria-hidden="true"></i>
+			</a>
+			<a class="discord-bot-category-card" href="/discordbot/toc-commands">
+				<span class="discord-bot-category-name">TOC Public Chat Commands</span>
+				<span class="discord-bot-category-count">TOC-native information and utility commands that run directly in public chat.</span>
+				<i class="fas fa-chevron-right" aria-hidden="true"></i>
+			</a>
+		</div>
+	</section>
+
+	<section class="discord-bot-section">
+		<div class="discord-bot-section-heading">
+			<div>
+				<div class="discord-bot-eyebrow">DISCORD COMMANDS</div>
+				<h2>Browse the current Discord command library</h2>
 			</div>
 			<a href="/discordbot/commands">View all <i class="fas fa-arrow-right ml-1"></i></a>
 		</div>
@@ -63,8 +88,8 @@
 		<div class="discord-bot-empty">
 			<i class="fas fa-plug"></i>
 			<div>
-				<strong>Command catalog unavailable</strong>
-				<p>The page is ready, but TOC cannot reach the bot's read API yet.</p>
+				<strong>Discord command catalog unavailable</strong>
+				<p>The TOC-native chat commands still work independently; only the separate Discord bot API is unavailable.</p>
 			</div>
 		</div>
 		{% endif %}
@@ -73,11 +98,11 @@
 	<section class="discord-bot-section discord-bot-roadmap">
 		<div class="discord-bot-eyebrow">BUILT AS ONE SYSTEM</div>
 		<h2>More than a pile of commands</h2>
-		<p>Progression, booster perks, custom roles, moderation, automation and community features are being built on shared services so the Discord experience and TOC can grow together.</p>
+		<p>Discord-only concepts stay on Discord. TOC-native features stay native to TOC. Shared systems such as progression, Last.fm-style integrations, utilities and community features can expose the right interface on both surfaces without coupling the databases.</p>
 		<div class="discord-bot-pill-row">
 			<span>Levels &amp; perks</span>
-			<span>Booster roles</span>
-			<span>Moderation</span>
+			<span>Last.fm &amp; integrations</span>
+			<span>Utilities</span>
 			<span>Automation</span>
 			<span>Community tools</span>
 		</div>
