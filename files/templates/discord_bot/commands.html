@@ -1,5 +1,5 @@
 {% extends "default.html" %}
-{% block pagetitle %}Discord Bot Commands{% endblock %}
+{% block pagetitle %}One Wish Bot — Discord Commands{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{'css/discord_bot.css' | asset}}">
@@ -8,12 +8,19 @@
 	<div class="discord-command-header">
 		<div>
 			<a class="discord-command-back" href="/discordbot"><i class="fas fa-arrow-left mr-2"></i>One Wish Bot</a>
-			<h1>Commands</h1>
-			<p>Pick a category and get straight to the command, syntax and example.</p>
+			<div class="discord-bot-eyebrow mt-3">DISCORD</div>
+			<h1>Discord Commands</h1>
+			<p>Commands executed by One Wish Bot inside Discord. TOC public-chat commands have their own directory.</p>
 		</div>
 		{% if catalog %}
 		<div class="discord-command-count">{{ catalog.command_count }} total</div>
 		{% endif %}
+	</div>
+
+	<div class="discord-bot-tabs mb-4" role="navigation" aria-label="One Wish Bot command surfaces">
+		<a class="discord-bot-tab active" href="/discordbot/commands">Discord Commands</a>
+		<a class="discord-bot-tab" href="/discordbot/toc-commands">TOC Chat Commands</a>
+		<a class="discord-bot-tab" href="/chat">Open Public Chat</a>
 	</div>
 
 	{% if catalog and catalog.categories %}
@@ -29,7 +36,7 @@
 	<form class="discord-command-search" method="get" action="/discordbot/commands">
 		<input type="hidden" name="category" value="{{ selected_category }}">
 		<i class="fas fa-search" aria-hidden="true"></i>
-		<input id="discord-command-filter" name="q" type="search" value="{{ query }}" maxlength="100" autocomplete="off" placeholder="Search {{ selected_category_label }} commands..." aria-label="Search commands">
+		<input id="discord-command-filter" name="q" type="search" value="{{ query }}" maxlength="100" autocomplete="off" placeholder="Search {{ selected_category_label }} commands..." aria-label="Search Discord commands">
 		{% if query %}<a href="/discordbot/commands?category={{ selected_category|urlencode }}" aria-label="Clear search"><i class="fas fa-times"></i></a>{% endif %}
 	</form>
 
@@ -107,7 +114,7 @@
 	<div class="discord-bot-empty mt-4">
 		<i class="fas fa-plug"></i>
 		<div>
-			<strong>Command catalog unavailable</strong>
+			<strong>Discord command catalog unavailable</strong>
 			<p>{% if api_configured %}The bot API is temporarily unreachable.{% else %}The TOC service has not been connected to the bot API yet.{% endif %}</p>
 		</div>
 	</div>
